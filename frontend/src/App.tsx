@@ -38,9 +38,9 @@ export default function App() {
     <div className="min-h-screen">
       <Toaster position="top-center" />
       <PullToRefresh />
-      {/* status-bar scrim: content scrolls under a clean blur instead of
-          colliding with the iOS clock/battery overlay */}
-      <div className="fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-background/75 backdrop-blur-lg" />
+      {/* opaque status-bar backdrop: scrolled content disappears cleanly
+          behind it instead of showing blurred under the iOS clock/battery */}
+      <div className="fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-background" />
       <main className="mx-auto max-w-3xl px-4 pt-[calc(1.25rem+env(safe-area-inset-top))] pb-[calc(5rem+env(safe-area-inset-bottom))]">
         <RequireSetup>
           <Routes>
