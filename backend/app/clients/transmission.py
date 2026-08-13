@@ -1,0 +1,111 @@
+from typing import Any
+
+import httpx
+
+from .base import BaseClient, ServiceUnavailable
+
+TORRENT_FIELDS = [
+    "id",
+    "hashString",
+    "name",
+    "status",
+    "percentDone",
+    "totalSize",
+    "rateDownload",
+    "rateUpload",
+    "eta",
+    "uploadRatio",
+    "errorString",
+    "downloadDir",
+    "peersConnected",
+    "addedDate",
+    "trackers",
+]
+
+# https://github.com/transmission/transmission/blob/main/docs/rpc-spec.md
+STATUS_NAMES = {
+    0: "paused",
+    1: "queued",  # check pending
+    2: "checking",
+    3: "queued",  # download pending
+    4: "downloading",
+    5: "queued",  # seed pending
+    6: "seeding",
+}
+
+
+class TransmissionClient(BaseClient):
+    name = "transmission"
+
+    def __init__(self, http: httpx.AsyncClient, base_url: str) -> None:
+        super().__init__(http)
+        self.rpc_url = base_url.rstrip("/") + "/transmission/rpc"
+        self._session_id: str | None = None
+
+    async def rpc(self, method: str, arguments: dict | None = None) -> Any:
+        body = {"method": method, "arguments": arguments or {}}
+        headers = {}
+        if self._session_id:
+            headers["X-Transmission-Session-Id"] = self._session_id
+        resp = await self._request("POST", self.rpc_url, json=body, headers=headers)
+        if resp.status_code == 409:
+            self._session_id = resp.headers.get("X-Transmission-Session-Id")
+            headers["X-Transmission-Session-Id"] = self._session_id or ""
+            resp = await self._request("POST", self.rpc_url, json=body, headers=headers)
+        resp.raise_for_status()
+        payload = resp.json()
+        if payload.get("result") != "success":
+            raise ServiceUnavailable(self.name, f"rpc error: {payload.get('result')}")
+        return payload.get("arguments", {})
+
+    async def session(self) -> dict:
+        return await self.rpc("session-get")
+
+    async def session_stats(self) -> dict:
+        return await self.rpc("session-stats")
+
+    async def torrents(self) -> list:
+        result = await self.rpc("torrent-get", {"fields": TORRENT_FIELDS})
+        return result.get("torrents", [])
+
+    async def torrent_details(self, torrent_id: int) -> dict:
+        result = await self.rpc(
+            "torrent-get",
+            {
+                "ids": [torrent_id],
+                "fields": [
+                    "files",
+                    "fileStats",
+                    "downloadLimit",
+                    "downloadLimited",
+                    "uploadLimit",
+                    "uploadLimited",
+                ],
+            },
+        )
+        torrents = result.get("torrents", [])
+        return torrents[0] if torrents else {}
+
+    async def verify(self, ids: list[int]) -> None:
+        await self.rpc("torrent-verify", {"ids": ids})
+
+    async def set_limits(self, ids: list[int], dl_kib: int, ul_kib: int) -> None:
+        await self.rpc(
+            "torrent-set",
+            {
+                "ids": ids,
+                "downloadLimit": dl_kib,
+                "downloadLimited": dl_kib > 0,
+                "uploadLimit": ul_kib,
+                "uploadLimited": ul_kib > 0,
+            },
+        )
+
+    async def start(self, ids: list[int]) -> None:
+        await self.rpc("torrent-start", {"ids": ids})
+
+    async def stop(self, ids: list[int]) -> None:
+        await self.rpc("torrent-stop", {"ids": ids})
+
+    async def remove(self, ids: list[int], delete_data: bool) -> None:
+        await self.rpc("torrent-remove", {"ids": ids, "delete-local-data": delete_data})

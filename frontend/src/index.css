@@ -1,0 +1,65 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* arrdeck theme — matched to the favicon palette:
+   navy bg #0f1219 / card #181d29, border #2a3145, muted #8b94ab, accent #5b8cff */
+:root {
+  --background: #0f1219;
+  --foreground: #e2e8f4;
+  --card: #181d29;
+  --card-foreground: #e2e8f4;
+  --popover: #1f2534;
+  --popover-foreground: #e2e8f4;
+  --primary: #5b8cff;
+  --primary-foreground: #ffffff;
+  --secondary: #1f2534;
+  --secondary-foreground: #e2e8f4;
+  --muted: #1f2534;
+  --muted-foreground: #8b94ab;
+  --accent: #242b3d;
+  --accent-foreground: #e2e8f4;
+  --destructive: #e05b5b;
+  --destructive-foreground: #ffffff;
+  --border: #2a3145;
+  --input: #2a3145;
+  --ring: #5b8cff;
+  --radius: 0.85rem;
+  --success: #3fb96f;
+  --warning: #d9a53f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}

@@ -1,0 +1,77 @@
+from typing import Any
+
+import httpx
+
+
+class ServiceUnavailable(Exception):
+    def __init__(self, service: str, message: str = "unreachable") -> None:
+        self.service = service
+        self.message = message
+        super().__init__(f"{service}: {message}")
+
+
+class BaseClient:
+    name: str = "service"
+
+    def __init__(self, http: httpx.AsyncClient) -> None:
+        self.http = http
+
+    async def _request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
+        try:
+            resp = await self.http.request(method, url, **kwargs)
+        except httpx.HTTPError as exc:
+            raise ServiceUnavailable(self.name, str(exc) or type(exc).__name__) from exc
+        if resp.status_code >= 500:
+            raise ServiceUnavailable(self.name, f"upstream HTTP {resp.status_code}")
+        return resp
+
+
+class ArrClient(BaseClient):
+    """Shared client for Radarr/Sonarr/Prowlarr (identical auth + API shape)."""
+
+    api_prefix = "/api/v3"
+
+    def __init__(self, http: httpx.AsyncClient, base_url: str, api_key: str) -> None:
+        super().__init__(http)
+        self.base_url = base_url.rstrip("/")
+        self.api_key = api_key
+
+    async def request(self, method: str, path: str, **kwargs: Any) -> Any:
+        headers = kwargs.pop("headers", {})
+        headers["X-Api-Key"] = self.api_key
+        resp = await self._request(
+            method, f"{self.base_url}{self.api_prefix}{path}", headers=headers, **kwargs
+        )
+        if resp.status_code == 401:
+            raise ServiceUnavailable(self.name, "unauthorized (check API key)")
+        resp.raise_for_status()
+        if resp.status_code == 204 or not resp.content:
+            return None
+        return resp.json()
+
+    async def get(self, path: str, **kwargs: Any) -> Any:
+        return await self.request("GET", path, **kwargs)
+
+    async def status(self) -> dict:
+        return await self.get("/system/status")
+
+    async def history(self, page_size: int = 20, page: int = 1) -> dict:
+        return await self.get(
+            "/history",
+            params={
+                "pageSize": page_size,
+                "page": page,
+                "sortKey": "date",
+                "sortDirection": "descending",
+            },
+        )
+
+    async def releases(self, **params: int) -> list:
+        # Radarr: movieId=; Sonarr: episodeId= or seriesId=&seasonNumber=.
+        # The arr fans out to all indexers — slow; allow for it.
+        return await self.get("/release", params=params, timeout=90.0)
+
+    async def grab_release(self, guid: str, indexer_id: int) -> None:
+        await self.request(
+            "POST", "/release", json={"guid": guid, "indexerId": indexer_id}, timeout=90.0
+        )

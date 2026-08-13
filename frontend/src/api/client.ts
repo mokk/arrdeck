@@ -1,0 +1,40 @@
+// Single network boundary. A future iOS/React Native port only swaps BASE_URL.
+const BASE_URL: string = import.meta.env.VITE_API_BASE_URL ?? "";
+
+export class ApiError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const resp = await fetch(`${BASE_URL}/api/v1${path}`, {
+    headers: { "Content-Type": "application/json" },
+    ...init,
+  });
+  if (!resp.ok) {
+    let message = `HTTP ${resp.status}`;
+    try {
+      const body = await resp.json();
+      message = body?.error?.message ?? body?.detail ?? message;
+    } catch {
+      /* non-JSON error body */
+    }
+    throw new ApiError(resp.status, message);
+  }
+  if (resp.status === 204) return undefined as T;
+  return resp.json();
+}
+
+export const api = {
+  get: <T>(path: string) => request<T>(path),
+  post: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }),
+  put: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: "PUT", body: body ? JSON.stringify(body) : undefined }),
+  patch: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }),
+  delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
+};

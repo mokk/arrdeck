@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- arrdeck: a "deck" of stacked layers in the app palette -->
+  <rect width="64" height="64" rx="14" fill="#181d29"/>
+  <rect x="1" y="1" width="62" height="62" rx="13" fill="none" stroke="#2a3145" stroke-width="2"/>
+  <!-- bottom layer -->
+  <path d="M12 40 L32 51 L52 40 L52 44 L32 55 L12 44 Z" fill="#2a3145"/>
+  <!-- middle layer -->
+  <path d="M12 31 L32 42 L52 31 L52 35 L32 46 L12 35 Z" fill="#8b94ab"/>
+  <!-- top layer (accent) -->
+  <path d="M32 9 L52 20 L32 31 L12 20 Z" fill="#5b8cff"/>
+</svg>
