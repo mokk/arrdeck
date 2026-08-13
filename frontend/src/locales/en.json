@@ -99,7 +99,12 @@
     "select": "Select",
     "done": "Done",
     "selected": "{{count}} selected",
-    "noCategory": "(none)"
+    "noCategory": "(none)",
+    "addTorrent": "Add torrent",
+    "magnetOrUrl": "Magnet link or torrent URL",
+    "chooseFile": "Choose .torrent file",
+    "startPaused": "Start paused",
+    "client": "Client"
   },
   "add": {
     "title": "Add",
@@ -196,7 +201,8 @@
     "grabbed": "Release grabbed",
     "searchStarted": "Search started",
     "indexerAdded": "Indexer added",
-    "retried": "Blocklisted and searching for a replacement"
+    "retried": "Blocklisted and searching for a replacement",
+    "torrentAdded": "Torrent added"
   },
   "series": {
     "seasons": "Seasons",

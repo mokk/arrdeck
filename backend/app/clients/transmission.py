@@ -101,6 +101,21 @@ class TransmissionClient(BaseClient):
             },
         )
 
+    async def add_torrent(
+        self,
+        url: str | None = None,
+        metainfo_b64: str | None = None,
+        paused: bool = False,
+    ) -> None:
+        args: dict = {"paused": paused}
+        if url:
+            args["filename"] = url
+        elif metainfo_b64:
+            args["metainfo"] = metainfo_b64
+        result = await self.rpc("torrent-add", args)
+        if "torrent-duplicate" in result:
+            raise ServiceUnavailable(self.name, "torrent already added")
+
     async def start(self, ids: list[int]) -> None:
         await self.rpc("torrent-start", {"ids": ids})
 

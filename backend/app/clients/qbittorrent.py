@@ -78,6 +78,29 @@ class QbittorrentClient(BaseClient):
             "POST", "/api/v2/torrents/setUploadLimit", data={"hashes": joined, "limit": ul_bytes}
         )
 
+    async def add_torrent(
+        self,
+        url: str | None = None,
+        file: tuple[str, bytes] | None = None,
+        category: str = "",
+        paused: bool = False,
+    ) -> None:
+        data: dict[str, str] = {}
+        if category:
+            data["category"] = category
+        if paused:
+            # 5.x renamed the flag; sending both is harmless
+            data["stopped"] = "true"
+            data["paused"] = "true"
+        files = None
+        if url:
+            data["urls"] = url
+        elif file:
+            files = {"torrents": (file[0], file[1], "application/x-bittorrent")}
+        resp = await self.request("POST", "/api/v2/torrents/add", data=data, files=files)
+        if resp.text.strip().lower().startswith("fail"):
+            raise ServiceUnavailable(self.name, "qBittorrent rejected the torrent")
+
     async def set_category(self, hashes: list[str], category: str) -> None:
         await self.request(
             "POST", "/api/v2/torrents/setCategory", data={"hashes": "|".join(hashes), "category": category}

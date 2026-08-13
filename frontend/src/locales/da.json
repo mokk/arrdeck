@@ -99,7 +99,12 @@
     "select": "Vælg",
     "done": "Færdig",
     "selected": "{{count}} valgt",
-    "noCategory": "(ingen)"
+    "noCategory": "(ingen)",
+    "addTorrent": "Tilføj torrent",
+    "magnetOrUrl": "Magnet-link eller torrent-URL",
+    "chooseFile": "Vælg .torrent-fil",
+    "startPaused": "Start pauset",
+    "client": "Klient"
   },
   "add": {
     "title": "Tilføj",
@@ -196,7 +201,8 @@
     "grabbed": "Udgivelse hentet",
     "searchStarted": "Søgning startet",
     "indexerAdded": "Indexer tilføjet",
-    "retried": "Blokeret og søger efter en erstatning"
+    "retried": "Blokeret og søger efter en erstatning",
+    "torrentAdded": "Torrent tilføjet"
   },
   "series": {
     "seasons": "Sæsoner",

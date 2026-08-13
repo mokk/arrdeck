@@ -32,6 +32,43 @@ const FAST = 5_000;
 const MEDIUM = 30_000;
 const SLOW = 300_000;
 
+export const useQbitCategories = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["qbitCategories"],
+    queryFn: () => api.get<string[]>("/torrents/qbittorrent/categories"),
+    enabled,
+    staleTime: 300_000,
+  });
+
+export function useAddTorrent() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (input: {
+      client: string;
+      url?: string;
+      file?: File;
+      category: string;
+      paused: boolean;
+    }) => {
+      if (input.file) {
+        const form = new FormData();
+        form.append("file", input.file);
+        form.append("category", input.category);
+        form.append("paused", String(input.paused));
+        return api.postForm<void>(`/torrents/${input.client}/add-file`, form);
+      }
+      return api.post<void>(`/torrents/${input.client}/add`, {
+        url: input.url,
+        category: input.category,
+        paused: input.paused,
+      });
+    },
+    onSuccess: () => toast.success(t("toast.torrentAdded")),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["torrents"] }),
+  });
+}
+
 export const useTorrentDetails = (client: string, id: string, enabled: boolean) =>
   useQuery({
     queryKey: ["torrentDetails", client, id],

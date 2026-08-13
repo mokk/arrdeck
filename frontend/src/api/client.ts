@@ -11,7 +11,8 @@ export class ApiError extends Error {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const resp = await fetch(`${BASE_URL}/api/v1${path}`, {
-    headers: { "Content-Type": "application/json" },
+    // JSON header only for string bodies; FormData sets its own boundary
+    headers: typeof init?.body === "string" ? { "Content-Type": "application/json" } : undefined,
     ...init,
   });
   if (!resp.ok) {
@@ -32,6 +33,8 @@ export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }),
+  postForm: <T>(path: string, form: FormData) =>
+    request<T>(path, { method: "POST", body: form }),
   put: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: "PUT", body: body ? JSON.stringify(body) : undefined }),
   patch: <T>(path: string, body?: unknown) =>

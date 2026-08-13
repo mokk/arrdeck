@@ -1,6 +1,8 @@
 import asyncio
+import base64
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from pydantic import BaseModel
 
 from ...clients.qbittorrent import QbittorrentClient
 from ...clients.radarr import RadarrClient
@@ -54,6 +56,56 @@ async def tm_resume(body: TorrentActionIn, tm: TransmissionClient = Depends(get_
 @router.post("/torrents/transmission/delete", status_code=204)
 async def tm_delete(body: TorrentDeleteIn, tm: TransmissionClient = Depends(get_transmission)) -> None:
     await tm.remove(_tm_ids(body.ids), body.delete_data)
+
+
+class AddTorrentIn(BaseModel):
+    url: str
+    category: str = ""
+    paused: bool = False
+
+
+@router.get("/torrents/qbittorrent/categories", response_model=list[str])
+async def qbit_categories(qbit: QbittorrentClient = Depends(get_qbit)) -> list[str]:
+    return sorted((await qbit.categories()).keys())
+
+
+@router.post("/torrents/{client}/add", status_code=204)
+async def add_torrent(
+    client: str,
+    body: AddTorrentIn,
+    qbit: QbittorrentClient = Depends(get_qbit),
+    tm: TransmissionClient = Depends(get_transmission),
+) -> None:
+    if client == "qbittorrent":
+        await qbit.add_torrent(url=body.url, category=body.category, paused=body.paused)
+    elif client == "transmission":
+        await tm.add_torrent(url=body.url, paused=body.paused)
+    else:
+        raise HTTPException(404, f"unknown client {client!r}")
+
+
+@router.post("/torrents/{client}/add-file", status_code=204)
+async def add_torrent_file(
+    client: str,
+    file: UploadFile = File(...),
+    category: str = Form(""),
+    paused: bool = Form(False),
+    qbit: QbittorrentClient = Depends(get_qbit),
+    tm: TransmissionClient = Depends(get_transmission),
+) -> None:
+    content = await file.read()
+    if client == "qbittorrent":
+        await qbit.add_torrent(
+            file=(file.filename or "upload.torrent", content),
+            category=category,
+            paused=paused,
+        )
+    elif client == "transmission":
+        await tm.add_torrent(
+            metainfo_b64=base64.b64encode(content).decode(), paused=paused
+        )
+    else:
+        raise HTTPException(404, f"unknown client {client!r}")
 
 
 @router.get("/torrents/{client}/{torrent_id}/details", response_model=TorrentDetailsOut)
