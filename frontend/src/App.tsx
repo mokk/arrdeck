@@ -38,7 +38,10 @@ export default function App() {
     <div className="min-h-screen">
       <Toaster position="top-center" />
       <PullToRefresh />
-      <main className="mx-auto max-w-3xl px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
+      {/* status-bar scrim: content scrolls under a clean blur instead of
+          colliding with the iOS clock/battery overlay */}
+      <div className="fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-background/75 backdrop-blur-lg" />
+      <main className="mx-auto max-w-3xl px-4 pt-[calc(1.25rem+env(safe-area-inset-top))] pb-[calc(5rem+env(safe-area-inset-bottom))]">
         <RequireSetup>
           <Routes>
             <Route path="/" element={<Dashboard />} />
@@ -51,23 +54,25 @@ export default function App() {
           </Routes>
         </RequireSetup>
       </main>
-      <nav className="fixed bottom-[calc(0.9rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex -translate-x-1/2 gap-1 rounded-3xl border border-white/10 bg-card/80 p-1.5 shadow-2xl shadow-black/60 backdrop-blur-xl">
-        {TABS.map(({ to, key, icon: Icon, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) =>
-              cn(
-                "flex min-w-[66px] flex-col items-center gap-0.5 rounded-2xl px-2.5 py-2 text-[0.66rem] font-semibold text-muted-foreground",
-                isActive && "bg-primary/15 text-primary",
-              )
-            }
-          >
-            <Icon className="size-[22px]" strokeWidth={2} />
-            {t(key)}
-          </NavLink>
-        ))}
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
+        <div className="mx-auto flex max-w-3xl">
+          {TABS.map(({ to, key, icon: Icon, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                cn(
+                  "flex flex-1 flex-col items-center gap-0.5 pb-1 pt-2 text-[0.66rem] font-semibold text-muted-foreground active:opacity-60",
+                  isActive && "text-primary",
+                )
+              }
+            >
+              <Icon className="size-[22px]" strokeWidth={2} />
+              {t(key)}
+            </NavLink>
+          ))}
+        </div>
       </nav>
     </div>
   );
