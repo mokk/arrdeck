@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "gen:api": "npx -y --package typescript@5.9 --package openapi-typescript@7 openapi-typescript http://10.0.0.154:3500/openapi.json -o src/api/schema.d.ts"
+    "gen:api": "npx -y --package typescript@5.9 --package @hey-api/openapi-ts@0.99 openapi-ts"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

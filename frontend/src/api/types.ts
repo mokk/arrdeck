@@ -1,14 +1,12 @@
-// Aliases into the generated OpenAPI schema (src/api/schema.d.ts).
-// Regenerate with `npm run gen:api` after backend changes — drift then
-// becomes a compile error instead of a runtime surprise.
-import type { components } from "./schema";
+// Aliases over the generated OpenAPI types (src/api/generated, via
+// @hey-api/openapi-ts). Regenerate with `npm run gen:api` after backend
+// changes — drift then becomes a compile error instead of a runtime surprise.
+import type * as G from "./generated";
 
-type S = components["schemas"];
-
-export type ServiceStatus = S["ServiceStatus"];
+export type ServiceStatus = G.ServiceStatus;
 export type ServiceName = ServiceStatus["service"];
-export type ServiceInfo = S["ServiceInfoOut"];
-export type ServiceSettings = S["ServiceSettingsOut"];
+export type ServiceInfo = G.ServiceInfoOut;
+export type ServiceSettings = G.ServiceSettingsOut;
 
 /** Generic aggregate wrapper — the schema only has concrete instantiations,
  * so the generic form stays hand-written (shape-checked via the aliases below). */
@@ -19,26 +17,26 @@ export interface ServiceBlock<T> {
   stale_age_seconds?: number | null;
 }
 
-export type Torrent = S["TorrentOut"];
-export type TorrentGroup = S["TorrentGroupOut"];
-export type TorrentDetails = S["TorrentDetailsOut"];
-export type QueueItem = S["QueueItemOut"];
-export type CalendarItem = S["CalendarItemOut"];
-export type HistoryItem = S["HistoryItemOut"];
-export type HistoryEvent = S["HistoryEventOut"];
-export type HistoryPage = S["HistoryPageOut"];
-export type IndexerStats = S["IndexerStatsOut"];
-export type SearchResult = S["SearchResultOut"];
-export type Release = S["ReleaseOut"];
-export type ArrRelease = S["ArrReleaseOut"];
-export type Options = S["OptionsOut"];
-export type Indexer = S["IndexerOut"];
-export type LibraryMovie = S["LibraryMovieOut"];
-export type LibrarySeries = S["LibrarySeriesOut"];
-export type SeriesDetail = S["SeriesDetailOut"];
-export type Season = S["SeasonOut"];
-export type Episode = S["EpisodeOut"];
-export type StatsSample = S["StatsSampleOut"];
+export type Torrent = G.TorrentOut;
+export type TorrentGroup = G.TorrentGroupOut;
+export type TorrentDetails = G.TorrentDetailsOut;
+export type QueueItem = G.QueueItemOut;
+export type CalendarItem = G.CalendarItemOut;
+export type HistoryItem = G.HistoryItemOut;
+export type HistoryEvent = G.HistoryEventOut;
+export type HistoryPage = G.HistoryPageOut;
+export type IndexerStats = G.IndexerStatsOut;
+export type SearchResult = G.SearchResultOut;
+export type Release = G.ReleaseOut;
+export type ArrRelease = G.ArrReleaseOut;
+export type Options = G.OptionsOut;
+export type Indexer = G.IndexerOut;
+export type LibraryMovie = G.LibraryMovieOut;
+export type LibrarySeries = G.LibrarySeriesOut;
+export type SeriesDetail = G.SeriesDetailOut;
+export type Season = G.SeasonOut;
+export type Episode = G.EpisodeOut;
+export type StatsSample = G.StatsSampleOut;
 
 // /indexers/schemas returns untyped dicts server-side; hand-written for now.
 export interface IndexerSchemaField {

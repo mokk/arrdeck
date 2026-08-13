@@ -136,12 +136,12 @@ function QueueSection({ configured }: { configured: Set<string> }) {
               <div className="truncate text-sm font-medium">{q.title}</div>
               <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <StateBadge state={q.app} />
-                <StateBadge state={q.errors.length ? "error" : q.status} />
+                <StateBadge state={(q.errors ?? []).length ? "error" : q.status} />
                 {q.time_left ?? ""}
               </div>
               <ProgressBar value={q.size ? (q.size - q.size_left) / q.size : 0} />
             </div>
-            {q.errors.length > 0 && (
+            {(q.errors ?? []).length > 0 && (
               <Button
                 variant="secondary"
                 size="sm"
@@ -234,7 +234,7 @@ function HistorySection({ configured }: { configured: Set<string> }) {
               <div className="truncate text-sm font-medium">{h.title}</div>
               <div className="mt-0.5 flex flex-wrap items-center gap-1 text-xs">
                 <StateBadge state={h.app} />
-                {h.events.map((e) => (
+                {(h.events ?? []).map((e) => (
                   <span key={e.type} title={formatDateTime(e.date)}>
                     <StateBadge state={e.type} />
                   </span>

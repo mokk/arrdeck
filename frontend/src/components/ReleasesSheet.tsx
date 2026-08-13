@@ -50,9 +50,9 @@ export function ReleasesSheet({
               {formatBytes(r.size)} · {r.seeders ?? "?"}/{r.leechers ?? "?"} · {r.indexer}
               {r.age_days != null ? ` · ${Math.round(r.age_days)}d` : ""}
             </div>
-            {!r.approved && r.rejections.length > 0 && (
-              <div className="mt-0.5 truncate text-xs text-warning" title={r.rejections.join("; ")}>
-                {t("releases.rejected")}: {r.rejections[0]}
+            {!r.approved && (r.rejections ?? []).length > 0 && (
+              <div className="mt-0.5 truncate text-xs text-warning" title={(r.rejections ?? []).join("; ")}>
+                {t("releases.rejected")}: {(r.rejections ?? [])[0]}
               </div>
             )}
           </div>

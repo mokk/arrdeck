@@ -57,7 +57,7 @@ export default function HistoryPage() {
               <div className="truncate text-sm font-medium">{h.title}</div>
               <div className="mt-0.5 flex flex-wrap items-center gap-1 text-xs">
                 <StateBadge state={h.app} />
-                {h.events.map((e) => (
+                {(h.events ?? []).map((e) => (
                   <span key={e.type} title={formatDateTime(e.date)}>
                     <StateBadge state={e.type} />
                   </span>

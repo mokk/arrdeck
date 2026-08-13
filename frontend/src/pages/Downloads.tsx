@@ -275,12 +275,12 @@ function ArrQueue() {
               <div className="truncate text-sm font-medium">{q.title}</div>
               <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <StateBadge state={q.app} />
-                <StateBadge state={q.errors.length ? "error" : q.status} />
-                {q.errors[0] ? <span className="truncate">{q.errors[0]}</span> : null}
+                <StateBadge state={(q.errors ?? []).length ? "error" : q.status} />
+                {q.errors?.[0] ? <span className="truncate">{q.errors[0]}</span> : null}
               </div>
             </div>
             <div className="flex shrink-0 gap-1.5">
-              {q.errors.length > 0 && (
+              {(q.errors ?? []).length > 0 && (
                 <Button
                   variant="secondary"
                   size="sm"
