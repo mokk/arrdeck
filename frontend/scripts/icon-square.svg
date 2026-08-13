@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- app icon source: full-bleed square, content in the central safe zone -->
+  <rect width="64" height="64" fill="#181d29"/>
+  <path d="M16 40.5 L32 49 L48 40.5 L48 44 L32 52.5 L16 44 Z" fill="#2a3145"/>
+  <path d="M16 33 L32 41.5 L48 33 L48 36.5 L32 45 L16 36.5 Z" fill="#8b94ab"/>
+  <path d="M32 14 L48 22.5 L32 31 L16 22.5 Z" fill="#5b8cff"/>
+</svg>

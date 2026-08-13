@@ -1,6 +1,9 @@
 import asyncio
+import mimetypes
 from contextlib import asynccontextmanager
 from pathlib import Path
+
+mimetypes.add_type("application/manifest+json", ".webmanifest")
 
 import httpx
 from fastapi import FastAPI, Request

@@ -38,7 +38,7 @@ export default function App() {
     <div className="min-h-screen">
       <Toaster position="top-center" />
       <PullToRefresh />
-      <main className="mx-auto max-w-3xl px-4 pt-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
+      <main className="mx-auto max-w-3xl px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
         <RequireSetup>
           <Routes>
             <Route path="/" element={<Dashboard />} />
