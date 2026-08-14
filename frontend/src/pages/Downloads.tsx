@@ -48,11 +48,7 @@ import {
   useTorrents,
 } from "../hooks/queries";
 import { Segmented } from "../components/Blocks";
-import {
-  useRegisterSearchbar,
-  useRegisterSortButton,
-  useRegisterSubnav,
-} from "../components/subnav";
+import { useRegisterSortButton, useRegisterSubnav } from "../components/subnav";
 import { usePersistentState } from "../hooks/usePersistentState";
 
 const SORT_KEYS = [
@@ -518,7 +514,6 @@ export default function Downloads() {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [adding, setAdding] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
-  useRegisterSearchbar(t("dl.filterByName"), nameFilter, setNameFilter);
   useRegisterSortButton(() => setSortOpen(true));
   useRegisterSubnav(
     [
@@ -534,11 +529,12 @@ export default function Downloads() {
         setChecked(new Set());
       }
     },
-    // entrypoint reset: leave select mode, don't open any sheets
+    // entrypoint reset: leave select mode, clear filters, close sheets
     () => {
       setSelectMode(false);
       setChecked(new Set());
       setSortOpen(false);
+      setNameFilter("");
     },
   );
 
@@ -702,6 +698,12 @@ export default function Downloads() {
           sort={sort}
           onClose={() => setSortOpen(false)}
         >
+          <Input
+            className="mb-3"
+            placeholder={t("dl.filterByName")}
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+          />
           <div className="flex flex-wrap gap-2">
             {clientList.length > 1 &&
               clientList.map((c) =>
