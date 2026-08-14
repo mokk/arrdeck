@@ -90,7 +90,7 @@ function Shell() {
       <div className="fixed inset-x-0 bottom-0 z-50">
         {(searchbar || sortButton) && (
           <div className="pointer-events-none px-4 pb-2.5">
-            <div className="mx-auto flex max-w-md items-center gap-2">
+            <div className={cn("mx-auto flex max-w-md items-center gap-2", !searchbar && "justify-center")}>
               {searchbar && (
                 <form
                   className="pointer-events-auto flex min-w-0 flex-1 items-center gap-2 rounded-full border border-white/10 bg-card/90 px-4 shadow-2xl shadow-black/50 backdrop-blur-xl"
@@ -122,7 +122,7 @@ function Shell() {
               )}
               {sortButton && (
                 <button
-                  className="pointer-events-auto ml-auto flex size-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-card/90 text-muted-foreground shadow-2xl shadow-black/50 backdrop-blur-xl active:opacity-60"
+                  className="pointer-events-auto flex size-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-card/90 text-muted-foreground shadow-2xl shadow-black/50 backdrop-blur-xl active:opacity-60"
                   onClick={sortButton.open}
                   title={t("common.sortBy")}
                 >
