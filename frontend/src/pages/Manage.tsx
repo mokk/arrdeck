@@ -27,10 +27,10 @@ import {
   EmptyNote,
   ErrorNote,
   Row,
-  Segmented,
   StateBadge,
 } from "../components/Blocks";
 import { Sheet } from "../components/Sheet";
+import { useRegisterSubnav } from "../components/subnav";
 import { SortBar, useSort } from "../components/sortable";
 import {
   useAddIndexer,
@@ -763,10 +763,10 @@ export default function Manage() {
 
   const [storedTab, setTab] = usePersistentState<Tab>("manage.tab", "movies");
   const tab = tabs.some((t) => t.value === storedTab) ? storedTab : tabs[0].value;
+  useRegisterSubnav(tabs, tab, (v) => setTab(v as Tab));
 
   return (
     <>
-      <Segmented options={tabs} value={tab} onChange={setTab} />
       {tab === "movies" && <MovieLibrary />}
       {tab === "series" && <SeriesLibrary />}
       {tab === "indexers" && <Indexers />}

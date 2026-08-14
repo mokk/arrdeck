@@ -21,9 +21,9 @@ import {
   ErrorNote,
   Row,
   SectionTitle,
-  Segmented,
 } from "../components/Blocks";
 import { ReleasesSheet } from "../components/ReleasesSheet";
+import { useRegisterSubnav } from "../components/subnav";
 import { Sheet } from "../components/Sheet";
 import {
   useAddMedia,
@@ -413,6 +413,12 @@ export default function Add() {
     setQuery("");
   };
 
+  useRegisterSubnav(
+    tabs.map((tb) => ({ value: tb, label: t(`add.${tb}`) })),
+    tab ?? "movies",
+    (v) => onTab(v as Tab),
+  );
+
   if (services && tabs.length === 0) {
     return (
       <>
@@ -430,13 +436,6 @@ export default function Add() {
 
   return (
     <>
-      {tabs.length > 1 && (
-        <Segmented
-          options={tabs.map((tb) => ({ value: tb, label: t(`add.${tb}`) }))}
-          value={tab}
-          onChange={onTab}
-        />
-      )}
       <form
         className="mb-4 flex gap-2"
         onSubmit={(e) => {

@@ -5,6 +5,7 @@ import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom"
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { PullToRefresh } from "./components/PullToRefresh";
+import { SubnavProvider, useSubnav } from "./components/subnav";
 import { useServices } from "./hooks/queries";
 import Add from "./pages/Add";
 import Dashboard from "./pages/Dashboard";
@@ -32,8 +33,25 @@ const TABS = [
   { to: "/manage", key: "nav.manage", icon: Settings2 },
 ];
 
-export default function App() {
+function Shell() {
   const { t } = useTranslation();
+  const { subnav } = useSubnav();
+  const location = useLocation();
+
+  const isTabActive = (to: string, end?: boolean) =>
+    end ? location.pathname === to : location.pathname.startsWith(to);
+
+  /** Re-tapping the active tab returns the page to its entrypoint:
+   * first subsection + scrolled to the top. */
+  const onTabClick = (to: string, end: boolean | undefined, e: React.MouseEvent) => {
+    if (!isTabActive(to, end)) return;
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (subnav && subnav.value !== subnav.options[0].value) {
+      subnav.onChange(subnav.options[0].value);
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <Toaster position="top-center" />
@@ -41,7 +59,14 @@ export default function App() {
       {/* opaque status-bar backdrop: scrolled content disappears cleanly
           behind it instead of showing blurred under the iOS clock/battery */}
       <div className="fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-background" />
-      <main className="mx-auto max-w-3xl px-4 pt-[calc(1.25rem+env(safe-area-inset-top))] pb-[calc(5rem+env(safe-area-inset-bottom))]">
+      <main
+        className={cn(
+          "mx-auto max-w-3xl px-4 pt-[calc(1.25rem+env(safe-area-inset-top))]",
+          subnav
+            ? "pb-[calc(8.2rem+env(safe-area-inset-bottom))]"
+            : "pb-[calc(5rem+env(safe-area-inset-bottom))]",
+        )}
+      >
         <RequireSetup>
           <Routes>
             <Route path="/" element={<Dashboard />} />
@@ -54,26 +79,60 @@ export default function App() {
           </Routes>
         </RequireSetup>
       </main>
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-3xl">
-          {TABS.map(({ to, key, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                cn(
-                  "flex flex-1 flex-col items-center gap-0.5 pb-1 pt-2 text-[0.66rem] font-semibold text-muted-foreground active:opacity-60",
-                  isActive && "text-primary",
-                )
-              }
-            >
-              <Icon className="size-[22px]" strokeWidth={2} />
-              {t(key)}
-            </NavLink>
-          ))}
-        </div>
-      </nav>
+      <div className="fixed inset-x-0 bottom-0 z-50">
+        {subnav && (
+          <div className="border-t border-border bg-card/85 backdrop-blur-xl">
+            <div className="mx-auto flex max-w-3xl gap-1 px-2 py-1.5">
+              {subnav.options.map((o) => (
+                <button
+                  key={o.value}
+                  className={cn(
+                    "flex-1 rounded-full px-2 py-1.5 text-xs font-semibold text-muted-foreground active:opacity-60",
+                    o.value === subnav.value && "bg-primary/15 text-primary",
+                  )}
+                  onClick={() => subnav.onChange(o.value)}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <nav
+          className={cn(
+            "bg-card/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl",
+            subnav ? "border-t border-border/60" : "border-t border-border",
+          )}
+        >
+          <div className="mx-auto flex max-w-3xl">
+            {TABS.map(({ to, key, icon: Icon, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                onClick={(e) => onTabClick(to, end, e)}
+                className={({ isActive }) =>
+                  cn(
+                    "flex flex-1 flex-col items-center gap-0.5 pb-1 pt-2 text-[0.66rem] font-semibold text-muted-foreground active:opacity-60",
+                    isActive && "text-primary",
+                  )
+                }
+              >
+                <Icon className="size-[22px]" strokeWidth={2} />
+                {t(key)}
+              </NavLink>
+            ))}
+          </div>
+        </nav>
+      </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <SubnavProvider>
+      <Shell />
+    </SubnavProvider>
   );
 }
