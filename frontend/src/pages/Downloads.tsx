@@ -47,6 +47,7 @@ import {
   useTorrents,
 } from "../hooks/queries";
 import { Segmented } from "../components/Blocks";
+import { useRegisterSearchbar } from "../components/subnav";
 import { usePersistentState } from "../hooks/usePersistentState";
 
 const SORT_KEYS = [
@@ -511,6 +512,7 @@ export default function Downloads() {
   const [selectMode, setSelectMode] = useState(false);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [adding, setAdding] = useState(false);
+  useRegisterSearchbar(t("dl.filterByName"), nameFilter, setNameFilter);
 
   const toggleChecked = (key: string) => {
     const next = new Set(checked);
@@ -553,13 +555,6 @@ export default function Downloads() {
 
   return (
     <>
-      <div className="mb-4">
-        <Input
-          placeholder={t("dl.filterByName")}
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
-        />
-      </div>
       <div className="mb-3 flex gap-2 overflow-x-auto [scrollbar-width:none]">
         {clientList.length > 1 &&
           clientList.map((c) =>

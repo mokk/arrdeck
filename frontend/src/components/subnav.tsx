@@ -13,15 +13,30 @@ export interface SubnavState {
   onChange: (value: string) => void;
 }
 
+export interface SearchbarState {
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+  /** submit-style searches (Enter / keyboard "go"); omit for live filters */
+  onSubmit?: () => void;
+  /** invoked by the clear button; defaults to onChange("") */
+  onClear?: () => void;
+}
+
 const SubnavContext = createContext<{
   subnav: SubnavState | null;
   setSubnav: (state: SubnavState | null) => void;
-}>({ subnav: null, setSubnav: () => {} });
+  searchbar: SearchbarState | null;
+  setSearchbar: (state: SearchbarState | null) => void;
+}>({ subnav: null, setSubnav: () => {}, searchbar: null, setSearchbar: () => {} });
 
 export function SubnavProvider({ children }: { children: ReactNode }) {
   const [subnav, setSubnav] = useState<SubnavState | null>(null);
+  const [searchbar, setSearchbar] = useState<SearchbarState | null>(null);
   return (
-    <SubnavContext.Provider value={{ subnav, setSubnav }}>{children}</SubnavContext.Provider>
+    <SubnavContext.Provider value={{ subnav, setSubnav, searchbar, setSearchbar }}>
+      {children}
+    </SubnavContext.Provider>
   );
 }
 
@@ -49,4 +64,30 @@ export function useRegisterSubnav(
   }, [optionsKey, value, setSubnav]);
 
   useEffect(() => () => setSubnav(null), [setSubnav]);
+}
+
+/** Pages call this to float their search/filter input above the bottom dock. */
+export function useRegisterSearchbar(
+  placeholder: string,
+  value: string,
+  onChange: (value: string) => void,
+  onSubmit?: () => void,
+  onClear?: () => void,
+) {
+  const { setSearchbar } = useContext(SubnavContext);
+  const refs = useRef({ onChange, onSubmit, onClear });
+  refs.current = { onChange, onSubmit, onClear };
+
+  useEffect(() => {
+    setSearchbar({
+      placeholder,
+      value,
+      onChange: (v) => refs.current.onChange(v),
+      onSubmit: onSubmit ? () => refs.current.onSubmit?.() : undefined,
+      onClear: () => (refs.current.onClear ?? (() => refs.current.onChange("")))(),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [placeholder, value, Boolean(onSubmit), setSearchbar]);
+
+  useEffect(() => () => setSearchbar(null), [setSearchbar]);
 }

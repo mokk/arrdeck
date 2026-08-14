@@ -23,7 +23,7 @@ import {
   SectionTitle,
 } from "../components/Blocks";
 import { ReleasesSheet } from "../components/ReleasesSheet";
-import { useRegisterSubnav } from "../components/subnav";
+import { useRegisterSearchbar, useRegisterSubnav } from "../components/subnav";
 import { Sheet } from "../components/Sheet";
 import {
   useAddMedia,
@@ -419,6 +419,24 @@ export default function Add() {
     (v) => onTab(v as Tab),
   );
 
+  const searchPlaceholder =
+    tab === "releases"
+      ? t("add.searchReleases")
+      : tab === "series"
+        ? t("add.searchSeries")
+        : t("add.searchMovies");
+
+  useRegisterSearchbar(
+    searchPlaceholder,
+    input,
+    setInput,
+    () => setQuery(input),
+    () => {
+      setInput("");
+      setQuery("");
+    },
+  );
+
   if (services && tabs.length === 0) {
     return (
       <>
@@ -427,32 +445,8 @@ export default function Add() {
     );
   }
 
-  const searchPlaceholder =
-    tab === "releases"
-      ? t("add.searchReleases")
-      : tab === "series"
-        ? t("add.searchSeries")
-        : t("add.searchMovies");
-
   return (
     <>
-      <form
-        className="mb-4 flex gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setQuery(input);
-        }}
-      >
-        <Input
-          placeholder={searchPlaceholder}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-        />
-        <Button type="submit" disabled={search.isFetching}>
-          {search.isFetching ? "…" : t("common.search")}
-        </Button>
-      </form>
-
       {search.error && searching && <ErrorNote>{(search.error as Error).message}</ErrorNote>}
 
       {tab === "releases" ? (

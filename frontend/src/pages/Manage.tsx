@@ -30,7 +30,7 @@ import {
   StateBadge,
 } from "../components/Blocks";
 import { Sheet } from "../components/Sheet";
-import { useRegisterSubnav } from "../components/subnav";
+import { useRegisterSearchbar, useRegisterSubnav } from "../components/subnav";
 import { SortBar, useSort } from "../components/sortable";
 import {
   useAddIndexer,
@@ -565,6 +565,7 @@ function MovieLibrary() {
   const remove = useDeleteLibraryItem("movies");
   const [q, setQ] = usePersistentState("manage.movies.filter", "");
   const sort = useSort<Record<string, unknown>>("manage.movies", "title");
+  useRegisterSearchbar(t("manage.filterMovies"), q, setQ);
 
   if (error) return <ErrorNote>{(error as Error).message}</ErrorNote>;
 
@@ -580,13 +581,6 @@ function MovieLibrary() {
 
   return (
     <>
-      <div className="mb-3">
-        <Input
-          placeholder={t("manage.filterMovies")}
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
-      </div>
       <div className="mb-4">
         <SortBar
           options={MOVIE_SORT_KEYS.map((key) => ({ key, label: t(`manage.sort.${key}`) }))}
@@ -659,6 +653,7 @@ function SeriesLibrary() {
   const remove = useDeleteLibraryItem("series");
   const [q, setQ] = usePersistentState("manage.series.filter", "");
   const sort = useSort<Record<string, unknown>>("manage.series", "title");
+  useRegisterSearchbar(t("manage.filterSeries"), q, setQ);
 
   if (error) return <ErrorNote>{(error as Error).message}</ErrorNote>;
 
@@ -671,13 +666,6 @@ function SeriesLibrary() {
 
   return (
     <>
-      <div className="mb-3">
-        <Input
-          placeholder={t("manage.filterSeries")}
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
-      </div>
       <div className="mb-4">
         <SortBar
           options={SERIES_SORT_KEYS.map((key) => ({ key, label: t(`manage.sort.${key}`) }))}

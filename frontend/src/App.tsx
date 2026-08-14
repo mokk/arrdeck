@@ -1,4 +1,4 @@
-import { ArrowDownToLine, Home, PlusCircle, Settings2 } from "lucide-react";
+import { ArrowDownToLine, Home, PlusCircle, Search, Settings2, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
@@ -35,18 +35,19 @@ const TABS = [
 
 function Shell() {
   const { t } = useTranslation();
-  const { subnav } = useSubnav();
+  const { subnav, searchbar } = useSubnav();
   const location = useLocation();
 
   const isTabActive = (to: string, end?: boolean) =>
     end ? location.pathname === to : location.pathname.startsWith(to);
 
   /** Re-tapping the active tab returns the page to its entrypoint:
-   * first subsection + scrolled to the top. */
+   * first subsection, cleared search, scrolled to the top. */
   const onTabClick = (to: string, end: boolean | undefined, e: React.MouseEvent) => {
     if (!isTabActive(to, end)) return;
     e.preventDefault();
     window.scrollTo({ top: 0, behavior: "smooth" });
+    if (searchbar?.value) searchbar.onClear?.();
     if (subnav && subnav.value !== subnav.options[0].value) {
       subnav.onChange(subnav.options[0].value);
     }
@@ -60,12 +61,10 @@ function Shell() {
           behind it instead of showing blurred under the iOS clock/battery */}
       <div className="fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-background" />
       <main
-        className={cn(
-          "mx-auto max-w-3xl px-4 pt-[calc(1.25rem+env(safe-area-inset-top))]",
-          subnav
-            ? "pb-[calc(8.2rem+env(safe-area-inset-bottom))]"
-            : "pb-[calc(5rem+env(safe-area-inset-bottom))]",
-        )}
+        className="mx-auto max-w-3xl px-4 pt-[calc(1.25rem+env(safe-area-inset-top))]"
+        style={{
+          paddingBottom: `calc(${5 + (subnav ? 3.2 : 0) + (searchbar ? 3.8 : 0)}rem + env(safe-area-inset-bottom))`,
+        }}
       >
         <RequireSetup>
           <Routes>
@@ -80,6 +79,37 @@ function Shell() {
         </RequireSetup>
       </main>
       <div className="fixed inset-x-0 bottom-0 z-50">
+        {searchbar && (
+          <div className="pointer-events-none px-4 pb-2.5">
+            <form
+              className="pointer-events-auto mx-auto flex max-w-md items-center gap-2 rounded-full border border-white/10 bg-card/90 px-4 shadow-2xl shadow-black/50 backdrop-blur-xl"
+              onSubmit={(e) => {
+                e.preventDefault();
+                searchbar.onSubmit?.();
+                (document.activeElement as HTMLElement | null)?.blur();
+              }}
+            >
+              <Search className="size-4 shrink-0 text-muted-foreground" />
+              <input
+                type="search"
+                enterKeyHint="search"
+                className="h-11 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
+                placeholder={searchbar.placeholder}
+                value={searchbar.value}
+                onChange={(e) => searchbar.onChange(e.target.value)}
+              />
+              {searchbar.value && (
+                <button
+                  type="button"
+                  className="shrink-0 text-muted-foreground active:opacity-60"
+                  onClick={() => searchbar.onClear?.()}
+                >
+                  <X className="size-4" />
+                </button>
+              )}
+            </form>
+          </div>
+        )}
         {subnav && (
           <div className="border-t border-border bg-card/85 backdrop-blur-xl">
             <div className="mx-auto flex max-w-3xl gap-1 px-2 py-1.5">
