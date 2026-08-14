@@ -1,4 +1,12 @@
-import { ArrowDownToLine, Home, PlusCircle, Search, Settings2, X } from "lucide-react";
+import {
+  ArrowDownToLine,
+  ArrowUpDown,
+  Home,
+  PlusCircle,
+  Search,
+  Settings2,
+  X,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
@@ -35,7 +43,7 @@ const TABS = [
 
 function Shell() {
   const { t } = useTranslation();
-  const { subnav, searchbar } = useSubnav();
+  const { subnav, searchbar, sortButton } = useSubnav();
   const location = useLocation();
 
   const isTabActive = (to: string, end?: boolean) =>
@@ -48,8 +56,9 @@ function Shell() {
     e.preventDefault();
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (searchbar?.value) searchbar.onClear?.();
-    if (subnav && subnav.value !== subnav.options[0].value) {
-      subnav.onChange(subnav.options[0].value);
+    if (subnav) {
+      if (subnav.onReset) subnav.onReset();
+      else if (subnav.value !== subnav.options[0].value) subnav.onChange(subnav.options[0].value);
     }
   };
 
@@ -63,7 +72,7 @@ function Shell() {
       <main
         className="mx-auto max-w-3xl px-4 pt-[calc(1.25rem+env(safe-area-inset-top))]"
         style={{
-          paddingBottom: `calc(${5 + (subnav ? 3.2 : 0) + (searchbar ? 3.8 : 0)}rem + env(safe-area-inset-bottom))`,
+          paddingBottom: `calc(${5 + (subnav ? 3.2 : 0) + (searchbar || sortButton ? 3.8 : 0)}rem + env(safe-area-inset-bottom))`,
         }}
       >
         <RequireSetup>
@@ -79,35 +88,48 @@ function Shell() {
         </RequireSetup>
       </main>
       <div className="fixed inset-x-0 bottom-0 z-50">
-        {searchbar && (
+        {(searchbar || sortButton) && (
           <div className="pointer-events-none px-4 pb-2.5">
-            <form
-              className="pointer-events-auto mx-auto flex max-w-md items-center gap-2 rounded-full border border-white/10 bg-card/90 px-4 shadow-2xl shadow-black/50 backdrop-blur-xl"
-              onSubmit={(e) => {
-                e.preventDefault();
-                searchbar.onSubmit?.();
-                (document.activeElement as HTMLElement | null)?.blur();
-              }}
-            >
-              <Search className="size-4 shrink-0 text-muted-foreground" />
-              <input
-                type="search"
-                enterKeyHint="search"
-                className="h-11 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
-                placeholder={searchbar.placeholder}
-                value={searchbar.value}
-                onChange={(e) => searchbar.onChange(e.target.value)}
-              />
-              {searchbar.value && (
-                <button
-                  type="button"
-                  className="shrink-0 text-muted-foreground active:opacity-60"
-                  onClick={() => searchbar.onClear?.()}
+            <div className="mx-auto flex max-w-md items-center gap-2">
+              {searchbar && (
+                <form
+                  className="pointer-events-auto flex min-w-0 flex-1 items-center gap-2 rounded-full border border-white/10 bg-card/90 px-4 shadow-2xl shadow-black/50 backdrop-blur-xl"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    searchbar.onSubmit?.();
+                    (document.activeElement as HTMLElement | null)?.blur();
+                  }}
                 >
-                  <X className="size-4" />
+                  <Search className="size-4 shrink-0 text-muted-foreground" />
+                  <input
+                    type="search"
+                    enterKeyHint="search"
+                    className="h-11 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
+                    placeholder={searchbar.placeholder}
+                    value={searchbar.value}
+                    onChange={(e) => searchbar.onChange(e.target.value)}
+                  />
+                  {searchbar.value && (
+                    <button
+                      type="button"
+                      className="shrink-0 text-muted-foreground active:opacity-60"
+                      onClick={() => searchbar.onClear?.()}
+                    >
+                      <X className="size-4" />
+                    </button>
+                  )}
+                </form>
+              )}
+              {sortButton && (
+                <button
+                  className="pointer-events-auto ml-auto flex size-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-card/90 text-muted-foreground shadow-2xl shadow-black/50 backdrop-blur-xl active:opacity-60"
+                  onClick={sortButton.open}
+                  title={t("common.sortBy")}
+                >
+                  <ArrowUpDown className="size-[18px]" />
                 </button>
               )}
-            </form>
+            </div>
           </div>
         )}
         {subnav && (

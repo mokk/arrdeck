@@ -22,7 +22,8 @@ import {
 } from "../components/Blocks";
 import { Sheet } from "../components/Sheet";
 import { SwipeableRow } from "../components/SwipeableRow";
-import { SortBar, useSort } from "../components/sortable";
+import { SortSheet } from "../components/SortSheet";
+import { useSort } from "../components/sortable";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -47,7 +48,11 @@ import {
   useTorrents,
 } from "../hooks/queries";
 import { Segmented } from "../components/Blocks";
-import { useRegisterSearchbar } from "../components/subnav";
+import {
+  useRegisterSearchbar,
+  useRegisterSortButton,
+  useRegisterSubnav,
+} from "../components/subnav";
 import { usePersistentState } from "../hooks/usePersistentState";
 
 const SORT_KEYS = [
@@ -512,7 +517,30 @@ export default function Downloads() {
   const [selectMode, setSelectMode] = useState(false);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [adding, setAdding] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
   useRegisterSearchbar(t("dl.filterByName"), nameFilter, setNameFilter);
+  useRegisterSortButton(() => setSortOpen(true));
+  useRegisterSubnav(
+    [
+      { value: "add", label: `+ ${t("dl.addTorrent")}` },
+      { value: "select", label: selectMode ? t("dl.done") : t("dl.select") },
+    ],
+    selectMode ? "select" : "",
+    (v) => {
+      if (v === "add") {
+        setAdding(true);
+      } else {
+        setSelectMode(!selectMode);
+        setChecked(new Set());
+      }
+    },
+    // entrypoint reset: leave select mode, don't open any sheets
+    () => {
+      setSelectMode(false);
+      setChecked(new Set());
+      setSortOpen(false);
+    },
+  );
 
   const toggleChecked = (key: string) => {
     const next = new Set(checked);
@@ -555,48 +583,6 @@ export default function Downloads() {
 
   return (
     <>
-      <div className="mb-3 flex gap-2 overflow-x-auto [scrollbar-width:none]">
-        {clientList.length > 1 &&
-          clientList.map((c) =>
-            chip(SERVICE_LABELS[c], clients[c], () =>
-              setClients({ ...clients, [c]: !clients[c] }),
-            ),
-          )}
-        {chip(t("dl.all", { count: all.length }), stateFilter === "all", () =>
-          setStateFilter("all"),
-        )}
-        {states.map((s) =>
-          chip(
-            `${t(`state.${s}`, { defaultValue: s })} (${all.filter((x) => x.state === s).length})`,
-            stateFilter === s,
-            () => setStateFilter(s),
-          ),
-        )}
-      </div>
-      <div className="mb-4 flex items-center gap-2">
-        <SortBar
-          options={SORT_KEYS.map((key) => ({ key, label: t(`dl.sort.${key}`) }))}
-          sort={sort}
-        />
-        <Button
-          size="sm"
-          className="ml-auto rounded-full"
-          onClick={() => setAdding(true)}
-        >
-          + {t("dl.addTorrent")}
-        </Button>
-        <Button
-          size="sm"
-          variant={selectMode ? "default" : "secondary"}
-          className="rounded-full"
-          onClick={() => {
-            setSelectMode(!selectMode);
-            setChecked(new Set());
-          }}
-        >
-          {selectMode ? t("dl.done") : t("dl.select")}
-        </Button>
-      </div>
       {clientList.map((client) => {
         const block = data?.[client];
         return block && !block.ok && block.data == null ? (
@@ -709,6 +695,32 @@ export default function Downloads() {
       )}
       {adding && clientList.length > 0 && (
         <AddTorrentSheet clients={clientList} onClose={() => setAdding(false)} />
+      )}
+      {sortOpen && (
+        <SortSheet
+          options={SORT_KEYS.map((key) => ({ key, label: t(`dl.sort.${key}`) }))}
+          sort={sort}
+          onClose={() => setSortOpen(false)}
+        >
+          <div className="flex flex-wrap gap-2">
+            {clientList.length > 1 &&
+              clientList.map((c) =>
+                chip(SERVICE_LABELS[c], clients[c], () =>
+                  setClients({ ...clients, [c]: !clients[c] }),
+                ),
+              )}
+            {chip(t("dl.all", { count: all.length }), stateFilter === "all", () =>
+              setStateFilter("all"),
+            )}
+            {states.map((s) =>
+              chip(
+                `${t(`state.${s}`, { defaultValue: s })} (${all.filter((x) => x.state === s).length})`,
+                stateFilter === s,
+                () => setStateFilter(s),
+              ),
+            )}
+          </div>
+        </SortSheet>
       )}
     </>
   );

@@ -21,7 +21,10 @@
     "remove": "Fjern",
     "pause": "Pause",
     "resume": "Genoptag",
-    "language": "Sprog"
+    "language": "Sprog",
+    "filters": "Filtre",
+    "ascending": "Stigende",
+    "descending": "Faldende"
   },
   "state": {
     "downloading": "downloader",

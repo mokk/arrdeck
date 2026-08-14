@@ -21,7 +21,10 @@
     "remove": "Remove",
     "pause": "Pause",
     "resume": "Resume",
-    "language": "Language"
+    "language": "Language",
+    "filters": "Filters",
+    "ascending": "Ascending",
+    "descending": "Descending"
   },
   "state": {
     "downloading": "downloading",

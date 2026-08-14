@@ -11,6 +11,9 @@ export interface SubnavState {
   options: { value: string; label: string }[];
   value: string;
   onChange: (value: string) => void;
+  /** custom entrypoint reset (re-tap on the active tab); defaults to
+   * selecting the first option */
+  onReset?: () => void;
 }
 
 export interface SearchbarState {
@@ -28,13 +31,25 @@ const SubnavContext = createContext<{
   setSubnav: (state: SubnavState | null) => void;
   searchbar: SearchbarState | null;
   setSearchbar: (state: SearchbarState | null) => void;
-}>({ subnav: null, setSubnav: () => {}, searchbar: null, setSearchbar: () => {} });
+  sortButton: { open: () => void } | null;
+  setSortButton: (state: { open: () => void } | null) => void;
+}>({
+  subnav: null,
+  setSubnav: () => {},
+  searchbar: null,
+  setSearchbar: () => {},
+  sortButton: null,
+  setSortButton: () => {},
+});
 
 export function SubnavProvider({ children }: { children: ReactNode }) {
   const [subnav, setSubnav] = useState<SubnavState | null>(null);
   const [searchbar, setSearchbar] = useState<SearchbarState | null>(null);
+  const [sortButton, setSortButton] = useState<{ open: () => void } | null>(null);
   return (
-    <SubnavContext.Provider value={{ subnav, setSubnav, searchbar, setSearchbar }}>
+    <SubnavContext.Provider
+      value={{ subnav, setSubnav, searchbar, setSearchbar, sortButton, setSortButton }}
+    >
       {children}
     </SubnavContext.Provider>
   );
@@ -42,16 +57,17 @@ export function SubnavProvider({ children }: { children: ReactNode }) {
 
 export const useSubnav = () => useContext(SubnavContext);
 
-/** Pages call this to dock their section switcher above the bottom tab bar.
- * Hidden automatically when fewer than two options are given. */
+/** Pages call this to dock their section switcher (or action buttons) above
+ * the bottom tab bar. Hidden automatically with fewer than two options. */
 export function useRegisterSubnav(
   options: { value: string; label: string }[],
   value: string,
   onChange: (value: string) => void,
+  onReset?: () => void,
 ) {
   const { setSubnav } = useContext(SubnavContext);
-  const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
+  const refs = useRef({ onChange, onReset });
+  refs.current = { onChange, onReset };
   const optionsKey = options.map((o) => `${o.value}:${o.label}`).join("|");
 
   useEffect(() => {
@@ -59,9 +75,14 @@ export function useRegisterSubnav(
       setSubnav(null);
       return;
     }
-    setSubnav({ options, value, onChange: (v) => onChangeRef.current(v) });
+    setSubnav({
+      options,
+      value,
+      onChange: (v) => refs.current.onChange(v),
+      onReset: onReset ? () => refs.current.onReset?.() : undefined,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [optionsKey, value, setSubnav]);
+  }, [optionsKey, value, Boolean(onReset), setSubnav]);
 
   useEffect(() => () => setSubnav(null), [setSubnav]);
 }
@@ -90,4 +111,17 @@ export function useRegisterSearchbar(
   }, [placeholder, value, Boolean(onSubmit), setSearchbar]);
 
   useEffect(() => () => setSearchbar(null), [setSearchbar]);
+}
+
+/** Pages call this to float a sort/filter button next to the search bar;
+ * the page renders its own drawer when `open` fires. */
+export function useRegisterSortButton(open: () => void) {
+  const { setSortButton } = useContext(SubnavContext);
+  const openRef = useRef(open);
+  openRef.current = open;
+
+  useEffect(() => {
+    setSortButton({ open: () => openRef.current() });
+    return () => setSortButton(null);
+  }, [setSortButton]);
 }

@@ -30,8 +30,13 @@ import {
   StateBadge,
 } from "../components/Blocks";
 import { Sheet } from "../components/Sheet";
-import { useRegisterSearchbar, useRegisterSubnav } from "../components/subnav";
-import { SortBar, useSort } from "../components/sortable";
+import {
+  useRegisterSearchbar,
+  useRegisterSortButton,
+  useRegisterSubnav,
+} from "../components/subnav";
+import { SortSheet } from "../components/SortSheet";
+import { useSort } from "../components/sortable";
 import {
   useAddIndexer,
   useDeleteLibraryItem,
@@ -398,7 +403,9 @@ function Indexers() {
   const test = useTestIndexer();
   const [tested, setTested] = useState<Record<number, "ok" | "fail">>({});
   const [adding, setAdding] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
   const sort = useSort<Record<string, unknown>>("manage.indexers", "name");
+  useRegisterSortButton(() => setSortOpen(true));
 
   if (error) return <ErrorNote>{(error as Error).message}</ErrorNote>;
   const rows = sort.sortRows((data ?? []) as unknown as Record<string, unknown>[]) as unknown as {
@@ -411,11 +418,7 @@ function Indexers() {
 
   return (
     <>
-      <div className="mb-4 flex items-center gap-2">
-        <SortBar
-          options={INDEXER_SORT_KEYS.map((key) => ({ key, label: t(`manage.sort.${key}`) }))}
-          sort={sort}
-        />
+      <div className="mb-4 flex items-center">
         <Button size="sm" className="ml-auto rounded-full" onClick={() => setAdding(true)}>
           {t("manage.addIndexer")}
         </Button>
@@ -476,6 +479,13 @@ function Indexers() {
         ))}
       </Card>
       {adding && <AddIndexerSheet onClose={() => setAdding(false)} />}
+      {sortOpen && (
+        <SortSheet
+          options={INDEXER_SORT_KEYS.map((key) => ({ key, label: t(`manage.sort.${key}`) }))}
+          sort={sort}
+          onClose={() => setSortOpen(false)}
+        />
+      )}
     </>
   );
 }
@@ -565,7 +575,9 @@ function MovieLibrary() {
   const remove = useDeleteLibraryItem("movies");
   const [q, setQ] = usePersistentState("manage.movies.filter", "");
   const sort = useSort<Record<string, unknown>>("manage.movies", "title");
+  const [sortOpen, setSortOpen] = useState(false);
   useRegisterSearchbar(t("manage.filterMovies"), q, setQ);
+  useRegisterSortButton(() => setSortOpen(true));
 
   if (error) return <ErrorNote>{(error as Error).message}</ErrorNote>;
 
@@ -581,12 +593,6 @@ function MovieLibrary() {
 
   return (
     <>
-      <div className="mb-4">
-        <SortBar
-          options={MOVIE_SORT_KEYS.map((key) => ({ key, label: t(`manage.sort.${key}`) }))}
-          sort={sort}
-        />
-      </div>
       <Card>
         {shown.slice(0, 100).map((m) => (
           <Row key={m.id}>
@@ -637,6 +643,13 @@ function MovieLibrary() {
           {t("manage.showingFirst", { shown: 100, total: shown.length })}
         </div>
       )}
+      {sortOpen && (
+        <SortSheet
+          options={MOVIE_SORT_KEYS.map((key) => ({ key, label: t(`manage.sort.${key}`) }))}
+          sort={sort}
+          onClose={() => setSortOpen(false)}
+        />
+      )}
     </>
   );
 }
@@ -653,7 +666,9 @@ function SeriesLibrary() {
   const remove = useDeleteLibraryItem("series");
   const [q, setQ] = usePersistentState("manage.series.filter", "");
   const sort = useSort<Record<string, unknown>>("manage.series", "title");
+  const [sortOpen, setSortOpen] = useState(false);
   useRegisterSearchbar(t("manage.filterSeries"), q, setQ);
+  useRegisterSortButton(() => setSortOpen(true));
 
   if (error) return <ErrorNote>{(error as Error).message}</ErrorNote>;
 
@@ -666,12 +681,6 @@ function SeriesLibrary() {
 
   return (
     <>
-      <div className="mb-4">
-        <SortBar
-          options={SERIES_SORT_KEYS.map((key) => ({ key, label: t(`manage.sort.${key}`) }))}
-          sort={sort}
-        />
-      </div>
       <Card>
         {shown.slice(0, 100).map((s) => (
           <Row key={s.id}>
@@ -724,6 +733,13 @@ function SeriesLibrary() {
         <div className="mt-2 text-center text-xs text-muted-foreground">
           {t("manage.showingFirst", { shown: 100, total: shown.length })}
         </div>
+      )}
+      {sortOpen && (
+        <SortSheet
+          options={SERIES_SORT_KEYS.map((key) => ({ key, label: t(`manage.sort.${key}`) }))}
+          sort={sort}
+          onClose={() => setSortOpen(false)}
+        />
       )}
     </>
   );
