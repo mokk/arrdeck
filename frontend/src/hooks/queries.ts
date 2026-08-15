@@ -38,6 +38,47 @@ const FAST = 5_000;
 const MEDIUM = 30_000;
 const SLOW = 300_000;
 
+export const useAuthState = () =>
+  useQuery({
+    queryKey: ["authState"],
+    queryFn: () =>
+      api.get<{ authenticated: boolean; lan: boolean; has_credentials: boolean }>("/auth/state"),
+    staleTime: 30_000,
+    retry: false,
+  });
+
+export const useSetupCode = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["setupCode"],
+    queryFn: () => api.get<{ code: string }>("/auth/setup-code"),
+    enabled,
+    retry: false,
+  });
+
+export const usePasskeys = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["passkeys"],
+    queryFn: () => api.get<{ id: number; name: string; created: number }[]>("/auth/credentials"),
+    enabled,
+    retry: false,
+  });
+
+export function useDeletePasskey() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete<void>(`/auth/credentials/${id}`),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["passkeys"] }),
+  });
+}
+
+export function useLogout() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.post<void>("/auth/logout"),
+    onSettled: () => qc.invalidateQueries(),
+  });
+}
+
 export const useRecent = () =>
   useQuery({
     queryKey: ["recent"],

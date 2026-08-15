@@ -14,9 +14,33 @@ CHECK_INTERVAL = 60
 VAPID_CLAIMS = {"sub": "mailto:arrdeck@localhost"}
 
 NOTIFY_EVENTS = {
-    "downloadFolderImported": "Imported",
+    "downloadFolderImported": "Downloaded and imported",
     "downloadFailed": "Download failed",
 }
+
+HISTORY_PARAMS = {
+    "radarr": {"includeMovie": True},
+    "sonarr": {"includeSeries": True, "includeEpisode": True},
+}
+
+
+def describe_record(app_name: str, rec: dict) -> str:
+    """Human title for a history record: movie name + year, or series + SxxEyy."""
+    if app_name == "radarr":
+        movie = rec.get("movie") or {}
+        name = movie.get("title") or rec.get("sourceTitle") or ""
+        year = movie.get("year")
+        return f"{name} ({year})" if name and year else name
+    series = rec.get("series") or {}
+    episode = rec.get("episode") or {}
+    name = series.get("title") or rec.get("sourceTitle") or ""
+    season = episode.get("seasonNumber")
+    number = episode.get("episodeNumber")
+    if name and season is not None and number is not None:
+        name = f"{name} S{season:02d}E{number:02d}"
+        if episode.get("title"):
+            name = f"{name} – {episode['title']}"
+    return name
 
 
 def ensure_vapid(db: SettingsDB) -> str:
@@ -62,7 +86,9 @@ async def check_events(db: SettingsDB, registry: Registry) -> None:
         if not registry.is_configured(app_name):
             continue
         try:
-            hist = await registry.get(app_name).history(page_size=20)
+            hist = await registry.get(app_name).history(
+                page_size=20, **HISTORY_PARAMS.get(app_name, {})
+            )
         except Exception:  # noqa: BLE001
             continue
         for rec in hist.get("records", []):
@@ -71,8 +97,8 @@ async def check_events(db: SettingsDB, registry: Registry) -> None:
                 newest = date
             label = NOTIFY_EVENTS.get(rec.get("eventType", ""))
             if label and last_seen and date > last_seen:
-                title = rec.get("sourceTitle") or ""
-                await asyncio.to_thread(_send_all, db, label, title)
+                title = describe_record(app_name, rec) or label
+                await asyncio.to_thread(_send_all, db, title, label)
     if newest != last_seen:
         db.kv_set("push_last_seen", newest)
 

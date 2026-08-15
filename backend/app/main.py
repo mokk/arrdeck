@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from .api.v1.auth import is_request_allowed
 from .api.v1.router import router as v1_router
 from .clients.base import ServiceUnavailable
 from .config import get_settings
@@ -85,6 +86,18 @@ app.add_middleware(
 )
 
 app.include_router(v1_router)
+
+
+@app.middleware("http")
+async def auth_guard(request: Request, call_next):
+    """Everything under /api requires LAN origin or a passkey session; the
+    auth endpoints themselves (and the static shell) stay reachable so the
+    login screen can function."""
+    path = request.url.path
+    if path.startswith("/api/") and not path.startswith("/api/v1/auth/"):
+        if not is_request_allowed(request):
+            return JSONResponse(status_code=401, content={"detail": "unauthorized"})
+    return await call_next(request)
 
 
 @app.exception_handler(ServiceUnavailable)

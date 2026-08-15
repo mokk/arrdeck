@@ -284,5 +284,22 @@
     "series": "Serier",
     "torrents": "Torrents",
     "none": "Ingen resultater"
+  },
+  "auth": {
+    "title": "Log ind",
+    "passkey": "Log ind med adgangsnøgle",
+    "signingIn": "Logger ind…",
+    "security": "Sikkerhed",
+    "passkeys": "Adgangsnøgler",
+    "addPasskey": "Tilføj adgangsnøgle",
+    "registerHint": "Nye adgangsnøgler tilføjes mens du er logget ind, eller på en ny enhed med opsætningskoden.",
+    "setupCode": "Opsætningskode",
+    "setupCodeHint": "Find opsætningskoden på hjemmenetværket under Administrér → Tjenester → Sikkerhed.",
+    "createPasskey": "Opret adgangsnøgle",
+    "useSetupCode": "Brug opsætningskode",
+    "needsHttps": "Adgangsnøgler kræver HTTPS — åbn appen via deck.thrawn.dk.",
+    "noPasskeys": "Ingen adgangsnøgler registreret",
+    "signOut": "Log ud",
+    "lanNote": "Du er på hjemmenetværket — login er ikke nødvendigt."
   }
 }

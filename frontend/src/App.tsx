@@ -12,9 +12,10 @@ import { useTranslation } from "react-i18next";
 import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+import { LoginScreen } from "./components/LoginScreen";
 import { PullToRefresh } from "./components/PullToRefresh";
 import { SubnavProvider, useSubnav } from "./components/subnav";
-import { useServices } from "./hooks/queries";
+import { useAuthState, useServices } from "./hooks/queries";
 import Add from "./pages/Add";
 import Dashboard from "./pages/Dashboard";
 import Downloads from "./pages/Downloads";
@@ -49,6 +50,17 @@ function Shell() {
   const { t } = useTranslation();
   const { subnav, searchbar, sortButton } = useSubnav();
   const location = useLocation();
+  const auth = useAuthState();
+
+  // outside the LAN a passkey session is required for anything to load
+  if (auth.data && !auth.data.lan && !auth.data.authenticated) {
+    return (
+      <>
+        <Toaster position="top-center" />
+        <LoginScreen onDone={() => auth.refetch()} />
+      </>
+    );
+  }
 
   const isTabActive = (to: string, end?: boolean) =>
     end ? location.pathname === to : location.pathname.startsWith(to);

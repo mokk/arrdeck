@@ -55,7 +55,8 @@ class ArrClient(BaseClient):
     async def status(self) -> dict:
         return await self.get("/system/status")
 
-    async def history(self, page_size: int = 20, page: int = 1) -> dict:
+    async def history(self, page_size: int = 20, page: int = 1, **params: bool) -> dict:
+        # Extra params: Radarr includeMovie=, Sonarr includeSeries=/includeEpisode=.
         return await self.get(
             "/history",
             params={
@@ -63,6 +64,7 @@ class ArrClient(BaseClient):
                 "page": page,
                 "sortKey": "date",
                 "sortDirection": "descending",
+                **params,
             },
         )
 

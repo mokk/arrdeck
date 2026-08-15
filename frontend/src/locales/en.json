@@ -284,5 +284,22 @@
     "series": "Series",
     "torrents": "Torrents",
     "none": "No results"
+  },
+  "auth": {
+    "title": "Sign in",
+    "passkey": "Sign in with passkey",
+    "signingIn": "Signing in…",
+    "security": "Security",
+    "passkeys": "Passkeys",
+    "addPasskey": "Add passkey",
+    "registerHint": "New passkeys are added while signed in, or on a new device with the setup code.",
+    "setupCode": "Setup code",
+    "setupCodeHint": "Find the setup code on the home network under Manage → Services → Security.",
+    "createPasskey": "Create passkey",
+    "useSetupCode": "Use setup code",
+    "needsHttps": "Passkeys require HTTPS — open the app via deck.thrawn.dk.",
+    "noPasskeys": "No passkeys registered",
+    "signOut": "Sign out",
+    "lanNote": "You're on the home network — no sign-in needed."
   }
 }

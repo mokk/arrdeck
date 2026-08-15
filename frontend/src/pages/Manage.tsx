@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { api } from "../api/client";
+import { passkeysSupported, registerPasskey } from "../lib/passkey";
 import { SERVICE_LABELS, formatBytes } from "../api/format";
 import i18n, { LANGUAGES, setLanguage } from "../i18n";
 import type {
@@ -45,7 +46,12 @@ import {
   useBulkDeleteLibrary,
   useBulkLibrary,
   useBulkSearchLibrary,
+  useAuthState,
   useDeleteLibraryItem,
+  useDeletePasskey,
+  useLogout,
+  usePasskeys,
+  useSetupCode,
   useIndexerSchemas,
   useIndexers,
   useLibraryMovies,
@@ -226,6 +232,90 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
   return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
 }
 
+function SecurityCard() {
+  const { t } = useTranslation();
+  const { data: auth, refetch } = useAuthState();
+  const supported = passkeysSupported();
+  const { data: passkeys } = usePasskeys(supported || (auth?.lan ?? false));
+  const { data: setup } = useSetupCode((auth?.lan ?? false) || (auth?.authenticated ?? false));
+  const deletePasskey = useDeletePasskey();
+  const logout = useLogout();
+  const [busy, setBusy] = useState(false);
+
+  const addPasskey = async () => {
+    setBusy(true);
+    try {
+      await registerPasskey(`passkey ${new Date().toISOString().slice(0, 10)}`);
+      toast.success(t("auth.passkeys"));
+      refetch();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card>
+      <div className="flex flex-col gap-2.5 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="font-semibold">{t("auth.security")}</span>
+          <div className="flex gap-1.5">
+            {supported && (
+              <Button size="sm" variant="secondary" disabled={busy} onClick={addPasskey}>
+                {t("auth.addPasskey")}
+              </Button>
+            )}
+            {auth?.authenticated && (
+              <Button
+                size="sm"
+                variant="secondary"
+                className="text-destructive"
+                disabled={logout.isPending}
+                onClick={() => logout.mutate()}
+              >
+                {t("auth.signOut")}
+              </Button>
+            )}
+          </div>
+        </div>
+        {!supported && (
+          <span className="text-xs text-muted-foreground">{t("auth.needsHttps")}</span>
+        )}
+        {(passkeys ?? []).map((pk) => (
+          <div key={pk.id} className="flex items-center justify-between text-sm">
+            <span>
+              {pk.name}{" "}
+              <span className="text-xs text-muted-foreground">
+                {new Date(pk.created * 1000).toLocaleDateString()}
+              </span>
+            </span>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-destructive"
+              disabled={deletePasskey.isPending}
+              onClick={() => deletePasskey.mutate(pk.id)}
+            >
+              ✕
+            </Button>
+          </div>
+        ))}
+        {passkeys && passkeys.length === 0 && (
+          <span className="text-xs text-muted-foreground">{t("auth.noPasskeys")}</span>
+        )}
+        {setup && (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">{t("auth.setupCode")}</span>
+            <span className="font-mono font-semibold tracking-[0.2em]">{setup.code}</span>
+          </div>
+        )}
+        <span className="text-xs text-muted-foreground">{t("auth.registerHint")}</span>
+      </div>
+    </Card>
+  );
+}
+
 function NotificationsCard() {
   const { t } = useTranslation();
   const supported =
@@ -353,6 +443,7 @@ function ServiceSettingsTab() {
     <>
       <StatusStrip />
       <LanguagePicker />
+      <SecurityCard />
       <NotificationsCard />
       <SettingsTransfer />
       {Object.entries(data).map(([name, conf]) => (

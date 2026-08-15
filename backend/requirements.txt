@@ -6,3 +6,4 @@ python-multipart==0.0.*
 pywebpush==2.*
 
 
+webauthn==2.*

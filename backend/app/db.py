@@ -27,6 +27,23 @@ class SettingsDB:
                 "CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
             )
             self._conn.execute(
+                """CREATE TABLE IF NOT EXISTS credentials (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    credential_id TEXT UNIQUE NOT NULL,
+                    public_key TEXT NOT NULL,
+                    sign_count INTEGER NOT NULL DEFAULT 0,
+                    name TEXT NOT NULL DEFAULT '',
+                    created INTEGER NOT NULL
+                )"""
+            )
+            self._conn.execute(
+                """CREATE TABLE IF NOT EXISTS sessions (
+                    token_hash TEXT PRIMARY KEY,
+                    created INTEGER NOT NULL,
+                    last_used INTEGER NOT NULL
+                )"""
+            )
+            self._conn.execute(
                 """CREATE TABLE IF NOT EXISTS push_subscriptions (
                     endpoint TEXT PRIMARY KEY,
                     data TEXT NOT NULL
@@ -146,6 +163,64 @@ class SettingsDB:
         with self._lock:
             rows = self._conn.execute("SELECT data FROM push_subscriptions").fetchall()
         return [r[0] for r in rows]
+
+    def cred_add(self, credential_id: str, public_key: str, name: str, created: int) -> None:
+        with self._lock:
+            self._conn.execute(
+                "INSERT INTO credentials (credential_id, public_key, sign_count, name, created)"
+                " VALUES (?, ?, 0, ?, ?)",
+                (credential_id, public_key, name, created),
+            )
+            self._conn.commit()
+
+    def cred_list(self) -> list[dict]:
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT id, credential_id, public_key, sign_count, name, created FROM credentials"
+            ).fetchall()
+        keys = ["id", "credential_id", "public_key", "sign_count", "name", "created"]
+        return [dict(zip(keys, r)) for r in rows]
+
+    def cred_delete(self, cred_id: int) -> None:
+        with self._lock:
+            self._conn.execute("DELETE FROM credentials WHERE id = ?", (cred_id,))
+            self._conn.commit()
+
+    def cred_update_count(self, credential_id: str, sign_count: int) -> None:
+        with self._lock:
+            self._conn.execute(
+                "UPDATE credentials SET sign_count = ? WHERE credential_id = ?",
+                (sign_count, credential_id),
+            )
+            self._conn.commit()
+
+    def session_add(self, token_hash: str, now: int) -> None:
+        with self._lock:
+            self._conn.execute(
+                "INSERT OR REPLACE INTO sessions (token_hash, created, last_used) VALUES (?, ?, ?)",
+                (token_hash, now, now),
+            )
+            # sessions older than a year get pruned
+            self._conn.execute("DELETE FROM sessions WHERE last_used < ?", (now - 365 * 86400,))
+            self._conn.commit()
+
+    def session_valid(self, token_hash: str, now: int, max_age: int) -> bool:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT last_used FROM sessions WHERE token_hash = ?", (token_hash,)
+            ).fetchone()
+            if row is None or now - row[0] > max_age:
+                return False
+            self._conn.execute(
+                "UPDATE sessions SET last_used = ? WHERE token_hash = ?", (now, token_hash)
+            )
+            self._conn.commit()
+        return True
+
+    def session_delete(self, token_hash: str) -> None:
+        with self._lock:
+            self._conn.execute("DELETE FROM sessions WHERE token_hash = ?", (token_hash,))
+            self._conn.commit()
 
     def is_empty(self) -> bool:
         with self._lock:
