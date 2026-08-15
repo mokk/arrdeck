@@ -9,6 +9,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
@@ -25,21 +28,8 @@ export default defineConfig({
           { src: "/pwa-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
       },
-      workbox: {
-        // app shell is precached; API stays network-only
-        navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/api\//, /^\/openapi\.json/, /^\/docs/],
-        runtimeCaching: [
-          {
-            // TMDB posters: cache-first, they're immutable per path
-            urlPattern: /^https:\/\/image\.tmdb\.org\//,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "tmdb-posters",
-              expiration: { maxEntries: 300, maxAgeSeconds: 14 * 86400 },
-            },
-          },
-        ],
+      injectManifest: {
+        globPatterns: ["**/*.{js,css,html,svg,png}"],
       },
     }),
   ],

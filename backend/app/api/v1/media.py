@@ -1,6 +1,12 @@
 import asyncio
+import hashlib
+from pathlib import Path
+from urllib.parse import quote, urlparse
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import FileResponse
+
+from ...config import get_settings
 
 from ...cache import cache
 from ...clients.overseerr import OverseerrClient
@@ -23,6 +29,47 @@ from ...schemas import (
 router = APIRouter(tags=["media"])
 
 TMDB_IMG = "https://image.tmdb.org/t/p/w342"
+
+# hosts we proxy-and-cache poster images from
+POSTER_HOSTS = {
+    "image.tmdb.org",
+    "artworks.thetvdb.com",
+    "assets.fanart.tv",
+    "images.fanart.tv",
+    "fanart.tv",
+}
+POSTER_DIR = Path(get_settings().db_path).parent / "posters"
+
+
+def proxy_poster(url: str | None) -> str | None:
+    """Rewrite known poster URLs through the caching proxy endpoint."""
+    if not url:
+        return None
+    host = urlparse(url).hostname
+    if host not in POSTER_HOSTS:
+        return url
+    return f"/api/v1/poster?u={quote(url, safe='')}"
+
+
+@router.get("/poster", include_in_schema=False)
+async def poster(u: str, request: Request):
+    host = urlparse(u).hostname
+    if host not in POSTER_HOSTS:
+        raise HTTPException(400, "host not allowed")
+    POSTER_DIR.mkdir(parents=True, exist_ok=True)
+    cached_file = POSTER_DIR / (hashlib.sha1(u.encode()).hexdigest() + ".img")
+    if not cached_file.exists():
+        try:
+            resp = await request.app.state.http.get(u, timeout=15, follow_redirects=True)
+            resp.raise_for_status()
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(502, "poster fetch failed") from exc
+        cached_file.write_bytes(resp.content)
+    return FileResponse(
+        cached_file,
+        media_type="image/jpeg",
+        headers={"Cache-Control": "public, max-age=604800, immutable"},
+    )
 
 # Original languages allowed in the popular lists: English + Nordic
 WESTERN_LANGUAGES = {"en", "da", "sv", "no", "nb", "nn", "fi", "is"}
@@ -55,7 +102,7 @@ async def _fetch_discover(overseerr: OverseerrClient, kind: str) -> list:
 def _poster(images: list | None) -> str | None:
     for img in images or []:
         if img.get("coverType") == "poster":
-            return img.get("remoteUrl") or img.get("url")
+            return proxy_poster(img.get("remoteUrl") or img.get("url"))
     return None
 
 
@@ -108,7 +155,7 @@ async def discover_movies(
             year=int(m["releaseDate"][:4]) if m.get("releaseDate") else None,
             overview=m.get("overview"),
             remote_id=m.get("id", 0),
-            poster=f"{TMDB_IMG}{m['posterPath']}" if m.get("posterPath") else None,
+            poster=proxy_poster(f"{TMDB_IMG}{m['posterPath']}") if m.get("posterPath") else None,
             in_library=m.get("id") in library,
             tmdb_id=m.get("id"),
             **library.get(m.get("id"), {}),
@@ -150,7 +197,7 @@ async def discover_series(
                 "tvdb_id": tvdb,
                 "imdb_id": external.get("imdbId"),
                 "tmdb_id": t.get("id"),
-                "poster": f"{TMDB_IMG}{t['posterPath']}" if t.get("posterPath") else None,
+                "poster": proxy_poster(f"{TMDB_IMG}{t['posterPath']}") if t.get("posterPath") else None,
             }
 
         resolved = await asyncio.gather(*(resolve(t) for t in results or []))

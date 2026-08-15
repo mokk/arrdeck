@@ -255,5 +255,34 @@
     "cinema": "Biograf",
     "digital": "Digital",
     "physical": "Fysisk"
+  },
+  "movie": {
+    "file": "Fil",
+    "noFile": "Ingen fil",
+    "runtime": "{{min}} min.",
+    "status": "Status"
+  },
+  "stats": {
+    "title": "Statistik",
+    "days30": "30 dage",
+    "days90": "90 dage",
+    "days365": "1 år",
+    "episodeFiles": "Episodefiler",
+    "torrents": "Torrents",
+    "queries": "Forespørgsler"
+  },
+  "push": {
+    "title": "Notifikationer",
+    "enable": "Aktivér push-notifikationer",
+    "enabled": "Notifikationer slået til",
+    "needsHttps": "Kræver HTTPS — åbn appen via deck.thrawn.dk når det er sat op.",
+    "denied": "Notifikationer er blokeret i browserens indstillinger"
+  },
+  "search": {
+    "global": "Søg i alt…",
+    "movies": "Film",
+    "series": "Serier",
+    "torrents": "Torrents",
+    "none": "Ingen resultater"
   }
 }

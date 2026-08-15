@@ -21,6 +21,8 @@ import Downloads from "./pages/Downloads";
 import HistoryPage from "./pages/History";
 import CalendarPage from "./pages/Calendar";
 import Manage from "./pages/Manage";
+import MoviePage from "./pages/Movie";
+import StatsPage from "./pages/Stats";
 import SeriesPage from "./pages/Series";
 import WantedPage from "./pages/Wanted";
 
@@ -88,6 +90,8 @@ function Shell() {
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/wanted" element={<WantedPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/movie/:id" element={<MoviePage />} />
+            <Route path="/stats" element={<StatsPage />} />
           </Routes>
         </RequireSetup>
       </main>

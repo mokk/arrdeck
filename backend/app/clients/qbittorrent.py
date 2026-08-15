@@ -107,6 +107,13 @@ class QbittorrentClient(BaseClient):
         if resp.text.strip().lower().startswith("fail"):
             raise ServiceUnavailable(self.name, "qBittorrent rejected the torrent")
 
+    async def set_file_priority(self, torrent_hash: str, indices: list[int], priority: int) -> None:
+        await self.request(
+            "POST",
+            "/api/v2/torrents/filePrio",
+            data={"hash": torrent_hash, "id": "|".join(map(str, indices)), "priority": priority},
+        )
+
     async def set_category(self, hashes: list[str], category: str) -> None:
         await self.request(
             "POST", "/api/v2/torrents/setCategory", data={"hashes": "|".join(hashes), "category": category}

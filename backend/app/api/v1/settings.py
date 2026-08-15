@@ -5,8 +5,10 @@ from pydantic import BaseModel
 
 from ...cache import cache
 from ...db import SERVICES
+from ...push import ensure_vapid
 from ...registry import probe_version
 from ...schemas import (
+    PushSubscribeIn,
     ServiceInfoOut,
     ServiceSettingsOut,
     SettingsExportOut,
@@ -57,6 +59,26 @@ def save_settings(name: str, body: ServiceSettingsIn, request: Request) -> dict:
     request.app.state.registry.rebuild(name, values)
     cache.clear()  # cached data may belong to the old connection
     return {"service": name, "configured": request.app.state.registry.is_configured(name)}
+
+
+@router.get("/push/vapid")
+def push_vapid(request: Request) -> dict:
+    return {"key": ensure_vapid(request.app.state.db)}
+
+
+@router.post("/push/subscribe", status_code=204)
+def push_subscribe(body: PushSubscribeIn, request: Request) -> None:
+    import json as _json
+
+    endpoint = body.subscription.get("endpoint", "")
+    if not endpoint:
+        raise HTTPException(422, "subscription missing endpoint")
+    request.app.state.db.push_add(endpoint, _json.dumps(body.subscription))
+
+
+@router.post("/push/unsubscribe", status_code=204)
+def push_unsubscribe(body: PushSubscribeIn, request: Request) -> None:
+    request.app.state.db.push_remove(body.subscription.get("endpoint", ""))
 
 
 @router.get("/settings/export", response_model=SettingsExportOut)

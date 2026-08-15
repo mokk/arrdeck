@@ -16,6 +16,7 @@ from .clients.base import ServiceUnavailable
 from .config import get_settings
 from .db import SettingsDB
 from .registry import Registry
+from .push import push_loop
 from .stats import sampler_loop
 
 # Docker layout: /srv/arrdeck/{app,static}. Dev layout: arrdeck/{backend/app,frontend/dist}.
@@ -64,9 +65,12 @@ async def lifespan(app: FastAPI):
     registry.rebuild_all(db.all())
     app.state.db = db
     app.state.registry = registry
+    app.state.http = arr_http
     sampler = asyncio.create_task(sampler_loop(db, registry))
+    notifier = asyncio.create_task(push_loop(db, registry))
     yield
     sampler.cancel()
+    notifier.cancel()
     for client in (arr_http, qbit_http, tm_http):
         await client.aclose()
 

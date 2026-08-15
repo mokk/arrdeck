@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,11 +9,15 @@ import { Card, EmptyNote, Row, StateBadge } from "../components/Blocks";
 import { useHistoryPage } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 
+const TYPE_CHIPS = ["fetched", "imported", "failed", "deleted"];
+
 export default function HistoryPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [appFilter, setAppFilter] = usePersistentState<string>("history.app", "all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const { data, isFetching } = useHistoryPage(page);
 
   useEffect(() => {
@@ -22,7 +27,11 @@ export default function HistoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
-  const shown = items.filter((h) => appFilter === "all" || h.app === appFilter);
+  const shown = items.filter(
+    (h) =>
+      (appFilter === "all" || h.app === appFilter) &&
+      (typeFilter === "all" || (h.events ?? []).some((e) => e.type === typeFilter)),
+  );
 
   const chip = (label: string, value: string) => (
     <Button
@@ -42,6 +51,17 @@ export default function HistoryPage() {
         {chip(t("dl.all", { count: items.length }), "all")}
         {chip("Radarr", "radarr")}
         {chip("Sonarr", "sonarr")}
+        {TYPE_CHIPS.map((type) => (
+          <Button
+            key={type}
+            size="sm"
+            variant={typeFilter === type ? "default" : "secondary"}
+            className="shrink-0 rounded-full capitalize"
+            onClick={() => setTypeFilter(typeFilter === type ? "all" : type)}
+          >
+            {t(`state.${type}`)}
+          </Button>
+        ))}
       </div>
       <Card>
         {items.length === 0 && isFetching && (
@@ -52,7 +72,16 @@ export default function HistoryPage() {
           </div>
         )}
         {shown.map((h, i) => (
-          <Row key={`${h.app}-${h.date}-${i}`}>
+          <Row
+            key={`${h.app}-${h.date}-${i}`}
+            onClick={
+              h.movie_id
+                ? () => navigate(`/movie/${h.movie_id}`)
+                : h.series_id
+                  ? () => navigate(`/series/${h.series_id}`)
+                  : undefined
+            }
+          >
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium">{h.title}</div>
               <div className="mt-0.5 flex flex-wrap items-center gap-1 text-xs">

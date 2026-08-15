@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,11 +28,16 @@ import {
   useIndexerStats,
   useQueue,
   useRecent,
+  useSearch,
   useServices,
   useStatsHistory,
   useTorrents,
+  useTorrentsSummary,
 } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
+import { PosterGrid } from "../components/media";
+import { useRegisterSearchbar } from "../components/subnav";
+import type { SearchResult } from "../api/types";
 
 function RecentSection() {
   const { t } = useTranslation();
@@ -51,7 +57,10 @@ function RecentSection() {
           <div
             key={i}
             className="w-[92px] shrink-0 cursor-pointer active:opacity-70"
-            onClick={() => r.app === "sonarr" && r.library_id && navigate(`/series/${r.library_id}`)}
+            onClick={() =>
+              r.library_id &&
+              navigate(r.app === "sonarr" ? `/series/${r.library_id}` : `/movie/${r.library_id}`)
+            }
           >
             {r.poster ? (
               <img
@@ -78,17 +87,11 @@ function RecentSection() {
 
 function TorrentSummary({ configured }: { configured: Set<string> }) {
   const { t } = useTranslation();
-  const { data } = useTorrents();
+  const { data } = useTorrentsSummary();
   const [collapsed, setCollapsed] = usePersistentState<Record<string, boolean>>(
     "dashboard.torrentsCollapsed",
     {},
   );
-
-  const active = (list: Torrent[]) =>
-    list.filter(
-      (torrent) =>
-        torrent.state === "downloading" || torrent.dl_speed > 0 || torrent.ul_speed > 0,
-    );
 
   const clients = (["qbittorrent", "transmission"] as const).filter((c) =>
     configured.has(c),
@@ -126,16 +129,14 @@ function TorrentSummary({ configured }: { configured: Set<string> }) {
                       </div>
                       <div className="mt-0.5 text-xs text-muted-foreground">
                         {t("dash.torrentCount", {
-                          count: group.torrents.length,
-                          active: active(group.torrents).length,
+                          count: group.count,
+                          active: group.active_count,
                         })}
                       </div>
                     </div>
                   </Row>
                   {!collapsed[client] &&
-                    active(group.torrents)
-                      .slice(0, 5)
-                      .map((torrent) => (
+                    (group.active ?? []).map((torrent) => (
                         <Row key={torrent.id}>
                           <div className="min-w-0 flex-1">
                             <div className="truncate text-sm font-medium">{torrent.name}</div>
@@ -271,6 +272,7 @@ function CalendarSection({ configured }: { configured: Set<string> }) {
 
 function HistorySection({ configured }: { configured: Set<string> }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data } = useHistory();
   const merged: HistoryItem[] = [
     ...(data?.radarr?.data ?? []),
@@ -295,7 +297,16 @@ function HistorySection({ configured }: { configured: Set<string> }) {
           ) : null;
         })}
         {merged.slice(0, 12).map((h, i) => (
-          <Row key={i}>
+          <Row
+            key={i}
+            onClick={
+              h.movie_id
+                ? () => navigate(`/movie/${h.movie_id}`)
+                : h.series_id
+                  ? () => navigate(`/series/${h.series_id}`)
+                  : undefined
+            }
+          >
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium">{h.title}</div>
               <div className="mt-0.5 flex flex-wrap items-center gap-1 text-xs">
@@ -419,7 +430,12 @@ function TrendsSection() {
 
   return (
     <div className="mb-6">
-      <SectionTitle>{t("dash.trends")}</SectionTitle>
+      <div className="flex items-baseline justify-between">
+        <SectionTitle>{t("dash.trends")}</SectionTitle>
+        <Link to="/stats" className="mb-2 text-xs font-semibold text-primary">
+          {t("history.seeAll")} →
+        </Link>
+      </div>
       <div className="grid grid-cols-2 gap-3">
         {tiles.map((tile) => (
           <div key={tile.label} className="rounded-2xl bg-card p-3.5">
@@ -433,12 +449,92 @@ function TrendsSection() {
   );
 }
 
+function GlobalSearch({ query }: { query: string }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const movies = useSearch("movies", query);
+  const series = useSearch("series", query);
+  const { data: torrentsData } = useTorrents();
+
+  const torrentMatches = useMemo(() => {
+    const needle = query.toLowerCase();
+    const all = [
+      ...(torrentsData?.qbittorrent?.data?.torrents ?? []),
+      ...(torrentsData?.transmission?.data?.torrents ?? []),
+    ];
+    return all.filter((tor) => tor.name.toLowerCase().includes(needle)).slice(0, 15);
+  }, [torrentsData, query]);
+
+  const movieResults = (movies.data ?? []) as SearchResult[];
+  const seriesResults = (series.data ?? []) as SearchResult[];
+  const empty =
+    !movies.isFetching &&
+    !series.isFetching &&
+    movieResults.length === 0 &&
+    seriesResults.length === 0 &&
+    torrentMatches.length === 0;
+
+  return (
+    <>
+      {movieResults.length > 0 && (
+        <div className="mb-6">
+          <SectionTitle>{t("search.movies")}</SectionTitle>
+          <PosterGrid results={movieResults.slice(0, 12)} />
+        </div>
+      )}
+      {seriesResults.length > 0 && (
+        <div className="mb-6">
+          <SectionTitle>{t("search.series")}</SectionTitle>
+          <PosterGrid results={seriesResults.slice(0, 12)} />
+        </div>
+      )}
+      {torrentMatches.length > 0 && (
+        <div className="mb-6">
+          <SectionTitle>{t("search.torrents")}</SectionTitle>
+          <Card>
+            {torrentMatches.map((tor) => (
+              <Row
+                key={`${tor.client}-${tor.id}`}
+                onClick={() => {
+                  localStorage.setItem("downloads.name", JSON.stringify(query));
+                  navigate("/downloads");
+                }}
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">{tor.name}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">
+                    <StateBadge state={tor.state} /> {SERVICE_LABELS[tor.client]}
+                  </div>
+                </div>
+              </Row>
+            ))}
+          </Card>
+        </div>
+      )}
+      {empty && <EmptyNote>{t("search.none")}</EmptyNote>}
+    </>
+  );
+}
+
 export default function Dashboard() {
+  const { t } = useTranslation();
+  const [input, setInput] = useState("");
+  const [query, setQuery] = useState("");
+  useEffect(() => {
+    const id = setTimeout(() => setQuery(input), 450);
+    return () => clearTimeout(id);
+  }, [input]);
+  useRegisterSearchbar(t("search.global"), input, setInput, undefined, () => {
+    setInput("");
+    setQuery("");
+  });
+
   const { data: services } = useServices();
   const configured = new Set(
     (services ?? []).filter((s) => s.configured).map((s) => s.service as string),
   );
   const hasArr = configured.has("radarr") || configured.has("sonarr");
+  if (query.trim().length > 1) return <GlobalSearch query={query} />;
   return (
     <>
       <RecentSection />

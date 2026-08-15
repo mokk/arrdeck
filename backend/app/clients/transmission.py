@@ -90,6 +90,10 @@ class TransmissionClient(BaseClient):
     async def verify(self, ids: list[int]) -> None:
         await self.rpc("torrent-verify", {"ids": ids})
 
+    async def set_files_wanted(self, torrent_id: int, indices: list[int], wanted: bool) -> None:
+        key = "files-wanted" if wanted else "files-unwanted"
+        await self.rpc("torrent-set", {"ids": [torrent_id], key: indices})
+
     async def set_limits(self, ids: list[int], dl_kib: int, ul_kib: int) -> None:
         await self.rpc(
             "torrent-set",

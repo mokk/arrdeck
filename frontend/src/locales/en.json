@@ -255,5 +255,34 @@
     "cinema": "Cinema",
     "digital": "Digital",
     "physical": "Physical"
+  },
+  "movie": {
+    "file": "File",
+    "noFile": "No file",
+    "runtime": "{{min}} min",
+    "status": "Status"
+  },
+  "stats": {
+    "title": "Statistics",
+    "days30": "30 days",
+    "days90": "90 days",
+    "days365": "1 year",
+    "episodeFiles": "Episode files",
+    "torrents": "Torrents",
+    "queries": "Queries"
+  },
+  "push": {
+    "title": "Notifications",
+    "enable": "Enable push notifications",
+    "enabled": "Notifications on",
+    "needsHttps": "Requires HTTPS — open the app via deck.thrawn.dk once it's set up.",
+    "denied": "Notifications are blocked in browser settings"
+  },
+  "search": {
+    "global": "Search everything…",
+    "movies": "Movies",
+    "series": "Series",
+    "torrents": "Torrents",
+    "none": "No results"
   }
 }

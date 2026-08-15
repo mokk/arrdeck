@@ -26,6 +26,7 @@ from ...schemas import (
     IndexerStatsOut,
     QueueResponse,
     RecentItemOut,
+    TorrentsSummaryResponse,
     TorrentsResponse,
     HistoryItemOut,
     QueueItemOut,
@@ -103,6 +104,18 @@ async def status(request: Request) -> list[ServiceStatus]:
             return ServiceStatus(service=name, ok=False, error=str(exc))
 
     return list(await asyncio.gather(*(probe(n) for n in names)))
+
+
+def release_info(movie: dict, start: str, end: str) -> tuple[str | None, str | None]:
+    """Pick the movie's upcoming release date within [start, end]. Physical/disc
+    dates are deliberately ignored; no fallback to out-of-window dates."""
+    candidates = [
+        (movie.get("inCinemas"), "cinema"),
+        (movie.get("digitalRelease"), "digital"),
+    ]
+    dated = [(d, kind) for d, kind in candidates if d]
+    in_window = [(d, kind) for d, kind in dated if start <= d[:10] <= end]
+    return min(in_window) if in_window else (None, None)
 
 
 def _queue_items(app: str, payload: dict) -> list[QueueItemOut]:
@@ -342,21 +355,6 @@ async def calendar(
     start = base.isoformat()
     end = (base + timedelta(days=days)).isoformat()
 
-    def release_info(movie: dict) -> tuple[str | None, str | None]:
-        """Radarr matches the calendar window against any of its three release
-        dates; prefer the one actually inside the window so 'Upcoming' never
-        shows a past date. Returns (date, type)."""
-        # physical/disc dates are noise here — cinema and digital only
-        candidates = [
-            (movie.get("inCinemas"), "cinema"),
-            (movie.get("digitalRelease"), "digital"),
-        ]
-        dated = [(d, kind) for d, kind in candidates if d]
-        in_window = [(d, kind) for d, kind in dated if start <= d[:10] <= end]
-        # no fallback: if neither cinema nor digital lands in the window,
-        # the movie has nothing upcoming worth showing
-        return min(in_window) if in_window else (None, None)
-
     async def fetch_radarr() -> list[dict]:
         async def call():
             return await radarr.calendar(start, end)
@@ -364,7 +362,7 @@ async def calendar(
         items = await cached(f"calendar:radarr:{start}:{end}", 60, call)
         out = []
         for m in items:
-            picked_date, picked_type = release_info(m)
+            picked_date, picked_type = release_info(m, start, end)
             if picked_date is None:
                 continue  # physical-only release in this window
             out.append(
@@ -423,8 +421,18 @@ def _consolidate_history(app: str, payload: dict, limit: int = 15) -> list[dict]
         quality = ((rec.get("quality") or {}).get("quality") or {}).get("name")
         g = groups.setdefault(
             key,
-            {"app": app, "title": "", "date": date, "quality": quality, "events": []},
+            {
+                "app": app,
+                "title": "",
+                "date": date,
+                "quality": quality,
+                "events": [],
+                "movie_id": None,
+                "series_id": None,
+            },
         )
+        g["movie_id"] = g["movie_id"] or rec.get("movieId")
+        g["series_id"] = g["series_id"] or rec.get("seriesId")
         if not g["title"]:
             g["title"] = rec.get("sourceTitle") or ""
         g["date"] = max(g["date"], date)
@@ -457,6 +465,52 @@ async def history(
         guarded(fetch("sonarr", sonarr), "history:sonarr"),
     )
     return {"radarr": r, "sonarr": s}
+
+
+@router.get("/torrents/summary", response_model=TorrentsSummaryResponse)
+async def torrents_summary(
+    qbit: QbittorrentClient = Depends(get_qbit),
+    transmission: TransmissionClient = Depends(get_transmission),
+):
+    """Lightweight dashboard feed: totals + top active only, ~1% the payload
+    of the full torrent list."""
+    passthrough = lambda host, _hash: host  # noqa: E731 — no indexer mapping here
+
+    def summarize(client: str, mapped: list[dict], dl: int, ul: int) -> dict:
+        active = [
+            t for t in mapped
+            if t["state"] == "downloading" or t["dl_speed"] > 0 or t["ul_speed"] > 0
+        ]
+        active.sort(key=lambda t: -(t["dl_speed"] + t["ul_speed"]))
+        return {
+            "totals": _averaged_totals(client, dl, ul),
+            "count": len(mapped),
+            "active_count": len(active),
+            "active": active[:5],
+        }
+
+    async def fetch_qbit() -> dict:
+        items, transfer = await asyncio.gather(qbit.torrents(), qbit.transfer_info())
+        return summarize(
+            "qbittorrent",
+            _qbit_torrents(items, passthrough),
+            transfer.get("dl_info_speed", 0),
+            transfer.get("up_info_speed", 0),
+        )
+
+    async def fetch_tm() -> dict:
+        items, stats = await asyncio.gather(transmission.torrents(), transmission.session_stats())
+        return summarize(
+            "transmission",
+            _tm_torrents(items, passthrough),
+            stats.get("downloadSpeed", 0),
+            stats.get("uploadSpeed", 0),
+        )
+
+    q, t = await asyncio.gather(
+        guarded(fetch_qbit(), "torrents:sum:qbit"), guarded(fetch_tm(), "torrents:sum:tm")
+    )
+    return {"qbittorrent": q, "transmission": t}
 
 
 EPISODE_RE = re.compile(r"S(\d+)E(\d+)", re.IGNORECASE)

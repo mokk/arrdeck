@@ -45,6 +45,7 @@ import {
   useTorrentAction,
   useTorrentCategory,
   useTorrentDetails,
+  useTorrentFileToggle,
   useTorrentLimits,
   useTorrentRecheck,
   useTorrents,
@@ -103,6 +104,7 @@ function TorrentDetailsSection({ torrent }: { torrent: Torrent }) {
   const limits = useTorrentLimits();
   const category = useTorrentCategory();
   const recheck = useTorrentRecheck();
+  const fileToggle = useTorrentFileToggle();
   const [dl, setDl] = useState<string | null>(null);
   const [ul, setUl] = useState<string | null>(null);
 
@@ -192,7 +194,28 @@ function TorrentDetailsSection({ torrent }: { torrent: Torrent }) {
             key={f.name}
             className="flex items-center gap-2 border-t border-border py-1.5 text-xs first:border-t-0"
           >
-            <span className="min-w-0 flex-1 truncate">{f.name}</span>
+            <button
+              className={cn(
+                "flex size-4 shrink-0 items-center justify-center rounded border text-[9px] text-white",
+                f.wanted ? "border-primary bg-primary" : "border-muted-foreground/50",
+              )}
+              disabled={fileToggle.isPending}
+              onClick={() =>
+                fileToggle.mutate({
+                  client: torrent.client,
+                  id: torrent.id,
+                  index: f.index ?? 0,
+                  wanted: !f.wanted,
+                })
+              }
+            >
+              {f.wanted ? "✓" : ""}
+            </button>
+            <span
+              className={cn("min-w-0 flex-1 truncate", !f.wanted && "text-muted-foreground line-through")}
+            >
+              {f.name}
+            </span>
             <span className="shrink-0 text-muted-foreground">
               {formatBytes(f.size)} · {Math.round(f.progress * 100)}%
             </span>

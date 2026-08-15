@@ -14,6 +14,9 @@ from ...deps import get_prowlarr, get_radarr, get_sonarr
 from ...schemas import (
     BulkDeleteIn,
     BulkEditIn,
+    HistoryEventOut,
+    MovieDetailOut,
+    MovieFileOut,
     EpisodeIdsIn,
     EpisodeMonitorIn,
     EpisodeOut,
@@ -27,6 +30,7 @@ from ...schemas import (
     WantedItemOut,
     WantedPageOut,
 )
+from .dashboard import EVENT_LABELS
 from .media import _poster
 
 router = APIRouter(tags=["manage"])
@@ -204,6 +208,51 @@ async def library_series(sonarr: SonarrClient = Depends(get_sonarr)) -> list[dic
         }
         for s in sorted(items, key=lambda s: s.get("sortTitle", ""))
     ]
+
+
+@router.get("/library/movies/{movie_id}/detail", response_model=MovieDetailOut)
+async def movie_detail(
+    movie_id: int, radarr: RadarrClient = Depends(get_radarr)
+) -> MovieDetailOut:
+    movie = await radarr.get_movie(movie_id)
+    try:
+        history = await radarr.history_movie(movie_id)
+    except Exception:  # noqa: BLE001 — history is decoration
+        history = []
+    movie_file = movie.get("movieFile")
+    file_out = None
+    if movie_file:
+        media = movie_file.get("mediaInfo") or {}
+        file_out = MovieFileOut(
+            quality=((movie_file.get("quality") or {}).get("quality") or {}).get("name"),
+            size=movie_file.get("size", 0),
+            resolution=media.get("resolution"),
+            release_group=movie_file.get("releaseGroup"),
+        )
+    return MovieDetailOut(
+        id=movie["id"],
+        title=movie.get("title"),
+        year=movie.get("year"),
+        overview=movie.get("overview"),
+        poster=_poster(movie.get("images")),
+        status=movie.get("status"),
+        runtime=movie.get("runtime"),
+        path=movie.get("path"),
+        monitored=movie.get("monitored", False),
+        has_file=movie.get("hasFile", False),
+        size_on_disk=movie.get("sizeOnDisk", 0),
+        quality_profile_id=movie.get("qualityProfileId"),
+        imdb_id=movie.get("imdbId"),
+        tmdb_id=movie.get("tmdbId"),
+        file=file_out,
+        history=[
+            HistoryEventOut(
+                type=EVENT_LABELS.get(h.get("eventType", ""), h.get("eventType", "")),
+                date=h.get("date", ""),
+            )
+            for h in history[:12]
+        ],
+    )
 
 
 @router.patch("/library/movies/{movie_id}")

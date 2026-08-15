@@ -90,6 +90,8 @@ class HistoryItemOut(BaseModel):
     date: str  # most recent event date (sort key)
     quality: str | None = None
     events: list[HistoryEventOut] = []
+    movie_id: int | None = None
+    series_id: int | None = None
 
 
 class SearchResultOut(BaseModel):
@@ -268,6 +270,8 @@ class TorrentFileOut(BaseModel):
     name: str
     size: int
     progress: float  # 0..1
+    index: int = 0
+    wanted: bool = True
 
 
 class TrackerOut(BaseModel):
@@ -411,6 +415,53 @@ class SettingsExportOut(BaseModel):
 
 class SettingsImportIn(BaseModel):
     services: dict[str, dict]
+
+
+class TorrentFileToggleIn(BaseModel):
+    index: int
+    wanted: bool
+
+
+class TorrentSummaryOut(BaseModel):
+    totals: TransferTotals
+    count: int = 0
+    active_count: int = 0
+    active: list[TorrentOut] = []
+
+
+class TorrentsSummaryResponse(BaseModel):
+    qbittorrent: ServiceBlock[TorrentSummaryOut]
+    transmission: ServiceBlock[TorrentSummaryOut]
+
+
+class MovieFileOut(BaseModel):
+    quality: str | None = None
+    size: int = 0
+    resolution: str | None = None
+    release_group: str | None = None
+
+
+class MovieDetailOut(BaseModel):
+    id: int
+    title: str | None = None
+    year: int | None = None
+    overview: str | None = None
+    poster: str | None = None
+    status: str | None = None
+    runtime: int | None = None
+    path: str | None = None
+    monitored: bool = False
+    has_file: bool = False
+    size_on_disk: int = 0
+    quality_profile_id: int | None = None
+    imdb_id: str | None = None
+    tmdb_id: int | None = None
+    file: MovieFileOut | None = None
+    history: list[HistoryEventOut] = []
+
+
+class PushSubscribeIn(BaseModel):
+    subscription: dict
 
 
 class StatsSampleOut(BaseModel):

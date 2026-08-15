@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +52,7 @@ import {
   useLibrarySeries,
   useOptions,
   useImportSettings,
+  usePushSubscribe,
   useSaveServiceSettings,
   useServiceSettings,
   useServices,
@@ -61,6 +63,7 @@ import {
   useToggleIndexer,
   useTriggerSearch,
   useUpdateLibraryItem,
+  useVapidKey,
 } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 
@@ -217,6 +220,83 @@ function StatusStrip() {
   );
 }
 
+function urlBase64ToUint8Array(base64: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+  const raw = atob((base64 + padding).replace(/-/g, "+").replace(/_/g, "/"));
+  return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+}
+
+function NotificationsCard() {
+  const { t } = useTranslation();
+  const supported =
+    typeof window !== "undefined" &&
+    window.isSecureContext &&
+    "serviceWorker" in navigator &&
+    "PushManager" in window;
+  const { data: vapid } = useVapidKey(supported);
+  const pushApi = usePushSubscribe();
+  const [enabled, setEnabled] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!supported) return;
+    navigator.serviceWorker.ready
+      .then((reg) => reg.pushManager.getSubscription())
+      .then((sub) => setEnabled(sub != null))
+      .catch(() => {});
+  }, [supported]);
+
+  const toggle = async () => {
+    if (!vapid) return;
+    setBusy(true);
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if (enabled) {
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          pushApi.mutate({ subscription: sub.toJSON(), unsubscribe: true });
+          await sub.unsubscribe();
+        }
+        setEnabled(false);
+      } else {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          toast.error(t("push.denied"));
+          return;
+        }
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapid.key).buffer as ArrayBuffer,
+        });
+        pushApi.mutate({ subscription: sub.toJSON() });
+        setEnabled(true);
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card>
+      <div className="flex flex-wrap items-center justify-between gap-2 p-4">
+        <span className="font-semibold">{t("push.title")}</span>
+        {supported ? (
+          <Button
+            size="sm"
+            variant={enabled ? "default" : "secondary"}
+            disabled={busy || !vapid}
+            onClick={toggle}
+          >
+            {enabled ? t("push.enabled") : t("push.enable")}
+          </Button>
+        ) : (
+          <span className="text-xs text-muted-foreground">{t("push.needsHttps")}</span>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 function SettingsTransfer() {
   const { t } = useTranslation();
   const importSettings = useImportSettings();
@@ -273,6 +353,7 @@ function ServiceSettingsTab() {
     <>
       <StatusStrip />
       <LanguagePicker />
+      <NotificationsCard />
       <SettingsTransfer />
       {Object.entries(data).map(([name, conf]) => (
         <ServiceSettingsCard
@@ -719,6 +800,7 @@ const MOVIE_SORT_KEYS = ["title", "year", "status", "size_on_disk"];
 
 function MovieLibrary() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data, error } = useLibraryMovies();
   const { data: options } = useOptions("radarr");
   const search = useTriggerSearch();
@@ -796,8 +878,12 @@ function MovieLibrary() {
                 <div className="w-10 shrink-0 rounded-md bg-secondary [aspect-ratio:2/3]" />
               )}
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium">
-                  {m.title} <span className="text-muted-foreground">{m.year ?? ""}</span>
+                <div
+                  className={cn("truncate text-sm font-medium", !selectMode && "cursor-pointer active:opacity-70")}
+                  onClick={selectMode ? undefined : () => navigate(`/movie/${m.id}`)}
+                >
+                  {m.title} <span className="text-muted-foreground">{m.year ?? ""}</span>{" "}
+                  {!selectMode && <span className="text-primary">›</span>}
                 </div>
                 <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <StateBadge state={m.status} />

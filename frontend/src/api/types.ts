@@ -44,6 +44,8 @@ export type Collection = G.CollectionOut;
 export type CollectionDetail = G.CollectionDetailOut;
 export type Tracker = G.TrackerOut;
 export type SettingsExport = G.SettingsExportOut;
+export type MovieDetail = G.MovieDetailOut;
+export type TorrentSummary = G.TorrentSummaryOut;
 
 // /indexers/schemas returns untyped dicts server-side; hand-written for now.
 export interface IndexerSchemaField {

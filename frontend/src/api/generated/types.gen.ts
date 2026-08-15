@@ -440,6 +440,14 @@ export type HistoryItemOut = {
      * Events
      */
     events?: Array<HistoryEventOut>;
+    /**
+     * Movie Id
+     */
+    movie_id?: number | null;
+    /**
+     * Series Id
+     */
+    series_id?: number | null;
 };
 
 /**
@@ -643,6 +651,95 @@ export type MonitorIn = {
 };
 
 /**
+ * MovieDetailOut
+ */
+export type MovieDetailOut = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Year
+     */
+    year?: number | null;
+    /**
+     * Overview
+     */
+    overview?: string | null;
+    /**
+     * Poster
+     */
+    poster?: string | null;
+    /**
+     * Status
+     */
+    status?: string | null;
+    /**
+     * Runtime
+     */
+    runtime?: number | null;
+    /**
+     * Path
+     */
+    path?: string | null;
+    /**
+     * Monitored
+     */
+    monitored?: boolean;
+    /**
+     * Has File
+     */
+    has_file?: boolean;
+    /**
+     * Size On Disk
+     */
+    size_on_disk?: number;
+    /**
+     * Quality Profile Id
+     */
+    quality_profile_id?: number | null;
+    /**
+     * Imdb Id
+     */
+    imdb_id?: string | null;
+    /**
+     * Tmdb Id
+     */
+    tmdb_id?: number | null;
+    file?: MovieFileOut | null;
+    /**
+     * History
+     */
+    history?: Array<HistoryEventOut>;
+};
+
+/**
+ * MovieFileOut
+ */
+export type MovieFileOut = {
+    /**
+     * Quality
+     */
+    quality?: string | null;
+    /**
+     * Size
+     */
+    size?: number;
+    /**
+     * Resolution
+     */
+    resolution?: string | null;
+    /**
+     * Release Group
+     */
+    release_group?: string | null;
+};
+
+/**
  * OptionsOut
  */
 export type OptionsOut = {
@@ -654,6 +751,18 @@ export type OptionsOut = {
      * Root Folders
      */
     root_folders: Array<RootFolderOut>;
+};
+
+/**
+ * PushSubscribeIn
+ */
+export type PushSubscribeIn = {
+    /**
+     * Subscription
+     */
+    subscription: {
+        [key: string]: unknown;
+    };
 };
 
 /**
@@ -967,6 +1076,25 @@ export type ServiceBlockTorrentGroupOut = {
 };
 
 /**
+ * ServiceBlock[TorrentSummaryOut]
+ */
+export type ServiceBlockTorrentSummaryOut = {
+    /**
+     * Ok
+     */
+    ok: boolean;
+    data?: TorrentSummaryOut | null;
+    /**
+     * Error
+     */
+    error?: string | null;
+    /**
+     * Stale Age Seconds
+     */
+    stale_age_seconds?: number | null;
+};
+
+/**
  * ServiceBlock[list[CalendarItemOut]]
  */
 export type ServiceBlockListCalendarItemOut = {
@@ -1264,6 +1392,28 @@ export type TorrentFileOut = {
      * Progress
      */
     progress: number;
+    /**
+     * Index
+     */
+    index?: number;
+    /**
+     * Wanted
+     */
+    wanted?: boolean;
+};
+
+/**
+ * TorrentFileToggleIn
+ */
+export type TorrentFileToggleIn = {
+    /**
+     * Index
+     */
+    index: number;
+    /**
+     * Wanted
+     */
+    wanted: boolean;
 };
 
 /**
@@ -1350,11 +1500,38 @@ export type TorrentOut = {
 };
 
 /**
+ * TorrentSummaryOut
+ */
+export type TorrentSummaryOut = {
+    totals: TransferTotals;
+    /**
+     * Count
+     */
+    count?: number;
+    /**
+     * Active Count
+     */
+    active_count?: number;
+    /**
+     * Active
+     */
+    active?: Array<TorrentOut>;
+};
+
+/**
  * TorrentsResponse
  */
 export type TorrentsResponse = {
     qbittorrent: ServiceBlockTorrentGroupOut;
     transmission: ServiceBlockTorrentGroupOut;
+};
+
+/**
+ * TorrentsSummaryResponse
+ */
+export type TorrentsSummaryResponse = {
+    qbittorrent: ServiceBlockTorrentSummaryOut;
+    transmission: ServiceBlockTorrentSummaryOut;
 };
 
 /**
@@ -1568,6 +1745,22 @@ export type HistoryApiV1HistoryGetResponses = {
 };
 
 export type HistoryApiV1HistoryGetResponse = HistoryApiV1HistoryGetResponses[keyof HistoryApiV1HistoryGetResponses];
+
+export type TorrentsSummaryApiV1TorrentsSummaryGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/torrents/summary';
+};
+
+export type TorrentsSummaryApiV1TorrentsSummaryGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: TorrentsSummaryResponse;
+};
+
+export type TorrentsSummaryApiV1TorrentsSummaryGetResponse = TorrentsSummaryApiV1TorrentsSummaryGetResponses[keyof TorrentsSummaryApiV1TorrentsSummaryGetResponses];
 
 export type RecentApiV1DashboardRecentGetData = {
     body?: never;
@@ -1958,6 +2151,40 @@ export type TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostResponses = {
 };
 
 export type TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostResponse = TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostResponses[keyof TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostResponses];
+
+export type TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostData = {
+    body: TorrentFileToggleIn;
+    path: {
+        /**
+         * Client
+         */
+        client: string;
+        /**
+         * Torrent Id
+         */
+        torrent_id: string;
+    };
+    query?: never;
+    url: '/api/v1/torrents/{client}/{torrent_id}/files';
+};
+
+export type TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostError = TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostErrors[keyof TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostErrors];
+
+export type TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostResponse = TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostResponses[keyof TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostResponses];
 
 export type TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostData = {
     body: TorrentCategoryIn;
@@ -2760,6 +2987,36 @@ export type LibrarySeriesApiV1LibrarySeriesGetResponses = {
 
 export type LibrarySeriesApiV1LibrarySeriesGetResponse = LibrarySeriesApiV1LibrarySeriesGetResponses[keyof LibrarySeriesApiV1LibrarySeriesGetResponses];
 
+export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetData = {
+    body?: never;
+    path: {
+        /**
+         * Movie Id
+         */
+        movie_id: number;
+    };
+    query?: never;
+    url: '/api/v1/library/movies/{movie_id}/detail';
+};
+
+export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetError = MovieDetailApiV1LibraryMoviesMovieIdDetailGetErrors[keyof MovieDetailApiV1LibraryMoviesMovieIdDetailGetErrors];
+
+export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: MovieDetailOut;
+};
+
+export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponse = MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses[keyof MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses];
+
 export type DeleteMovieApiV1LibraryMoviesMovieIdDeleteData = {
     body?: never;
     path: {
@@ -3372,6 +3629,76 @@ export type SaveSettingsApiV1SettingsServicesNamePutResponses = {
 };
 
 export type SaveSettingsApiV1SettingsServicesNamePutResponse = SaveSettingsApiV1SettingsServicesNamePutResponses[keyof SaveSettingsApiV1SettingsServicesNamePutResponses];
+
+export type PushVapidApiV1PushVapidGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/push/vapid';
+};
+
+export type PushVapidApiV1PushVapidGetResponses = {
+    /**
+     * Response Push Vapid Api V1 Push Vapid Get
+     *
+     * Successful Response
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type PushVapidApiV1PushVapidGetResponse = PushVapidApiV1PushVapidGetResponses[keyof PushVapidApiV1PushVapidGetResponses];
+
+export type PushSubscribeApiV1PushSubscribePostData = {
+    body: PushSubscribeIn;
+    path?: never;
+    query?: never;
+    url: '/api/v1/push/subscribe';
+};
+
+export type PushSubscribeApiV1PushSubscribePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PushSubscribeApiV1PushSubscribePostError = PushSubscribeApiV1PushSubscribePostErrors[keyof PushSubscribeApiV1PushSubscribePostErrors];
+
+export type PushSubscribeApiV1PushSubscribePostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type PushSubscribeApiV1PushSubscribePostResponse = PushSubscribeApiV1PushSubscribePostResponses[keyof PushSubscribeApiV1PushSubscribePostResponses];
+
+export type PushUnsubscribeApiV1PushUnsubscribePostData = {
+    body: PushSubscribeIn;
+    path?: never;
+    query?: never;
+    url: '/api/v1/push/unsubscribe';
+};
+
+export type PushUnsubscribeApiV1PushUnsubscribePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PushUnsubscribeApiV1PushUnsubscribePostError = PushUnsubscribeApiV1PushUnsubscribePostErrors[keyof PushUnsubscribeApiV1PushUnsubscribePostErrors];
+
+export type PushUnsubscribeApiV1PushUnsubscribePostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type PushUnsubscribeApiV1PushUnsubscribePostResponse = PushUnsubscribeApiV1PushUnsubscribePostResponses[keyof PushUnsubscribeApiV1PushUnsubscribePostResponses];
 
 export type ExportSettingsApiV1SettingsExportGetData = {
     body?: never;

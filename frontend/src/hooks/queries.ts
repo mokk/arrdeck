@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { api } from "../api/client";
 import type {
   ArrRelease,
+  MovieDetail,
+  TorrentSummary,
   CalendarItem,
   Collection,
   CollectionDetail,
@@ -192,6 +194,70 @@ export function useAddTorrent() {
     },
     onSuccess: () => toast.success(t("toast.torrentAdded")),
     onSettled: () => qc.invalidateQueries({ queryKey: ["torrents"] }),
+  });
+}
+
+export const useTorrentsSummary = () =>
+  useQuery({
+    queryKey: ["torrentsSummary"],
+    queryFn: () =>
+      api.get<{
+        qbittorrent: ServiceBlock<TorrentSummary>;
+        transmission: ServiceBlock<TorrentSummary>;
+      }>("/torrents/summary"),
+    refetchInterval: FAST,
+  });
+
+export const useMovieDetail = (id: number) =>
+  useQuery({
+    queryKey: ["movieDetail", id],
+    queryFn: () => api.get<MovieDetail>(`/library/movies/${id}/detail`),
+  });
+
+export function useTorrentFileToggle() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      client,
+      id,
+      index,
+      wanted,
+    }: {
+      client: string;
+      id: string;
+      index: number;
+      wanted: boolean;
+    }) => api.post<void>(`/torrents/${client}/${id}/files`, { index, wanted }),
+    onMutate: async ({ client, id, index, wanted }) => {
+      await qc.cancelQueries({ queryKey: ["torrentDetails", client, id] });
+      qc.setQueryData<TorrentDetails>(["torrentDetails", client, id], (old) =>
+        old
+          ? {
+              ...old,
+              files: (old.files ?? []).map((f) => (f.index === index ? { ...f, wanted } : f)),
+            }
+          : old,
+      );
+    },
+    onSettled: (_d, _e, v) =>
+      qc.invalidateQueries({ queryKey: ["torrentDetails", v.client, v.id] }),
+  });
+}
+
+export const useVapidKey = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["vapidKey"],
+    queryFn: () => api.get<{ key: string }>("/push/vapid"),
+    enabled,
+    staleTime: Infinity,
+  });
+
+export function usePushSubscribe() {
+  return useMutation({
+    mutationFn: (input: { subscription: unknown; unsubscribe?: boolean }) =>
+      api.post<void>(input.unsubscribe ? "/push/unsubscribe" : "/push/subscribe", {
+        subscription: input.subscription,
+      }),
   });
 }
 

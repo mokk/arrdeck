@@ -48,6 +48,9 @@ class RadarrClient(ArrClient):
     async def update_movie(self, movie_id: int, payload: dict) -> dict:
         return await self.request("PUT", f"/movie/{movie_id}", json=payload)
 
+    async def history_movie(self, movie_id: int) -> list:
+        return await self.get("/history/movie", params={"movieId": movie_id})
+
     async def wanted(self, kind: str, page: int = 1, page_size: int = 30) -> dict:
         # kind: "missing" | "cutoff"
         return await self.get(

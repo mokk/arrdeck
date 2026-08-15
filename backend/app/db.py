@@ -24,6 +24,15 @@ class SettingsDB:
                 )"""
             )
             self._conn.execute(
+                "CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
+            )
+            self._conn.execute(
+                """CREATE TABLE IF NOT EXISTS push_subscriptions (
+                    endpoint TEXT PRIMARY KEY,
+                    data TEXT NOT NULL
+                )"""
+            )
+            self._conn.execute(
                 """CREATE TABLE IF NOT EXISTS stats_samples (
                     ts INTEGER PRIMARY KEY,
                     movies INTEGER NOT NULL DEFAULT 0,
@@ -105,6 +114,38 @@ class SettingsDB:
                 (since_ts,),
             ).fetchall()
         return [dict(zip(self.STATS_COLUMNS, r)) for r in rows]
+
+    def kv_get(self, key: str) -> str | None:
+        with self._lock:
+            row = self._conn.execute("SELECT value FROM kv WHERE key = ?", (key,)).fetchone()
+        return row[0] if row else None
+
+    def kv_set(self, key: str, value: str) -> None:
+        with self._lock:
+            self._conn.execute(
+                "INSERT INTO kv (key, value) VALUES (?, ?)"
+                " ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                (key, value),
+            )
+            self._conn.commit()
+
+    def push_add(self, endpoint: str, data: str) -> None:
+        with self._lock:
+            self._conn.execute(
+                "INSERT OR REPLACE INTO push_subscriptions (endpoint, data) VALUES (?, ?)",
+                (endpoint, data),
+            )
+            self._conn.commit()
+
+    def push_remove(self, endpoint: str) -> None:
+        with self._lock:
+            self._conn.execute("DELETE FROM push_subscriptions WHERE endpoint = ?", (endpoint,))
+            self._conn.commit()
+
+    def push_all(self) -> list[str]:
+        with self._lock:
+            rows = self._conn.execute("SELECT data FROM push_subscriptions").fetchall()
+        return [r[0] for r in rows]
 
     def is_empty(self) -> bool:
         with self._lock:

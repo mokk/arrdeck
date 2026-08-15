@@ -15,6 +15,7 @@ from ...schemas import (
     TorrentDeleteIn,
     TorrentDetailsOut,
     TorrentFileOut,
+    TorrentFileToggleIn,
     TorrentLimitsIn,
     TrackerOut,
 )
@@ -136,8 +137,14 @@ async def torrent_details(
         ]
         return TorrentDetailsOut(
             files=[
-                TorrentFileOut(name=f.get("name", ""), size=f.get("size", 0), progress=f.get("progress", 0.0))
-                for f in files
+                TorrentFileOut(
+                    name=f.get("name", ""),
+                    size=f.get("size", 0),
+                    progress=f.get("progress", 0.0),
+                    index=f.get("index", i),
+                    wanted=f.get("priority", 1) > 0,
+                )
+                for i, f in enumerate(files)
             ],
             dl_limit_kib=max(torrent.get("dl_limit", 0), 0) // 1024,
             ul_limit_kib=max(torrent.get("up_limit", 0), 0) // 1024,
@@ -154,8 +161,10 @@ async def torrent_details(
                     name=f.get("name", ""),
                     size=f.get("length", 0),
                     progress=(f.get("bytesCompleted", 0) / f["length"]) if f.get("length") else 0.0,
+                    index=i,
+                    wanted=bool((detail.get("fileStats") or [{}] * len(files))[i].get("wanted", True)),
                 )
-                for f in files
+                for i, f in enumerate(files)
             ],
             dl_limit_kib=detail.get("downloadLimit", 0) if detail.get("downloadLimited") else 0,
             ul_limit_kib=detail.get("uploadLimit", 0) if detail.get("uploadLimited") else 0,
@@ -202,6 +211,22 @@ async def torrent_limits(
         await qbit.set_limits([torrent_id], body.dl_kib * 1024, body.ul_kib * 1024)
     elif client == "transmission":
         await tm.set_limits(_tm_ids([torrent_id]), body.dl_kib, body.ul_kib)
+    else:
+        raise HTTPException(404, f"unknown client {client!r}")
+
+
+@router.post("/torrents/{client}/{torrent_id}/files", status_code=204)
+async def torrent_file_toggle(
+    client: str,
+    torrent_id: str,
+    body: TorrentFileToggleIn,
+    qbit: QbittorrentClient = Depends(get_qbit),
+    tm: TransmissionClient = Depends(get_transmission),
+) -> None:
+    if client == "qbittorrent":
+        await qbit.set_file_priority(torrent_id, [body.index], 1 if body.wanted else 0)
+    elif client == "transmission":
+        await tm.set_files_wanted(_tm_ids([torrent_id])[0], [body.index], body.wanted)
     else:
         raise HTTPException(404, f"unknown client {client!r}")
 
