@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,18 +28,21 @@ import { useRegisterSearchbar, useRegisterSubnav } from "../components/subnav";
 import { Sheet } from "../components/Sheet";
 import {
   useAddMedia,
+  useCollectionDetail,
+  useCollections,
   useDeleteLibraryItem,
   useDiscover,
   useGrabRelease,
   useOptions,
   useSearch,
   useServices,
+  useToggleCollection,
   useTriggerSearch,
   useUpdateLibraryItem,
 } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 
-type Tab = "movies" | "series" | "releases";
+type Tab = "movies" | "series" | "releases" | "collections";
 
 function MediaHead({ result }: { result: SearchResult }) {
   const { t } = useTranslation();
@@ -378,10 +382,151 @@ function ReleaseList({ releases }: { releases: Release[] }) {
   );
 }
 
+function CollectionSheet({ id, onClose }: { id: number; onClose: () => void }) {
+  const { t } = useTranslation();
+  const { data, isLoading } = useCollectionDetail(id);
+  const toggle = useToggleCollection();
+  const [selected, setSelected] = useState<SearchResult | null>(null);
+
+  if (selected) {
+    return <MediaSheet result={selected} onClose={() => setSelected(null)} />;
+  }
+
+  const have = (data?.movies ?? []).filter((m) => m.in_library).length;
+
+  return (
+    <Sheet
+      title={data?.title ?? "…"}
+      subtitle={
+        data
+          ? `${t("collections.movies", { have, total: data.movies?.length ?? 0 })}${
+              data.overview ? ` — ${data.overview.slice(0, 140)}` : ""
+            }`
+          : undefined
+      }
+      onClose={onClose}
+    >
+      {isLoading && (
+        <>
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="mb-2 h-12 w-full rounded-xl" />
+          ))}
+        </>
+      )}
+      {data && (
+        <div className="mb-3">
+          <Button
+            variant="secondary"
+            size="sm"
+            className={cn(data.monitored && "text-primary")}
+            disabled={toggle.isPending}
+            onClick={() => toggle.mutate({ id: data.id, monitored: !data.monitored })}
+          >
+            {data.monitored ? t("collections.unmonitor") : t("collections.monitor")}
+          </Button>
+        </div>
+      )}
+      {(data?.movies ?? []).map((m) => (
+        <div
+          key={m.remote_id}
+          className="flex cursor-pointer items-center gap-3 border-t border-border py-2 first:border-t-0 active:opacity-70"
+          onClick={() => setSelected(m)}
+        >
+          {m.poster ? (
+            <img
+              src={m.poster}
+              alt=""
+              loading="lazy"
+              className="w-9 shrink-0 rounded-md bg-secondary object-cover [aspect-ratio:2/3]"
+            />
+          ) : (
+            <div className="w-9 shrink-0 rounded-md bg-secondary [aspect-ratio:2/3]" />
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium">
+              {m.title} <span className="text-muted-foreground">{m.year ?? ""}</span>
+            </div>
+            <div className="mt-0.5 text-xs">
+              {m.in_library ? (
+                <span className={m.has_file ? "text-success" : "text-primary"}>
+                  {m.has_file ? t("add.downloadedBadge") : t("add.monitoredBadge")}
+                </span>
+              ) : (
+                <span className="text-muted-foreground">{t("add.notInLibrary")}</span>
+              )}
+            </div>
+          </div>
+          <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+        </div>
+      ))}
+    </Sheet>
+  );
+}
+
+function CollectionsList({ filter }: { filter: string }) {
+  const { t } = useTranslation();
+  const { data, isLoading, error } = useCollections(true);
+  const toggle = useToggleCollection();
+  const shown = (data ?? []).filter((c) =>
+    (c.title ?? "").toLowerCase().includes(filter.toLowerCase()),
+  );
+  const [openId, setOpenId] = useState<number | null>(null);
+  return (
+    <Card>
+      {isLoading && (
+        <div className="p-4">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="mb-2 h-12 w-full" />
+          ))}
+        </div>
+      )}
+      {error && <ErrorNote>{(error as Error).message}</ErrorNote>}
+      {shown.map((c) => (
+        <Row key={c.id} onClick={() => setOpenId(c.id)}>
+          {c.poster ? (
+            <img
+              src={c.poster}
+              alt=""
+              loading="lazy"
+              className="w-9 shrink-0 rounded-md bg-secondary object-cover [aspect-ratio:2/3]"
+            />
+          ) : (
+            <div className="w-9 shrink-0 rounded-md bg-secondary [aspect-ratio:2/3]" />
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium">{c.title}</div>
+            <div className="mt-0.5 text-xs text-muted-foreground">
+              {t("collections.movies", {
+                have: (c.movie_count ?? 0) - (c.missing_count ?? 0),
+                total: c.movie_count ?? 0,
+              })}
+            </div>
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            className={cn("shrink-0", c.monitored && "text-primary")}
+            disabled={toggle.isPending}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggle.mutate({ id: c.id, monitored: !c.monitored });
+            }}
+          >
+            {c.monitored ? t("collections.unmonitor") : t("collections.monitor")}
+          </Button>
+        </Row>
+      ))}
+      {data && shown.length === 0 && <EmptyNote>{t("manage.noMatches")}</EmptyNote>}
+      {openId != null && <CollectionSheet id={openId} onClose={() => setOpenId(null)} />}
+    </Card>
+  );
+}
+
 const TAB_SERVICE: Record<Tab, string> = {
   movies: "radarr",
   series: "sonarr",
   releases: "prowlarr",
+  collections: "radarr",
 };
 
 export default function Add() {
@@ -390,7 +535,7 @@ export default function Add() {
   const configured = new Set(
     (services ?? []).filter((s) => s.configured).map((s) => s.service),
   );
-  const tabs = (["movies", "series", "releases"] as Tab[]).filter((tab) =>
+  const tabs = (["movies", "series", "collections", "releases"] as Tab[]).filter((tab) =>
     configured.has(TAB_SERVICE[tab] as never),
   );
 
@@ -401,11 +546,15 @@ export default function Add() {
 
   const searching = query.trim().length > 1;
   const canDiscover = configured.has("overseerr" as never);
-  const search = useSearch(tab ?? "movies", query);
+  const search = useSearch(
+    tab === "collections" ? "movies" : (tab ?? "movies"),
+    tab === "collections" ? "" : query,
+  );
   const discover = useDiscover(
     tab === "series" ? "series" : "movies",
-    tab != null && tab !== "releases" && !searching && canDiscover,
+    tab != null && tab !== "releases" && tab !== "collections" && !searching && canDiscover,
   );
+  const collections = useCollections(tab === "collections");
 
   const onTab = (t: Tab) => {
     setTab(t);
@@ -413,8 +562,20 @@ export default function Add() {
     setQuery("");
   };
 
+  // live search: debounce typing into the query (submit still works instantly);
+  // raw releases stay submit-only (indexer fan-out is expensive)
+  useEffect(() => {
+    if (tab === "releases" || tab === "collections") return;
+    const id = setTimeout(() => setQuery(input), 450);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [input, tab]);
+
   useRegisterSubnav(
-    tabs.map((tb) => ({ value: tb, label: t(`add.${tb}`) })),
+    tabs.map((tb) => ({
+      value: tb,
+      label: tb === "collections" ? t("collections.title") : t(`add.${tb}`),
+    })),
     tab ?? "movies",
     (v) => onTab(v as Tab),
   );
@@ -424,7 +585,9 @@ export default function Add() {
       ? t("add.searchReleases")
       : tab === "series"
         ? t("add.searchSeries")
-        : t("add.searchMovies");
+        : tab === "collections"
+          ? t("dl.filterByName")
+          : t("add.searchMovies");
 
   useRegisterSearchbar(
     searchPlaceholder,
@@ -449,7 +612,9 @@ export default function Add() {
     <>
       {search.error && searching && <ErrorNote>{(search.error as Error).message}</ErrorNote>}
 
-      {tab === "releases" ? (
+      {tab === "collections" ? (
+        <CollectionsList filter={input} />
+      ) : tab === "releases" ? (
         searching && search.data ? (
           <ReleaseList releases={search.data as Release[]} />
         ) : (

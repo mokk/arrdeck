@@ -65,7 +65,9 @@
     "librarySize": "Biblioteksstørrelse",
     "movies": "Film",
     "seriesCount": "Serier",
-    "grabs": "Hentninger"
+    "grabs": "Hentninger",
+    "recentlyAdded": "Senest tilføjet",
+    "wanted": "Ønsket"
   },
   "dl": {
     "title": "Downloads",
@@ -107,7 +109,9 @@
     "magnetOrUrl": "Magnet-link eller torrent-URL",
     "chooseFile": "Vælg .torrent-fil",
     "startPaused": "Start pauset",
-    "client": "Klient"
+    "client": "Klient",
+    "trackers": "Trackere",
+    "forceImport": "Gennemtving import"
   },
   "add": {
     "title": "Tilføj",
@@ -197,7 +201,9 @@
       "protocol": "Protokol",
       "privacy": "Privatliv",
       "enable": "Aktiveret"
-    }
+    },
+    "export": "Eksportér indstillinger",
+    "import": "Importér indstillinger"
   },
   "toast": {
     "added": "Tilføjet til biblioteket",
@@ -205,7 +211,9 @@
     "searchStarted": "Søgning startet",
     "indexerAdded": "Indexer tilføjet",
     "retried": "Blokeret og søger efter en erstatning",
-    "torrentAdded": "Torrent tilføjet"
+    "torrentAdded": "Torrent tilføjet",
+    "importStarted": "Import startet",
+    "settingsImported": "Indstillinger importeret"
   },
   "series": {
     "seasons": "Sæsoner",
@@ -227,5 +235,22 @@
     "seeAll": "Se alle",
     "loadMore": "Indlæs flere",
     "loadingMore": "Indlæser…"
+  },
+  "wanted": {
+    "title": "Ønsket",
+    "missing": "Mangler",
+    "cutoff": "Opgraderinger",
+    "searchAll": "Søg alle",
+    "empty": "Intet her — biblioteket er komplet",
+    "count": "{{count}} elementer"
+  },
+  "collections": {
+    "title": "Samlinger",
+    "movies": "{{have}}/{{total}} film",
+    "monitor": "Overvåg",
+    "unmonitor": "Stop overvågning"
+  },
+  "cal": {
+    "title": "Kalender"
   }
 }

@@ -58,6 +58,35 @@ class SonarrClient(ArrClient):
     async def update_series(self, series_id: int, payload: dict) -> dict:
         return await self.request("PUT", f"/series/{series_id}", json=payload)
 
+    async def wanted(self, kind: str, page: int = 1, page_size: int = 30) -> dict:
+        # kind: "missing" | "cutoff"
+        return await self.get(
+            f"/wanted/{kind}",
+            params={
+                "page": page,
+                "pageSize": page_size,
+                "sortKey": "airDateUtc",
+                "sortDirection": "descending",
+                "monitored": "true",
+                "includeSeries": "true",
+            },
+        )
+
+    async def manual_import(self, download_id: str) -> list:
+        return await self.get(
+            "/manualimport", params={"downloadId": download_id, "filterExistingFiles": "false"}
+        )
+
+    async def bulk_edit(self, payload: dict) -> None:
+        await self.request("PUT", "/series/editor", json=payload)
+
+    async def bulk_delete(self, series_ids: list[int], delete_files: bool) -> None:
+        await self.request(
+            "DELETE",
+            "/series/editor",
+            json={"seriesIds": series_ids, "deleteFiles": delete_files},
+        )
+
     async def delete_series(self, series_id: int, delete_files: bool) -> None:
         await self.request(
             "DELETE",

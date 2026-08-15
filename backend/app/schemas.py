@@ -234,6 +234,7 @@ class LibraryMovieOut(BaseModel):
     has_file: bool = False
     size_on_disk: int = 0
     quality_profile_id: int | None = None
+    poster: str | None = None
 
 
 class LibrarySeriesOut(BaseModel):
@@ -246,6 +247,7 @@ class LibrarySeriesOut(BaseModel):
     episode_file_count: int = 0
     size_on_disk: int = 0
     quality_profile_id: int | None = None
+    poster: str | None = None
 
 
 class ServiceInfoOut(BaseModel):
@@ -267,12 +269,19 @@ class TorrentFileOut(BaseModel):
     progress: float  # 0..1
 
 
+class TrackerOut(BaseModel):
+    host: str
+    ok: bool = True
+    message: str | None = None
+
+
 class TorrentDetailsOut(BaseModel):
     files: list[TorrentFileOut]
     dl_limit_kib: int = 0  # 0 = unlimited
     ul_limit_kib: int = 0
     category: str | None = None  # qbittorrent only
     categories: list[str] = []
+    trackers: list[TrackerOut] = []
 
 
 class TorrentLimitsIn(BaseModel):
@@ -295,6 +304,7 @@ class SeasonOut(BaseModel):
 class SeriesDetailOut(BaseModel):
     id: int
     title: str | None = None
+    poster: str | None = None
     seasons: list[SeasonOut]
 
 
@@ -338,6 +348,68 @@ class ArrReleaseOut(BaseModel):
 class HistoryPageOut(BaseModel):
     items: list[HistoryItemOut]
     has_more: bool = False
+
+
+class RecentItemOut(BaseModel):
+    app: Literal["radarr", "sonarr"]
+    title: str
+    subtitle: str | None = None
+    date: str
+    poster: str | None = None
+    library_id: int | None = None
+
+
+class WantedItemOut(BaseModel):
+    app: Literal["radarr", "sonarr"]
+    id: int  # movieId for radarr, episodeId for sonarr
+    library_id: int  # movieId / seriesId (for interactive search + navigation)
+    title: str
+    subtitle: str | None = None
+    air_date: str | None = None
+    poster: str | None = None
+
+
+class WantedPageOut(BaseModel):
+    items: list[WantedItemOut]
+    total: int = 0
+    has_more: bool = False
+
+
+class CollectionOut(BaseModel):
+    id: int
+    title: str | None = None
+    monitored: bool = False
+    movie_count: int = 0
+    missing_count: int = 0
+    poster: str | None = None
+
+
+class CollectionDetailOut(BaseModel):
+    id: int
+    title: str | None = None
+    monitored: bool = False
+    overview: str | None = None
+    poster: str | None = None
+    movies: list[SearchResultOut] = []
+
+
+class BulkEditIn(BaseModel):
+    ids: list[int]
+    monitored: bool | None = None
+    quality_profile_id: int | None = None
+
+
+class BulkDeleteIn(BaseModel):
+    ids: list[int]
+    delete_files: bool = False
+
+
+class SettingsExportOut(BaseModel):
+    services: dict[str, ServiceSettingsOut]
+
+
+class SettingsImportIn(BaseModel):
+    services: dict[str, dict]
 
 
 class StatsSampleOut(BaseModel):

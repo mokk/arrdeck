@@ -6,7 +6,13 @@ from pydantic import BaseModel
 from ...cache import cache
 from ...db import SERVICES
 from ...registry import probe_version
-from ...schemas import ServiceInfoOut, ServiceSettingsOut, StatsSampleOut
+from ...schemas import (
+    ServiceInfoOut,
+    ServiceSettingsOut,
+    SettingsExportOut,
+    SettingsImportIn,
+    StatsSampleOut,
+)
 
 router = APIRouter(tags=["settings"])
 
@@ -51,6 +57,20 @@ def save_settings(name: str, body: ServiceSettingsIn, request: Request) -> dict:
     request.app.state.registry.rebuild(name, values)
     cache.clear()  # cached data may belong to the old connection
     return {"service": name, "configured": request.app.state.registry.is_configured(name)}
+
+
+@router.get("/settings/export", response_model=SettingsExportOut)
+def export_settings(request: Request) -> dict:
+    return {"services": request.app.state.db.all()}
+
+
+@router.post("/settings/import", status_code=204)
+def import_settings(body: SettingsImportIn, request: Request) -> None:
+    for name, values in body.services.items():
+        if name in SERVICES:
+            request.app.state.db.upsert(name, values)
+    request.app.state.registry.rebuild_all(request.app.state.db.all())
+    cache.clear()
 
 
 @router.get("/stats/history", response_model=list[StatsSampleOut])

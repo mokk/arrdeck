@@ -5,12 +5,16 @@ import { api } from "../api/client";
 import type {
   ArrRelease,
   CalendarItem,
+  Collection,
+  CollectionDetail,
   Episode,
   HistoryItem,
   HistoryPage,
+  RecentItem,
   SeriesDetail,
   StatsSample,
   TorrentDetails,
+  WantedPage,
   Indexer,
   IndexerSchema,
   IndexerStats,
@@ -31,6 +35,128 @@ import type {
 const FAST = 5_000;
 const MEDIUM = 30_000;
 const SLOW = 300_000;
+
+export const useRecent = () =>
+  useQuery({
+    queryKey: ["recent"],
+    queryFn: () => api.get<RecentItem[]>("/dashboard/recent"),
+    refetchInterval: 60_000,
+  });
+
+export const useWanted = (app: "radarr" | "sonarr", kind: "missing" | "cutoff", page: number) =>
+  useQuery({
+    queryKey: ["wanted", app, kind, page],
+    queryFn: () => api.get<WantedPage>(`/wanted/${app}?kind=${kind}&page=${page}`),
+    staleTime: 60_000,
+  });
+
+export function useWantedSearchAll() {
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ app, kind }: { app: "radarr" | "sonarr"; kind: string }) =>
+      api.post<void>(`/wanted/${app}/search-all?kind=${kind}`),
+    onSuccess: () => toast.success(t("toast.searchStarted")),
+  });
+}
+
+export const useCollectionDetail = (id: number | null) =>
+  useQuery({
+    queryKey: ["collectionDetail", id],
+    queryFn: () => api.get<CollectionDetail>(`/collections/${id}`),
+    enabled: id != null,
+    staleTime: 60_000,
+  });
+
+export const useCollections = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["collections"],
+    queryFn: () => api.get<Collection[]>("/collections"),
+    enabled,
+    staleTime: 300_000,
+  });
+
+export function useToggleCollection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, monitored }: { id: number; monitored: boolean }) =>
+      api.patch<void>(`/collections/${id}?monitored=${monitored}`),
+    onMutate: async ({ id, monitored }) => {
+      await qc.cancelQueries({ queryKey: ["collections"] });
+      const prev = qc.getQueryData<Collection[]>(["collections"]);
+      qc.setQueryData<Collection[]>(["collections"], (old) =>
+        old?.map((c) => (c.id === id ? { ...c, monitored } : c)),
+      );
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => ctx?.prev && qc.setQueryData(["collections"], ctx.prev),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["collections"] }),
+  });
+}
+
+export function useBulkLibrary(kind: "movies" | "series") {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { ids: number[]; monitored?: boolean; quality_profile_id?: number }) =>
+      api.post<void>(`/library/${kind}/bulk`, input),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["library", kind] });
+      qc.invalidateQueries({ queryKey: ["discover"] });
+    },
+  });
+}
+
+export function useBulkDeleteLibrary(kind: "movies" | "series") {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { ids: number[]; delete_files: boolean }) =>
+      api.post<void>(`/library/${kind}/bulk-delete`, input),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["library", kind] });
+      qc.invalidateQueries({ queryKey: ["discover"] });
+    },
+  });
+}
+
+export function useBulkSearchLibrary(kind: "movies" | "series") {
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (ids: number[]) =>
+      api.post<void>(`/library/${kind}/bulk-search`, { ids, delete_files: false }),
+    onSuccess: () => toast.success(t("toast.searchStarted")),
+  });
+}
+
+export function useForceImport() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ app, id }: { app: "radarr" | "sonarr"; id: number }) =>
+      api.post<void>(`/queue/${app}/${id}/force-import`),
+    onSuccess: () => toast.success(t("toast.importStarted")),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["queue"] }),
+  });
+}
+
+export const useCalendarRange = (startDate: string, days: number) =>
+  useQuery({
+    queryKey: ["calendarRange", startDate, days],
+    queryFn: () =>
+      api.get<{ radarr: ServiceBlock<CalendarItem[]>; sonarr: ServiceBlock<CalendarItem[]> }>(
+        `/calendar?days=${days}&start_date=${startDate}`,
+      ),
+    staleTime: 300_000,
+  });
+
+export function useImportSettings() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (services: Record<string, unknown>) =>
+      api.post<void>("/settings/import", { services }),
+    onSuccess: () => toast.success(t("toast.settingsImported")),
+    onSettled: () => qc.invalidateQueries(),
+  });
+}
 
 export const useQbitCategories = (enabled: boolean) =>
   useQuery({
@@ -159,6 +285,12 @@ export function useEpisodeMonitor(seriesId: number) {
   return useMutation({
     mutationFn: ({ ids, monitored }: { ids: number[]; monitored: boolean }) =>
       api.patch<void>("/library/episodes/monitor", { ids, monitored }),
+    onMutate: async ({ ids, monitored }) => {
+      await qc.cancelQueries({ queryKey: ["seriesEpisodes", seriesId] });
+      qc.setQueriesData<Episode[]>({ queryKey: ["seriesEpisodes", seriesId] }, (old) =>
+        old?.map((e) => (ids.includes(e.id) ? { ...e, monitored } : e)),
+      );
+    },
     onSettled: () => qc.invalidateQueries({ queryKey: ["seriesEpisodes", seriesId] }),
   });
 }
@@ -297,6 +429,11 @@ export const useIndexerStats = () =>
     refetchInterval: SLOW,
   });
 
+type TorrentsCache = {
+  qbittorrent: ServiceBlock<TorrentGroup>;
+  transmission: ServiceBlock<TorrentGroup>;
+};
+
 export function useTorrentAction() {
   const qc = useQueryClient();
   return useMutation({
@@ -315,6 +452,38 @@ export function useTorrentAction() {
         `/torrents/${client}/${action}`,
         action === "delete" ? { ids, delete_data: deleteData ?? false } : { ids },
       ),
+    // optimistic: flip states / remove rows instantly, roll back on error
+    onMutate: async ({ client, action, ids }) => {
+      await qc.cancelQueries({ queryKey: ["torrents"] });
+      const prev = qc.getQueryData<TorrentsCache>(["torrents"]);
+      qc.setQueryData<TorrentsCache>(["torrents"], (old) => {
+        const group = old?.[client]?.data;
+        if (!old || !group) return old;
+        const torrents =
+          action === "delete"
+            ? (group.torrents ?? []).filter((t) => !ids.includes(t.id))
+            : (group.torrents ?? []).map((t) =>
+                ids.includes(t.id)
+                  ? {
+                      ...t,
+                      state:
+                        action === "pause"
+                          ? t.progress >= 1
+                            ? "completed"
+                            : "paused"
+                          : t.progress >= 1
+                            ? "seeding"
+                            : "downloading",
+                      dl_speed: 0,
+                      ul_speed: 0,
+                    }
+                  : t,
+              );
+        return { ...old, [client]: { ...old[client], data: { ...group, torrents } } };
+      });
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => ctx?.prev && qc.setQueryData(["torrents"], ctx.prev),
     onSettled: () => qc.invalidateQueries({ queryKey: ["torrents"] }),
   });
 }
@@ -383,6 +552,8 @@ export function useAddMedia() {
       qc.invalidateQueries({ queryKey: ["search"] });
       qc.invalidateQueries({ queryKey: ["discover"] });
       qc.invalidateQueries({ queryKey: ["library"] });
+      qc.invalidateQueries({ queryKey: ["collections"] });
+      qc.invalidateQueries({ queryKey: ["collectionDetail"] });
     },
   });
 }
@@ -481,6 +652,23 @@ export function useUpdateLibraryItem(kind: "movies" | "series") {
       monitored?: boolean;
       quality_profile_id?: number;
     }) => api.patch(`/library/${kind}/${id}`, { monitored, quality_profile_id }),
+    onMutate: async ({ id, monitored, quality_profile_id }) => {
+      await qc.cancelQueries({ queryKey: ["library", kind] });
+      const prev = qc.getQueryData<{ id: number }[]>(["library", kind]);
+      qc.setQueryData<Record<string, unknown>[]>(["library", kind], (old) =>
+        old?.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                ...(monitored !== undefined ? { monitored } : {}),
+                ...(quality_profile_id !== undefined ? { quality_profile_id } : {}),
+              }
+            : item,
+        ),
+      );
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => ctx?.prev && qc.setQueryData(["library", kind], ctx.prev),
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["library", kind] });
       qc.invalidateQueries({ queryKey: ["search"] });

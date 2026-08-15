@@ -16,6 +16,7 @@ from ...schemas import (
     TorrentDetailsOut,
     TorrentFileOut,
     TorrentLimitsIn,
+    TrackerOut,
 )
 
 router = APIRouter(tags=["downloads"])
@@ -116,10 +117,23 @@ async def torrent_details(
     tm: TransmissionClient = Depends(get_transmission),
 ) -> TorrentDetailsOut:
     if client == "qbittorrent":
-        files, info, categories = await asyncio.gather(
-            qbit.files(torrent_id), qbit.torrents([torrent_id]), qbit.categories()
+        files, info, categories, trackers = await asyncio.gather(
+            qbit.files(torrent_id),
+            qbit.torrents([torrent_id]),
+            qbit.categories(),
+            qbit.trackers(torrent_id),
         )
         torrent = info[0] if info else {}
+        # status 4 = not working; skip the DHT/PEX/LSD pseudo entries
+        tracker_out = [
+            TrackerOut(
+                host=tr.get("url", ""),
+                ok=tr.get("status") != 4,
+                message=(tr.get("msg") or None),
+            )
+            for tr in trackers
+            if not str(tr.get("url", "")).startswith("**")
+        ]
         return TorrentDetailsOut(
             files=[
                 TorrentFileOut(name=f.get("name", ""), size=f.get("size", 0), progress=f.get("progress", 0.0))
@@ -129,6 +143,7 @@ async def torrent_details(
             ul_limit_kib=max(torrent.get("up_limit", 0), 0) // 1024,
             category=torrent.get("category") or None,
             categories=sorted(categories.keys()),
+            trackers=tracker_out,
         )
     if client == "transmission":
         detail = await tm.torrent_details(_tm_ids([torrent_id])[0])
@@ -144,6 +159,18 @@ async def torrent_details(
             ],
             dl_limit_kib=detail.get("downloadLimit", 0) if detail.get("downloadLimited") else 0,
             ul_limit_kib=detail.get("uploadLimit", 0) if detail.get("uploadLimited") else 0,
+            trackers=[
+                TrackerOut(
+                    host=tr.get("host") or tr.get("announce", ""),
+                    ok=bool(tr.get("lastAnnounceSucceeded", True)),
+                    message=(
+                        tr.get("lastAnnounceResult")
+                        if not tr.get("lastAnnounceSucceeded", True)
+                        else None
+                    ),
+                )
+                for tr in detail.get("trackerStats", [])
+            ],
         )
     raise HTTPException(404, f"unknown client {client!r}")
 
@@ -209,6 +236,53 @@ async def blocklist_retry(
             await client.command({"name": "EpisodeSearch", "episodeIds": [rec["episodeId"]]})
         elif rec.get("seriesId"):
             await client.command({"name": "SeriesSearch", "seriesId": rec["seriesId"]})
+
+
+@router.post("/queue/{app}/{item_id}/force-import", status_code=204)
+async def force_import(
+    app: str,
+    item_id: int,
+    radarr: RadarrClient = Depends(get_radarr),
+    sonarr: SonarrClient = Depends(get_sonarr),
+) -> None:
+    """Rescue a stuck import: take the arr's manual-import candidates that
+    already have a confident mapping and import them."""
+    if app not in ("radarr", "sonarr"):
+        raise HTTPException(404, f"unknown app {app!r}")
+    client = radarr if app == "radarr" else sonarr
+    payload = await client.queue()
+    rec = next((r for r in payload.get("records", []) if r.get("id") == item_id), None)
+    if rec is None or not rec.get("downloadId"):
+        raise HTTPException(404, "queue item not found")
+    candidates = await client.manual_import(rec["downloadId"])
+    files = []
+    for c in candidates:
+        if not c.get("quality"):
+            continue
+        if app == "radarr" and c.get("movie"):
+            files.append(
+                {
+                    "path": c["path"],
+                    "movieId": c["movie"]["id"],
+                    "quality": c["quality"],
+                    "languages": c.get("languages", []),
+                    "releaseGroup": c.get("releaseGroup") or "",
+                }
+            )
+        elif app == "sonarr" and c.get("series") and c.get("episodes"):
+            files.append(
+                {
+                    "path": c["path"],
+                    "seriesId": c["series"]["id"],
+                    "episodeIds": [e["id"] for e in c["episodes"]],
+                    "quality": c["quality"],
+                    "languages": c.get("languages", []),
+                    "releaseGroup": c.get("releaseGroup") or "",
+                }
+            )
+    if not files:
+        raise HTTPException(409, "no importable files could be mapped automatically")
+    await client.command({"name": "ManualImport", "files": files, "importMode": "auto"})
 
 
 @router.delete("/queue/{app}/{item_id}", status_code=204)

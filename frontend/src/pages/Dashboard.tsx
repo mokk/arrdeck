@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   SERVICE_LABELS,
@@ -22,14 +22,59 @@ import {
 import {
   useBlocklistRetry,
   useCalendar,
+  useForceImport,
   useHistory,
   useIndexerStats,
   useQueue,
+  useRecent,
   useServices,
   useStatsHistory,
   useTorrents,
 } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
+
+function RecentSection() {
+  const { t } = useTranslation();
+  const { data } = useRecent();
+  const navigate = useNavigate();
+  if (!data?.length) return null;
+  return (
+    <div className="mb-6">
+      <div className="flex items-baseline justify-between">
+        <SectionTitle>{t("dash.recentlyAdded")}</SectionTitle>
+        <Link to="/wanted" className="mb-2 text-xs font-semibold text-primary">
+          {t("dash.wanted")} →
+        </Link>
+      </div>
+      <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none]">
+        {data.map((r, i) => (
+          <div
+            key={i}
+            className="w-[92px] shrink-0 cursor-pointer active:opacity-70"
+            onClick={() => r.app === "sonarr" && r.library_id && navigate(`/series/${r.library_id}`)}
+          >
+            {r.poster ? (
+              <img
+                src={r.poster}
+                alt=""
+                loading="lazy"
+                className="w-full rounded-xl bg-card object-cover [aspect-ratio:2/3]"
+              />
+            ) : (
+              <div className="flex w-full items-center justify-center rounded-xl bg-card p-1 text-center text-[0.65rem] text-muted-foreground [aspect-ratio:2/3]">
+                {r.title}
+              </div>
+            )}
+            <div className="mt-1 truncate text-[0.7rem] font-semibold">{r.title}</div>
+            <div className="truncate text-[0.65rem] text-muted-foreground">
+              {r.subtitle ?? ""}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function TorrentSummary({ configured }: { configured: Set<string> }) {
   const { t } = useTranslation();
@@ -116,6 +161,7 @@ function QueueSection({ configured }: { configured: Set<string> }) {
   const { t } = useTranslation();
   const { data } = useQueue();
   const retry = useBlocklistRetry();
+  const forceImport = useForceImport();
   const items = [...(data?.radarr?.data ?? []), ...(data?.sonarr?.data ?? [])];
   const offline = (["radarr", "sonarr"] as const).filter(
     (app) => configured.has(app) && data?.[app] && !data[app].ok,
@@ -141,17 +187,30 @@ function QueueSection({ configured }: { configured: Set<string> }) {
               </div>
               <ProgressBar value={q.size ? (q.size - q.size_left) / q.size : 0} />
             </div>
-            {(q.errors ?? []).length > 0 && (
-              <Button
-                variant="secondary"
-                size="sm"
-                className="shrink-0 text-warning"
-                disabled={retry.isPending}
-                onClick={() => retry.mutate({ app: q.app, id: q.id })}
-              >
-                {t("dl.blocklistRetry")}
-              </Button>
-            )}
+            <div className="flex shrink-0 flex-col gap-1.5">
+              {q.tracked_state?.startsWith("import") && q.tracked_state !== "imported" && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="text-primary"
+                  disabled={forceImport.isPending}
+                  onClick={() => forceImport.mutate({ app: q.app, id: q.id })}
+                >
+                  {t("dl.forceImport")}
+                </Button>
+              )}
+              {(q.errors ?? []).length > 0 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="text-warning"
+                  disabled={retry.isPending}
+                  onClick={() => retry.mutate({ app: q.app, id: q.id })}
+                >
+                  {t("dl.blocklistRetry")}
+                </Button>
+              )}
+            </div>
           </Row>
         ))}
       </Card>
@@ -174,7 +233,12 @@ function CalendarSection({ configured }: { configured: Set<string> }) {
 
   return (
     <div className="mb-6">
-      <SectionTitle>{t("dash.upcoming")}</SectionTitle>
+      <div className="flex items-baseline justify-between">
+        <SectionTitle>{t("dash.upcoming")}</SectionTitle>
+        <Link to="/calendar" className="mb-2 text-xs font-semibold text-primary">
+          {t("history.seeAll")} →
+        </Link>
+      </div>
       <Card>
         {(["radarr", "sonarr"] as const).map((app) => {
           const block = data?.[app];
@@ -375,12 +439,15 @@ export default function Dashboard() {
   const hasArr = configured.has("radarr") || configured.has("sonarr");
   return (
     <>
+      <RecentSection />
       <TorrentSummary configured={configured} />
       {hasArr && <QueueSection configured={configured} />}
-      {hasArr && <CalendarSection configured={configured} />}
-      {hasArr && <HistorySection configured={configured} />}
-      {configured.has("prowlarr") && <IndexerSection />}
-      <TrendsSection />
+      <div className="lg:columns-2 lg:gap-5 [&>div]:break-inside-avoid">
+        {hasArr && <CalendarSection configured={configured} />}
+        {hasArr && <HistorySection configured={configured} />}
+        {configured.has("prowlarr") && <IndexerSection />}
+        <TrendsSection />
+      </div>
     </>
   );
 }

@@ -179,10 +179,17 @@ export default function SeriesPage() {
 
   return (
     <>
-      <div className="mb-4 mt-2 flex items-center gap-2">
+      <div className="mb-4 mt-2 flex items-center gap-2.5">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ChevronLeft className="size-6" />
         </Button>
+        {data?.poster && (
+          <img
+            src={data.poster}
+            alt=""
+            className="w-9 shrink-0 rounded-md bg-secondary object-cover [aspect-ratio:2/3]"
+          />
+        )}
         <h1 className="min-w-0 truncate text-2xl font-extrabold tracking-tight">
           {data?.title ?? "…"}
         </h1>

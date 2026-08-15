@@ -80,6 +80,7 @@ class TransmissionClient(BaseClient):
                     "downloadLimited",
                     "uploadLimit",
                     "uploadLimited",
+                    "trackerStats",
                 ],
             },
         )

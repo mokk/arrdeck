@@ -62,6 +62,12 @@ class QbittorrentClient(BaseClient):
         resp = await self.request("GET", "/api/v2/torrents/files", params={"hash": torrent_hash})
         return resp.json()
 
+    async def trackers(self, torrent_hash: str) -> list:
+        resp = await self.request(
+            "GET", "/api/v2/torrents/trackers", params={"hash": torrent_hash}
+        )
+        return resp.json()
+
     async def categories(self) -> dict:
         resp = await self.request("GET", "/api/v2/torrents/categories")
         return resp.json()

@@ -48,6 +48,40 @@ class RadarrClient(ArrClient):
     async def update_movie(self, movie_id: int, payload: dict) -> dict:
         return await self.request("PUT", f"/movie/{movie_id}", json=payload)
 
+    async def wanted(self, kind: str, page: int = 1, page_size: int = 30) -> dict:
+        # kind: "missing" | "cutoff"
+        return await self.get(
+            f"/wanted/{kind}",
+            params={
+                "page": page,
+                "pageSize": page_size,
+                "sortKey": "movieMetadata.year",
+                "sortDirection": "descending",
+                "monitored": "true",
+            },
+        )
+
+    async def collections(self) -> list:
+        return await self.get("/collection")
+
+    async def update_collection(self, collection_id: int, payload: dict) -> dict:
+        return await self.request("PUT", f"/collection/{collection_id}", json=payload)
+
+    async def manual_import(self, download_id: str) -> list:
+        return await self.get(
+            "/manualimport", params={"downloadId": download_id, "filterExistingFiles": "false"}
+        )
+
+    async def bulk_edit(self, payload: dict) -> None:
+        await self.request("PUT", "/movie/editor", json=payload)
+
+    async def bulk_delete(self, movie_ids: list[int], delete_files: bool) -> None:
+        await self.request(
+            "DELETE",
+            "/movie/editor",
+            json={"movieIds": movie_ids, "deleteFiles": delete_files, "addImportExclusion": False},
+        )
+
     async def delete_movie(self, movie_id: int, delete_files: bool) -> None:
         await self.request(
             "DELETE",

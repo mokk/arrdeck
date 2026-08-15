@@ -37,6 +37,13 @@ export type SeriesDetail = G.SeriesDetailOut;
 export type Season = G.SeasonOut;
 export type Episode = G.EpisodeOut;
 export type StatsSample = G.StatsSampleOut;
+export type RecentItem = G.RecentItemOut;
+export type WantedItem = G.WantedItemOut;
+export type WantedPage = G.WantedPageOut;
+export type Collection = G.CollectionOut;
+export type CollectionDetail = G.CollectionDetailOut;
+export type Tracker = G.TrackerOut;
+export type SettingsExport = G.SettingsExportOut;
 
 // /indexers/schemas returns untyped dicts server-side; hand-written for now.
 export interface IndexerSchemaField {

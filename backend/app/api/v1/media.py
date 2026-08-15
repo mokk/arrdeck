@@ -12,6 +12,8 @@ from ...schemas import (
     AddMovieIn,
     AddSeriesIn,
     ArrReleaseOut,
+    CollectionDetailOut,
+    CollectionOut,
     GrabIn,
     OptionsOut,
     ReleaseOut,
@@ -292,6 +294,71 @@ async def grab_arr_release(
         await sonarr.grab_release(body.guid, body.indexer_id)
     else:
         raise HTTPException(404, f"unknown app {app!r}")
+
+
+@router.get("/collections", response_model=list[CollectionOut])
+async def collections(radarr: RadarrClient = Depends(get_radarr)) -> list[CollectionOut]:
+    cols, library = await asyncio.gather(radarr.collections(), _library_map(radarr, "movie"))
+    out = []
+    for c in cols:
+        movies = c.get("movies", [])
+        out.append(
+            CollectionOut(
+                id=c["id"],
+                title=c.get("title"),
+                monitored=c.get("monitored", False),
+                movie_count=len(movies),
+                missing_count=sum(1 for m in movies if m.get("tmdbId") not in library),
+                poster=_poster(c.get("images")),
+            )
+        )
+    return sorted(out, key=lambda c: (c.title or "").lower())
+
+
+@router.get("/collections/{collection_id}", response_model=CollectionDetailOut)
+async def collection_detail(
+    collection_id: int, radarr: RadarrClient = Depends(get_radarr)
+) -> CollectionDetailOut:
+    cols, library = await asyncio.gather(radarr.collections(), _library_map(radarr, "movie"))
+    full = next((c for c in cols if c["id"] == collection_id), None)
+    if full is None:
+        raise HTTPException(404, "collection not found")
+    movies = [
+        SearchResultOut(
+            kind="movie",
+            title=m.get("title", ""),
+            year=m.get("year"),
+            overview=m.get("overview"),
+            remote_id=m.get("tmdbId", 0),
+            poster=_poster(m.get("images")),
+            in_library=m.get("tmdbId") in library,
+            imdb_id=m.get("imdbId"),
+            tmdb_id=m.get("tmdbId"),
+            **library.get(m.get("tmdbId"), {}),
+        )
+        for m in full.get("movies", [])
+    ]
+    return CollectionDetailOut(
+        id=full["id"],
+        title=full.get("title"),
+        monitored=full.get("monitored", False),
+        overview=full.get("overview"),
+        poster=_poster(full.get("images")),
+        movies=movies,
+    )
+
+
+@router.patch("/collections/{collection_id}")
+async def toggle_collection(
+    collection_id: int, monitored: bool, radarr: RadarrClient = Depends(get_radarr)
+) -> dict:
+    cols = await radarr.collections()
+    full = next((c for c in cols if c["id"] == collection_id), None)
+    if full is None:
+        raise HTTPException(404, "collection not found")
+    full["monitored"] = monitored
+    updated = await radarr.update_collection(collection_id, full)
+    return {"id": updated["id"], "monitored": updated.get("monitored", False)}
 
 
 @router.get("/options/{app}", response_model=OptionsOut)

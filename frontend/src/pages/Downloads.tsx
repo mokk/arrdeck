@@ -22,6 +22,7 @@ import {
 } from "../components/Blocks";
 import { Sheet } from "../components/Sheet";
 import { SwipeableRow } from "../components/SwipeableRow";
+import { VirtualList } from "../components/VirtualList";
 import { SortSheet } from "../components/SortSheet";
 import { useSort } from "../components/sortable";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,6 +37,7 @@ import { Label } from "@/components/ui/label";
 import {
   useAddTorrent,
   useBlocklistRetry,
+  useForceImport,
   useQbitCategories,
   useQueue,
   useQueueRemove,
@@ -197,6 +199,32 @@ function TorrentDetailsSection({ torrent }: { torrent: Torrent }) {
           </div>
         ))}
       </div>
+      {(data.trackers?.length ?? 0) > 0 && (
+        <>
+          <div className="mb-1 mt-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {t("dl.trackers")}
+          </div>
+          <div className="max-h-32 overflow-y-auto rounded-xl bg-background/50 px-3 py-1">
+            {(data.trackers ?? []).map((tr, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-2 border-t border-border py-1.5 text-xs first:border-t-0"
+              >
+                <span
+                  className={cn(
+                    "size-1.5 shrink-0 rounded-full",
+                    tr.ok ? "bg-success" : "bg-destructive",
+                  )}
+                />
+                <span className="min-w-0 flex-1 truncate">{tr.host}</span>
+                {!tr.ok && tr.message && (
+                  <span className="shrink-0 text-destructive">{tr.message}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -379,6 +407,7 @@ function ArrQueue() {
   const { data } = useQueue();
   const remove = useQueueRemove();
   const retry = useBlocklistRetry();
+  const forceImport = useForceImport();
   const items = [...(data?.radarr?.data ?? []), ...(data?.sonarr?.data ?? [])];
   if (items.length === 0) return null;
   return (
@@ -396,6 +425,17 @@ function ArrQueue() {
               </div>
             </div>
             <div className="flex shrink-0 gap-1.5">
+              {q.tracked_state?.startsWith("import") && q.tracked_state !== "imported" && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="text-primary"
+                  disabled={forceImport.isPending}
+                  onClick={() => forceImport.mutate({ app: q.app, id: q.id })}
+                >
+                  {t("dl.forceImport")}
+                </Button>
+              )}
               {(q.errors ?? []).length > 0 && (
                 <Button
                   variant="secondary"
@@ -588,8 +628,10 @@ export default function Downloads() {
         ) : null;
       })}
       <Card>
-        {shown.slice(0, 200).map((torrent) =>
-          selectMode ? (
+        <VirtualList
+          items={shown}
+          renderRow={(torrent) =>
+            selectMode ? (
             <Row
               key={`${torrent.client}-${torrent.id}`}
               onClick={() => toggleChecked(`${torrent.client}-${torrent.id}`)}
@@ -663,8 +705,9 @@ export default function Downloads() {
               </div>
             </Row>
           </SwipeableRow>
-          ),
-        )}
+            )
+          }
+        />
         {shown.length === 0 && <EmptyNote>{t("dl.noMatch")}</EmptyNote>}
       </Card>
       {selectMode && (
@@ -678,8 +721,7 @@ export default function Downloads() {
         />
       )}
       <div className="mb-6 mt-2 text-center text-xs text-muted-foreground">
-        {t("dl.shownOfTotal", { shown: Math.min(shown.length, 200), total: all.length })}
-        {shown.length > 200 ? t("dl.narrowFilters") : ""}
+        {t("dl.shownOfTotal", { shown: shown.length, total: all.length })}
       </div>
       <ArrQueue />
       {selected && (

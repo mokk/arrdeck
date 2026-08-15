@@ -65,7 +65,9 @@
     "librarySize": "Library size",
     "movies": "Movies",
     "seriesCount": "Series",
-    "grabs": "Grabs"
+    "grabs": "Grabs",
+    "recentlyAdded": "Recently added",
+    "wanted": "Wanted"
   },
   "dl": {
     "title": "Downloads",
@@ -107,7 +109,9 @@
     "magnetOrUrl": "Magnet link or torrent URL",
     "chooseFile": "Choose .torrent file",
     "startPaused": "Start paused",
-    "client": "Client"
+    "client": "Client",
+    "trackers": "Trackers",
+    "forceImport": "Force import"
   },
   "add": {
     "title": "Add",
@@ -197,7 +201,9 @@
       "protocol": "Protocol",
       "privacy": "Privacy",
       "enable": "Enabled"
-    }
+    },
+    "export": "Export settings",
+    "import": "Import settings"
   },
   "toast": {
     "added": "Added to library",
@@ -205,7 +211,9 @@
     "searchStarted": "Search started",
     "indexerAdded": "Indexer added",
     "retried": "Blocklisted and searching for a replacement",
-    "torrentAdded": "Torrent added"
+    "torrentAdded": "Torrent added",
+    "importStarted": "Import started",
+    "settingsImported": "Settings imported"
   },
   "series": {
     "seasons": "Seasons",
@@ -227,5 +235,22 @@
     "seeAll": "See all",
     "loadMore": "Load more",
     "loadingMore": "Loading…"
+  },
+  "wanted": {
+    "title": "Wanted",
+    "missing": "Missing",
+    "cutoff": "Upgrades",
+    "searchAll": "Search all",
+    "empty": "Nothing here — the library is complete",
+    "count": "{{count}} items"
+  },
+  "collections": {
+    "title": "Collections",
+    "movies": "{{have}}/{{total}} movies",
+    "monitor": "Monitor",
+    "unmonitor": "Unmonitor"
+  },
+  "cal": {
+    "title": "Calendar"
   }
 }

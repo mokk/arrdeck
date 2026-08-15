@@ -19,8 +19,10 @@ import Add from "./pages/Add";
 import Dashboard from "./pages/Dashboard";
 import Downloads from "./pages/Downloads";
 import HistoryPage from "./pages/History";
+import CalendarPage from "./pages/Calendar";
 import Manage from "./pages/Manage";
 import SeriesPage from "./pages/Series";
+import WantedPage from "./pages/Wanted";
 
 /** With zero services configured, everything except Manage is empty —
  * send the user to the Services settings instead. */
@@ -68,9 +70,9 @@ function Shell() {
       <PullToRefresh />
       {/* opaque status-bar backdrop: scrolled content disappears cleanly
           behind it instead of showing blurred under the iOS clock/battery */}
-      <div className="fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-background" />
+      <div className="fixed inset-x-0 top-0 z-40 h-[calc(env(safe-area-inset-top)+2px)] bg-background" />
       <main
-        className="mx-auto max-w-3xl px-4 pt-[calc(1.25rem+env(safe-area-inset-top))]"
+        className="mx-auto max-w-3xl px-4 pt-[calc(1.25rem+5px+env(safe-area-inset-top))] lg:max-w-5xl"
         style={{
           paddingBottom: `calc(${5 + (subnav ? 3.2 : 0) + (searchbar || sortButton ? 3.8 : 0)}rem + env(safe-area-inset-bottom))`,
         }}
@@ -84,6 +86,8 @@ function Shell() {
             <Route path="/manage" element={<Manage />} />
             <Route path="/series/:id" element={<SeriesPage />} />
             <Route path="/history" element={<HistoryPage />} />
+            <Route path="/wanted" element={<WantedPage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
           </Routes>
         </RequireSetup>
       </main>

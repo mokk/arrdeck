@@ -1,4 +1,5 @@
 import asyncio
+import re
 import time
 from collections import deque
 from datetime import date, timedelta
@@ -10,6 +11,7 @@ from fastapi import APIRouter, Depends, Request
 from ...cache import cache
 from ...clients.base import ServiceUnavailable
 from ...registry import probe_version
+from .media import _poster
 from ...clients.prowlarr import ProwlarrClient
 from ...clients.qbittorrent import QbittorrentClient
 from ...clients.radarr import RadarrClient
@@ -23,6 +25,7 @@ from ...schemas import (
     HistoryResponse,
     IndexerStatsOut,
     QueueResponse,
+    RecentItemOut,
     TorrentsResponse,
     HistoryItemOut,
     QueueItemOut,
@@ -331,11 +334,13 @@ async def torrents(
 @router.get("/calendar", response_model=CalendarResponse)
 async def calendar(
     days: int = 14,
+    start_date: str | None = None,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
 ):
-    start = date.today().isoformat()
-    end = (date.today() + timedelta(days=days)).isoformat()
+    base = date.fromisoformat(start_date) if start_date else date.today()
+    start = base.isoformat()
+    end = (base + timedelta(days=days)).isoformat()
 
     def release_date(movie: dict) -> str | None:
         """Radarr matches the calendar window against any of its three release
@@ -442,6 +447,65 @@ async def history(
         guarded(fetch("sonarr", sonarr), "history:sonarr"),
     )
     return {"radarr": r, "sonarr": s}
+
+
+EPISODE_RE = re.compile(r"S(\d+)E(\d+)", re.IGNORECASE)
+
+
+@router.get("/dashboard/recent", response_model=list[RecentItemOut])
+async def recent(
+    radarr: RadarrClient = Depends(get_radarr),
+    sonarr: SonarrClient = Depends(get_sonarr),
+):
+    """Recently imported items, poster-enriched, newest first."""
+    out: list[dict] = []
+    try:
+        movies = {m["id"]: m for m in await radarr.movies()}
+        hist = await radarr.history(page_size=40)
+        for rec in hist.get("records", []):
+            movie = movies.get(rec.get("movieId"))
+            if rec.get("eventType") == "downloadFolderImported" and movie:
+                out.append(
+                    {
+                        "app": "radarr",
+                        "title": movie.get("title", ""),
+                        "subtitle": str(movie.get("year") or "") or None,
+                        "date": rec.get("date", ""),
+                        "poster": _poster(movie.get("images")),
+                        "library_id": movie["id"],
+                    }
+                )
+    except Exception:  # noqa: BLE001 — one app down shouldn't kill the strip
+        pass
+    try:
+        series = {s["id"]: s for s in await sonarr.series()}
+        hist = await sonarr.history(page_size=40)
+        for rec in hist.get("records", []):
+            show = series.get(rec.get("seriesId"))
+            if rec.get("eventType") == "downloadFolderImported" and show:
+                m = EPISODE_RE.search(rec.get("sourceTitle") or "")
+                out.append(
+                    {
+                        "app": "sonarr",
+                        "title": show.get("title", ""),
+                        "subtitle": f"S{int(m.group(1)):02d}E{int(m.group(2)):02d}" if m else None,
+                        "date": rec.get("date", ""),
+                        "poster": _poster(show.get("images")),
+                        "library_id": show["id"],
+                    }
+                )
+    except Exception:  # noqa: BLE001
+        pass
+    # newest first, one entry per title
+    out.sort(key=lambda r: r["date"], reverse=True)
+    seen: set = set()
+    deduped = []
+    for r in out:
+        key = (r["app"], r["library_id"])
+        if key not in seen:
+            seen.add(key)
+            deduped.append(r)
+    return deduped[:12]
 
 
 @router.get("/history/all", response_model=HistoryPageOut)

@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { api } from "../api/client";
 import { SERVICE_LABELS, formatBytes } from "../api/format";
 import i18n, { LANGUAGES, setLanguage } from "../i18n";
 import type {
@@ -36,15 +37,20 @@ import {
   useRegisterSubnav,
 } from "../components/subnav";
 import { SortSheet } from "../components/SortSheet";
+import { VirtualList } from "../components/VirtualList";
 import { useSort } from "../components/sortable";
 import {
   useAddIndexer,
+  useBulkDeleteLibrary,
+  useBulkLibrary,
+  useBulkSearchLibrary,
   useDeleteLibraryItem,
   useIndexerSchemas,
   useIndexers,
   useLibraryMovies,
   useLibrarySeries,
   useOptions,
+  useImportSettings,
   useSaveServiceSettings,
   useServiceSettings,
   useServices,
@@ -211,6 +217,53 @@ function StatusStrip() {
   );
 }
 
+function SettingsTransfer() {
+  const { t } = useTranslation();
+  const importSettings = useImportSettings();
+
+  const doExport = async () => {
+    const data = await api.get<{ services: Record<string, unknown> }>("/settings/export");
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "arrdeck-settings.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const doImport = (file: File) => {
+    file.text().then((text) => {
+      const parsed = JSON.parse(text);
+      importSettings.mutate(parsed.services ?? parsed);
+    });
+  };
+
+  return (
+    <Card>
+      <div className="flex flex-wrap items-center gap-2 p-4">
+        <Button variant="secondary" size="sm" onClick={doExport}>
+          {t("manage.export")}
+        </Button>
+        <Button variant="secondary" size="sm" asChild disabled={importSettings.isPending}>
+          <label className="cursor-pointer">
+            {t("manage.import")}
+            <input
+              type="file"
+              accept="application/json"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) doImport(f);
+                e.target.value = "";
+              }}
+            />
+          </label>
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
 function ServiceSettingsTab() {
   const { t } = useTranslation();
   const { data, error } = useServiceSettings();
@@ -220,6 +273,7 @@ function ServiceSettingsTab() {
     <>
       <StatusStrip />
       <LanguagePicker />
+      <SettingsTransfer />
       {Object.entries(data).map(([name, conf]) => (
         <ServiceSettingsCard
           key={`${name}-${conf.url}-${conf.api_key}`}
@@ -564,6 +618,103 @@ function DeleteButtons({
   );
 }
 
+function LibraryBulkBar({
+  kind,
+  selected,
+  options,
+  onDone,
+}: {
+  kind: "movies" | "series";
+  selected: Set<number>;
+  options: Options | undefined;
+  onDone: () => void;
+}) {
+  const { t } = useTranslation();
+  const bulk = useBulkLibrary(kind);
+  const bulkDelete = useBulkDeleteLibrary(kind);
+  const bulkSearch = useBulkSearchLibrary(kind);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const ids = [...selected];
+  const pending = bulk.isPending || bulkDelete.isPending || bulkSearch.isPending;
+
+  return (
+    <div className="fixed bottom-[calc(7.4rem+env(safe-area-inset-bottom))] left-1/2 z-40 flex max-w-[95vw] -translate-x-1/2 flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/10 bg-card/90 px-3 py-2 shadow-2xl shadow-black/60 backdrop-blur-xl">
+      <span className="px-1 text-xs text-muted-foreground">
+        {t("dl.selected", { count: ids.length })}
+      </span>
+      {confirmingDelete ? (
+        <>
+          <Button
+            size="sm"
+            variant="destructive"
+            disabled={pending}
+            onClick={() => bulkDelete.mutate({ ids, delete_files: true }, { onSettled: onDone })}
+          >
+            {t("manage.plusFiles")}
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="text-destructive"
+            disabled={pending}
+            onClick={() => bulkDelete.mutate({ ids, delete_files: false }, { onSettled: onDone })}
+          >
+            {t("manage.entryOnly")}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setConfirmingDelete(false)}>
+            ✕
+          </Button>
+        </>
+      ) : (
+        <>
+          <ProfileSelect
+            value={null}
+            options={options}
+            disabled={pending || !ids.length}
+            onChange={(pid) => bulk.mutate({ ids, quality_profile_id: pid }, { onSettled: onDone })}
+          />
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={pending || !ids.length}
+            onClick={() => bulk.mutate({ ids, monitored: true }, { onSettled: onDone })}
+          >
+            {t("add.monitor")}
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={pending || !ids.length}
+            onClick={() => bulk.mutate({ ids, monitored: false }, { onSettled: onDone })}
+          >
+            {t("add.unmonitor")}
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={pending || !ids.length}
+            onClick={() => {
+              bulkSearch.mutate(ids);
+              onDone();
+            }}
+          >
+            {t("common.search")}
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="text-destructive"
+            disabled={!ids.length}
+            onClick={() => setConfirmingDelete(true)}
+          >
+            {t("common.delete")}
+          </Button>
+        </>
+      )}
+    </div>
+  );
+}
+
 const MOVIE_SORT_KEYS = ["title", "year", "status", "size_on_disk"];
 
 function MovieLibrary() {
@@ -576,10 +727,19 @@ function MovieLibrary() {
   const [q, setQ] = usePersistentState("manage.movies.filter", "");
   const sort = useSort<Record<string, unknown>>("manage.movies", "title");
   const [sortOpen, setSortOpen] = useState(false);
+  const [selectMode, setSelectMode] = useState(false);
+  const [checked, setChecked] = useState<Set<number>>(new Set());
   useRegisterSearchbar(t("manage.filterMovies"), q, setQ);
   useRegisterSortButton(() => setSortOpen(true));
 
   if (error) return <ErrorNote>{(error as Error).message}</ErrorNote>;
+
+  const toggleChecked = (id: number) => {
+    const next = new Set(checked);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setChecked(next);
+  };
 
   const withStatus = (data ?? [])
     .filter((m) => (m.title ?? "").toLowerCase().includes(q.toLowerCase()))
@@ -593,55 +753,104 @@ function MovieLibrary() {
 
   return (
     <>
+      <div className="mb-3 flex justify-end">
+        <Button
+          size="sm"
+          variant={selectMode ? "default" : "secondary"}
+          className="rounded-full"
+          onClick={() => {
+            setSelectMode(!selectMode);
+            setChecked(new Set());
+          }}
+        >
+          {selectMode ? t("dl.done") : t("dl.select")}
+        </Button>
+      </div>
       <Card>
-        {shown.slice(0, 100).map((m) => (
-          <Row key={m.id}>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-medium">
-                {m.title} <span className="text-muted-foreground">{m.year ?? ""}</span>
-              </div>
-              <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                <StateBadge state={m.status} />
-                {formatBytes(m.size_on_disk)}
-              </div>
-              <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                <ProfileSelect
-                  value={m.quality_profile_id}
-                  options={options}
-                  disabled={update.isPending}
-                  onChange={(id) => update.mutate({ id: m.id, quality_profile_id: id })}
-                />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={update.isPending}
-                  onClick={() => update.mutate({ id: m.id, monitored: !m.monitored })}
+        <VirtualList
+          items={shown}
+          estimateSize={96}
+          renderRow={(m) => (
+            <Row
+              className="border-b border-t-0 border-border/60"
+              onClick={selectMode ? () => toggleChecked(m.id) : undefined}
+            >
+              {selectMode && (
+                <div
+                  className={cn(
+                    "flex size-5 shrink-0 items-center justify-center rounded-full border-2 text-[10px] text-white",
+                    checked.has(m.id) ? "border-primary bg-primary" : "border-muted-foreground/50",
+                  )}
                 >
-                  {m.monitored ? t("add.unmonitor") : t("add.monitor")}
-                </Button>
-                {!m.has_file && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    disabled={search.isPending}
-                    onClick={() => search.mutate({ app: "radarr", id: m.id })}
-                  >
-                    {t("common.search")}
-                  </Button>
-                )}
-                <DeleteButtons
-                  pending={remove.isPending}
-                  onDelete={(deleteFiles) => remove.mutate({ id: m.id, deleteFiles })}
+                  {checked.has(m.id) ? "✓" : ""}
+                </div>
+              )}
+              {m.poster ? (
+                <img
+                  src={m.poster}
+                  alt=""
+                  loading="lazy"
+                  className="w-10 shrink-0 rounded-md bg-secondary object-cover [aspect-ratio:2/3]"
                 />
+              ) : (
+                <div className="w-10 shrink-0 rounded-md bg-secondary [aspect-ratio:2/3]" />
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium">
+                  {m.title} <span className="text-muted-foreground">{m.year ?? ""}</span>
+                </div>
+                <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <StateBadge state={m.status} />
+                  {formatBytes(m.size_on_disk)}
+                </div>
+                {!selectMode && (
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <ProfileSelect
+                      value={m.quality_profile_id}
+                      options={options}
+                      disabled={update.isPending}
+                      onChange={(id) => update.mutate({ id: m.id, quality_profile_id: id })}
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled={update.isPending}
+                      onClick={() => update.mutate({ id: m.id, monitored: !m.monitored })}
+                    >
+                      {m.monitored ? t("add.unmonitor") : t("add.monitor")}
+                    </Button>
+                    {!m.has_file && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={search.isPending}
+                        onClick={() => search.mutate({ app: "radarr", id: m.id })}
+                      >
+                        {t("common.search")}
+                      </Button>
+                    )}
+                    <DeleteButtons
+                      pending={remove.isPending}
+                      onDelete={(deleteFiles) => remove.mutate({ id: m.id, deleteFiles })}
+                    />
+                  </div>
+                )}
               </div>
-            </div>
-          </Row>
-        ))}
+            </Row>
+          )}
+        />
+        {shown.length === 0 && <EmptyNote>{t("manage.noMatches")}</EmptyNote>}
       </Card>
-      {shown.length > 100 && (
-        <div className="mt-2 text-center text-xs text-muted-foreground">
-          {t("manage.showingFirst", { shown: 100, total: shown.length })}
-        </div>
+      {selectMode && (
+        <LibraryBulkBar
+          kind="movies"
+          selected={checked}
+          options={options}
+          onDone={() => {
+            setChecked(new Set());
+            setSelectMode(false);
+          }}
+        />
       )}
       {sortOpen && (
         <SortSheet
@@ -667,13 +876,22 @@ function SeriesLibrary() {
   const [q, setQ] = usePersistentState("manage.series.filter", "");
   const sort = useSort<Record<string, unknown>>("manage.series", "title");
   const [sortOpen, setSortOpen] = useState(false);
+  const [selectMode, setSelectMode] = useState(false);
+  const [checked, setChecked] = useState<Set<number>>(new Set());
   useRegisterSearchbar(t("manage.filterSeries"), q, setQ);
   useRegisterSortButton(() => setSortOpen(true));
 
   if (error) return <ErrorNote>{(error as Error).message}</ErrorNote>;
 
-  const filtered = (data ?? []).filter((s) =>
-    (s.title ?? "").toLowerCase().includes(q.toLowerCase()),
+  const toggleChecked = (id: number) => {
+    const next = new Set(checked);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setChecked(next);
+  };
+
+  const filtered = (data ?? []).filter((se) =>
+    (se.title ?? "").toLowerCase().includes(q.toLowerCase()),
   );
   const shown = sort.sortRows(
     filtered as unknown as Record<string, unknown>[],
@@ -681,58 +899,113 @@ function SeriesLibrary() {
 
   return (
     <>
+      <div className="mb-3 flex justify-end">
+        <Button
+          size="sm"
+          variant={selectMode ? "default" : "secondary"}
+          className="rounded-full"
+          onClick={() => {
+            setSelectMode(!selectMode);
+            setChecked(new Set());
+          }}
+        >
+          {selectMode ? t("dl.done") : t("dl.select")}
+        </Button>
+      </div>
       <Card>
-        {shown.slice(0, 100).map((s) => (
-          <Row key={s.id}>
-            <div className="min-w-0 flex-1">
-              <div
-                className="cursor-pointer truncate text-sm font-medium active:opacity-70"
-                onClick={() => navigate(`/series/${s.id}`)}
-              >
-                {s.title} <span className="text-muted-foreground">{s.year ?? ""}</span>{" "}
-                <span className="text-primary">›</span>
-              </div>
-              <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                <StateBadge state={s.monitored ? "ok" : "paused"} />
-                {t("manage.episodes", { files: s.episode_file_count, total: s.episode_count })} ·{" "}
-                {formatBytes(s.size_on_disk)}
-              </div>
-              <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                <ProfileSelect
-                  value={s.quality_profile_id}
-                  options={options}
-                  disabled={update.isPending}
-                  onChange={(id) => update.mutate({ id: s.id, quality_profile_id: id })}
-                />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={update.isPending}
-                  onClick={() => update.mutate({ id: s.id, monitored: !s.monitored })}
+        <VirtualList
+          items={shown}
+          estimateSize={96}
+          renderRow={(se) => (
+            <Row
+              className="border-b border-t-0 border-border/60"
+              onClick={selectMode ? () => toggleChecked(se.id) : undefined}
+            >
+              {selectMode && (
+                <div
+                  className={cn(
+                    "flex size-5 shrink-0 items-center justify-center rounded-full border-2 text-[10px] text-white",
+                    checked.has(se.id)
+                      ? "border-primary bg-primary"
+                      : "border-muted-foreground/50",
+                  )}
                 >
-                  {s.monitored ? t("add.unmonitor") : t("add.monitor")}
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={search.isPending}
-                  onClick={() => search.mutate({ app: "sonarr", id: s.id })}
-                >
-                  {t("common.search")}
-                </Button>
-                <DeleteButtons
-                  pending={remove.isPending}
-                  onDelete={(deleteFiles) => remove.mutate({ id: s.id, deleteFiles })}
+                  {checked.has(se.id) ? "✓" : ""}
+                </div>
+              )}
+              {se.poster ? (
+                <img
+                  src={se.poster}
+                  alt=""
+                  loading="lazy"
+                  className="w-10 shrink-0 cursor-pointer rounded-md bg-secondary object-cover [aspect-ratio:2/3]"
+                  onClick={selectMode ? undefined : () => navigate(`/series/${se.id}`)}
                 />
+              ) : (
+                <div className="w-10 shrink-0 rounded-md bg-secondary [aspect-ratio:2/3]" />
+              )}
+              <div className="min-w-0 flex-1">
+                <div
+                  className={cn("truncate text-sm font-medium", !selectMode && "cursor-pointer active:opacity-70")}
+                  onClick={selectMode ? undefined : () => navigate(`/series/${se.id}`)}
+                >
+                  {se.title} <span className="text-muted-foreground">{se.year ?? ""}</span>{" "}
+                  {!selectMode && <span className="text-primary">›</span>}
+                </div>
+                <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <StateBadge state={se.monitored ? "ok" : "paused"} />
+                  {t("manage.episodes", {
+                    files: se.episode_file_count,
+                    total: se.episode_count,
+                  })}{" "}
+                  · {formatBytes(se.size_on_disk)}
+                </div>
+                {!selectMode && (
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <ProfileSelect
+                      value={se.quality_profile_id}
+                      options={options}
+                      disabled={update.isPending}
+                      onChange={(id) => update.mutate({ id: se.id, quality_profile_id: id })}
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled={update.isPending}
+                      onClick={() => update.mutate({ id: se.id, monitored: !se.monitored })}
+                    >
+                      {se.monitored ? t("add.unmonitor") : t("add.monitor")}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled={search.isPending}
+                      onClick={() => search.mutate({ app: "sonarr", id: se.id })}
+                    >
+                      {t("common.search")}
+                    </Button>
+                    <DeleteButtons
+                      pending={remove.isPending}
+                      onDelete={(deleteFiles) => remove.mutate({ id: se.id, deleteFiles })}
+                    />
+                  </div>
+                )}
               </div>
-            </div>
-          </Row>
-        ))}
+            </Row>
+          )}
+        />
+        {shown.length === 0 && <EmptyNote>{t("manage.noMatches")}</EmptyNote>}
       </Card>
-      {shown.length > 100 && (
-        <div className="mt-2 text-center text-xs text-muted-foreground">
-          {t("manage.showingFirst", { shown: 100, total: shown.length })}
-        </div>
+      {selectMode && (
+        <LibraryBulkBar
+          kind="series"
+          selected={checked}
+          options={options}
+          onDone={() => {
+            setChecked(new Set());
+            setSelectMode(false);
+          }}
+        />
       )}
       {sortOpen && (
         <SortSheet
