@@ -251,6 +251,9 @@
     "unmonitor": "Stop overvågning"
   },
   "cal": {
-    "title": "Kalender"
+    "title": "Kalender",
+    "cinema": "Biograf",
+    "digital": "Digital",
+    "physical": "Fysisk"
   }
 }

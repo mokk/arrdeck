@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatDate } from "../api/format";
 import type { CalendarItem } from "../api/types";
 import { Card, EmptyNote, Row, StateBadge } from "../components/Blocks";
 import { useCalendarRange } from "../hooks/queries";
@@ -48,7 +49,14 @@ export default function CalendarPage() {
     year: "numeric",
   });
   const todayIso = isoDay(new Date());
-  const selectedItems = selectedDay ? (byDay.get(selectedDay) ?? []) : [];
+  const monthItems = useMemo(
+    () =>
+      [...(data?.radarr?.data ?? []), ...(data?.sonarr?.data ?? [])]
+        .filter((c) => c.date)
+        .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? "")),
+    [data],
+  );
+  const listItems = selectedDay ? (byDay.get(selectedDay) ?? []) : monthItems;
 
   return (
     <>
@@ -58,10 +66,24 @@ export default function CalendarPage() {
         </Button>
         <h1 className="text-2xl font-extrabold capitalize tracking-tight">{monthLabel}</h1>
         <div className="ml-auto flex gap-1">
-          <Button variant="secondary" size="icon-sm" onClick={() => setOffset(offset - 1)}>
+          <Button
+            variant="secondary"
+            size="icon-sm"
+            onClick={() => {
+              setOffset(offset - 1);
+              setSelectedDay(null);
+            }}
+          >
             <ChevronLeft />
           </Button>
-          <Button variant="secondary" size="icon-sm" onClick={() => setOffset(offset + 1)}>
+          <Button
+            variant="secondary"
+            size="icon-sm"
+            onClick={() => {
+              setOffset(offset + 1);
+              setSelectedDay(null);
+            }}
+          >
             <ChevronRight />
           </Button>
         </div>
@@ -104,19 +126,21 @@ export default function CalendarPage() {
         })}
       </div>
       <Card>
-        {selectedDay == null && <EmptyNote>{t("dash.upcoming")}</EmptyNote>}
-        {selectedDay != null && selectedItems.length === 0 && (
-          <EmptyNote>{t("dash.nothingScheduled")}</EmptyNote>
-        )}
-        {selectedItems.map((c, i) => (
+        {listItems.length === 0 && <EmptyNote>{t("dash.nothingScheduled")}</EmptyNote>}
+        {listItems.map((c, i) => (
           <Row key={i}>
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium">{c.title}</div>
-              <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                <StateBadge state={c.app} /> {c.extra ?? ""}
+              <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                <StateBadge state={c.app} />
+                {c.release_type && <StateBadge state={t(`cal.${c.release_type}`)} raw />}
+                {c.extra ?? ""}
               </div>
             </div>
-            {c.has_file && <StateBadge state="downloaded" />}
+            <div className="flex shrink-0 flex-col items-end gap-1 text-xs text-muted-foreground">
+              {!selectedDay && <span>{formatDate(c.date)}</span>}
+              {c.has_file && <StateBadge state="downloaded" />}
+            </div>
           </Row>
         ))}
       </Card>

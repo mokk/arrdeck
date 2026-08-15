@@ -254,7 +254,9 @@ function CalendarSection({ configured }: { configured: Set<string> }) {
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium">{c.title}</div>
               <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                <StateBadge state={c.app} /> {c.extra ?? ""}
+                <StateBadge state={c.app} />
+                {c.release_type && <StateBadge state={t(`cal.${c.release_type}`)} raw />}
+                {c.extra ?? ""}
               </div>
             </div>
             <div className="shrink-0 text-xs text-muted-foreground">

@@ -342,31 +342,41 @@ async def calendar(
     start = base.isoformat()
     end = (base + timedelta(days=days)).isoformat()
 
-    def release_date(movie: dict) -> str | None:
+    def release_info(movie: dict) -> tuple[str | None, str | None]:
         """Radarr matches the calendar window against any of its three release
         dates; prefer the one actually inside the window so 'Upcoming' never
-        shows a past date."""
-        dates = [
-            movie.get(k) for k in ("digitalRelease", "physicalRelease", "inCinemas")
+        shows a past date. Returns (date, type)."""
+        # physical/disc dates are noise here — cinema and digital only
+        candidates = [
+            (movie.get("inCinemas"), "cinema"),
+            (movie.get("digitalRelease"), "digital"),
         ]
-        dates = [d for d in dates if d]
-        in_window = [d for d in dates if start <= d[:10] <= end]
-        return min(in_window) if in_window else (min(dates) if dates else None)
+        dated = [(d, kind) for d, kind in candidates if d]
+        in_window = [(d, kind) for d, kind in dated if start <= d[:10] <= end]
+        # no fallback: if neither cinema nor digital lands in the window,
+        # the movie has nothing upcoming worth showing
+        return min(in_window) if in_window else (None, None)
 
     async def fetch_radarr() -> list[dict]:
         async def call():
             return await radarr.calendar(start, end)
 
         items = await cached(f"calendar:radarr:{start}:{end}", 60, call)
-        return [
-            CalendarItemOut(
-                app="radarr",
-                title=m.get("title", ""),
-                date=release_date(m),
-                has_file=m.get("hasFile", False),
-            ).model_dump()
-            for m in items
-        ]
+        out = []
+        for m in items:
+            picked_date, picked_type = release_info(m)
+            if picked_date is None:
+                continue  # physical-only release in this window
+            out.append(
+                CalendarItemOut(
+                    app="radarr",
+                    title=m.get("title", ""),
+                    date=picked_date,
+                    release_type=picked_type,
+                    has_file=m.get("hasFile", False),
+                ).model_dump()
+            )
+        return out
 
     async def fetch_sonarr() -> list[dict]:
         async def call():

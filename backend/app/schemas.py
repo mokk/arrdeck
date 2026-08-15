@@ -74,6 +74,7 @@ class CalendarItemOut(BaseModel):
     date: str | None = None
     has_file: bool = False
     extra: str | None = None  # e.g. S01E02 episode title
+    release_type: str | None = None  # cinema | digital | physical (movies)
 
 
 class HistoryEventOut(BaseModel):

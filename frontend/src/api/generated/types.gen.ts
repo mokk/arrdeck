@@ -230,6 +230,10 @@ export type CalendarItemOut = {
      * Extra
      */
     extra?: string | null;
+    /**
+     * Release Type
+     */
+    release_type?: string | null;
 };
 
 /**

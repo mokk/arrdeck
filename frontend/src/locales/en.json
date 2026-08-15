@@ -251,6 +251,9 @@
     "unmonitor": "Unmonitor"
   },
   "cal": {
-    "title": "Calendar"
+    "title": "Calendar",
+    "cinema": "Cinema",
+    "digital": "Digital",
+    "physical": "Physical"
   }
 }
