@@ -11,10 +11,11 @@ from .registry import Registry
 logger = logging.getLogger("arrdeck.push")
 
 CHECK_INTERVAL = 60
-VAPID_CLAIMS = {"sub": "mailto:arrdeck@localhost"}
+# Apple's push service validates the JWT sub claim; "localhost" addresses get rejected.
+VAPID_CLAIMS = {"sub": "mailto:arrdeck@thrawn.dk"}
 
 NOTIFY_EVENTS = {
-    "downloadFolderImported": "Downloaded and imported",
+    "downloadFolderImported": "Downloaded",
     "downloadFailed": "Download failed",
 }
 
@@ -59,21 +60,32 @@ def ensure_vapid(db: SettingsDB) -> str:
     return b64urlencode(raw)
 
 
+def _private_key_b64(pem: str) -> str:
+    # pywebpush's vapid_private_key only takes a file path or the raw
+    # base64url-encoded key — handing it PEM content fails to deserialize.
+    vapid = Vapid.from_pem(pem.encode())
+    raw = vapid.private_key.private_numbers().private_value.to_bytes(32, "big")
+    return b64urlencode(raw)
+
+
 def _send_all(db: SettingsDB, title: str, body: str) -> None:
     pem = db.kv_get("vapid_private_pem")
     if pem is None:
         return
+    key = _private_key_b64(pem)
     payload = json.dumps({"title": title, "body": body})
     for raw in db.push_all():
         sub = json.loads(raw)
         try:
-            webpush(sub, payload, vapid_private_key=pem, vapid_claims=dict(VAPID_CLAIMS))
+            webpush(sub, payload, vapid_private_key=key, vapid_claims=dict(VAPID_CLAIMS))
         except WebPushException as exc:
             status = getattr(exc.response, "status_code", None)
             if status in (404, 410):  # subscription expired
                 db.push_remove(sub.get("endpoint", ""))
             else:
                 logger.warning("push failed: %s", exc)
+        except Exception:  # noqa: BLE001 — one bad subscription must not block the rest
+            logger.exception("push failed for %s", sub.get("endpoint", ""))
 
 
 async def check_events(db: SettingsDB, registry: Registry) -> None:

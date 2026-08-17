@@ -22,3 +22,19 @@ def test_episode_title():
 def test_episode_without_episode_details():
     rec = {"series": {"title": "The Bear"}, "sourceTitle": "The.Bear.S03E04"}
     assert describe_record("sonarr", rec) == "The Bear"
+
+
+def test_private_key_b64_roundtrip():
+    from py_vapid import Vapid
+
+    from app.push import _private_key_b64
+
+    vapid = Vapid()
+    vapid.generate_keys()
+    key = _private_key_b64(vapid.private_pem().decode())
+    # pywebpush hands this string to Vapid.from_string — must parse and match
+    restored = Vapid.from_string(private_key=key)
+    assert (
+        restored.private_key.private_numbers().private_value
+        == vapid.private_key.private_numbers().private_value
+    )
