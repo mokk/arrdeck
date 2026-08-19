@@ -24,7 +24,8 @@
     "language": "Language",
     "filters": "Filters",
     "ascending": "Ascending",
-    "descending": "Descending"
+    "descending": "Descending",
+    "clear": "Clear"
   },
   "state": {
     "downloading": "downloading",
@@ -345,7 +346,11 @@
     "hookHint": "The address Radarr and Sonarr use to reach arrdeck. Without it arrdeck falls back to checking their history once a minute.",
     "lastEvent": "Last event {{when}}",
     "eventsThisDevice": "Notify this device about",
-    "testSent": "Test notification sent"
+    "testSent": "Test notification sent",
+    "quietHours": "Quiet hours",
+    "quietNow": "quiet right now",
+    "quietHint": "Nothing is delivered during this window ({{tz}}). Test notifications still go through.",
+    "onlyTags": "Only {{app}} items tagged"
   },
   "search": {
     "global": "Search everything…",

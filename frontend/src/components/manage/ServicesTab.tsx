@@ -30,6 +30,9 @@ import {
   useImportSettings,
   useInstallWebhooks,
   usePushEvents,
+  usePushRules,
+  useSavePushRules,
+  useTags,
   usePushSubscribe,
   useSavePushEvents,
   useTestPush,
@@ -374,6 +377,108 @@ function EventToggles({ endpoint }: { endpoint: string }) {
   );
 }
 
+/** Quiet hours and tag filters. The browser supplies its own timezone, because
+ * the container runs UTC and a window entered as 23:00 would otherwise take
+ * effect at the wrong time of night. */
+function NotificationRules() {
+  const { t } = useTranslation();
+  const { data } = usePushRules();
+  const save = useSavePushRules();
+  const radarrTags = useTags("radarr");
+  const sonarrTags = useTags("sonarr");
+  const [start, setStart] = useState<string | null>(null);
+  const [end, setEnd] = useState<string | null>(null);
+  if (!data) return null;
+
+  const quietStart = start ?? data.quiet_start ?? "";
+  const quietEnd = end ?? data.quiet_end ?? "";
+  const tags: Record<string, number[]> = data.tags ?? {};
+  const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+
+  const persist = (over: Record<string, unknown>) =>
+    save.mutate({
+      quiet_start: quietStart,
+      quiet_end: quietEnd,
+      timezone: browserTz,
+      tags: { radarr: tags.radarr ?? [], sonarr: tags.sonarr ?? [] },
+      ...over,
+    } as Parameters<typeof save.mutate>[0]);
+
+  const toggleTag = (app: "radarr" | "sonarr", id: number) => {
+    const current = tags[app] ?? [];
+    const next = current.includes(id) ? current.filter((x) => x !== id) : [...current, id];
+    persist({ tags: { radarr: tags.radarr ?? [], sonarr: tags.sonarr ?? [], [app]: next } });
+  };
+
+  const tagRows = ([["radarr", radarrTags.data], ["sonarr", sonarrTags.data]] as const).filter(
+    ([, list]) => (list?.length ?? 0) > 0,
+  );
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Label className="text-xs text-muted-foreground">
+        {t("push.quietHours")}
+        {data.quiet_now ? ` · ${t("push.quietNow")}` : ""}
+      </Label>
+      <div className="flex items-center gap-2">
+        <Input
+          type="time"
+          className="w-28"
+          value={quietStart}
+          onChange={(e) => setStart(e.target.value)}
+          onBlur={() => persist({ quiet_start: quietStart })}
+        />
+        <span className="text-xs text-muted-foreground">–</span>
+        <Input
+          type="time"
+          className="w-28"
+          value={quietEnd}
+          onChange={(e) => setEnd(e.target.value)}
+          onBlur={() => persist({ quiet_end: quietEnd })}
+        />
+        {(quietStart || quietEnd) && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setStart("");
+              setEnd("");
+              persist({ quiet_start: "", quiet_end: "" });
+            }}
+          >
+            {t("common.clear")}
+          </Button>
+        )}
+      </div>
+      <span className="text-xs text-muted-foreground">
+        {t("push.quietHint", { tz: data.timezone || browserTz })}
+      </span>
+      {tagRows.map(([app, list]) => (
+        <div key={app} className="flex flex-wrap items-center gap-1.5">
+          <Label className="text-xs text-muted-foreground">
+            {t("push.onlyTags", { app: SERVICE_LABELS[app] ?? app })}
+          </Label>
+          {(list ?? []).map((tag) => {
+            const on = (tags[app] ?? []).includes(tag.id);
+            return (
+              <button
+                key={tag.id}
+                className={cn(
+                  "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
+                  on ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
+                )}
+                onClick={() => toggleTag(app, tag.id)}
+              >
+                {tag.label}
+              </button>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** Radarr and Sonarr push events to arrdeck the moment they happen; without
  * this the backend falls back to polling their history every minute. */
 function WebhookSection() {
@@ -557,6 +662,7 @@ function NotificationsCard() {
           )}
         </div>
         <EventToggles endpoint={endpoint} />
+        <NotificationRules />
         <WebhookSection />
       </div>
     </Card>

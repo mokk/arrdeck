@@ -26,6 +26,7 @@ import type {
   VpnStatus,
   Session,
   PushEvents,
+  PushRules,
   StatsSample,
   TorrentDetails,
   WebhookApp,
@@ -440,6 +441,25 @@ export function useSavePushEvents() {
     mutationFn: (input: { enabled: string[]; endpoint: string }) =>
       api.put<PushEvents>("/push/events", input),
     onSuccess: (data, input) => qc.setQueryData(["pushEvents", input.endpoint], data),
+  });
+}
+
+export const usePushRules = () =>
+  useQuery({
+    queryKey: ["pushRules"],
+    queryFn: () => api.get<PushRules>("/push/rules"),
+  });
+
+export function useSavePushRules() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (rules: {
+      quiet_start: string;
+      quiet_end: string;
+      timezone: string;
+      tags: Record<string, number[]>;
+    }) => api.put<PushRules>("/push/rules", rules),
+    onSuccess: (data) => qc.setQueryData(["pushRules"], data),
   });
 }
 

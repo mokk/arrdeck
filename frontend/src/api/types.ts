@@ -59,6 +59,7 @@ export type Session = G.SessionOut;
 export type DiskSpace = G.DiskSpaceOut;
 export type HealthWarning = G.HealthWarningOut;
 export type PushEvents = G.PushEventsOut;
+export type PushRules = G.PushRulesOut;
 export type WebhookApp = G.WebhookAppOut;
 export type WebhookStatus = G.WebhookStatusOut;
 

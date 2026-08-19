@@ -649,6 +649,21 @@ class PushEventsIn(BaseModel):
     endpoint: str = ""
 
 
+class PushRulesOut(BaseModel):
+    quiet_start: str = ""
+    quiet_end: str = ""
+    timezone: str = "UTC"
+    tags: dict[str, list[int]] = {}
+    quiet_now: bool = False  # whether the window is currently in effect
+
+
+class PushRulesIn(BaseModel):
+    quiet_start: str = ""
+    quiet_end: str = ""
+    timezone: str = "UTC"
+    tags: dict[str, list[int]] = {}
+
+
 class PushTestIn(BaseModel):
     endpoint: str = ""
 

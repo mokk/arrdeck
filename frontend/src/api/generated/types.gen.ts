@@ -1064,6 +1064,58 @@ export type PushEventsOut = {
 };
 
 /**
+ * PushRulesIn
+ */
+export type PushRulesIn = {
+    /**
+     * Quiet Start
+     */
+    quiet_start?: string;
+    /**
+     * Quiet End
+     */
+    quiet_end?: string;
+    /**
+     * Timezone
+     */
+    timezone?: string;
+    /**
+     * Tags
+     */
+    tags?: {
+        [key: string]: Array<number>;
+    };
+};
+
+/**
+ * PushRulesOut
+ */
+export type PushRulesOut = {
+    /**
+     * Quiet Start
+     */
+    quiet_start?: string;
+    /**
+     * Quiet End
+     */
+    quiet_end?: string;
+    /**
+     * Timezone
+     */
+    timezone?: string;
+    /**
+     * Tags
+     */
+    tags?: {
+        [key: string]: Array<number>;
+    };
+    /**
+     * Quiet Now
+     */
+    quiet_now?: boolean;
+};
+
+/**
  * PushSubscribeIn
  */
 export type PushSubscribeIn = {
@@ -5117,6 +5169,47 @@ export type SavePushEventsApiV1PushEventsPutResponses = {
 };
 
 export type SavePushEventsApiV1PushEventsPutResponse = SavePushEventsApiV1PushEventsPutResponses[keyof SavePushEventsApiV1PushEventsPutResponses];
+
+export type PushRulesApiV1PushRulesGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/push/rules';
+};
+
+export type PushRulesApiV1PushRulesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: PushRulesOut;
+};
+
+export type PushRulesApiV1PushRulesGetResponse = PushRulesApiV1PushRulesGetResponses[keyof PushRulesApiV1PushRulesGetResponses];
+
+export type SavePushRulesApiV1PushRulesPutData = {
+    body: PushRulesIn;
+    path?: never;
+    query?: never;
+    url: '/api/v1/push/rules';
+};
+
+export type SavePushRulesApiV1PushRulesPutErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type SavePushRulesApiV1PushRulesPutError = SavePushRulesApiV1PushRulesPutErrors[keyof SavePushRulesApiV1PushRulesPutErrors];
+
+export type SavePushRulesApiV1PushRulesPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: PushRulesOut;
+};
+
+export type SavePushRulesApiV1PushRulesPutResponse = SavePushRulesApiV1PushRulesPutResponses[keyof SavePushRulesApiV1PushRulesPutResponses];
 
 export type PushTestApiV1PushTestPostData = {
     body: PushTestIn;

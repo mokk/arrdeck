@@ -24,7 +24,8 @@
     "language": "Sprog",
     "filters": "Filtre",
     "ascending": "Stigende",
-    "descending": "Faldende"
+    "descending": "Faldende",
+    "clear": "Ryd"
   },
   "state": {
     "downloading": "downloader",
@@ -345,7 +346,11 @@
     "hookHint": "Adressen Radarr og Sonarr bruger til at nå arrdeck. Uden den falder arrdeck tilbage til at tjekke deres historik én gang i minuttet.",
     "lastEvent": "Seneste hændelse {{when}}",
     "eventsThisDevice": "Giv denne enhed besked om",
-    "testSent": "Testnotifikation sendt"
+    "testSent": "Testnotifikation sendt",
+    "quietHours": "Stilletimer",
+    "quietNow": "stille lige nu",
+    "quietHint": "Intet leveres i dette tidsrum ({{tz}}). Testnotifikationer sendes stadig.",
+    "onlyTags": "Kun {{app}}-emner med tag"
   },
   "search": {
     "global": "Søg i alt…",

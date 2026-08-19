@@ -13,6 +13,8 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
+from datetime import datetime
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from py_vapid import Vapid, b64urlencode
 from pywebpush import WebPushException, webpush
@@ -35,6 +37,7 @@ DEDUPE_TTL = 6 * 3600
 VAPID_CLAIMS = {"sub": "mailto:arrdeck@thrawn.dk"}
 
 EVENTS_KEY = "push_events"
+RULES_KEY = "push_rules"
 WEBHOOK_SEEN_KEY = "webhook_last_seen"
 
 # The user-facing catalogue, in display order.
@@ -90,6 +93,9 @@ class Event:
     group: str = ""  # events sharing this are merged into one notification
     group_title: str = ""  # heading for the merged notification, when there is one
     label: str = ""  # overrides EVENT_LABELS (health messages carry their own)
+    # the arr tag ids on the movie/series. None means "not a media event"
+    # (health, test) and is never filtered out by a tag rule.
+    tags: list[int] | None = None
 
     def __post_init__(self) -> None:
         if not self.group:
@@ -122,6 +128,86 @@ def set_enabled_events(db: SettingsDB, keys: list[str]) -> list[str]:
     chosen = [k for k in EVENT_LABELS if k in keys]
     db.kv_set(EVENTS_KEY, json.dumps(chosen))
     return chosen
+
+
+DEFAULT_RULES = {
+    "quiet_start": "",  # "HH:MM"; empty (or equal to quiet_end) disables quiet hours
+    "quiet_end": "",
+    "timezone": "UTC",  # the container runs UTC, so the browser supplies its own
+    "tags": {"radarr": [], "sonarr": []},  # empty = every item; ids are per app
+}
+
+
+def get_rules(db: SettingsDB) -> dict:
+    raw = db.kv_get(RULES_KEY)
+    rules = dict(DEFAULT_RULES)
+    rules["tags"] = {"radarr": [], "sonarr": []}
+    if not raw:
+        return rules
+    try:
+        stored = json.loads(raw)
+    except ValueError:
+        return rules
+    if not isinstance(stored, dict):
+        return rules
+    for key in ("quiet_start", "quiet_end", "timezone"):
+        if isinstance(stored.get(key), str):
+            rules[key] = stored[key]
+    tags = stored.get("tags")
+    if isinstance(tags, dict):
+        for app_name in ("radarr", "sonarr"):
+            value = tags.get(app_name)
+            if isinstance(value, list):
+                rules["tags"][app_name] = [t for t in value if isinstance(t, int)]
+    return rules
+
+
+def set_rules(db: SettingsDB, rules: dict) -> dict:
+    db.kv_set(RULES_KEY, json.dumps(rules))
+    return get_rules(db)
+
+
+def _parse_hhmm(value: str) -> int | None:
+    """"23:00" -> minutes since midnight, or None when unusable."""
+    parts = value.split(":")
+    if len(parts) != 2:
+        return None
+    try:
+        hours, minutes = int(parts[0]), int(parts[1])
+    except ValueError:
+        return None
+    if not (0 <= hours < 24 and 0 <= minutes < 60):
+        return None
+    return hours * 60 + minutes
+
+
+def in_quiet_hours(rules: dict, now: datetime | None = None) -> bool:
+    start = _parse_hhmm(rules.get("quiet_start") or "")
+    end = _parse_hhmm(rules.get("quiet_end") or "")
+    if start is None or end is None or start == end:
+        return False
+    if now is None:
+        try:
+            tz = ZoneInfo(rules.get("timezone") or "UTC")
+        except (ZoneInfoNotFoundError, ValueError):
+            tz = ZoneInfo("UTC")
+        now = datetime.now(tz)
+    minute = now.hour * 60 + now.minute
+    if start < end:
+        return start <= minute < end
+    # the window crosses midnight, which is the usual case for "quiet at night"
+    return minute >= start or minute < end
+
+
+def passes_rules(rules: dict, event: "Event") -> bool:
+    if event.key == "test":
+        return True
+    if in_quiet_hours(rules):
+        return False
+    wanted = (rules.get("tags") or {}).get(event.app) or []
+    if wanted and event.tags is not None:
+        return bool(set(wanted) & set(event.tags))
+    return True
 
 
 def wants_event(db: SettingsDB, key: str) -> bool:
@@ -274,6 +360,8 @@ async def notify(db: SettingsDB, event: Event) -> bool:
         return True
     if not wants_event(db, event.key):
         return False
+    if not passes_rules(get_rules(db), event):
+        return False
     if not db.notified_add(event.dedupe_key, int(time.time()), DEDUPE_TTL):
         return False
     await COALESCER.add(event, time.monotonic())
@@ -344,6 +432,7 @@ def webhook_event(app_name: str, payload: dict) -> Event | None:
             app=app_name,
             title=f"{name} ({year})" if year else name,
             url=f"/movie/{movie_id}" if movie_id else "/history",
+            tags=movie.get("tags") or [],
             # per movie: two unrelated films share no tag, so neither banner
             # replaces the other before it has been read
             group=f"radarr:{key}:{movie_id}",
@@ -363,6 +452,7 @@ def webhook_event(app_name: str, payload: dict) -> Event | None:
         # merge per series, so one show's season pack is one notification
         group=f"sonarr:{key}:{series_id}",
         group_title=series.get("title") or "",
+        tags=series.get("tags") or [],
     )
 
 
@@ -411,6 +501,7 @@ def history_event(app_name: str, rec: dict) -> Event | None:
             title=title,
             url=f"/movie/{movie_id}" if movie_id else "/history",
             group=f"radarr:{key}:{movie_id}",
+            tags=(rec.get("movie") or {}).get("tags") or [],
         )
     series_id = rec.get("seriesId")
     return Event(
@@ -420,6 +511,7 @@ def history_event(app_name: str, rec: dict) -> Event | None:
         url=f"/series/{series_id}" if series_id else "/history",
         group=f"sonarr:{key}:{series_id}",
         group_title=(rec.get("series") or {}).get("title") or "",
+        tags=(rec.get("series") or {}).get("tags") or [],
     )
 
 

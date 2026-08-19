@@ -11,6 +11,9 @@ from ...push import (
     WEBHOOK_SEEN_KEY,
     enabled_events,
     ensure_vapid,
+    get_rules,
+    in_quiet_hours,
+    set_rules,
     send_test,
     set_enabled_events,
 )
@@ -18,6 +21,8 @@ from ...registry import probe_version
 from ...schemas import (
     PushEventsIn,
     PushEventsOut,
+    PushRulesIn,
+    PushRulesOut,
     PushSubscribeIn,
     PushTestIn,
     PushTestOut,
@@ -118,6 +123,23 @@ def save_push_events(body: PushEventsIn, request: Request) -> dict:
         return _events_payload(db, body.endpoint)
     set_enabled_events(db, body.enabled)
     return _events_payload(db, body.endpoint)
+
+
+def _rules_payload(db) -> dict:
+    rules = get_rules(db)
+    return {**rules, "quiet_now": in_quiet_hours(rules)}
+
+
+@router.get("/push/rules", response_model=PushRulesOut)
+def push_rules(request: Request) -> dict:
+    return _rules_payload(request.app.state.db)
+
+
+@router.put("/push/rules", response_model=PushRulesOut)
+def save_push_rules(body: PushRulesIn, request: Request) -> dict:
+    db = request.app.state.db
+    set_rules(db, body.model_dump())
+    return _rules_payload(db)
 
 
 @router.post("/push/test", response_model=PushTestOut)

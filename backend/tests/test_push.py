@@ -430,3 +430,102 @@ def test_a_test_banner_ignores_every_preference(tmp_path, monkeypatch):
     delivered.clear()
     assert asyncio.run(push.send_test(db, "https://example.test/ipad")) == 1
     assert delivered == ["https://example.test/ipad"]
+
+
+# --- notification rules --------------------------------------------------
+
+
+def _rules(**over):
+    from app.push import DEFAULT_RULES
+
+    base = {**DEFAULT_RULES, "tags": {"radarr": [], "sonarr": []}}
+    base.update(over)
+    return base
+
+
+def test_quiet_hours_across_midnight_cover_the_night():
+    from datetime import datetime
+
+    from app.push import in_quiet_hours
+
+    rules = _rules(quiet_start="23:00", quiet_end="07:00")
+    for hour, quiet in ((23, True), (2, True), (6, True), (7, False), (12, False), (22, False)):
+        now = datetime(2026, 1, 1, hour, 30)
+        assert in_quiet_hours(rules, now) is quiet, hour
+
+
+def test_a_same_day_window_only_covers_that_span():
+    from datetime import datetime
+
+    from app.push import in_quiet_hours
+
+    rules = _rules(quiet_start="09:00", quiet_end="17:00")
+    assert in_quiet_hours(rules, datetime(2026, 1, 1, 12, 0)) is True
+    assert in_quiet_hours(rules, datetime(2026, 1, 1, 8, 0)) is False
+    assert in_quiet_hours(rules, datetime(2026, 1, 1, 17, 0)) is False
+
+
+def test_an_unset_or_degenerate_window_is_never_quiet():
+    from datetime import datetime
+
+    from app.push import in_quiet_hours
+
+    now = datetime(2026, 1, 1, 3, 0)
+    assert in_quiet_hours(_rules(), now) is False
+    assert in_quiet_hours(_rules(quiet_start="22:00", quiet_end="22:00"), now) is False
+    assert in_quiet_hours(_rules(quiet_start="nonsense", quiet_end="07:00"), now) is False
+
+
+def test_a_tag_rule_keeps_only_matching_media():
+    from app.push import Event, passes_rules
+
+    rules = _rules(tags={"radarr": [3], "sonarr": []})
+    tagged = Event(key="imported", app="radarr", title="A", tags=[3, 9])
+    untagged = Event(key="imported", app="radarr", title="B", tags=[])
+    other = Event(key="imported", app="radarr", title="C", tags=[9])
+    assert passes_rules(rules, tagged) is True
+    assert passes_rules(rules, untagged) is False
+    assert passes_rules(rules, other) is False
+
+
+def test_a_tag_rule_for_one_app_does_not_filter_the_other():
+    from app.push import Event, passes_rules
+
+    rules = _rules(tags={"radarr": [3], "sonarr": []})
+    assert passes_rules(rules, Event(key="imported", app="sonarr", title="S", tags=[])) is True
+
+
+def test_non_media_events_are_never_filtered_by_tags():
+    from app.push import Event, passes_rules
+
+    rules = _rules(tags={"radarr": [3], "sonarr": [4]})
+    # tags=None marks "this isn't a movie or series", e.g. a health warning
+    assert passes_rules(rules, Event(key="health", app="radarr", title="disk")) is True
+
+
+def test_a_test_banner_ignores_quiet_hours():
+    from app.push import Event, passes_rules
+
+    rules = _rules(quiet_start="00:00", quiet_end="23:59")
+    assert passes_rules(rules, Event(key="test", app="arrdeck", title="t")) is True
+
+
+def test_rules_round_trip_and_reject_junk(tmp_path):
+    from app.db import SettingsDB
+    from app.push import get_rules, set_rules
+
+    db = SettingsDB(str(tmp_path / "rules.db"))
+    assert get_rules(db)["quiet_start"] == ""
+    set_rules(db, {"quiet_start": "23:00", "quiet_end": "07:00",
+                   "timezone": "Europe/Copenhagen", "tags": {"radarr": [1, "x"], "bogus": [2]}})
+    saved = get_rules(db)
+    assert saved["quiet_start"] == "23:00"
+    assert saved["timezone"] == "Europe/Copenhagen"
+    assert saved["tags"] == {"radarr": [1], "sonarr": []}  # junk dropped
+
+
+def test_an_unknown_timezone_falls_back_to_utc():
+    from app.push import in_quiet_hours
+
+    # must not raise: a bad tz shouldn't take the notifier down
+    in_quiet_hours(_rules(quiet_start="00:00", quiet_end="23:59", timezone="Mars/Olympus"))
