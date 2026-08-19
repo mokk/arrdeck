@@ -137,7 +137,7 @@ def wants_event(db: SettingsDB, key: str) -> bool:
 
 async def send_test(db: SettingsDB, endpoint: str = "") -> int:
     """Deliver a test banner, to one device when an endpoint is given."""
-    event = Event(key="test", app="arrdeck", title="arrdeck test notification", url="/manage")
+    event = Event(key="test", app="arrdeck", title="Test notification", url="/manage")
     return await asyncio.to_thread(
         _send_all, db, event.title, event.label, event.url, event.tag, "test", endpoint
     )
@@ -314,7 +314,7 @@ def webhook_event(app_name: str, payload: dict) -> Event | None:
     """Translate an arr webhook body into an Event, or None if we ignore it."""
     raw = payload.get("eventType", "")
     if raw == "Test":
-        return Event(key="test", app=app_name, title="arrdeck test notification", url="/manage")
+        return Event(key="test", app=app_name, title="Test notification", url="/manage")
     key = WEBHOOK_EVENTS.get(raw)
     if key is None:
         return None

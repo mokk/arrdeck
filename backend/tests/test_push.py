@@ -345,7 +345,7 @@ def test_a_test_webhook_skips_the_queue(tmp_path, monkeypatch):
     # delivered immediately, and again on a retry: it exists to prove the wiring
     sent = _drive(db, [("radarr", {"eventType": "Test"})] * 2, monkeypatch)
     assert len(sent) == 2
-    assert sent[0][0] == "arrdeck test notification"
+    assert sent[0][0] == "Test notification"
     assert sent[0][2] == "/manage"
 
 

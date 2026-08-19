@@ -46,7 +46,9 @@ self.addEventListener("push", (event) => {
     options.tag = data.tag;
     options.renotify = true;
   }
-  event.waitUntil(self.registration.showNotification(data.title ?? "arrdeck", options));
+  // the payload always carries a title; the fallback only exists because
+  // showNotification requires one
+  event.waitUntil(self.registration.showNotification(data.title ?? "", options));
 });
 
 self.addEventListener("notificationclick", (event) => {
