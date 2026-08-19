@@ -276,7 +276,27 @@
     "enable": "Aktivér push-notifikationer",
     "enabled": "Notifikationer slået til",
     "needsHttps": "Kræver HTTPS — åbn appen via deck.thrawn.dk når det er sat op.",
-    "denied": "Notifikationer er blokeret i browserens indstillinger"
+    "denied": "Notifikationer er blokeret i browserens indstillinger",
+    "events": "Giv besked om",
+    "event": {
+      "grabbed": "Sendt til download",
+      "imported": "Downloadet",
+      "upgraded": "Opgraderet",
+      "failed": "Download mislykkedes",
+      "manual": "Kræver manuel import",
+      "health": "Systemadvarsel",
+      "added": "Tilføjet til biblioteket"
+    },
+    "delivery": "Levering",
+    "hookOn": "Forbundet",
+    "hookOff": "Ikke forbundet",
+    "hookConnect": "Forbind",
+    "hookReconnect": "Forbind igen",
+    "hookRemove": "Fjern",
+    "hookConnected": "Radarr og Sonarr giver nu arrdeck besked med det samme",
+    "hookRemoved": "Webhooks fjernet",
+    "hookHint": "Adressen Radarr og Sonarr bruger til at nå arrdeck. Uden den falder arrdeck tilbage til at tjekke deres historik én gang i minuttet.",
+    "lastEvent": "Seneste hændelse {{when}}"
   },
   "search": {
     "global": "Søg i alt…",

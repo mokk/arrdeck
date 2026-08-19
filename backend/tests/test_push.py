@@ -1,3 +1,5 @@
+import time
+
 from app.push import describe_record
 
 
@@ -38,3 +40,307 @@ def test_private_key_b64_roundtrip():
         restored.private_key.private_numbers().private_value
         == vapid.private_key.private_numbers().private_value
     )
+
+
+# --- webhook translation -------------------------------------------------
+
+
+def test_webhook_import_maps_to_movie_page():
+    from app.push import webhook_event
+
+    event = webhook_event(
+        "radarr",
+        {"eventType": "Download", "movie": {"id": 7, "title": "Inception", "year": 2010}},
+    )
+    assert event.key == "imported"
+    assert event.title == "Inception (2010)"
+    assert event.url == "/movie/7"
+    assert event.group == "radarr:imported:7"
+
+
+def test_webhook_upgrade_is_its_own_event():
+    from app.push import webhook_event
+
+    event = webhook_event(
+        "radarr",
+        {
+            "eventType": "Download",
+            "isUpgrade": True,
+            "movie": {"id": 7, "title": "Inception", "year": 2010},
+        },
+    )
+    assert event.key == "upgraded"
+    assert event.label == "Upgraded"
+
+
+def test_webhook_episode_links_to_series_and_groups_by_it():
+    from app.push import webhook_event
+
+    event = webhook_event(
+        "sonarr",
+        {
+            "eventType": "Download",
+            "series": {"id": 12, "title": "The Bear"},
+            "episodes": [{"seasonNumber": 3, "episodeNumber": 4, "title": "Violet"}],
+        },
+    )
+    assert event.title == "The Bear S03E04 – Violet"
+    assert event.url == "/series/12"
+    assert event.group == "sonarr:imported:12"
+    assert event.group_title == "The Bear"
+
+
+def test_webhook_season_pack_grab_names_the_span():
+    from app.push import webhook_event
+
+    event = webhook_event(
+        "sonarr",
+        {
+            "eventType": "Grab",
+            "series": {"id": 12, "title": "The Bear"},
+            "episodes": [
+                {"seasonNumber": 3, "episodeNumber": n, "title": f"Ep {n}"} for n in (1, 2, 3)
+            ],
+        },
+    )
+    assert event.title == "The Bear S03 · 3 episodes"
+
+
+def test_health_events_stay_separate_and_point_at_manage():
+    from app.push import webhook_event
+
+    one = webhook_event("sonarr", {"eventType": "Health", "message": "Indexer unavailable"})
+    two = webhook_event("sonarr", {"eventType": "Health", "message": "No download client"})
+    assert one.url == "/manage"
+    assert one.group != two.group  # distinct issues must not merge into a count
+    restored = webhook_event("sonarr", {"eventType": "HealthRestored", "message": "back"})
+    assert restored.label == "Health restored"
+
+
+def test_unknown_webhook_events_are_ignored():
+    from app.push import webhook_event
+
+    assert webhook_event("radarr", {"eventType": "Rename", "movie": {"id": 1}}) is None
+    assert webhook_event("radarr", {}) is None
+
+
+def test_test_event_is_recognised():
+    from app.push import webhook_event
+
+    assert webhook_event("radarr", {"eventType": "Test"}).key == "test"
+
+
+# --- coalescing ----------------------------------------------------------
+
+
+def test_single_event_renders_title_and_label():
+    from app.push import Event, _Slot, render
+
+    event = Event(key="imported", app="radarr", title="Inception (2010)")
+    assert render(_Slot(event=event, due=0.0)) == ("Inception (2010)", "Downloaded")
+
+
+def test_burst_of_episodes_collapses_under_the_series():
+    from app.push import Event, _Slot, render
+
+    event = Event(
+        key="imported", app="sonarr", title="The Bear S03E01", group_title="The Bear"
+    )
+    slot = _Slot(event=event, due=0.0, count=8)
+    assert render(slot) == ("The Bear", "Downloaded · 8 episodes")
+
+
+def test_burst_without_a_group_title_counts_by_label():
+    from app.push import Event, _Slot, render
+
+    event = Event(key="imported", app="radarr", title="Inception (2010)")
+    assert render(_Slot(event=event, due=0.0, count=3)) == ("Downloaded", "3 movies")
+
+
+def test_coalescer_merges_within_the_window():
+    import asyncio
+
+    from app.push import COALESCE_WINDOW, Coalescer, Event
+
+    async def run():
+        c = Coalescer()
+        for n in (1, 2, 3):
+            await c.add(
+                Event(key="imported", app="sonarr", title=f"S01E0{n}", group="sonarr:imported:1"),
+                100.0,
+            )
+        assert await c.due(100.0 + COALESCE_WINDOW - 1) == []
+        due = await c.due(100.0 + COALESCE_WINDOW)
+        assert len(due) == 1 and due[0].count == 3
+        assert await c.due(1e9) == []  # flushed groups are gone
+
+    asyncio.run(run())
+
+
+# --- history source ------------------------------------------------------
+
+
+def test_history_record_becomes_a_linked_event():
+    from app.push import history_event
+
+    event = history_event(
+        "sonarr",
+        {
+            "eventType": "downloadFolderImported",
+            "seriesId": 12,
+            "series": {"title": "The Bear"},
+            "episode": {"seasonNumber": 3, "episodeNumber": 4, "title": "Violet"},
+        },
+    )
+    assert event.key == "imported"
+    assert event.url == "/series/12"
+    assert event.group == "sonarr:imported:12"
+
+
+def test_history_ignores_uninteresting_event_types():
+    from app.push import history_event
+
+    assert history_event("radarr", {"eventType": "movieFileRenamed", "movieId": 3}) is None
+
+
+def test_webhook_and_history_dedupe_to_the_same_key():
+    from app.push import history_event, webhook_event
+
+    hook = webhook_event(
+        "radarr", {"eventType": "Download", "movie": {"id": 7, "title": "Inception", "year": 2010}}
+    )
+    hist = history_event(
+        "radarr",
+        {
+            "eventType": "downloadFolderImported",
+            "movieId": 7,
+            "movie": {"title": "Inception", "year": 2010},
+        },
+    )
+    assert hook.dedupe_key == hist.dedupe_key
+
+
+# --- preferences ---------------------------------------------------------
+
+
+def test_event_preferences_default_and_round_trip():
+    from app.push import DEFAULT_EVENTS, enabled_events, set_enabled_events
+
+    class FakeDB:
+        def __init__(self):
+            self.store = {}
+
+        def kv_get(self, key):
+            return self.store.get(key)
+
+        def kv_set(self, key, value):
+            self.store[key] = value
+
+    db = FakeDB()
+    assert enabled_events(db) == DEFAULT_EVENTS
+    set_enabled_events(db, ["grabbed", "imported", "bogus"])
+    assert enabled_events(db) == ["grabbed", "imported"]
+    set_enabled_events(db, [])
+    assert enabled_events(db) == []  # an explicit empty set is not the default
+
+
+# --- end to end ----------------------------------------------------------
+
+
+def _pipeline_db(tmp_path):
+    """A real SettingsDB with one subscription, so notify() doesn't short-circuit."""
+    from app.db import SettingsDB
+
+    db = SettingsDB(str(tmp_path / "push.db"))
+    db.push_add("https://example.test/sub", '{"endpoint": "https://example.test/sub"}')
+    return db
+
+
+def _drive(db, payloads, monkeypatch):
+    """Feed webhooks through the pipeline and return what would be pushed."""
+    import asyncio
+
+    from app import push
+
+    sent = []
+    monkeypatch.setattr(
+        push, "_send_all", lambda _db, title, body, url, tag: sent.append((title, body, url, tag))
+    )
+    monkeypatch.setattr(push, "COALESCER", push.Coalescer())
+
+    async def run():
+        for app_name, payload in payloads:
+            await push.handle_webhook(db, app_name, payload)
+        # jump past the coalescing window instead of waiting it out
+        for slot in await push.COALESCER.due(time.monotonic() + push.COALESCE_WINDOW + 1):
+            title, body = push.render(slot)
+            push._send_all(db, title, body, slot.event.url, slot.event.tag)
+
+    asyncio.run(run())
+    return sent
+
+
+def test_a_season_pack_arrives_as_one_notification(tmp_path, monkeypatch):
+    db = _pipeline_db(tmp_path)
+    payloads = [
+        (
+            "sonarr",
+            {
+                "eventType": "Download",
+                "series": {"id": 12, "title": "The Bear"},
+                "episodes": [{"seasonNumber": 3, "episodeNumber": n, "title": f"Ep {n}"}],
+            },
+        )
+        for n in range(1, 9)
+    ]
+    sent = _drive(db, payloads, monkeypatch)
+    assert sent == [("The Bear", "Downloaded · 8 episodes", "/series/12", "arrdeck:sonarr:imported:12")]
+
+
+def test_two_shows_stay_separate(tmp_path, monkeypatch):
+    db = _pipeline_db(tmp_path)
+    payloads = [
+        (
+            "sonarr",
+            {
+                "eventType": "Download",
+                "series": {"id": sid, "title": name},
+                "episodes": [{"seasonNumber": 1, "episodeNumber": 1, "title": "Pilot"}],
+            },
+        )
+        for sid, name in ((12, "The Bear"), (13, "Severance"))
+    ]
+    sent = _drive(db, payloads, monkeypatch)
+    assert {s[0] for s in sent} == {"The Bear S01E01 – Pilot", "Severance S01E01 – Pilot"}
+
+
+def test_a_repeated_webhook_only_notifies_once(tmp_path, monkeypatch):
+    db = _pipeline_db(tmp_path)
+    payload = (
+        "radarr",
+        {"eventType": "Download", "movie": {"id": 7, "title": "Inception", "year": 2010}},
+    )
+    sent = _drive(db, [payload, payload], monkeypatch)
+    assert sent == [("Inception (2010)", "Downloaded", "/movie/7", "arrdeck:radarr:imported:7")]
+
+
+def test_disabled_events_never_reach_the_phone(tmp_path, monkeypatch):
+    from app.push import set_enabled_events
+
+    db = _pipeline_db(tmp_path)
+    set_enabled_events(db, ["failed"])
+    sent = _drive(
+        db,
+        [("radarr", {"eventType": "Download", "movie": {"id": 7, "title": "Inception"}})],
+        monkeypatch,
+    )
+    assert sent == []
+
+
+def test_a_test_webhook_skips_the_queue(tmp_path, monkeypatch):
+    db = _pipeline_db(tmp_path)
+    # delivered immediately, and again on a retry: it exists to prove the wiring
+    sent = _drive(db, [("radarr", {"eventType": "Test"})] * 2, monkeypatch)
+    assert len(sent) == 2
+    assert sent[0][0] == "arrdeck test notification"
+    assert sent[0][2] == "/manage"

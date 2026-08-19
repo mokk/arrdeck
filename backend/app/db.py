@@ -50,6 +50,12 @@ class SettingsDB:
                 )"""
             )
             self._conn.execute(
+                """CREATE TABLE IF NOT EXISTS notified (
+                    key TEXT PRIMARY KEY,
+                    ts INTEGER NOT NULL
+                )"""
+            )
+            self._conn.execute(
                 """CREATE TABLE IF NOT EXISTS stats_samples (
                     ts INTEGER PRIMARY KEY,
                     movies INTEGER NOT NULL DEFAULT 0,
@@ -158,6 +164,17 @@ class SettingsDB:
         with self._lock:
             self._conn.execute("DELETE FROM push_subscriptions WHERE endpoint = ?", (endpoint,))
             self._conn.commit()
+
+    def notified_add(self, key: str, now: int, ttl: int) -> bool:
+        """Record a delivered notification. False when it was already recorded —
+        the webhook and the history poller both see the same import."""
+        with self._lock:
+            self._conn.execute("DELETE FROM notified WHERE ts < ?", (now - ttl,))
+            cur = self._conn.execute(
+                "INSERT OR IGNORE INTO notified (key, ts) VALUES (?, ?)", (key, now)
+            )
+            self._conn.commit()
+            return cur.rowcount > 0
 
     def push_all(self) -> list[str]:
         with self._lock:

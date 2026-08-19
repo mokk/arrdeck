@@ -17,7 +17,7 @@ from .clients.base import ServiceUnavailable
 from .config import get_settings
 from .db import SettingsDB
 from .registry import Registry
-from .push import push_loop
+from .push import flush_loop, push_loop
 from .stats import sampler_loop
 
 # Docker layout: /srv/arrdeck/{app,static}. Dev layout: arrdeck/{backend/app,frontend/dist}.
@@ -67,11 +67,14 @@ async def lifespan(app: FastAPI):
     app.state.db = db
     app.state.registry = registry
     app.state.http = arr_http
-    sampler = asyncio.create_task(sampler_loop(db, registry))
-    notifier = asyncio.create_task(push_loop(db, registry))
+    tasks = [
+        asyncio.create_task(sampler_loop(db, registry)),
+        asyncio.create_task(push_loop(db, registry)),
+        asyncio.create_task(flush_loop(db)),
+    ]
     yield
-    sampler.cancel()
-    notifier.cancel()
+    for task in tasks:
+        task.cancel()
     for client in (arr_http, qbit_http, tm_http):
         await client.aclose()
 
@@ -88,13 +91,17 @@ app.add_middleware(
 app.include_router(v1_router)
 
 
+OPEN_PREFIXES = ("/api/v1/auth/", "/api/v1/hooks/")
+
+
 @app.middleware("http")
 async def auth_guard(request: Request, call_next):
     """Everything under /api requires LAN origin or a passkey session; the
     auth endpoints themselves (and the static shell) stay reachable so the
-    login screen can function."""
+    login screen can function. Webhook targets carry their own secret in the
+    path — Radarr and Sonarr have no way to hold a session."""
     path = request.url.path
-    if path.startswith("/api/") and not path.startswith("/api/v1/auth/"):
+    if path.startswith("/api/") and not path.startswith(OPEN_PREFIXES):
         if not is_request_allowed(request):
             return JSONResponse(status_code=401, content={"detail": "unauthorized"})
     return await call_next(request)

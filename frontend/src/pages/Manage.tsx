@@ -58,7 +58,11 @@ import {
   useLibrarySeries,
   useOptions,
   useImportSettings,
+  useInstallWebhooks,
+  usePushEvents,
   usePushSubscribe,
+  useSavePushEvents,
+  useWebhookStatus,
   useSaveServiceSettings,
   useServiceSettings,
   useServices,
@@ -316,6 +320,137 @@ function SecurityCard() {
   );
 }
 
+function EventToggles() {
+  const { t } = useTranslation();
+  const { data } = usePushEvents(true);
+  const save = useSavePushEvents();
+  if (!data) return null;
+  const enabled = new Set(save.variables ?? data.enabled);
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label className="text-xs text-muted-foreground">{t("push.events")}</Label>
+      <div className="flex flex-wrap gap-1.5">
+        {data.available.map((event) => {
+          const on = enabled.has(event.key);
+          return (
+            <button
+              key={event.key}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
+                on ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
+              )}
+              onClick={() =>
+                save.mutate(
+                  on
+                    ? [...enabled].filter((k) => k !== event.key)
+                    : [...enabled, event.key],
+                )
+              }
+            >
+              {t(`push.event.${event.key}`, event.label)}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** Radarr and Sonarr push events to arrdeck the moment they happen; without
+ * this the backend falls back to polling their history every minute. */
+function WebhookSection() {
+  const { t } = useTranslation();
+  const { data, isLoading } = useWebhookStatus(true);
+  const install = useInstallWebhooks();
+  const [edited, setEdited] = useState<string | null>(null);
+  const baseUrl = edited ?? data?.base_url ?? "";
+  const connected = (data?.apps ?? []).some((a) => a.installed);
+
+  const run = (remove?: boolean) =>
+    install.mutate(
+      { baseUrl, remove },
+      {
+        onSuccess: (rows) => {
+          const failed = rows.filter((r) => r.error);
+          if (failed.length === 0) {
+            toast.success(remove ? t("push.hookRemoved") : t("push.hookConnected"));
+            return;
+          }
+          for (const row of failed) {
+            toast.error(`${SERVICE_LABELS[row.app] ?? row.app}: ${row.error}`);
+          }
+        },
+      },
+    );
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Label className="text-xs text-muted-foreground">{t("push.delivery")}</Label>
+      {isLoading ? (
+        <span className="text-xs text-muted-foreground">{t("common.loading")}</span>
+      ) : (
+        <>
+          {(data?.apps ?? []).map((row) => (
+            <div key={row.app} className="flex items-center justify-between text-sm">
+              <span>{SERVICE_LABELS[row.app] ?? row.app}</span>
+              <span
+                className={cn(
+                  "text-xs",
+                  row.installed ? "text-success" : "text-muted-foreground",
+                  row.error && "text-destructive",
+                )}
+              >
+                {row.error
+                  ? row.error
+                  : !row.configured
+                    ? t("manage.notConfigured")
+                    : row.installed
+                      ? t("push.hookOn")
+                      : t("push.hookOff")}
+              </span>
+            </div>
+          ))}
+          <Input
+            value={baseUrl}
+            onChange={(e) => setEdited(e.target.value)}
+            placeholder="http://10.0.0.154:3500"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+          <div className="flex gap-2">
+            <Button disabled={install.isPending || !baseUrl.trim()} onClick={() => run()}>
+              {install.isPending
+                ? t("common.saving")
+                : connected
+                  ? t("push.hookReconnect")
+                  : t("push.hookConnect")}
+            </Button>
+            {connected && (
+              <Button
+                variant="secondary"
+                className="text-destructive"
+                disabled={install.isPending}
+                onClick={() => run(true)}
+              >
+                {t("push.hookRemove")}
+              </Button>
+            )}
+          </div>
+          <span className="text-xs text-muted-foreground">{t("push.hookHint")}</span>
+          {data?.last_event != null && (
+            <span className="text-xs text-muted-foreground">
+              {t("push.lastEvent", {
+                when: new Date(data.last_event * 1000).toLocaleString(),
+              })}
+            </span>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function NotificationsCard() {
   const { t } = useTranslation();
   const supported =
@@ -368,20 +503,24 @@ function NotificationsCard() {
 
   return (
     <Card>
-      <div className="flex flex-wrap items-center justify-between gap-2 p-4">
-        <span className="font-semibold">{t("push.title")}</span>
-        {supported ? (
-          <Button
-            size="sm"
-            variant={enabled ? "default" : "secondary"}
-            disabled={busy || !vapid}
-            onClick={toggle}
-          >
-            {enabled ? t("push.enabled") : t("push.enable")}
-          </Button>
-        ) : (
-          <span className="text-xs text-muted-foreground">{t("push.needsHttps")}</span>
-        )}
+      <div className="flex flex-col gap-3.5 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="font-semibold">{t("push.title")}</span>
+          {supported ? (
+            <Button
+              size="sm"
+              variant={enabled ? "default" : "secondary"}
+              disabled={busy || !vapid}
+              onClick={toggle}
+            >
+              {enabled ? t("push.enabled") : t("push.enable")}
+            </Button>
+          ) : (
+            <span className="text-xs text-muted-foreground">{t("push.needsHttps")}</span>
+          )}
+        </div>
+        <EventToggles />
+        <WebhookSection />
       </div>
     </Card>
   );

@@ -464,6 +464,38 @@ class PushSubscribeIn(BaseModel):
     subscription: dict
 
 
+class PushEventOut(BaseModel):
+    key: str
+    label: str
+
+
+class PushEventsOut(BaseModel):
+    available: list[PushEventOut]
+    enabled: list[str]
+
+
+class PushEventsIn(BaseModel):
+    enabled: list[str]
+
+
+class WebhookAppOut(BaseModel):
+    app: str
+    configured: bool = False
+    installed: bool = False
+    url: str = ""
+    error: str = ""
+
+
+class WebhookStatusOut(BaseModel):
+    base_url: str
+    last_event: int | None = None  # unix seconds
+    apps: list[WebhookAppOut]
+
+
+class WebhookInstallIn(BaseModel):
+    base_url: str
+
+
 class StatsSampleOut(BaseModel):
     ts: int  # unix seconds
     movies: int = 0

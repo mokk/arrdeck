@@ -14,8 +14,11 @@ import type {
   HistoryPage,
   RecentItem,
   SeriesDetail,
+  PushEvents,
   StatsSample,
   TorrentDetails,
+  WebhookApp,
+  WebhookStatus,
   WantedPage,
   Indexer,
   IndexerSchema,
@@ -299,6 +302,40 @@ export function usePushSubscribe() {
       api.post<void>(input.unsubscribe ? "/push/unsubscribe" : "/push/subscribe", {
         subscription: input.subscription,
       }),
+  });
+}
+
+export const usePushEvents = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["pushEvents"],
+    queryFn: () => api.get<PushEvents>("/push/events"),
+    enabled,
+    staleTime: Infinity,
+  });
+
+export function useSavePushEvents() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (enabled: string[]) => api.put<PushEvents>("/push/events", { enabled }),
+    onSuccess: (data) => qc.setQueryData(["pushEvents"], data),
+  });
+}
+
+export const useWebhookStatus = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["webhookStatus"],
+    queryFn: () => api.get<WebhookStatus>("/push/webhook"),
+    enabled,
+  });
+
+export function useInstallWebhooks() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { baseUrl: string; remove?: boolean }) =>
+      input.remove
+        ? api.post<WebhookApp[]>("/push/webhook/uninstall")
+        : api.post<WebhookApp[]>("/push/webhook/install", { base_url: input.baseUrl }),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["webhookStatus"] }),
   });
 }
 

@@ -46,6 +46,9 @@ export type Tracker = G.TrackerOut;
 export type SettingsExport = G.SettingsExportOut;
 export type MovieDetail = G.MovieDetailOut;
 export type TorrentSummary = G.TorrentSummaryOut;
+export type PushEvents = G.PushEventsOut;
+export type WebhookApp = G.WebhookAppOut;
+export type WebhookStatus = G.WebhookStatusOut;
 
 // /indexers/schemas returns untyped dicts server-side; hand-written for now.
 export interface IndexerSchemaField {

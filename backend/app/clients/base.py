@@ -73,6 +73,28 @@ class ArrClient(BaseClient):
         # The arr fans out to all indexers — slow; allow for it.
         return await self.get("/release", params=params, timeout=90.0)
 
+    # --- Connect / notification settings (used to install arrdeck's webhook) ---
+
+    async def notifications(self) -> list:
+        return await self.get("/notification")
+
+    async def notification_schemas(self) -> list:
+        return await self.get("/notification/schema")
+
+    async def add_notification(self, payload: dict) -> dict:
+        return await self.request("POST", "/notification", json=payload, timeout=30.0)
+
+    async def update_notification(self, notification_id: int, payload: dict) -> dict:
+        return await self.request(
+            "PUT", f"/notification/{notification_id}", json=payload, timeout=30.0
+        )
+
+    async def delete_notification(self, notification_id: int) -> None:
+        await self.request("DELETE", f"/notification/{notification_id}")
+
+    async def test_notification(self, payload: dict) -> None:
+        await self.request("POST", "/notification/test", json=payload, timeout=30.0)
+
     async def grab_release(self, guid: str, indexer_id: int) -> None:
         await self.request(
             "POST", "/release", json={"guid": guid, "indexerId": indexer_id}, timeout=90.0

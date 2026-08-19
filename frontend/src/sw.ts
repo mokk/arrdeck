@@ -34,16 +34,39 @@ registerRoute(
 
 self.addEventListener("push", (event) => {
   const data = event.data?.json() ?? {};
-  event.waitUntil(
-    self.registration.showNotification(data.title ?? "arrdeck", {
-      body: data.body ?? "",
-      icon: "/pwa-192.png",
-      badge: "/pwa-192.png",
-    }),
-  );
+  // A tag makes the OS replace the banner it already shows for that group
+  // instead of stacking a new one — the server reuses it per series/event.
+  const options: NotificationOptions & { renotify?: boolean } = {
+    body: data.body ?? "",
+    icon: "/pwa-192.png",
+    badge: "/pwa-192.png",
+    data: { url: typeof data.url === "string" ? data.url : "/" },
+  };
+  if (typeof data.tag === "string" && data.tag) {
+    options.tag = data.tag;
+    options.renotify = true;
+  }
+  event.waitUntil(self.registration.showNotification(data.title ?? "arrdeck", options));
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  event.waitUntil(self.clients.openWindow("/"));
+  const url: string = event.notification.data?.url ?? "/";
+  event.waitUntil(
+    (async () => {
+      const windows = (await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      })) as readonly WindowClient[];
+      // reuse the running app when there is one: on iOS a second window would
+      // cold-start the PWA and lose wherever the user was
+      const open = windows.find((client) => "focus" in client);
+      if (open) {
+        await open.focus();
+        await open.navigate(url).catch(() => {});
+        return;
+      }
+      await self.clients.openWindow(url);
+    })(),
+  );
 });

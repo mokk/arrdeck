@@ -5,15 +5,27 @@ from pydantic import BaseModel
 
 from ...cache import cache
 from ...db import SERVICES
-from ...push import ensure_vapid
+from ... import webhooks
+from ...push import (
+    EVENT_LABELS,
+    WEBHOOK_SEEN_KEY,
+    enabled_events,
+    ensure_vapid,
+    set_enabled_events,
+)
 from ...registry import probe_version
 from ...schemas import (
+    PushEventsIn,
+    PushEventsOut,
     PushSubscribeIn,
     ServiceInfoOut,
     ServiceSettingsOut,
     SettingsExportOut,
     SettingsImportIn,
     StatsSampleOut,
+    WebhookAppOut,
+    WebhookInstallIn,
+    WebhookStatusOut,
 )
 
 router = APIRouter(tags=["settings"])
@@ -79,6 +91,49 @@ def push_subscribe(body: PushSubscribeIn, request: Request) -> None:
 @router.post("/push/unsubscribe", status_code=204)
 def push_unsubscribe(body: PushSubscribeIn, request: Request) -> None:
     request.app.state.db.push_remove(body.subscription.get("endpoint", ""))
+
+
+@router.get("/push/events", response_model=PushEventsOut)
+def push_events(request: Request) -> dict:
+    db = request.app.state.db
+    return {
+        "available": [{"key": k, "label": v} for k, v in EVENT_LABELS.items()],
+        "enabled": enabled_events(db),
+    }
+
+
+@router.put("/push/events", response_model=PushEventsOut)
+def save_push_events(body: PushEventsIn, request: Request) -> dict:
+    db = request.app.state.db
+    return {
+        "available": [{"key": k, "label": v} for k, v in EVENT_LABELS.items()],
+        "enabled": set_enabled_events(db, body.enabled),
+    }
+
+
+@router.get("/push/webhook", response_model=WebhookStatusOut)
+async def webhook_status(request: Request) -> dict:
+    db = request.app.state.db
+    last = db.kv_get(WEBHOOK_SEEN_KEY)
+    return {
+        "base_url": webhooks.guess_base_url(db),
+        "last_event": int(last) if last else None,
+        "apps": await webhooks.status(db, request.app.state.registry),
+    }
+
+
+@router.post("/push/webhook/install", response_model=list[WebhookAppOut])
+async def webhook_install(body: WebhookInstallIn, request: Request) -> list[dict]:
+    if not body.base_url.strip():
+        raise HTTPException(422, "a base URL is required")
+    return await webhooks.install(
+        request.app.state.db, request.app.state.registry, body.base_url
+    )
+
+
+@router.post("/push/webhook/uninstall", response_model=list[WebhookAppOut])
+async def webhook_uninstall(request: Request) -> list[dict]:
+    return await webhooks.uninstall(request.app.state.db, request.app.state.registry)
 
 
 @router.get("/settings/export", response_model=SettingsExportOut)
