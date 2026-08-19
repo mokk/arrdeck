@@ -20,6 +20,7 @@ import { useSort } from "../sortable";
 import {
   useBulkDeleteLibrary,
   useBulkLibrary,
+  useTags,
   useBulkSearchLibrary,
   useDeleteLibraryItem,
   useLibraryMovies,
@@ -119,7 +120,9 @@ function LibraryBulkBar({
   const bulk = useBulkLibrary(kind);
   const bulkDelete = useBulkDeleteLibrary(kind);
   const bulkSearch = useBulkSearchLibrary(kind);
+  const { data: tags } = useTags(kind === "movies" ? "radarr" : "sonarr");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [taggingOff, setTaggingOff] = useState(false);
   const ids = [...selected];
   const pending = bulk.isPending || bulkDelete.isPending || bulkSearch.isPending;
 
@@ -186,6 +189,36 @@ function LibraryBulkBar({
           >
             {t("common.search")}
           </Button>
+          {(tags?.length ?? 0) > 0 && (
+            <>
+              {/* one row of tag buttons; the toggle flips them between
+                  applying and removing so each tag needs only one button */}
+              <Button
+                size="sm"
+                variant="secondary"
+                className={taggingOff ? "text-destructive" : undefined}
+                onClick={() => setTaggingOff(!taggingOff)}
+              >
+                {taggingOff ? t("manage.tagRemoving") : t("manage.tagAdding")}
+              </Button>
+              {(tags ?? []).map((tag) => (
+                <Button
+                  key={tag.id}
+                  size="sm"
+                  variant="secondary"
+                  disabled={pending || !ids.length}
+                  onClick={() =>
+                    bulk.mutate(
+                      { ids, tags: [tag.id], apply_tags: taggingOff ? "remove" : "add" },
+                      { onSettled: onDone },
+                    )
+                  }
+                >
+                  {tag.label}
+                </Button>
+              ))}
+            </>
+          )}
           <Button
             size="sm"
             variant="secondary"
@@ -216,6 +249,11 @@ export function MovieLibrary() {
   const [sortOpen, setSortOpen] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [checked, setChecked] = useState<Set<number>>(new Set());
+  const { data: tags } = useTags("radarr");
+  const [tagFilter, setTagFilter] = usePersistentState<number | null>(
+    "manage.movies.tag",
+    null,
+  );
   useRegisterSearchbar(t("manage.filterMovies"), q, setQ);
   useRegisterSortButton(() => setSortOpen(true));
 
@@ -230,6 +268,7 @@ export function MovieLibrary() {
 
   const withStatus = (data ?? [])
     .filter((m) => (m.title ?? "").toLowerCase().includes(q.toLowerCase()))
+    .filter((m) => tagFilter == null || (m.tags ?? []).includes(tagFilter))
     .map((m) => ({
       ...m,
       status: m.has_file ? "downloaded" : m.monitored ? "wanted" : "unmonitored",
@@ -240,6 +279,33 @@ export function MovieLibrary() {
 
   return (
     <>
+      {(tags?.length ?? 0) > 0 && (
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          <button
+            className={cn(
+              "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
+              tagFilter == null ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
+            )}
+            onClick={() => setTagFilter(null)}
+          >
+            {t("manage.allTags")}
+          </button>
+          {(tags ?? []).map((tag) => (
+            <button
+              key={tag.id}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
+                tagFilter === tag.id
+                  ? "bg-primary/15 text-primary"
+                  : "bg-secondary text-muted-foreground",
+              )}
+              onClick={() => setTagFilter(tagFilter === tag.id ? null : tag.id)}
+            >
+              {tag.label}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="mb-3 flex justify-end">
         <Button
           size="sm"
@@ -369,6 +435,11 @@ export function SeriesLibrary() {
   const [sortOpen, setSortOpen] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [checked, setChecked] = useState<Set<number>>(new Set());
+  const { data: tags } = useTags("sonarr");
+  const [tagFilter, setTagFilter] = usePersistentState<number | null>(
+    "manage.series.tag",
+    null,
+  );
   useRegisterSearchbar(t("manage.filterSeries"), q, setQ);
   useRegisterSortButton(() => setSortOpen(true));
 
@@ -381,15 +452,42 @@ export function SeriesLibrary() {
     setChecked(next);
   };
 
-  const filtered = (data ?? []).filter((se) =>
-    (se.title ?? "").toLowerCase().includes(q.toLowerCase()),
-  );
+  const filtered = (data ?? [])
+    .filter((se) => (se.title ?? "").toLowerCase().includes(q.toLowerCase()))
+    .filter((se) => tagFilter == null || (se.tags ?? []).includes(tagFilter));
   const shown = sort.sortRows(
     filtered as unknown as Record<string, unknown>[],
   ) as unknown as LibrarySeries[];
 
   return (
     <>
+      {(tags?.length ?? 0) > 0 && (
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          <button
+            className={cn(
+              "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
+              tagFilter == null ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
+            )}
+            onClick={() => setTagFilter(null)}
+          >
+            {t("manage.allTags")}
+          </button>
+          {(tags ?? []).map((tag) => (
+            <button
+              key={tag.id}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
+                tagFilter === tag.id
+                  ? "bg-primary/15 text-primary"
+                  : "bg-secondary text-muted-foreground",
+              )}
+              onClick={() => setTagFilter(tagFilter === tag.id ? null : tag.id)}
+            >
+              {tag.label}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="mb-3 flex justify-end">
         <Button
           size="sm"

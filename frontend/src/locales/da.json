@@ -230,7 +230,10 @@
       "enable": "Aktiveret"
     },
     "export": "Eksportér indstillinger",
-    "import": "Importér indstillinger"
+    "import": "Importér indstillinger",
+    "allTags": "Alle",
+    "tagAdding": "Tilføjer tag",
+    "tagRemoving": "Fjerner tag"
   },
   "toast": {
     "added": "Tilføjet til biblioteket",

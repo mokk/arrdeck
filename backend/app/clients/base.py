@@ -76,6 +76,9 @@ class ArrClient(BaseClient):
     async def health(self) -> list:
         return await self.get("/health")
 
+    async def tags(self) -> list:
+        return await self.get("/tag")
+
     async def diskspace(self) -> list:
         return await self.get("/diskspace")
 

@@ -204,6 +204,14 @@ export type BulkEditIn = {
      * Quality Profile Id
      */
     quality_profile_id?: number | null;
+    /**
+     * Tags
+     */
+    tags?: Array<number> | null;
+    /**
+     * Apply Tags
+     */
+    apply_tags?: 'add' | 'remove' | 'replace';
 };
 
 /**
@@ -626,6 +634,10 @@ export type LibraryMovieOut = {
      * Poster
      */
     poster?: string | null;
+    /**
+     * Tags
+     */
+    tags?: Array<number>;
 };
 
 /**
@@ -672,6 +684,10 @@ export type LibrarySeriesOut = {
      * Poster
      */
     poster?: string | null;
+    /**
+     * Tags
+     */
+    tags?: Array<number>;
 };
 
 /**
@@ -1768,6 +1784,20 @@ export type SubtitlesOut = {
      * Items
      */
     items?: Array<SubtitleItemOut>;
+};
+
+/**
+ * TagOut
+ */
+export type TagOut = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Label
+     */
+    label: string;
 };
 
 /**
@@ -3883,6 +3913,38 @@ export type TestIndexerApiV1IndexersIndexerIdTestPostResponses = {
 };
 
 export type TestIndexerApiV1IndexersIndexerIdTestPostResponse = TestIndexerApiV1IndexersIndexerIdTestPostResponses[keyof TestIndexerApiV1IndexersIndexerIdTestPostResponses];
+
+export type TagsApiV1TagsAppGetData = {
+    body?: never;
+    path: {
+        /**
+         * App
+         */
+        app: string;
+    };
+    query?: never;
+    url: '/api/v1/tags/{app}';
+};
+
+export type TagsApiV1TagsAppGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type TagsApiV1TagsAppGetError = TagsApiV1TagsAppGetErrors[keyof TagsApiV1TagsAppGetErrors];
+
+export type TagsApiV1TagsAppGetResponses = {
+    /**
+     * Response Tags Api V1 Tags  App  Get
+     *
+     * Successful Response
+     */
+    200: Array<TagOut>;
+};
+
+export type TagsApiV1TagsAppGetResponse = TagsApiV1TagsAppGetResponses[keyof TagsApiV1TagsAppGetResponses];
 
 export type LibraryMoviesApiV1LibraryMoviesGetData = {
     body?: never;

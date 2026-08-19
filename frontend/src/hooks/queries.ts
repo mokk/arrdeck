@@ -19,6 +19,7 @@ import type {
   MediaRequest,
   PlaySession,
   Subtitles,
+  Tag,
   VpnStatus,
   Session,
   PushEvents,
@@ -147,10 +148,24 @@ export function useToggleCollection() {
   });
 }
 
+export const useTags = (app: "radarr" | "sonarr", enabled = true) =>
+  useQuery({
+    queryKey: ["tags", app],
+    queryFn: () => api.get<Tag[]>(`/tags/${app}`),
+    enabled,
+    staleTime: SLOW,
+  });
+
 export function useBulkLibrary(kind: "movies" | "series") {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { ids: number[]; monitored?: boolean; quality_profile_id?: number }) =>
+    mutationFn: (input: {
+      ids: number[];
+      monitored?: boolean;
+      quality_profile_id?: number;
+      tags?: number[];
+      apply_tags?: "add" | "remove" | "replace";
+    }) =>
       api.post<void>(`/library/${kind}/bulk`, input),
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["library", kind] });

@@ -230,7 +230,10 @@
       "enable": "Enabled"
     },
     "export": "Export settings",
-    "import": "Import settings"
+    "import": "Import settings",
+    "allTags": "All",
+    "tagAdding": "Adding tag",
+    "tagRemoving": "Removing tag"
   },
   "toast": {
     "added": "Added to library",

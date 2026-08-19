@@ -256,6 +256,7 @@ class LibraryMovieOut(BaseModel):
     size_on_disk: int = 0
     quality_profile_id: int | None = None
     poster: str | None = None
+    tags: list[int] = []
 
 
 class LibrarySeriesOut(BaseModel):
@@ -269,6 +270,7 @@ class LibrarySeriesOut(BaseModel):
     size_on_disk: int = 0
     quality_profile_id: int | None = None
     poster: str | None = None
+    tags: list[int] = []
 
 
 class ServiceInfoOut(BaseModel):
@@ -441,10 +443,18 @@ class CollectionDetailOut(BaseModel):
     movies: list[SearchResultOut] = []
 
 
+class TagOut(BaseModel):
+    id: int
+    label: str
+
+
 class BulkEditIn(BaseModel):
     ids: list[int]
     monitored: bool | None = None
     quality_profile_id: int | None = None
+    tags: list[int] | None = None
+    # the arrs need to be told what to do with the tags they were handed
+    apply_tags: Literal["add", "remove", "replace"] = "add"
 
 
 class BulkDeleteIn(BaseModel):

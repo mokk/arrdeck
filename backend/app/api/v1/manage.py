@@ -22,6 +22,7 @@ from ...schemas import (
     EpisodeOut,
     IndexerOut,
     LibraryMovieOut,
+    TagOut,
     LibrarySeriesOut,
     LibraryUpdateIn,
     MonitorIn,
@@ -172,6 +173,21 @@ async def test_indexer(indexer_id: int, prowlarr: ProwlarrClient = Depends(get_p
     await prowlarr.test_indexer(full)
 
 
+@router.get("/tags/{app}", response_model=list[TagOut])
+async def tags(
+    app: str,
+    radarr: RadarrClient = Depends(get_radarr),
+    sonarr: SonarrClient = Depends(get_sonarr),
+) -> list[dict]:
+    if app not in ("radarr", "sonarr"):
+        raise HTTPException(404, f"unknown app {app!r}")
+    client = radarr if app == "radarr" else sonarr
+    return [
+        {"id": t["id"], "label": t.get("label", "")}
+        for t in sorted(await client.tags(), key=lambda t: t.get("label", ""))
+    ]
+
+
 @router.get("/library/movies", response_model=list[LibraryMovieOut])
 async def library_movies(radarr: RadarrClient = Depends(get_radarr)) -> list[dict]:
     items = await radarr.movies()
@@ -185,6 +201,7 @@ async def library_movies(radarr: RadarrClient = Depends(get_radarr)) -> list[dic
             "size_on_disk": m.get("sizeOnDisk", 0),
             "quality_profile_id": m.get("qualityProfileId"),
             "poster": _poster(m.get("images")),
+            "tags": m.get("tags") or [],
         }
         for m in sorted(items, key=lambda m: m.get("sortTitle", ""))
     ]
@@ -205,6 +222,7 @@ async def library_series(sonarr: SonarrClient = Depends(get_sonarr)) -> list[dic
             "size_on_disk": (s.get("statistics") or {}).get("sizeOnDisk", 0),
             "quality_profile_id": s.get("qualityProfileId"),
             "poster": _poster(s.get("images")),
+            "tags": s.get("tags") or [],
         }
         for s in sorted(items, key=lambda s: s.get("sortTitle", ""))
     ]
@@ -442,6 +460,9 @@ async def library_bulk_edit(
         payload["monitored"] = body.monitored
     if body.quality_profile_id is not None:
         payload["qualityProfileId"] = body.quality_profile_id
+    if body.tags is not None:
+        payload["tags"] = body.tags
+        payload["applyTags"] = body.apply_tags
     client = radarr if kind == "movies" else sonarr
     await client.bulk_edit(payload)
     cache.set(f"library_map:{'movie' if kind == 'movies' else 'series'}", None)
