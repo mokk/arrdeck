@@ -628,6 +628,27 @@ class MediaRequestOut(BaseModel):
     seasons: list[int] = []
 
 
+class ImportListOut(BaseModel):
+    app: Literal["radarr", "sonarr"]
+    id: int
+    name: str = ""
+    implementation: str = ""
+    enabled: bool = False
+    enable_auto: bool = False  # add items automatically, not just track them
+    monitor: str | None = None
+    quality_profile_id: int | None = None
+    root_folder: str | None = None
+
+
+class LogEntryOut(BaseModel):
+    app: str
+    time: str = ""
+    level: str = ""
+    logger: str = ""
+    message: str = ""
+    exception: str | None = None
+
+
 class BlocklistItemOut(BaseModel):
     app: Literal["radarr", "sonarr"]
     id: int

@@ -657,6 +657,48 @@ export type ImportCandidateOut = {
 };
 
 /**
+ * ImportListOut
+ */
+export type ImportListOut = {
+    /**
+     * App
+     */
+    app: 'radarr' | 'sonarr';
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Name
+     */
+    name?: string;
+    /**
+     * Implementation
+     */
+    implementation?: string;
+    /**
+     * Enabled
+     */
+    enabled?: boolean;
+    /**
+     * Enable Auto
+     */
+    enable_auto?: boolean;
+    /**
+     * Monitor
+     */
+    monitor?: string | null;
+    /**
+     * Quality Profile Id
+     */
+    quality_profile_id?: number | null;
+    /**
+     * Root Folder
+     */
+    root_folder?: string | null;
+};
+
+/**
  * IndexerOut
  */
 export type IndexerOut = {
@@ -846,6 +888,36 @@ export type LibraryUpdateIn = {
      * Quality Profile Id
      */
     quality_profile_id?: number | null;
+};
+
+/**
+ * LogEntryOut
+ */
+export type LogEntryOut = {
+    /**
+     * App
+     */
+    app: string;
+    /**
+     * Time
+     */
+    time?: string;
+    /**
+     * Level
+     */
+    level?: string;
+    /**
+     * Logger
+     */
+    logger?: string;
+    /**
+     * Message
+     */
+    message?: string;
+    /**
+     * Exception
+     */
+    exception?: string | null;
 };
 
 /**
@@ -2700,6 +2772,136 @@ export type WebhookStatusOut = {
     apps: Array<WebhookAppOut>;
 };
 
+export type QueueApiV1QueueGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/queue';
+};
+
+export type QueueApiV1QueueGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: QueueResponse;
+};
+
+export type QueueApiV1QueueGetResponse = QueueApiV1QueueGetResponses[keyof QueueApiV1QueueGetResponses];
+
+export type CalendarApiV1CalendarGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Days
+         */
+        days?: number;
+        /**
+         * Start Date
+         */
+        start_date?: string | null;
+    };
+    url: '/api/v1/calendar';
+};
+
+export type CalendarApiV1CalendarGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CalendarApiV1CalendarGetError = CalendarApiV1CalendarGetErrors[keyof CalendarApiV1CalendarGetErrors];
+
+export type CalendarApiV1CalendarGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: CalendarResponse;
+};
+
+export type CalendarApiV1CalendarGetResponse = CalendarApiV1CalendarGetResponses[keyof CalendarApiV1CalendarGetResponses];
+
+export type HistoryApiV1HistoryGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/history';
+};
+
+export type HistoryApiV1HistoryGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: HistoryResponse;
+};
+
+export type HistoryApiV1HistoryGetResponse = HistoryApiV1HistoryGetResponses[keyof HistoryApiV1HistoryGetResponses];
+
+export type RecentApiV1DashboardRecentGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/dashboard/recent';
+};
+
+export type RecentApiV1DashboardRecentGetResponses = {
+    /**
+     * Response Recent Api V1 Dashboard Recent Get
+     *
+     * Successful Response
+     */
+    200: Array<RecentItemOut>;
+};
+
+export type RecentApiV1DashboardRecentGetResponse = RecentApiV1DashboardRecentGetResponses[keyof RecentApiV1DashboardRecentGetResponses];
+
+export type HistoryAllApiV1HistoryAllGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page
+         */
+        page?: number;
+    };
+    url: '/api/v1/history/all';
+};
+
+export type HistoryAllApiV1HistoryAllGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type HistoryAllApiV1HistoryAllGetError = HistoryAllApiV1HistoryAllGetErrors[keyof HistoryAllApiV1HistoryAllGetErrors];
+
+export type HistoryAllApiV1HistoryAllGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: HistoryPageOut;
+};
+
+export type HistoryAllApiV1HistoryAllGetResponse = HistoryAllApiV1HistoryAllGetResponses[keyof HistoryAllApiV1HistoryAllGetResponses];
+
+export type IndexerStatsApiV1IndexersStatsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/indexers/stats';
+};
+
+export type IndexerStatsApiV1IndexersStatsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ServiceBlockIndexerStatsOut;
+};
+
+export type IndexerStatsApiV1IndexersStatsGetResponse = IndexerStatsApiV1IndexersStatsGetResponses[keyof IndexerStatsApiV1IndexersStatsGetResponses];
+
 export type StatusApiV1StatusGetData = {
     body?: never;
     path?: never;
@@ -2733,6 +2935,38 @@ export type DiskspaceApiV1DiskspaceGetResponses = {
 };
 
 export type DiskspaceApiV1DiskspaceGetResponse = DiskspaceApiV1DiskspaceGetResponses[keyof DiskspaceApiV1DiskspaceGetResponses];
+
+export type VpnStatusApiV1VpnGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/vpn';
+};
+
+export type VpnStatusApiV1VpnGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ServiceBlockVpnStatusOut;
+};
+
+export type VpnStatusApiV1VpnGetResponse = VpnStatusApiV1VpnGetResponses[keyof VpnStatusApiV1VpnGetResponses];
+
+export type HealthApiV1HealthGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/health';
+};
+
+export type HealthApiV1HealthGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ServiceBlockListHealthWarningOut;
+};
+
+export type HealthApiV1HealthGetResponse = HealthApiV1HealthGetResponses[keyof HealthApiV1HealthGetResponses];
 
 export type WatchedApiV1WatchedGetData = {
     body?: never;
@@ -2807,54 +3041,6 @@ export type SubtitleSearchApiV1SubtitlesSearchPostResponses = {
 
 export type SubtitleSearchApiV1SubtitlesSearchPostResponse = SubtitleSearchApiV1SubtitlesSearchPostResponses[keyof SubtitleSearchApiV1SubtitlesSearchPostResponses];
 
-export type VpnStatusApiV1VpnGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/vpn';
-};
-
-export type VpnStatusApiV1VpnGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: ServiceBlockVpnStatusOut;
-};
-
-export type VpnStatusApiV1VpnGetResponse = VpnStatusApiV1VpnGetResponses[keyof VpnStatusApiV1VpnGetResponses];
-
-export type HealthApiV1HealthGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/health';
-};
-
-export type HealthApiV1HealthGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: ServiceBlockListHealthWarningOut;
-};
-
-export type HealthApiV1HealthGetResponse = HealthApiV1HealthGetResponses[keyof HealthApiV1HealthGetResponses];
-
-export type QueueApiV1QueueGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/queue';
-};
-
-export type QueueApiV1QueueGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: QueueResponse;
-};
-
-export type QueueApiV1QueueGetResponse = QueueApiV1QueueGetResponses[keyof QueueApiV1QueueGetResponses];
-
 export type TorrentsApiV1TorrentsGetData = {
     body?: never;
     path?: never;
@@ -2901,56 +3087,6 @@ export type TorrentsApiV1TorrentsGetResponses = {
 
 export type TorrentsApiV1TorrentsGetResponse = TorrentsApiV1TorrentsGetResponses[keyof TorrentsApiV1TorrentsGetResponses];
 
-export type CalendarApiV1CalendarGetData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Days
-         */
-        days?: number;
-        /**
-         * Start Date
-         */
-        start_date?: string | null;
-    };
-    url: '/api/v1/calendar';
-};
-
-export type CalendarApiV1CalendarGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type CalendarApiV1CalendarGetError = CalendarApiV1CalendarGetErrors[keyof CalendarApiV1CalendarGetErrors];
-
-export type CalendarApiV1CalendarGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: CalendarResponse;
-};
-
-export type CalendarApiV1CalendarGetResponse = CalendarApiV1CalendarGetResponses[keyof CalendarApiV1CalendarGetResponses];
-
-export type HistoryApiV1HistoryGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/history';
-};
-
-export type HistoryApiV1HistoryGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: HistoryResponse;
-};
-
-export type HistoryApiV1HistoryGetResponse = HistoryApiV1HistoryGetResponses[keyof HistoryApiV1HistoryGetResponses];
-
 export type TorrentsSummaryApiV1TorrentsSummaryGetData = {
     body?: never;
     path?: never;
@@ -2966,70 +3102,6 @@ export type TorrentsSummaryApiV1TorrentsSummaryGetResponses = {
 };
 
 export type TorrentsSummaryApiV1TorrentsSummaryGetResponse = TorrentsSummaryApiV1TorrentsSummaryGetResponses[keyof TorrentsSummaryApiV1TorrentsSummaryGetResponses];
-
-export type RecentApiV1DashboardRecentGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/dashboard/recent';
-};
-
-export type RecentApiV1DashboardRecentGetResponses = {
-    /**
-     * Response Recent Api V1 Dashboard Recent Get
-     *
-     * Successful Response
-     */
-    200: Array<RecentItemOut>;
-};
-
-export type RecentApiV1DashboardRecentGetResponse = RecentApiV1DashboardRecentGetResponses[keyof RecentApiV1DashboardRecentGetResponses];
-
-export type HistoryAllApiV1HistoryAllGetData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Page
-         */
-        page?: number;
-    };
-    url: '/api/v1/history/all';
-};
-
-export type HistoryAllApiV1HistoryAllGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type HistoryAllApiV1HistoryAllGetError = HistoryAllApiV1HistoryAllGetErrors[keyof HistoryAllApiV1HistoryAllGetErrors];
-
-export type HistoryAllApiV1HistoryAllGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: HistoryPageOut;
-};
-
-export type HistoryAllApiV1HistoryAllGetResponse = HistoryAllApiV1HistoryAllGetResponses[keyof HistoryAllApiV1HistoryAllGetResponses];
-
-export type IndexerStatsApiV1IndexersStatsGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/indexers/stats';
-};
-
-export type IndexerStatsApiV1IndexersStatsGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: ServiceBlockIndexerStatsOut;
-};
-
-export type IndexerStatsApiV1IndexersStatsGetResponse = IndexerStatsApiV1IndexersStatsGetResponses[keyof IndexerStatsApiV1IndexersStatsGetResponses];
 
 export type QbitPauseApiV1TorrentsQbittorrentPausePostData = {
     body: TorrentActionIn;
@@ -4529,6 +4601,129 @@ export type TestIndexerApiV1IndexersIndexerIdTestPostResponses = {
 };
 
 export type TestIndexerApiV1IndexersIndexerIdTestPostResponse = TestIndexerApiV1IndexersIndexerIdTestPostResponses[keyof TestIndexerApiV1IndexersIndexerIdTestPostResponses];
+
+export type ImportListsApiV1ImportListsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/import-lists';
+};
+
+export type ImportListsApiV1ImportListsGetResponses = {
+    /**
+     * Response Import Lists Api V1 Import Lists Get
+     *
+     * Successful Response
+     */
+    200: Array<ImportListOut>;
+};
+
+export type ImportListsApiV1ImportListsGetResponse = ImportListsApiV1ImportListsGetResponses[keyof ImportListsApiV1ImportListsGetResponses];
+
+export type ToggleImportListApiV1ImportListsAppListIdTogglePostData = {
+    body?: never;
+    path: {
+        /**
+         * App
+         */
+        app: string;
+        /**
+         * List Id
+         */
+        list_id: number;
+    };
+    query?: never;
+    url: '/api/v1/import-lists/{app}/{list_id}/toggle';
+};
+
+export type ToggleImportListApiV1ImportListsAppListIdTogglePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ToggleImportListApiV1ImportListsAppListIdTogglePostError = ToggleImportListApiV1ImportListsAppListIdTogglePostErrors[keyof ToggleImportListApiV1ImportListsAppListIdTogglePostErrors];
+
+export type ToggleImportListApiV1ImportListsAppListIdTogglePostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type ToggleImportListApiV1ImportListsAppListIdTogglePostResponse = ToggleImportListApiV1ImportListsAppListIdTogglePostResponses[keyof ToggleImportListApiV1ImportListsAppListIdTogglePostResponses];
+
+export type SyncImportListsApiV1ImportListsAppSyncPostData = {
+    body?: never;
+    path: {
+        /**
+         * App
+         */
+        app: string;
+    };
+    query?: never;
+    url: '/api/v1/import-lists/{app}/sync';
+};
+
+export type SyncImportListsApiV1ImportListsAppSyncPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type SyncImportListsApiV1ImportListsAppSyncPostError = SyncImportListsApiV1ImportListsAppSyncPostErrors[keyof SyncImportListsApiV1ImportListsAppSyncPostErrors];
+
+export type SyncImportListsApiV1ImportListsAppSyncPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type SyncImportListsApiV1ImportListsAppSyncPostResponse = SyncImportListsApiV1ImportListsAppSyncPostResponses[keyof SyncImportListsApiV1ImportListsAppSyncPostResponses];
+
+export type LogsApiV1LogsAppGetData = {
+    body?: never;
+    path: {
+        /**
+         * App
+         */
+        app: string;
+    };
+    query?: {
+        /**
+         * Page
+         */
+        page?: number;
+        /**
+         * Level
+         */
+        level?: string;
+    };
+    url: '/api/v1/logs/{app}';
+};
+
+export type LogsApiV1LogsAppGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type LogsApiV1LogsAppGetError = LogsApiV1LogsAppGetErrors[keyof LogsApiV1LogsAppGetErrors];
+
+export type LogsApiV1LogsAppGetResponses = {
+    /**
+     * Response Logs Api V1 Logs  App  Get
+     *
+     * Successful Response
+     */
+    200: Array<LogEntryOut>;
+};
+
+export type LogsApiV1LogsAppGetResponse = LogsApiV1LogsAppGetResponses[keyof LogsApiV1LogsAppGetResponses];
 
 export type BlocklistApiV1BlocklistGetData = {
     body?: never;

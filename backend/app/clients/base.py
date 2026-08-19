@@ -76,6 +76,23 @@ class ArrClient(BaseClient):
     async def health(self) -> list:
         return await self.get("/health")
 
+    async def import_lists(self) -> list:
+        return await self.get("/importlist")
+
+    async def update_import_list(self, list_id: int, payload: dict) -> dict:
+        return await self.request("PUT", f"/importlist/{list_id}", json=payload, timeout=30.0)
+
+    async def logs(self, page: int = 1, page_size: int = 50, level: str = "") -> dict:
+        params: dict = {
+            "page": page,
+            "pageSize": page_size,
+            "sortKey": "time",
+            "sortDirection": "descending",
+        }
+        if level:
+            params["level"] = level
+        return await self.get("/log", params=params)
+
     async def blocklist(self, page: int = 1, page_size: int = 50) -> dict:
         return await self.get(
             "/blocklist",

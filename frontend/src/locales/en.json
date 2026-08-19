@@ -25,7 +25,8 @@
     "filters": "Filters",
     "ascending": "Ascending",
     "descending": "Descending",
-    "clear": "Clear"
+    "clear": "Clear",
+    "refresh": "Refresh"
   },
   "state": {
     "downloading": "downloading",
@@ -253,7 +254,13 @@
     "watchedPartial": "{{percent}}% watched",
     "backup": "Full backup",
     "restored": "Restored {{services}} services and {{passkeys}} passkeys",
-    "backupHint": "The full backup includes passkeys and the push keypair — keep it somewhere safe. Import accepts either file."
+    "backupHint": "The full backup includes passkeys and the push keypair — keep it somewhere safe. Import accepts either file.",
+    "logs": "Logs",
+    "allLevels": "All",
+    "noLogs": "Nothing logged",
+    "importLists": "Import lists",
+    "syncApp": "Sync {{app}}",
+    "syncStarted": "Sync started"
   },
   "toast": {
     "added": "Added to library",

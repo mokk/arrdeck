@@ -30,7 +30,10 @@ import {
   useImportSettings,
   useInstallWebhooks,
   usePushEvents,
+  useImportLists,
   usePushRules,
+  useSyncImportLists,
+  useToggleImportList,
   useSavePushRules,
   useTags,
   usePushSubscribe,
@@ -669,6 +672,61 @@ function NotificationsCard() {
   );
 }
 
+/** Trakt lists, TMDB collections and the like. Hidden entirely when the arrs
+ * have none configured, which is the default. */
+function ImportLists() {
+  const { t } = useTranslation();
+  const { data } = useImportLists(true);
+  const toggle = useToggleImportList();
+  const sync = useSyncImportLists();
+  if (!data || data.length === 0) return null;
+  const apps = Array.from(new Set(data.map((l) => l.app)));
+  return (
+    <Card>
+      <div className="flex flex-col gap-2 p-4">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">{t("manage.importLists")}</span>
+          <div className="flex gap-1.5">
+            {apps.map((app) => (
+              <Button
+                key={app}
+                size="sm"
+                variant="secondary"
+                disabled={sync.isPending}
+                onClick={() =>
+                  sync.mutate(app, { onSuccess: () => toast.success(t("manage.syncStarted")) })
+                }
+              >
+                {t("manage.syncApp", { app: SERVICE_LABELS[app] ?? app })}
+              </Button>
+            ))}
+          </div>
+        </div>
+        {data.map((list) => (
+          <div key={`${list.app}-${list.id}`} className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="truncate text-sm">{list.name}</div>
+              <div className="truncate text-xs text-muted-foreground">
+                {[SERVICE_LABELS[list.app] ?? list.app, list.implementation, list.monitor]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant={list.enabled ? "default" : "secondary"}
+              disabled={toggle.isPending}
+              onClick={() => toggle.mutate({ app: list.app, id: list.id })}
+            >
+              {list.enabled ? t("manage.enabled") : t("manage.disabled")}
+            </Button>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 function SettingsTransfer() {
   const { t } = useTranslation();
   const importSettings = useImportSettings();
@@ -764,6 +822,7 @@ export function ServiceSettingsTab() {
       <LanguagePicker />
       <SecurityCard />
       <NotificationsCard />
+      <ImportLists />
       <SettingsTransfer />
       {Object.entries(data).map(([name, conf]) => (
         <ServiceSettingsCard

@@ -23,6 +23,8 @@ from ...schemas import (
     IndexerOut,
     LibraryMovieOut,
     BlocklistItemOut,
+    ImportListOut,
+    LogEntryOut,
     BlocklistPageOut,
     TagOut,
     LibrarySeriesOut,
@@ -173,6 +175,103 @@ async def test_indexer(indexer_id: int, prowlarr: ProwlarrClient = Depends(get_p
     if full is None:
         raise HTTPException(404, "indexer not found")
     await prowlarr.test_indexer(full)
+
+
+LIST_APPS = ("radarr", "sonarr")
+
+
+def _client_for(app: str, radarr, sonarr):
+    if app not in LIST_APPS:
+        raise HTTPException(404, f"unknown app {app!r}")
+    return radarr if app == "radarr" else sonarr
+
+
+@router.get("/import-lists", response_model=list[ImportListOut])
+async def import_lists(
+    radarr: RadarrClient = Depends(get_radarr),
+    sonarr: SonarrClient = Depends(get_sonarr),
+) -> list[dict]:
+    """Trakt lists, TMDB collections and the like — how a library grows without
+    anyone adding titles by hand."""
+    results = await asyncio.gather(
+        radarr.import_lists(), sonarr.import_lists(), return_exceptions=True
+    )
+    out: list[dict] = []
+    for app, result in zip(LIST_APPS, results):
+        if isinstance(result, BaseException):
+            continue
+        for entry in result:
+            out.append(
+                {
+                    "app": app,
+                    "id": entry.get("id", 0),
+                    "name": entry.get("name", ""),
+                    "implementation": entry.get("implementationName") or entry.get("implementation", ""),
+                    "enabled": bool(entry.get("enabled")),
+                    "enable_auto": bool(entry.get("enableAuto") or entry.get("enableAutomaticAdd")),
+                    "monitor": entry.get("monitor"),
+                    "quality_profile_id": entry.get("qualityProfileId"),
+                    "root_folder": entry.get("rootFolderPath"),
+                }
+            )
+    return out
+
+
+@router.post("/import-lists/{app}/{list_id}/toggle", status_code=204)
+async def toggle_import_list(
+    app: str,
+    list_id: int,
+    radarr: RadarrClient = Depends(get_radarr),
+    sonarr: SonarrClient = Depends(get_sonarr),
+) -> None:
+    """Flip enabled. The arr rejects a partial body, so the whole record is read
+    back, edited and returned."""
+    client = _client_for(app, radarr, sonarr)
+    entry = next((e for e in await client.import_lists() if e.get("id") == list_id), None)
+    if entry is None:
+        raise HTTPException(404, "import list not found")
+    entry["enabled"] = not entry.get("enabled")
+    for key in ("enableAuto", "enableAutomaticAdd"):
+        if key in entry:
+            entry[key] = entry["enabled"]
+    await client.update_import_list(list_id, entry)
+
+
+@router.post("/import-lists/{app}/sync", status_code=204)
+async def sync_import_lists(
+    app: str,
+    radarr: RadarrClient = Depends(get_radarr),
+    sonarr: SonarrClient = Depends(get_sonarr),
+) -> None:
+    await _client_for(app, radarr, sonarr).command({"name": "ImportListSync"})
+
+
+@router.get("/logs/{app}", response_model=list[LogEntryOut])
+async def logs(
+    app: str,
+    page: int = 1,
+    level: str = "",
+    prowlarr: ProwlarrClient = Depends(get_prowlarr),
+    radarr: RadarrClient = Depends(get_radarr),
+    sonarr: SonarrClient = Depends(get_sonarr),
+) -> list[dict]:
+    """The arrs' own logs, so a failed grab doesn't mean opening three tabs.
+    Prowlarr is included: its failures are the least visible elsewhere."""
+    clients = {"radarr": radarr, "sonarr": sonarr, "prowlarr": prowlarr}
+    if app not in clients:
+        raise HTTPException(404, f"unknown app {app!r}")
+    payload = await clients[app].logs(page=page, level=level)
+    return [
+        {
+            "app": app,
+            "time": rec.get("time", ""),
+            "level": rec.get("level", ""),
+            "logger": rec.get("logger", ""),
+            "message": str(rec.get("message", "")),
+            "exception": rec.get("exception"),
+        }
+        for rec in payload.get("records") or []
+    ]
 
 
 def _blocklist_item(app: str, rec: dict) -> dict:

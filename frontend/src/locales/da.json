@@ -25,7 +25,8 @@
     "filters": "Filtre",
     "ascending": "Stigende",
     "descending": "Faldende",
-    "clear": "Ryd"
+    "clear": "Ryd",
+    "refresh": "Opdater"
   },
   "state": {
     "downloading": "downloader",
@@ -253,7 +254,13 @@
     "watchedPartial": "{{percent}}% set",
     "backup": "Fuld sikkerhedskopi",
     "restored": "Gendannede {{services}} tjenester og {{passkeys}} adgangsnøgler",
-    "backupHint": "Den fulde sikkerhedskopi indeholder adgangsnøgler og push-nøgleparret — opbevar den sikkert. Import accepterer begge filer."
+    "backupHint": "Den fulde sikkerhedskopi indeholder adgangsnøgler og push-nøgleparret — opbevar den sikkert. Import accepterer begge filer.",
+    "logs": "Logs",
+    "allLevels": "Alle",
+    "noLogs": "Intet logget",
+    "importLists": "Importlister",
+    "syncApp": "Synkronisér {{app}}",
+    "syncStarted": "Synkronisering startet"
   },
   "toast": {
     "added": "Tilføjet til biblioteket",

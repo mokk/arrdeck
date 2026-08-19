@@ -2,6 +2,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import type {
+  ImportList,
+  LogEntry,
   DiskSpace,
   HealthWarning,
   PlaySession,
@@ -230,5 +232,37 @@ export const useStatus = () =>
   useQuery({
     queryKey: ["status"],
     queryFn: () => api.get<ServiceStatus[]>("/status"),
+    refetchInterval: MEDIUM,
+  });
+
+
+export const useImportLists = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["importLists"],
+    queryFn: () => api.get<ImportList[]>("/import-lists"),
+    enabled,
+  });
+
+export function useToggleImportList() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ app, id }: { app: string; id: number }) =>
+      api.post<void>(`/import-lists/${app}/${id}/toggle`),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["importLists"] }),
+  });
+}
+
+export function useSyncImportLists() {
+  return useMutation({
+    mutationFn: (app: string) => api.post<void>(`/import-lists/${app}/sync`),
+  });
+}
+
+export const useLogs = (app: string, level: string, enabled: boolean) =>
+  useQuery({
+    queryKey: ["logs", app, level],
+    queryFn: () =>
+      api.get<LogEntry[]>(`/logs/${app}?page=1${level ? `&level=${level}` : ""}`),
+    enabled,
     refetchInterval: MEDIUM,
   });

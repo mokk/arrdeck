@@ -4,11 +4,12 @@ import { useServices } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 import { ServiceSettingsTab } from "../components/manage/ServicesTab";
 import { Indexers } from "../components/manage/Indexers";
+import { Logs } from "../components/manage/Logs";
 import { MovieLibrary, SeriesLibrary } from "../components/manage/Libraries";
 
 /* ---------------- page ---------------- */
 
-type Tab = "movies" | "series" | "indexers" | "services";
+type Tab = "movies" | "series" | "indexers" | "logs" | "services";
 
 export default function Manage() {
   const { t } = useTranslation();
@@ -35,6 +36,7 @@ export default function Manage() {
       {tab === "movies" && <MovieLibrary />}
       {tab === "series" && <SeriesLibrary />}
       {tab === "indexers" && <Indexers />}
+      {tab === "logs" && <Logs />}
       {tab === "services" && <ServiceSettingsTab />}
     </>
   );
