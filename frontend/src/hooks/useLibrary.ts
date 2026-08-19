@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { api } from "../api/client";
 import type {
+  PopularIndexer,
   ArrRelease,
   MovieDetail,
   CalendarItem,
@@ -504,3 +505,12 @@ export function useSeasonMonitor(seriesId: number) {
     onSettled: () => qc.invalidateQueries({ queryKey: ["seriesDetail", seriesId] }),
   });
 }
+
+
+export const usePopular = (hours: number) =>
+  useQuery({
+    queryKey: ["popular", hours],
+    queryFn: () => api.get<ServiceBlock<PopularIndexer[]>>(`/popular?hours=${hours}&limit=10`),
+    // the backend caches for 15 minutes; the fan-out hits real trackers
+    staleTime: 900_000,
+  });

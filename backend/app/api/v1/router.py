@@ -8,6 +8,7 @@ from . import (
     manage,
     media,
     plex,
+    popular,
     settings,
     subtitles,
     system,
@@ -18,6 +19,7 @@ router = APIRouter(prefix="/api/v1")
 router.include_router(dashboard.router)
 router.include_router(system.router)
 router.include_router(plex.router)
+router.include_router(popular.router)
 router.include_router(subtitles.router)
 router.include_router(torrents.router)
 router.include_router(downloads.router)

@@ -3,7 +3,8 @@
     "home": "Hjem",
     "downloads": "Downloads",
     "add": "Tilføj",
-    "manage": "Administrér"
+    "manage": "Administrér",
+    "popular": "Populære"
   },
   "common": {
     "loading": "Indlæser…",
@@ -397,5 +398,18 @@
     "sessionsRevoked": "Loggede {{count}} enhed(er) ud",
     "sessionSeen": "Sidst brugt {{when}}",
     "thisDevice": "denne enhed"
+  },
+  "popular": {
+    "all": "Alle",
+    "movies": "Film",
+    "tv": "TV",
+    "grabs": "{{count}} hentninger",
+    "grab": "Hent",
+    "none": "Intet i dette tidsrum",
+    "scanned": "{{count}} udgivelser på {{hours}}t",
+    "justNow": "lige nu",
+    "hoursAgo": "for {{hours}}t siden",
+    "hint": "Nyeste udgivelser fra hver indexer de sidste 24 timer, sorteret efter hvor ofte indexeren siger de er hentet. Indexere begrænser til 100 pr. kategori, så dette er hvad de stadig rapporterer — ikke en samlet liste.",
+    "loading": "Spørger hver indexer om de nyeste udgivelser — det tager et øjeblik."
   }
 }

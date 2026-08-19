@@ -1176,6 +1176,78 @@ export type PlaySessionOut = {
 };
 
 /**
+ * PopularIndexerOut
+ */
+export type PopularIndexerOut = {
+    /**
+     * Indexer
+     */
+    indexer: string;
+    /**
+     * Indexer Id
+     */
+    indexer_id: number;
+    /**
+     * Scanned
+     */
+    scanned?: number;
+    /**
+     * Releases
+     */
+    releases?: Array<PopularReleaseOut>;
+};
+
+/**
+ * PopularReleaseOut
+ */
+export type PopularReleaseOut = {
+    /**
+     * Guid
+     */
+    guid?: string;
+    /**
+     * Indexer Id
+     */
+    indexer_id?: number;
+    /**
+     * Title
+     */
+    title?: string;
+    /**
+     * Category
+     */
+    category?: string | null;
+    /**
+     * Kind
+     */
+    kind?: string;
+    /**
+     * Size
+     */
+    size?: number;
+    /**
+     * Seeders
+     */
+    seeders?: number;
+    /**
+     * Leechers
+     */
+    leechers?: number;
+    /**
+     * Grabs
+     */
+    grabs?: number;
+    /**
+     * Published
+     */
+    published?: string | null;
+    /**
+     * Info Url
+     */
+    info_url?: string | null;
+};
+
+/**
  * PushEventOut
  */
 export type PushEventOut = {
@@ -1932,6 +2004,28 @@ export type ServiceBlockListPlaySessionOut = {
      * Data
      */
     data?: Array<PlaySessionOut> | null;
+    /**
+     * Error
+     */
+    error?: string | null;
+    /**
+     * Stale Age Seconds
+     */
+    stale_age_seconds?: number | null;
+};
+
+/**
+ * ServiceBlock[list[PopularIndexerOut]]
+ */
+export type ServiceBlockListPopularIndexerOut = {
+    /**
+     * Ok
+     */
+    ok: boolean;
+    /**
+     * Data
+     */
+    data?: Array<PopularIndexerOut> | null;
     /**
      * Error
      */
@@ -2999,6 +3093,40 @@ export type PlaySessionsApiV1SessionsGetResponses = {
 };
 
 export type PlaySessionsApiV1SessionsGetResponse = PlaySessionsApiV1SessionsGetResponses[keyof PlaySessionsApiV1SessionsGetResponses];
+
+export type PopularApiV1PopularGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Hours
+         */
+        hours?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/popular';
+};
+
+export type PopularApiV1PopularGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PopularApiV1PopularGetError = PopularApiV1PopularGetErrors[keyof PopularApiV1PopularGetErrors];
+
+export type PopularApiV1PopularGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ServiceBlockListPopularIndexerOut;
+};
+
+export type PopularApiV1PopularGetResponse = PopularApiV1PopularGetResponses[keyof PopularApiV1PopularGetResponses];
 
 export type SubtitlesApiV1SubtitlesGetData = {
     body?: never;

@@ -11,11 +11,22 @@ class ProwlarrClient(ArrClient):
     async def indexer_stats(self) -> dict:
         return await self.get("/indexerstats")
 
-    async def search(self, query: str, categories: list[int] | None = None) -> list:
+    async def search(
+        self,
+        query: str,
+        categories: list[int] | None = None,
+        indexer_ids: list[int] | None = None,
+        limit: int = 0,
+    ) -> list:
         params: dict = {"query": query, "type": "search"}
         if categories:
             params["categories"] = categories
-        return await self.get("/search", params=params)
+        if indexer_ids:
+            params["indexerIds"] = indexer_ids
+        if limit:
+            params["limit"] = limit
+        # an empty query is an RSS-style fetch of the newest releases
+        return await self.get("/search", params=params, timeout=90.0)
 
     async def grab(self, guid: str, indexer_id: int) -> dict:
         return await self.request(

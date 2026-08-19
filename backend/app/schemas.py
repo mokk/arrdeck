@@ -628,6 +628,27 @@ class MediaRequestOut(BaseModel):
     seasons: list[int] = []
 
 
+class PopularReleaseOut(BaseModel):
+    guid: str = ""
+    indexer_id: int = 0
+    title: str = ""
+    category: str | None = None
+    kind: str = ""  # movie | tv
+    size: int = 0
+    seeders: int = 0
+    leechers: int = 0
+    grabs: int = 0
+    published: str | None = None
+    info_url: str | None = None
+
+
+class PopularIndexerOut(BaseModel):
+    indexer: str
+    indexer_id: int
+    scanned: int = 0  # unique releases seen inside the window
+    releases: list[PopularReleaseOut] = []
+
+
 class ImportListOut(BaseModel):
     app: Literal["radarr", "sonarr"]
     id: int

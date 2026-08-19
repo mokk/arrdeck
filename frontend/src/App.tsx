@@ -1,6 +1,7 @@
 import {
   ArrowDownToLine,
   ArrowUpDown,
+  Flame,
   Home,
   PlusCircle,
   Search,
@@ -23,6 +24,7 @@ import { useAuthState, useServices } from "./hooks/queries";
 import Dashboard from "./pages/Dashboard";
 
 const Add = lazy(() => import("./pages/Add"));
+const PopularPage = lazy(() => import("./pages/Popular"));
 const Downloads = lazy(() => import("./pages/Downloads"));
 const HistoryPage = lazy(() => import("./pages/History"));
 const CalendarPage = lazy(() => import("./pages/Calendar"));
@@ -55,6 +57,7 @@ function RouteFallback() {
 
 const TABS = [
   { to: "/", key: "nav.home", icon: Home, end: true },
+  { to: "/popular", key: "nav.popular", icon: Flame },
   { to: "/downloads", key: "nav.downloads", icon: ArrowDownToLine },
   { to: "/add", key: "nav.add", icon: PlusCircle },
   { to: "/manage", key: "nav.manage", icon: Settings2 },
@@ -111,6 +114,7 @@ function Shell() {
           <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/popular" element={<PopularPage />} />
             <Route path="/downloads" element={<Downloads />} />
             <Route path="/add" element={<Add />} />
             <Route path="/search" element={<Navigate to="/add" replace />} />
