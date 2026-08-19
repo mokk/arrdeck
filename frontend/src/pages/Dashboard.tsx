@@ -45,6 +45,7 @@ import {
 import { usePersistentState } from "../hooks/usePersistentState";
 import { PosterGrid } from "../components/media";
 import { ImportSheet } from "../components/ImportSheet";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import { useRegisterSearchbar } from "../components/subnav";
 import type { SearchResult } from "../api/types";
 
@@ -839,20 +840,30 @@ export default function Dashboard() {
   if (query.trim().length > 1) return <GlobalSearch query={query} />;
   return (
     <>
-      <NowPlayingSection configured={configured} />
-      <HealthSection configured={configured} />
-      <RequestsSection configured={configured} />
-      <RecentSection />
-      <TorrentSummary configured={configured} />
-      {hasArr && <QueueSection configured={configured} />}
+      {/* each card is isolated: a malformed payload from one service degrades
+          that card instead of blanking the dashboard */}
+      {[
+        <NowPlayingSection key="now" configured={configured} />,
+        <HealthSection key="health" configured={configured} />,
+        <RequestsSection key="req" configured={configured} />,
+        <RecentSection key="recent" />,
+        <TorrentSummary key="torrents" configured={configured} />,
+        hasArr ? <QueueSection key="queue" configured={configured} /> : null,
+      ].map((card, i) => (
+        <ErrorBoundary key={i}>{card}</ErrorBoundary>
+      ))}
       <div className="lg:columns-2 lg:gap-5 [&>div]:break-inside-avoid">
-        {hasArr && <CalendarSection configured={configured} />}
-        <StorageSection configured={configured} />
-        <VpnSection configured={configured} />
-        <SubtitlesSection configured={configured} />
-        {hasArr && <HistorySection configured={configured} />}
-        {configured.has("prowlarr") && <IndexerSection />}
-        <TrendsSection />
+        {[
+          hasArr ? <CalendarSection key="cal" configured={configured} /> : null,
+          <StorageSection key="storage" configured={configured} />,
+          <VpnSection key="vpn" configured={configured} />,
+          <SubtitlesSection key="subs" configured={configured} />,
+          hasArr ? <HistorySection key="hist" configured={configured} /> : null,
+          configured.has("prowlarr") ? <IndexerSection key="idx" /> : null,
+          <TrendsSection key="trends" />,
+        ].map((card, i) => (
+          <ErrorBoundary key={i}>{card}</ErrorBoundary>
+        ))}
       </div>
     </>
   );

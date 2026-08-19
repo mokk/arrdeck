@@ -1,3 +1,11 @@
+import { cleanup } from "@testing-library/react";
+import { afterEach } from "vitest";
+
+// Testing Library only auto-registers cleanup when vitest globals are on; these
+// tests import explicitly, so without this the DOM leaks between tests and
+// queries start matching leftovers from the previous one.
+afterEach(cleanup);
+
 // jsdom 29 doesn't ship a Storage implementation, so anything built on
 // usePersistentState would be untestable. This is the whole surface the app
 // touches — getItem/setItem — plus clear() for test isolation.

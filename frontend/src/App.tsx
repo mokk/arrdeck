@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { LoginScreen } from "./components/LoginScreen";
 import { PullToRefresh } from "./components/PullToRefresh";
 import { SubnavProvider, useSubnav } from "./components/subnav";
@@ -92,6 +93,8 @@ function Shell() {
         }}
       >
         <RequireSetup>
+          {/* keyed on the path so navigating away clears a failed route */}
+          <ErrorBoundary key={location.pathname}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/downloads" element={<Downloads />} />
@@ -105,6 +108,7 @@ function Shell() {
             <Route path="/movie/:id" element={<MoviePage />} />
             <Route path="/stats" element={<StatsPage />} />
           </Routes>
+          </ErrorBoundary>
         </RequireSetup>
       </main>
       <div className="fixed inset-x-0 bottom-0 z-50">
