@@ -11,6 +11,7 @@ from ...push import (
     WEBHOOK_SEEN_KEY,
     enabled_events,
     ensure_vapid,
+    send_test,
     set_enabled_events,
 )
 from ...registry import probe_version
@@ -18,6 +19,8 @@ from ...schemas import (
     PushEventsIn,
     PushEventsOut,
     PushSubscribeIn,
+    PushTestIn,
+    PushTestOut,
     ServiceInfoOut,
     ServiceSettingsOut,
     SettingsExportOut,
@@ -93,22 +96,36 @@ def push_unsubscribe(body: PushSubscribeIn, request: Request) -> None:
     request.app.state.db.push_remove(body.subscription.get("endpoint", ""))
 
 
-@router.get("/push/events", response_model=PushEventsOut)
-def push_events(request: Request) -> dict:
-    db = request.app.state.db
+def _events_payload(db, endpoint: str) -> dict:
     return {
         "available": [{"key": k, "label": v} for k, v in EVENT_LABELS.items()],
         "enabled": enabled_events(db),
+        "device": db.push_get_events(endpoint) if endpoint else None,
     }
+
+
+@router.get("/push/events", response_model=PushEventsOut)
+def push_events(request: Request, endpoint: str = "") -> dict:
+    return _events_payload(request.app.state.db, endpoint)
 
 
 @router.put("/push/events", response_model=PushEventsOut)
 def save_push_events(body: PushEventsIn, request: Request) -> dict:
+    """With a subscribed endpoint the choice is that device's alone; otherwise
+    it becomes the default that unconfigured devices follow."""
     db = request.app.state.db
-    return {
-        "available": [{"key": k, "label": v} for k, v in EVENT_LABELS.items()],
-        "enabled": set_enabled_events(db, body.enabled),
-    }
+    if body.endpoint and db.push_set_events(body.endpoint, body.enabled):
+        return _events_payload(db, body.endpoint)
+    set_enabled_events(db, body.enabled)
+    return _events_payload(db, body.endpoint)
+
+
+@router.post("/push/test", response_model=PushTestOut)
+async def push_test(body: PushTestIn, request: Request) -> dict:
+    sent = await send_test(request.app.state.db, body.endpoint)
+    if sent == 0:
+        raise HTTPException(404, "no push subscription to deliver to")
+    return {"sent": sent}
 
 
 @router.get("/push/webhook", response_model=WebhookStatusOut)

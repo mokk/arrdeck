@@ -124,6 +124,25 @@ def set_enabled_events(db: SettingsDB, keys: list[str]) -> list[str]:
     return chosen
 
 
+def wants_event(db: SettingsDB, key: str) -> bool:
+    """True when at least one subscribed device asked for this event."""
+    if key == "test":
+        return True
+    default = enabled_events(db)
+    for _raw, events in db.push_targets():
+        if key in (default if events is None else events):
+            return True
+    return False
+
+
+async def send_test(db: SettingsDB, endpoint: str = "") -> int:
+    """Deliver a test banner, to one device when an endpoint is given."""
+    event = Event(key="test", app="arrdeck", title="arrdeck test notification", url="/manage")
+    return await asyncio.to_thread(
+        _send_all, db, event.title, event.label, event.url, event.tag, "test", endpoint
+    )
+
+
 # --- VAPID ---------------------------------------------------------------
 
 
@@ -151,16 +170,34 @@ def _private_key_b64(pem: str) -> str:
     return b64urlencode(raw)
 
 
-def _send_all(db: SettingsDB, title: str, body: str, url: str, tag: str) -> None:
+def _send_all(
+    db: SettingsDB,
+    title: str,
+    body: str,
+    url: str,
+    tag: str,
+    event_key: str = "",
+    only_endpoint: str = "",
+) -> int:
+    """Deliver to every subscription that wants this event; returns how many."""
     pem = db.kv_get("vapid_private_pem")
     if pem is None:
-        return
+        return 0
     key = _private_key_b64(pem)
     payload = json.dumps({"title": title, "body": body, "url": url, "tag": tag})
-    for raw in db.push_all():
+    default = enabled_events(db)
+    sent = 0
+    for raw, events in db.push_targets():
         sub = json.loads(raw)
+        if only_endpoint and sub.get("endpoint") != only_endpoint:
+            continue
+        # a device that hasn't chosen its own set follows the global default
+        if event_key and event_key != "test":
+            if event_key not in (default if events is None else events):
+                continue
         try:
             webpush(sub, payload, vapid_private_key=key, vapid_claims=dict(VAPID_CLAIMS))
+            sent += 1
         except WebPushException as exc:
             status = getattr(exc.response, "status_code", None)
             if status in (404, 410):  # subscription expired
@@ -169,6 +206,7 @@ def _send_all(db: SettingsDB, title: str, body: str, url: str, tag: str) -> None
                 logger.warning("push failed: %s", exc)
         except Exception:  # noqa: BLE001 — one bad subscription must not block the rest
             logger.exception("push failed for %s", sub.get("endpoint", ""))
+    return sent
 
 
 # --- coalescing ----------------------------------------------------------
@@ -230,9 +268,11 @@ async def notify(db: SettingsDB, event: Event) -> bool:
     if not db.push_all():
         return False
     if event.key == "test":  # always delivered: it exists to prove the wiring
-        await asyncio.to_thread(_send_all, db, event.title, event.label, event.url, event.tag)
+        await asyncio.to_thread(
+            _send_all, db, event.title, event.label, event.url, event.tag, "test"
+        )
         return True
-    if event.key not in enabled_events(db):
+    if not wants_event(db, event.key):
         return False
     if not db.notified_add(event.dedupe_key, int(time.time()), DEDUPE_TTL):
         return False
@@ -247,7 +287,7 @@ async def flush_loop(db: SettingsDB) -> None:
             for slot in await COALESCER.due(time.monotonic()):
                 title, body = render(slot)
                 await asyncio.to_thread(
-                    _send_all, db, title, body, slot.event.url, slot.event.tag
+                    _send_all, db, title, body, slot.event.url, slot.event.tag, slot.event.key
                 )
         except Exception:  # noqa: BLE001 — the notifier must never die
             logger.exception("push flush failed")

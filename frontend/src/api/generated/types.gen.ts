@@ -823,6 +823,10 @@ export type PushEventsIn = {
      * Enabled
      */
     enabled: Array<string>;
+    /**
+     * Endpoint
+     */
+    endpoint?: string;
 };
 
 /**
@@ -837,6 +841,10 @@ export type PushEventsOut = {
      * Enabled
      */
     enabled: Array<string>;
+    /**
+     * Device
+     */
+    device?: Array<string> | null;
 };
 
 /**
@@ -849,6 +857,26 @@ export type PushSubscribeIn = {
     subscription: {
         [key: string]: unknown;
     };
+};
+
+/**
+ * PushTestIn
+ */
+export type PushTestIn = {
+    /**
+     * Endpoint
+     */
+    endpoint?: string;
+};
+
+/**
+ * PushTestOut
+ */
+export type PushTestOut = {
+    /**
+     * Sent
+     */
+    sent: number;
 };
 
 /**
@@ -3957,9 +3985,23 @@ export type PushUnsubscribeApiV1PushUnsubscribePostResponse = PushUnsubscribeApi
 export type PushEventsApiV1PushEventsGetData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Endpoint
+         */
+        endpoint?: string;
+    };
     url: '/api/v1/push/events';
 };
+
+export type PushEventsApiV1PushEventsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PushEventsApiV1PushEventsGetError = PushEventsApiV1PushEventsGetErrors[keyof PushEventsApiV1PushEventsGetErrors];
 
 export type PushEventsApiV1PushEventsGetResponses = {
     /**
@@ -3994,6 +4036,31 @@ export type SavePushEventsApiV1PushEventsPutResponses = {
 };
 
 export type SavePushEventsApiV1PushEventsPutResponse = SavePushEventsApiV1PushEventsPutResponses[keyof SavePushEventsApiV1PushEventsPutResponses];
+
+export type PushTestApiV1PushTestPostData = {
+    body: PushTestIn;
+    path?: never;
+    query?: never;
+    url: '/api/v1/push/test';
+};
+
+export type PushTestApiV1PushTestPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PushTestApiV1PushTestPostError = PushTestApiV1PushTestPostErrors[keyof PushTestApiV1PushTestPostErrors];
+
+export type PushTestApiV1PushTestPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: PushTestOut;
+};
+
+export type PushTestApiV1PushTestPostResponse = PushTestApiV1PushTestPostResponses[keyof PushTestApiV1PushTestPostResponses];
 
 export type WebhookStatusApiV1PushWebhookGetData = {
     body?: never;

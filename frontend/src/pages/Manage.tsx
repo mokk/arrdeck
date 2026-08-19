@@ -62,6 +62,7 @@ import {
   usePushEvents,
   usePushSubscribe,
   useSavePushEvents,
+  useTestPush,
   useWebhookStatus,
   useSaveServiceSettings,
   useServiceSettings,
@@ -320,15 +321,20 @@ function SecurityCard() {
   );
 }
 
-function EventToggles() {
+function EventToggles({ endpoint }: { endpoint: string }) {
   const { t } = useTranslation();
-  const { data } = usePushEvents(true);
+  const { data } = usePushEvents(true, endpoint);
   const save = useSavePushEvents();
   if (!data) return null;
-  const enabled = new Set(save.variables ?? data.enabled);
+  // With a subscription the chips edit this device alone; without one they set
+  // the default that every unconfigured device follows.
+  const current = save.variables?.enabled ?? data.device ?? data.enabled;
+  const enabled = new Set(current);
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="text-xs text-muted-foreground">{t("push.events")}</Label>
+      <Label className="text-xs text-muted-foreground">
+        {endpoint ? t("push.eventsThisDevice") : t("push.events")}
+      </Label>
       <div className="flex flex-wrap gap-1.5">
         {data.available.map((event) => {
           const on = enabled.has(event.key);
@@ -340,11 +346,12 @@ function EventToggles() {
                 on ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
               )}
               onClick={() =>
-                save.mutate(
-                  on
+                save.mutate({
+                  endpoint,
+                  enabled: on
                     ? [...enabled].filter((k) => k !== event.key)
                     : [...enabled, event.key],
-                )
+                })
               }
             >
               {t(`push.event.${event.key}`, event.label)}
@@ -460,14 +467,17 @@ function NotificationsCard() {
     "PushManager" in window;
   const { data: vapid } = useVapidKey(supported);
   const pushApi = usePushSubscribe();
-  const [enabled, setEnabled] = useState(false);
+  const testPush = useTestPush();
+  // "" when this device isn't subscribed — also what scopes the event chips
+  const [endpoint, setEndpoint] = useState("");
   const [busy, setBusy] = useState(false);
+  const enabled = endpoint !== "";
 
   useEffect(() => {
     if (!supported) return;
     navigator.serviceWorker.ready
       .then((reg) => reg.pushManager.getSubscription())
-      .then((sub) => setEnabled(sub != null))
+      .then((sub) => setEndpoint(sub?.endpoint ?? ""))
       .catch(() => {});
   }, [supported]);
 
@@ -482,7 +492,7 @@ function NotificationsCard() {
           pushApi.mutate({ subscription: sub.toJSON(), unsubscribe: true });
           await sub.unsubscribe();
         }
-        setEnabled(false);
+        setEndpoint("");
       } else {
         const permission = await Notification.requestPermission();
         if (permission !== "granted") {
@@ -494,7 +504,7 @@ function NotificationsCard() {
           applicationServerKey: urlBase64ToUint8Array(vapid.key).buffer as ArrayBuffer,
         });
         pushApi.mutate({ subscription: sub.toJSON() });
-        setEnabled(true);
+        setEndpoint(sub.endpoint);
       }
     } finally {
       setBusy(false);
@@ -507,19 +517,35 @@ function NotificationsCard() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="font-semibold">{t("push.title")}</span>
           {supported ? (
-            <Button
-              size="sm"
-              variant={enabled ? "default" : "secondary"}
-              disabled={busy || !vapid}
-              onClick={toggle}
-            >
-              {enabled ? t("push.enabled") : t("push.enable")}
-            </Button>
+            <div className="flex gap-1.5">
+              {enabled && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={testPush.isPending}
+                  onClick={() =>
+                    testPush.mutate(endpoint, {
+                      onSuccess: () => toast.success(t("push.testSent")),
+                    })
+                  }
+                >
+                  {t("common.test")}
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant={enabled ? "default" : "secondary"}
+                disabled={busy || !vapid}
+                onClick={toggle}
+              >
+                {enabled ? t("push.enabled") : t("push.enable")}
+              </Button>
+            </div>
           ) : (
             <span className="text-xs text-muted-foreground">{t("push.needsHttps")}</span>
           )}
         </div>
-        <EventToggles />
+        <EventToggles endpoint={endpoint} />
         <WebhookSection />
       </div>
     </Card>

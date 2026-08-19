@@ -323,10 +323,11 @@ export const useHealth = (enabled: boolean) =>
     refetchInterval: SLOW,
   });
 
-export const usePushEvents = (enabled: boolean) =>
+export const usePushEvents = (enabled: boolean, endpoint: string) =>
   useQuery({
-    queryKey: ["pushEvents"],
-    queryFn: () => api.get<PushEvents>("/push/events"),
+    queryKey: ["pushEvents", endpoint],
+    queryFn: () =>
+      api.get<PushEvents>(`/push/events?endpoint=${encodeURIComponent(endpoint)}`),
     enabled,
     staleTime: Infinity,
   });
@@ -334,8 +335,15 @@ export const usePushEvents = (enabled: boolean) =>
 export function useSavePushEvents() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (enabled: string[]) => api.put<PushEvents>("/push/events", { enabled }),
-    onSuccess: (data) => qc.setQueryData(["pushEvents"], data),
+    mutationFn: (input: { enabled: string[]; endpoint: string }) =>
+      api.put<PushEvents>("/push/events", input),
+    onSuccess: (data, input) => qc.setQueryData(["pushEvents", input.endpoint], data),
+  });
+}
+
+export function useTestPush() {
+  return useMutation({
+    mutationFn: (endpoint: string) => api.post<{ sent: number }>("/push/test", { endpoint }),
   });
 }
 

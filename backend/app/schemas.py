@@ -487,11 +487,22 @@ class PushEventOut(BaseModel):
 
 class PushEventsOut(BaseModel):
     available: list[PushEventOut]
-    enabled: list[str]
+    enabled: list[str]  # the global default
+    device: list[str] | None = None  # this device's own set, if it has one
 
 
 class PushEventsIn(BaseModel):
     enabled: list[str]
+    # when set and subscribed, the choice applies to that device only
+    endpoint: str = ""
+
+
+class PushTestIn(BaseModel):
+    endpoint: str = ""
+
+
+class PushTestOut(BaseModel):
+    sent: int
 
 
 class WebhookAppOut(BaseModel):

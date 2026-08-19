@@ -1,3 +1,4 @@
+import json
 import time
 
 from app.push import describe_record
@@ -264,7 +265,9 @@ def _drive(db, payloads, monkeypatch):
 
     sent = []
     monkeypatch.setattr(
-        push, "_send_all", lambda _db, title, body, url, tag: sent.append((title, body, url, tag))
+        push,
+        "_send_all",
+        lambda _db, title, body, url, tag, *rest: sent.append((title, body, url, tag)),
     )
     monkeypatch.setattr(push, "COALESCER", push.Coalescer())
 
@@ -274,7 +277,7 @@ def _drive(db, payloads, monkeypatch):
         # jump past the coalescing window instead of waiting it out
         for slot in await push.COALESCER.due(time.monotonic() + push.COALESCE_WINDOW + 1):
             title, body = push.render(slot)
-            push._send_all(db, title, body, slot.event.url, slot.event.tag)
+            push._send_all(db, title, body, slot.event.url, slot.event.tag, slot.event.key)
 
     asyncio.run(run())
     return sent
@@ -344,3 +347,86 @@ def test_a_test_webhook_skips_the_queue(tmp_path, monkeypatch):
     assert len(sent) == 2
     assert sent[0][0] == "arrdeck test notification"
     assert sent[0][2] == "/manage"
+
+
+# --- per-device preferences ----------------------------------------------
+
+
+def _two_devices(tmp_path):
+    from app.db import SettingsDB
+
+    db = SettingsDB(str(tmp_path / "devices.db"))
+    for name in ("phone", "ipad"):
+        endpoint = f"https://example.test/{name}"
+        db.push_add(endpoint, json.dumps({"endpoint": endpoint}))
+    return db
+
+
+def test_a_device_without_a_choice_follows_the_global_default(tmp_path):
+    from app.push import set_enabled_events, wants_event
+
+    db = _two_devices(tmp_path)
+    set_enabled_events(db, ["imported"])
+    assert wants_event(db, "imported") is True
+    assert wants_event(db, "grabbed") is False
+
+
+def test_one_device_can_opt_into_an_event_the_default_excludes(tmp_path):
+    from app.push import set_enabled_events, wants_event
+
+    db = _two_devices(tmp_path)
+    set_enabled_events(db, ["imported"])
+    assert db.push_set_events("https://example.test/phone", ["grabbed"]) is True
+    # the phone wants it, so the event must not be dropped before delivery
+    assert wants_event(db, "grabbed") is True
+
+
+def test_prefs_for_an_unknown_endpoint_are_rejected(tmp_path):
+    db = _two_devices(tmp_path)
+    assert db.push_set_events("https://example.test/nope", ["grabbed"]) is False
+
+
+def test_clearing_a_device_choice_returns_it_to_the_default(tmp_path):
+    db = _two_devices(tmp_path)
+    db.push_set_events("https://example.test/phone", ["grabbed"])
+    assert db.push_get_events("https://example.test/phone") == ["grabbed"]
+    db.push_set_events("https://example.test/phone", None)
+    assert db.push_get_events("https://example.test/phone") is None
+
+
+def test_delivery_respects_each_device_separately(tmp_path, monkeypatch):
+    import app.push as push
+
+    db = _two_devices(tmp_path)
+    push.set_enabled_events(db, ["imported"])
+    db.push_set_events("https://example.test/ipad", ["grabbed"])
+
+    delivered = []
+    monkeypatch.setattr(
+        push, "webpush", lambda sub, *a, **kw: delivered.append(sub["endpoint"])
+    )
+    push.ensure_vapid(db)
+
+    push._send_all(db, "t", "b", "/", "tag", "imported")
+    assert delivered == ["https://example.test/phone"]  # ipad opted out
+
+    delivered.clear()
+    push._send_all(db, "t", "b", "/", "tag", "grabbed")
+    assert delivered == ["https://example.test/ipad"]
+
+
+def test_a_test_banner_ignores_every_preference(tmp_path, monkeypatch):
+    import asyncio
+
+    import app.push as push
+
+    db = _two_devices(tmp_path)
+    push.set_enabled_events(db, [])  # nothing enabled anywhere
+    delivered = []
+    monkeypatch.setattr(push, "webpush", lambda sub, *a, **kw: delivered.append(sub["endpoint"]))
+    push.ensure_vapid(db)
+
+    assert asyncio.run(push.send_test(db)) == 2
+    delivered.clear()
+    assert asyncio.run(push.send_test(db, "https://example.test/ipad")) == 1
+    assert delivered == ["https://example.test/ipad"]

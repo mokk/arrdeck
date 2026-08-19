@@ -1,3 +1,4 @@
+import json
 import sqlite3
 import threading
 from pathlib import Path
@@ -73,6 +74,8 @@ class SettingsDB:
             self._migrate_columns(
                 "stats_samples", {"disk_free_bytes": "INTEGER NOT NULL DEFAULT 0"}
             )
+            # NULL events = this device follows the global default
+            self._migrate_columns("push_subscriptions", {"events": "TEXT"})
             self._conn.commit()
 
     def _migrate_columns(self, table: str, columns: dict[str, str]) -> None:
@@ -189,9 +192,44 @@ class SettingsDB:
             return cur.rowcount > 0
 
     def push_all(self) -> list[str]:
+        return [data for data, _ in self.push_targets()]
+
+    def push_targets(self) -> list[tuple[str, list[str] | None]]:
+        """(subscription json, event keys). None means the device hasn't chosen
+        its own set and should follow the global default."""
         with self._lock:
-            rows = self._conn.execute("SELECT data FROM push_subscriptions").fetchall()
-        return [r[0] for r in rows]
+            rows = self._conn.execute("SELECT data, events FROM push_subscriptions").fetchall()
+        out: list[tuple[str, list[str] | None]] = []
+        for data, events in rows:
+            try:
+                parsed = json.loads(events) if events else None
+            except ValueError:
+                parsed = None
+            out.append((data, parsed if isinstance(parsed, list) else None))
+        return out
+
+    def push_get_events(self, endpoint: str) -> list[str] | None:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT events FROM push_subscriptions WHERE endpoint = ?", (endpoint,)
+            ).fetchone()
+        if not row or not row[0]:
+            return None
+        try:
+            parsed = json.loads(row[0])
+        except ValueError:
+            return None
+        return parsed if isinstance(parsed, list) else None
+
+    def push_set_events(self, endpoint: str, events: list[str] | None) -> bool:
+        """False when the endpoint isn't subscribed (nothing to attach prefs to)."""
+        with self._lock:
+            cur = self._conn.execute(
+                "UPDATE push_subscriptions SET events = ? WHERE endpoint = ?",
+                (json.dumps(events) if events is not None else None, endpoint),
+            )
+            self._conn.commit()
+            return cur.rowcount > 0
 
     def cred_add(self, credential_id: str, public_key: str, name: str, created: int) -> None:
         with self._lock:

@@ -300,7 +300,9 @@
     "hookConnected": "Radarr og Sonarr giver nu arrdeck besked med det samme",
     "hookRemoved": "Webhooks fjernet",
     "hookHint": "Adressen Radarr og Sonarr bruger til at nå arrdeck. Uden den falder arrdeck tilbage til at tjekke deres historik én gang i minuttet.",
-    "lastEvent": "Seneste hændelse {{when}}"
+    "lastEvent": "Seneste hændelse {{when}}",
+    "eventsThisDevice": "Giv denne enhed besked om",
+    "testSent": "Testnotifikation sendt"
   },
   "search": {
     "global": "Søg i alt…",

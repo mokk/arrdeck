@@ -300,7 +300,9 @@
     "hookConnected": "Radarr and Sonarr will notify arrdeck the moment something happens",
     "hookRemoved": "Webhooks removed",
     "hookHint": "The address Radarr and Sonarr use to reach arrdeck. Without it arrdeck falls back to checking their history once a minute.",
-    "lastEvent": "Last event {{when}}"
+    "lastEvent": "Last event {{when}}",
+    "eventsThisDevice": "Notify this device about",
+    "testSent": "Test notification sent"
   },
   "search": {
     "global": "Search everything…",
