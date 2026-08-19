@@ -9,12 +9,16 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
+const headers = (values: Record<string, string> = {}) =>
+  ({ get: (key: string) => values[key] ?? null }) as unknown as Headers;
+
 const ok = (body: unknown, status = 200) =>
-  ({ ok: true, status, json: async () => body }) as unknown as Response;
-const fail = (status: number, body: unknown) =>
+  ({ ok: true, status, headers: headers(), json: async () => body }) as unknown as Response;
+const fail = (status: number, body: unknown, hdrs: Record<string, string> = {}) =>
   ({
     ok: false,
     status,
+    headers: headers(hdrs),
     json: async () => {
       if (body === undefined) throw new Error("not json");
       return body;
@@ -91,5 +95,33 @@ describe("error surfacing", () => {
       expect((error as ApiError).status).toBe(401);
     });
     expect.assertions(2);
+  });
+});
+
+describe("request ids", () => {
+  it("picks the id out of the error envelope", async () => {
+    fetchMock.mockResolvedValue(
+      fail(502, { error: { message: "radarr: unreachable", request_id: "abc123" } }),
+    );
+    await api.get("/queue").catch((error) => {
+      expect((error as ApiError).requestId).toBe("abc123");
+    });
+    expect.assertions(1);
+  });
+
+  it("falls back to the response header when the body has no id", async () => {
+    fetchMock.mockResolvedValue(fail(500, undefined, { "X-Request-ID": "hdr456" }));
+    await api.get("/x").catch((error) => {
+      expect((error as ApiError).requestId).toBe("hdr456");
+    });
+    expect.assertions(1);
+  });
+
+  it("leaves the id undefined when the server sent none", async () => {
+    fetchMock.mockResolvedValue(fail(422, { detail: "nope" }));
+    await api.post("/x").catch((error) => {
+      expect((error as ApiError).requestId).toBeUndefined();
+    });
+    expect.assertions(1);
   });
 });

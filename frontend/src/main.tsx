@@ -6,6 +6,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { toast } from "sonner";
+import { ApiError } from "./api/client";
 import { registerSW } from "virtual:pwa-register";
 import App from "./App";
 import "./i18n";
@@ -20,7 +21,10 @@ const queryClient = new QueryClient({
   // every failed mutation anywhere surfaces as a toast — no per-call wiring
   mutationCache: new MutationCache({
     onError: (error) =>
-      toast.error(error instanceof Error ? error.message : String(error)),
+      toast.error(error instanceof Error ? error.message : String(error), {
+        // the id ties the toast to a server log line
+        description: error instanceof ApiError && error.requestId ? error.requestId : undefined,
+      }),
   }),
   defaultOptions: {
     queries: {

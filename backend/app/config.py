@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["*"]
     request_timeout: float = 8.0
     db_path: str = "data/arrdeck.db"
+    log_level: str = "INFO"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

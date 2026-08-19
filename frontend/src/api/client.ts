@@ -3,9 +3,13 @@ const BASE_URL: string = import.meta.env.VITE_API_BASE_URL ?? "";
 
 export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  /** Server-assigned id for this failure; quoting it in the toast makes a user
+   * report findable in the logs. */
+  requestId?: string;
+  constructor(status: number, message: string, requestId?: string) {
     super(message);
     this.status = status;
+    this.requestId = requestId;
   }
 }
 
@@ -17,13 +21,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!resp.ok) {
     let message = `HTTP ${resp.status}`;
+    let requestId = resp.headers.get("X-Request-ID") ?? undefined;
     try {
       const body = await resp.json();
       message = body?.error?.message ?? body?.detail ?? message;
+      requestId = body?.error?.request_id ?? requestId;
     } catch {
       /* non-JSON error body */
     }
-    throw new ApiError(resp.status, message);
+    throw new ApiError(resp.status, message, requestId);
   }
   if (resp.status === 204) return undefined as T;
   return resp.json();

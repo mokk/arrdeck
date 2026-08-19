@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import mimetypes
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -16,6 +17,7 @@ from .api.v1.router import router as v1_router
 from .clients.base import ServiceUnavailable
 from .config import get_settings
 from .db import SettingsDB
+from .logging_setup import HEADER, REQUEST_ID, RequestIdMiddleware, configure as configure_logging
 from .registry import Registry
 from .push import flush_loop, push_loop
 from .stats import sampler_loop
@@ -57,6 +59,7 @@ def _seed_from_env(db: SettingsDB) -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = get_settings()
+    configure_logging(settings.log_level)
     timeout = httpx.Timeout(settings.request_timeout)
     arr_http = httpx.AsyncClient(timeout=timeout)
     qbit_http = httpx.AsyncClient(timeout=timeout)  # own client: cookie jar for SID
@@ -91,6 +94,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(RequestIdMiddleware)
 app.include_router(v1_router)
 
 
@@ -112,6 +116,11 @@ async def auth_guard(request: Request, call_next):
 
 @app.exception_handler(ServiceUnavailable)
 async def service_unavailable_handler(request: Request, exc: ServiceUnavailable) -> JSONResponse:
+    request_id = REQUEST_ID.get()
+    logging.getLogger("arrdeck.upstream").warning(
+        "upstream unavailable",
+        extra={"service": exc.service, "path": request.url.path},
+    )
     return JSONResponse(
         status_code=502,
         content={
@@ -119,8 +128,11 @@ async def service_unavailable_handler(request: Request, exc: ServiceUnavailable)
                 "code": "service_unavailable",
                 "service": exc.service,
                 "message": exc.message,
+                # quoted in the toast, so a user report points at a log line
+                "request_id": request_id,
             }
         },
+        headers={HEADER: request_id} if request_id else None,
     )
 
 
