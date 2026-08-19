@@ -52,6 +52,7 @@ const SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password
   transmission: ["url"],
   gluetun: ["url", "api_key"],
   bazarr: ["url", "api_key"],
+  plex: ["url", "api_key"],
 };
 
 const FIELD_KEYS: Record<string, string> = {

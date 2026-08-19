@@ -6,7 +6,7 @@ T = TypeVar("T")
 
 ServiceName = Literal[
     "radarr", "sonarr", "prowlarr", "qbittorrent", "transmission", "overseerr", "gluetun",
-    "bazarr",
+    "bazarr", "plex",
 ]
 
 
@@ -505,6 +505,18 @@ class MovieDetailOut(BaseModel):
 
 class PushSubscribeIn(BaseModel):
     subscription: dict
+
+
+class PlaySessionOut(BaseModel):
+    title: str = ""
+    subtitle: str | None = None  # SxxEyy – episode title
+    kind: str = ""  # movie | episode
+    user: str = ""
+    player: str = ""
+    state: str = ""  # playing | paused | buffering
+    progress: float = 0.0  # 0..1
+    transcoding: bool = False
+    url: str | None = None  # opens the item in Plex
 
 
 class SubtitleItemOut(BaseModel):

@@ -844,6 +844,48 @@ export type OptionsOut = {
 };
 
 /**
+ * PlaySessionOut
+ */
+export type PlaySessionOut = {
+    /**
+     * Title
+     */
+    title?: string;
+    /**
+     * Subtitle
+     */
+    subtitle?: string | null;
+    /**
+     * Kind
+     */
+    kind?: string;
+    /**
+     * User
+     */
+    user?: string;
+    /**
+     * Player
+     */
+    player?: string;
+    /**
+     * State
+     */
+    state?: string;
+    /**
+     * Progress
+     */
+    progress?: number;
+    /**
+     * Transcoding
+     */
+    transcoding?: boolean;
+    /**
+     * Url
+     */
+    url?: string | null;
+};
+
+/**
  * PushEventOut
  */
 export type PushEventOut = {
@@ -1413,6 +1455,28 @@ export type ServiceBlockListMediaRequestOut = {
 };
 
 /**
+ * ServiceBlock[list[PlaySessionOut]]
+ */
+export type ServiceBlockListPlaySessionOut = {
+    /**
+     * Ok
+     */
+    ok: boolean;
+    /**
+     * Data
+     */
+    data?: Array<PlaySessionOut> | null;
+    /**
+     * Error
+     */
+    error?: string | null;
+    /**
+     * Stale Age Seconds
+     */
+    stale_age_seconds?: number | null;
+};
+
+/**
  * ServiceBlock[list[QueueItemOut]]
  */
 export type ServiceBlockListQueueItemOut = {
@@ -1503,7 +1567,7 @@ export type ServiceStatus = {
     /**
      * Service
      */
-    service: 'radarr' | 'sonarr' | 'prowlarr' | 'qbittorrent' | 'transmission' | 'overseerr' | 'gluetun' | 'bazarr';
+    service: 'radarr' | 'sonarr' | 'prowlarr' | 'qbittorrent' | 'transmission' | 'overseerr' | 'gluetun' | 'bazarr' | 'plex';
     /**
      * Ok
      */
@@ -2231,6 +2295,22 @@ export type DiskspaceApiV1DiskspaceGetResponses = {
 };
 
 export type DiskspaceApiV1DiskspaceGetResponse = DiskspaceApiV1DiskspaceGetResponses[keyof DiskspaceApiV1DiskspaceGetResponses];
+
+export type PlaySessionsApiV1SessionsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/sessions';
+};
+
+export type PlaySessionsApiV1SessionsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ServiceBlockListPlaySessionOut;
+};
+
+export type PlaySessionsApiV1SessionsGetResponse = PlaySessionsApiV1SessionsGetResponses[keyof PlaySessionsApiV1SessionsGetResponses];
 
 export type SubtitlesApiV1SubtitlesGetData = {
     body?: never;

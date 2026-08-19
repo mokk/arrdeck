@@ -3,6 +3,7 @@ import httpx
 from .clients.base import ServiceUnavailable
 from .clients.bazarr import BazarrClient
 from .clients.gluetun import GluetunClient
+from .clients.plex import PlexClient
 from .clients.overseerr import OverseerrClient
 from .clients.prowlarr import ProwlarrClient
 from .clients.qbittorrent import QbittorrentClient
@@ -11,7 +12,9 @@ from .clients.sonarr import SonarrClient
 from .clients.transmission import TransmissionClient
 from .db import SERVICES
 
-NEEDS_API_KEY = {"radarr", "sonarr", "prowlarr", "overseerr", "gluetun", "bazarr"}
+NEEDS_API_KEY = {
+    "radarr", "sonarr", "prowlarr", "overseerr", "gluetun", "bazarr", "plex",
+}
 
 
 def is_configured(name: str, conf: dict) -> bool:
@@ -70,6 +73,8 @@ class Registry:
             self._clients[name] = GluetunClient(self._arr_http, conf["url"], conf["api_key"])
         elif name == "bazarr":
             self._clients[name] = BazarrClient(self._arr_http, conf["url"], conf["api_key"])
+        elif name == "plex":
+            self._clients[name] = PlexClient(self._arr_http, conf["url"], conf["api_key"])
 
     def rebuild_all(self, confs: dict[str, dict]) -> None:
         for name in SERVICES:
@@ -98,4 +103,6 @@ async def probe_version(name: str, client) -> str:
         return (await client.status()).get("status", "?")
     if name == "bazarr":
         return (await client.status()).get("bazarr_version", "?")
+    if name == "plex":
+        return (await client.identity()).get("version", "?")
     raise ServiceUnavailable(name, "unknown service")

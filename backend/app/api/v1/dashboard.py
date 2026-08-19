@@ -14,6 +14,7 @@ from ...registry import probe_version
 from .media import _poster
 from ...clients.bazarr import BazarrClient
 from ...clients.gluetun import GluetunClient
+from ...clients.plex import PlexClient
 from ...clients.prowlarr import ProwlarrClient
 from ...clients.qbittorrent import QbittorrentClient
 from ...clients.radarr import RadarrClient
@@ -22,6 +23,7 @@ from ...clients.transmission import TransmissionClient
 from ...deps import (
     get_bazarr,
     get_gluetun,
+    get_plex,
     get_prowlarr,
     get_qbit,
     get_radarr,
@@ -32,6 +34,7 @@ from ...schemas import (
     CalendarItemOut,
     DiskSpaceOut,
     HealthWarningOut,
+    PlaySessionOut,
     SubtitleSearchIn,
     SubtitlesOut,
     VpnStatusOut,
@@ -147,6 +150,58 @@ async def diskspace(
         return await cached("diskspace", 300, call)
 
     return await guarded(fetch(), "diskspace:block")
+
+
+def _plex_session(machine_id: str, item: dict) -> dict:
+    kind = item.get("type", "")
+    title = item.get("grandparentTitle") if kind == "episode" else item.get("title", "")
+    subtitle = None
+    if kind == "episode":
+        season, number = item.get("parentIndex"), item.get("index")
+        subtitle = item.get("title", "")
+        if season is not None and number is not None:
+            subtitle = f"S{season:02d}E{number:02d} – {subtitle}".rstrip(" –")
+    duration = item.get("duration") or 0
+    rating_key = item.get("ratingKey")
+    return {
+        "title": title or "",
+        "subtitle": subtitle,
+        "kind": kind,
+        "user": (item.get("User") or {}).get("title", ""),
+        "player": (item.get("Player") or {}).get("title", ""),
+        "state": (item.get("Player") or {}).get("state", ""),
+        "progress": (item.get("viewOffset") or 0) / duration if duration else 0.0,
+        # a transcode session means the server is doing real work for this play
+        "transcoding": bool(item.get("TranscodeSession")),
+        "url": (
+            f"https://app.plex.tv/desktop/#!/server/{machine_id}"
+            f"/details?key=/library/metadata/{rating_key}"
+            if machine_id and rating_key
+            else None
+        ),
+    }
+
+
+@router.get("/sessions", response_model=ServiceBlock[list[PlaySessionOut]])
+async def play_sessions(plex: PlexClient = Depends(get_plex)):
+    """Who is watching what right now."""
+
+    async def fetch() -> list[dict]:
+        async def call() -> list[dict]:
+            identity, items = await asyncio.gather(
+                plex.identity(), plex.sessions(), return_exceptions=True
+            )
+            if isinstance(items, BaseException):
+                raise items
+            machine_id = (
+                "" if isinstance(identity, BaseException) else identity.get("machineIdentifier", "")
+            )
+            return [_plex_session(machine_id, item) for item in items]
+
+        # short ttl: this is the one card that is meant to be live
+        return await cached("sessions", 15, call)
+
+    return await guarded(fetch(), "sessions:block")
 
 
 @router.get("/subtitles", response_model=ServiceBlock[SubtitlesOut])

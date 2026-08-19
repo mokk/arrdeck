@@ -82,7 +82,10 @@
     "subtitles": "Subtitles",
     "subtitlesMissing": "{{movies}} movies, {{episodes}} episodes missing subtitles",
     "noProviders": "No providers configured",
-    "searchSubs": "Search"
+    "searchSubs": "Search",
+    "nowPlaying": "Now playing",
+    "transcoding": "transcoding",
+    "openInPlex": "Open"
   },
   "dl": {
     "title": "Downloads",

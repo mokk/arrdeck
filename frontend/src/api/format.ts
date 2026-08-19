@@ -7,6 +7,7 @@ export const SERVICE_LABELS: Record<string, string> = {
   overseerr: "Overseerr",
   gluetun: "gluetun",
   bazarr: "Bazarr",
+  plex: "Plex",
 };
 
 export function formatBytes(bytes: number | null | undefined): string {

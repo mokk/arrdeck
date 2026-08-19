@@ -27,6 +27,7 @@ import {
   useMediaRequests,
   useVpn,
   useSubtitles,
+  usePlaySessions,
   useSubtitleSearch,
   useRequestAction,
   useCalendar,
@@ -246,6 +247,47 @@ function RequestsSection({ configured }: { configured: Set<string> }) {
                 {t("dash.decline")}
               </Button>
             </div>
+          </Row>
+        ))}
+      </Card>
+    </div>
+  );
+}
+
+/** Live playback. Sits at the top when something is on, and disappears
+ * entirely otherwise rather than showing an empty card. */
+function NowPlayingSection({ configured }: { configured: Set<string> }) {
+  const { t } = useTranslation();
+  const hasPlex = configured.has("plex");
+  const { data } = usePlaySessions(hasPlex);
+  const sessions = data?.data ?? [];
+  if (!hasPlex || sessions.length === 0) return null;
+  return (
+    <div className="mb-6">
+      <SectionTitle>{t("dash.nowPlaying")}</SectionTitle>
+      <Card>
+        {sessions.map((s, i) => (
+          <Row key={`${s.user}-${s.title}-${i}`}>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-medium">{s.title}</div>
+              {s.subtitle && (
+                <div className="truncate text-xs text-muted-foreground">{s.subtitle}</div>
+              )}
+              <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                <StateBadge state={s.state === "paused" ? "paused" : "downloading"} raw />
+                {s.user}
+                {s.player && ` · ${s.player}`}
+                {s.transcoding && ` · ${t("dash.transcoding")}`}
+              </div>
+              <ProgressBar value={s.progress ?? 0} />
+            </div>
+            {s.url && (
+              <a href={s.url} target="_blank" rel="noreferrer" className="shrink-0">
+                <Button size="sm" variant="secondary">
+                  {t("dash.openInPlex")}
+                </Button>
+              </a>
+            )}
           </Row>
         ))}
       </Card>
@@ -776,6 +818,7 @@ export default function Dashboard() {
   if (query.trim().length > 1) return <GlobalSearch query={query} />;
   return (
     <>
+      <NowPlayingSection configured={configured} />
       <HealthSection configured={configured} />
       <RequestsSection configured={configured} />
       <RecentSection />

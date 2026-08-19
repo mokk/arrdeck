@@ -17,6 +17,7 @@ import type {
   DiskSpace,
   HealthWarning,
   MediaRequest,
+  PlaySession,
   Subtitles,
   VpnStatus,
   Session,
@@ -335,6 +336,14 @@ export const useDiskSpace = (enabled: boolean) =>
     queryFn: () => api.get<ServiceBlock<DiskSpace[]>>("/diskspace"),
     enabled,
     refetchInterval: SLOW,
+  });
+
+export const usePlaySessions = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["sessions"],
+    queryFn: () => api.get<ServiceBlock<PlaySession[]>>("/sessions"),
+    enabled,
+    refetchInterval: FAST,
   });
 
 export const useSubtitles = (enabled: boolean) =>

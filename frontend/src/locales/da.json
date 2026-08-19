@@ -82,7 +82,10 @@
     "subtitles": "Undertekster",
     "subtitlesMissing": "{{movies}} film, {{episodes}} afsnit mangler undertekster",
     "noProviders": "Ingen udbydere konfigureret",
-    "searchSubs": "Søg"
+    "searchSubs": "Søg",
+    "nowPlaying": "Afspilles nu",
+    "transcoding": "omkoder",
+    "openInPlex": "Åbn"
   },
   "dl": {
     "title": "Downloads",
