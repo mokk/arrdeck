@@ -44,7 +44,7 @@ def test_every_service_can_be_version_probed():
 
 
 def test_guid_keys_indexes_every_external_id():
-    from app.api.v1.dashboard import _guid_keys
+    from app.api.v1.plex import _guid_keys
 
     item = {
         "Guid": [
@@ -57,7 +57,7 @@ def test_guid_keys_indexes_every_external_id():
 
 
 def test_guid_keys_tolerates_missing_or_malformed_guids():
-    from app.api.v1.dashboard import _guid_keys
+    from app.api.v1.plex import _guid_keys
 
     assert _guid_keys({}) == []
     assert _guid_keys({"Guid": [{"id": "plex://movie/abc"}, {"id": "junk"}, {}]}) == [

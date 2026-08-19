@@ -1,9 +1,25 @@
 from fastapi import APIRouter
 
-from . import auth, dashboard, downloads, hooks, manage, media, settings
+from . import (
+    auth,
+    dashboard,
+    downloads,
+    hooks,
+    manage,
+    media,
+    plex,
+    settings,
+    subtitles,
+    system,
+    torrents,
+)
 
 router = APIRouter(prefix="/api/v1")
 router.include_router(dashboard.router)
+router.include_router(system.router)
+router.include_router(plex.router)
+router.include_router(subtitles.router)
+router.include_router(torrents.router)
 router.include_router(downloads.router)
 router.include_router(media.router)
 router.include_router(manage.router)

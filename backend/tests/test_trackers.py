@@ -1,4 +1,4 @@
-from app.api.v1.dashboard import _registered_domain, _tracker_host
+from app.api.v1.torrents import _registered_domain, _tracker_host
 
 
 def test_tracker_host_strips_common_prefixes():

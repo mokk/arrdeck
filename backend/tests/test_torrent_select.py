@@ -1,4 +1,4 @@
-from app.api.v1.dashboard import _select, _sorted_rows
+from app.api.v1.torrents import _select, _sorted_rows
 
 ROWS = [
     {"name": "Alpha", "state": "seeding", "added_on": 300, "size": None},
