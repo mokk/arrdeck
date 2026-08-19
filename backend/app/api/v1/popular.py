@@ -8,14 +8,19 @@ separately, which is what makes a 24h window reachable at all.
 """
 
 import asyncio
+import json
+import logging
+import time
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Request
 
-from ...cache import cached, guarded
+from ...cache import guarded
+from ...clients.base import ServiceUnavailable
 from ...clients.prowlarr import ProwlarrClient
-from ...deps import get_prowlarr
-from ...schemas import PopularIndexerOut, ServiceBlock
+from ...schemas import PopularSnapshotOut, ServiceBlock
+
+logger = logging.getLogger("arrdeck.popular")
 
 router = APIRouter(tags=["popular"])
 
@@ -70,74 +75,146 @@ def _describe(release: dict) -> dict:
     }
 
 
-@router.get("/popular", response_model=ServiceBlock[list[PopularIndexerOut]])
+SNAPSHOT_KEY = "popular_snapshot"
+SNAPSHOT_HOURS = 24
+SNAPSHOT_LIMIT = 50  # stored deep enough that the page can slice any limit
+REFRESH_INTERVAL = 3600
+
+
+async def collect(prowlarr: ProwlarrClient, hours: int, limit: int) -> list[dict]:
+    """Query every indexer's movie/TV sub-categories and rank what is inside
+    the window. This is the expensive part: ~10 real tracker queries."""
+    indexers = [i for i in await prowlarr.indexers() if i.get("enable")]
+    gate = asyncio.Semaphore(MAX_CONCURRENCY)
+
+    async def one(indexer_id: int, category: int) -> list:
+        async with gate:
+            try:
+                return await prowlarr.search(
+                    "", categories=[category], indexer_ids=[indexer_id], limit=PER_QUERY
+                )
+            except Exception:  # noqa: BLE001 — one dead category shouldn't empty the page
+                return []
+
+    jobs, owners = [], []
+    for indexer in indexers:
+        for category in _query_categories(indexer):
+            jobs.append(one(indexer["id"], category))
+            owners.append(indexer)
+    results = await asyncio.gather(*jobs)
+
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+    # dedupe within an indexer: a release appears under every sub-category it
+    # is tagged with
+    seen: dict[int, dict[str, dict]] = {i["id"]: {} for i in indexers}
+    for indexer, rows in zip(owners, results):
+        bucket = seen[indexer["id"]]
+        for row in rows:
+            published = row.get("publishDate")
+            if not published:
+                continue
+            try:
+                when = datetime.fromisoformat(published.replace("Z", "+00:00"))
+            except ValueError:
+                continue
+            if when < cutoff:
+                continue
+            key = row.get("downloadUrl") or row.get("guid") or row.get("title", "")
+            bucket.setdefault(key, row)
+
+    out = []
+    for indexer in indexers:
+        bucket = seen[indexer["id"]]
+        ranked = sorted(
+            bucket.values(),
+            key=lambda r: (r.get("grabs") or 0, r.get("seeders") or 0),
+            reverse=True,
+        )
+        out.append(
+            {
+                "indexer": indexer.get("name", ""),
+                "indexer_id": indexer["id"],
+                "scanned": len(bucket),
+                "releases": [_describe(r) for r in ranked[:limit]],
+            }
+        )
+    return out
+
+
+def read_snapshot(db) -> dict | None:
+    raw = db.kv_get(SNAPSHOT_KEY)
+    if not raw:
+        return None
+    try:
+        snap = json.loads(raw)
+    except ValueError:
+        return None
+    return snap if isinstance(snap, dict) else None
+
+
+async def refresh_snapshot(db, registry) -> dict | None:
+    """Recompute and persist. Stored in sqlite rather than the in-memory cache
+    so a redeploy doesn't send the next visitor to a 45-second cold fetch."""
+    if not registry.is_configured("prowlarr"):
+        return None
+    indexers = await collect(registry.get("prowlarr"), SNAPSHOT_HOURS, SNAPSHOT_LIMIT)
+    snap = {
+        "generated_at": int(time.time()),
+        "hours": SNAPSHOT_HOURS,
+        "indexers": indexers,
+    }
+    db.kv_set(SNAPSHOT_KEY, json.dumps(snap))
+    logger.info(
+        "popular refreshed: %d indexers, %d releases",
+        len(indexers),
+        sum(len(i["releases"]) for i in indexers),
+    )
+    return snap
+
+
+async def popular_loop(db, registry) -> None:
+    """Hourly refresh. Runs once at startup only if there is no snapshot yet,
+    so a restart doesn't re-hit the trackers unnecessarily."""
+    while True:
+        try:
+            snap = read_snapshot(db)
+            age = time.time() - (snap or {}).get("generated_at", 0)
+            if snap is None or age >= REFRESH_INTERVAL:
+                await refresh_snapshot(db, registry)
+        except Exception:  # noqa: BLE001 — the loop must outlive a bad response
+            logger.exception("popular refresh failed")
+        await asyncio.sleep(300)
+
+
+@router.get("/popular", response_model=ServiceBlock[PopularSnapshotOut])
 async def popular(
-    hours: int = 24,
+    request: Request,
+    hours: int = SNAPSHOT_HOURS,
     limit: int = 10,
-    prowlarr: ProwlarrClient = Depends(get_prowlarr),
 ):
-    hours = max(1, min(hours, 168))
-    limit = max(1, min(limit, 50))
+    """Served from the hourly snapshot. A window other than the stored one is
+    computed live, which is slow — the UI only ever asks for the stored one."""
+    limit = max(1, min(limit, SNAPSHOT_LIMIT))
+    db = request.app.state.db
+    registry = request.app.state.registry
 
-    async def fetch() -> list[dict]:
-        async def call() -> list[dict]:
-            indexers = [i for i in await prowlarr.indexers() if i.get("enable")]
-            gate = asyncio.Semaphore(MAX_CONCURRENCY)
+    async def fetch() -> dict:
+        snap = read_snapshot(db) if hours == SNAPSHOT_HOURS else None
+        if snap is None:
+            if hours != SNAPSHOT_HOURS:
+                if not registry.is_configured("prowlarr"):
+                    raise ServiceUnavailable("prowlarr", "not configured")
+                indexers = await collect(registry.get("prowlarr"), hours, limit)
+                return {"generated_at": int(time.time()), "hours": hours, "indexers": indexers}
+            # first boot: build it now rather than show an empty page
+            snap = await refresh_snapshot(db, registry)
+            if snap is None:
+                raise ServiceUnavailable("prowlarr", "not configured")
+        return {
+            **snap,
+            "indexers": [
+                {**i, "releases": (i.get("releases") or [])[:limit]} for i in snap["indexers"]
+            ],
+        }
 
-            async def one(indexer_id: int, category: int) -> list:
-                async with gate:
-                    try:
-                        return await prowlarr.search(
-                            "", categories=[category], indexer_ids=[indexer_id], limit=PER_QUERY
-                        )
-                    except Exception:  # noqa: BLE001 — one dead category shouldn't empty the page
-                        return []
-
-            jobs, owners = [], []
-            for indexer in indexers:
-                for category in _query_categories(indexer):
-                    jobs.append(one(indexer["id"], category))
-                    owners.append(indexer)
-            results = await asyncio.gather(*jobs)
-
-            cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
-            # dedupe within an indexer: the same release shows up under every
-            # sub-category it is tagged with
-            seen: dict[int, dict[str, dict]] = {i["id"]: {} for i in indexers}
-            for indexer, rows in zip(owners, results):
-                bucket = seen[indexer["id"]]
-                for row in rows:
-                    published = row.get("publishDate")
-                    if not published:
-                        continue
-                    try:
-                        when = datetime.fromisoformat(published.replace("Z", "+00:00"))
-                    except ValueError:
-                        continue
-                    if when < cutoff:
-                        continue
-                    key = row.get("downloadUrl") or row.get("guid") or row.get("title", "")
-                    bucket.setdefault(key, row)
-
-            out = []
-            for indexer in indexers:
-                bucket = seen[indexer["id"]]
-                ranked = sorted(
-                    bucket.values(),
-                    key=lambda r: (r.get("grabs") or 0, r.get("seeders") or 0),
-                    reverse=True,
-                )
-                out.append(
-                    {
-                        "indexer": indexer.get("name", ""),
-                        "indexer_id": indexer["id"],
-                        "scanned": len(bucket),
-                        "releases": [_describe(r) for r in ranked[:limit]],
-                    }
-                )
-            return out
-
-        # the fan-out takes ~30s and hits real trackers; don't repeat it per view
-        return await cached(f"popular:{hours}:{limit}", 900, call)
-
-    return await guarded(fetch(), f"popular:{hours}:{limit}")
+    return await guarded(fetch(), None)

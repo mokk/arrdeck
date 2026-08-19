@@ -19,6 +19,7 @@ from .config import get_settings
 from .db import SettingsDB
 from .logging_setup import HEADER, REQUEST_ID, RequestIdMiddleware, configure as configure_logging
 from .registry import Registry
+from .api.v1.popular import popular_loop
 from .push import flush_loop, push_loop
 from .stats import sampler_loop
 
@@ -77,6 +78,7 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(sampler_loop(db, registry)),
         asyncio.create_task(push_loop(db, registry)),
         asyncio.create_task(flush_loop(db)),
+        asyncio.create_task(popular_loop(db, registry)),
     ]
     yield
     for task in tasks:

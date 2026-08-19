@@ -409,7 +409,8 @@
     "scanned": "{{count}} releases in {{hours}}h",
     "justNow": "just now",
     "hoursAgo": "{{hours}}h ago",
-    "hint": "Newest releases from each indexer in the last 24 hours, ranked by how often the indexer says they were grabbed. Indexers cap results at 100 per category, so this is what they still report — not an all-time chart.",
-    "loading": "Asking every indexer for its newest releases — this takes a moment."
+    "hint": "Newest releases from each indexer in the last 24 hours, ranked by how often the indexer says they were grabbed. Refreshed every hour.",
+    "loading": "Building the first list — this takes about a minute, then it refreshes hourly on its own.",
+    "generated": "Updated {{when}}"
   }
 }

@@ -48,9 +48,9 @@ export default function PopularPage() {
         </>
       )}
       <BlockView block={data}>
-        {(indexers) => (
+        {(snapshot) => (
           <>
-            {indexers.map((source) => {
+            {(snapshot.indexers ?? []).map((source) => {
               const releases = (source.releases ?? []).filter(
                 (r) => kind === "all" || r.kind === kind,
               );
@@ -59,7 +59,10 @@ export default function PopularPage() {
                   <SectionTitle>
                     {source.indexer}
                     <span className="ml-2 font-normal text-muted-foreground">
-                      {t("popular.scanned", { count: source.scanned, hours })}
+                      {t("popular.scanned", {
+                        count: source.scanned,
+                        hours: snapshot.hours ?? hours,
+                      })}
                     </span>
                   </SectionTitle>
                   <Card>
@@ -114,7 +117,14 @@ export default function PopularPage() {
                 </div>
               );
             })}
-            <p className="px-1 text-xs text-muted-foreground">{t("popular.hint")}</p>
+            <p className="px-1 text-xs text-muted-foreground">
+              {snapshot.generated_at
+                ? `${t("popular.generated", {
+                    when: new Date(snapshot.generated_at * 1000).toLocaleTimeString(),
+                  })} · `
+                : ""}
+              {t("popular.hint")}
+            </p>
           </>
         )}
       </BlockView>

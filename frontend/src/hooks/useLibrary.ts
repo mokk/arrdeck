@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { api } from "../api/client";
 import type {
-  PopularIndexer,
+  PopularSnapshot,
   ArrRelease,
   MovieDetail,
   CalendarItem,
@@ -510,7 +510,7 @@ export function useSeasonMonitor(seriesId: number) {
 export const usePopular = (hours: number) =>
   useQuery({
     queryKey: ["popular", hours],
-    queryFn: () => api.get<ServiceBlock<PopularIndexer[]>>(`/popular?hours=${hours}&limit=10`),
-    // the backend caches for 15 minutes; the fan-out hits real trackers
-    staleTime: 900_000,
+    queryFn: () => api.get<ServiceBlock<PopularSnapshot>>(`/popular?hours=${hours}&limit=10`),
+    // served from an hourly snapshot, so polling more often gains nothing
+    refetchInterval: 600_000,
   });

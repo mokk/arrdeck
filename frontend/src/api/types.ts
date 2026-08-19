@@ -55,6 +55,7 @@ export type Subtitles = G.SubtitlesOut;
 export type VpnStatus = G.VpnStatusOut;
 export type MediaRequest = G.MediaRequestOut;
 export type SpeedLimit = G.SpeedLimitOut;
+export type PopularSnapshot = G.PopularSnapshotOut;
 export type PopularIndexer = G.PopularIndexerOut;
 export type PopularRelease = G.PopularReleaseOut;
 export type ImportList = G.ImportListOut;

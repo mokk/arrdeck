@@ -1248,6 +1248,24 @@ export type PopularReleaseOut = {
 };
 
 /**
+ * PopularSnapshotOut
+ */
+export type PopularSnapshotOut = {
+    /**
+     * Generated At
+     */
+    generated_at?: number;
+    /**
+     * Hours
+     */
+    hours?: number;
+    /**
+     * Indexers
+     */
+    indexers?: Array<PopularIndexerOut>;
+};
+
+/**
  * PushEventOut
  */
 export type PushEventOut = {
@@ -1783,6 +1801,25 @@ export type ServiceBlockIndexerStatsOut = {
 };
 
 /**
+ * ServiceBlock[PopularSnapshotOut]
+ */
+export type ServiceBlockPopularSnapshotOut = {
+    /**
+     * Ok
+     */
+    ok: boolean;
+    data?: PopularSnapshotOut | null;
+    /**
+     * Error
+     */
+    error?: string | null;
+    /**
+     * Stale Age Seconds
+     */
+    stale_age_seconds?: number | null;
+};
+
+/**
  * ServiceBlock[SubtitlesOut]
  */
 export type ServiceBlockSubtitlesOut = {
@@ -2004,28 +2041,6 @@ export type ServiceBlockListPlaySessionOut = {
      * Data
      */
     data?: Array<PlaySessionOut> | null;
-    /**
-     * Error
-     */
-    error?: string | null;
-    /**
-     * Stale Age Seconds
-     */
-    stale_age_seconds?: number | null;
-};
-
-/**
- * ServiceBlock[list[PopularIndexerOut]]
- */
-export type ServiceBlockListPopularIndexerOut = {
-    /**
-     * Ok
-     */
-    ok: boolean;
-    /**
-     * Data
-     */
-    data?: Array<PopularIndexerOut> | null;
     /**
      * Error
      */
@@ -3123,7 +3138,7 @@ export type PopularApiV1PopularGetResponses = {
     /**
      * Successful Response
      */
-    200: ServiceBlockListPopularIndexerOut;
+    200: ServiceBlockPopularSnapshotOut;
 };
 
 export type PopularApiV1PopularGetResponse = PopularApiV1PopularGetResponses[keyof PopularApiV1PopularGetResponses];

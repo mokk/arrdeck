@@ -76,3 +76,96 @@ def test_the_window_cutoff_excludes_older_releases():
     fresh = now - timedelta(hours=3)
     stale = now - timedelta(hours=48)
     assert fresh >= cutoff and stale < cutoff
+
+
+# --- the hourly snapshot -------------------------------------------------
+
+import asyncio
+import json
+import time
+
+from app.api.v1 import popular as pop
+from app.db import SettingsDB
+
+
+class FakeProwlarr:
+    def __init__(self):
+        self.calls = 0
+
+    async def indexers(self):
+        return [{"id": 1, "name": "Tracker", "enable": True,
+                 "capabilities": {"categories": [{"id": 2000, "name": "Movies"}]}}]
+
+    async def search(self, query, categories=None, indexer_ids=None, limit=0):
+        self.calls += 1
+        now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        return [{"guid": f"g{i}", "indexerId": 1, "title": f"Release {i}",
+                 "categories": [{"id": 2000, "name": "Movies"}],
+                 "grabs": i, "seeders": i, "publishDate": now} for i in range(5)]
+
+
+class FakeRegistry:
+    def __init__(self, client):
+        self.client = client
+
+    def is_configured(self, name):
+        return self.client is not None
+
+    def get(self, name):
+        return self.client
+
+
+def test_a_refresh_persists_a_snapshot(tmp_path):
+    db = SettingsDB(str(tmp_path / "p.db"))
+    client = FakeProwlarr()
+    snap = asyncio.run(pop.refresh_snapshot(db, FakeRegistry(client)))
+    assert snap["hours"] == pop.SNAPSHOT_HOURS
+    assert snap["indexers"][0]["releases"][0]["grabs"] == 4  # ranked
+    # persisted, so a restart reads it back rather than re-querying
+    assert pop.read_snapshot(db)["generated_at"] == snap["generated_at"]
+
+
+def test_a_fresh_snapshot_is_not_refetched(tmp_path):
+    db = SettingsDB(str(tmp_path / "p2.db"))
+    client = FakeProwlarr()
+    registry = FakeRegistry(client)
+    asyncio.run(pop.refresh_snapshot(db, registry))
+    first = client.calls
+
+    # the loop's own staleness check: a snapshot this new must not trigger work
+    snap = pop.read_snapshot(db)
+    assert time.time() - snap["generated_at"] < pop.REFRESH_INTERVAL
+    assert client.calls == first
+
+
+def test_a_stale_snapshot_is_replaced(tmp_path):
+    db = SettingsDB(str(tmp_path / "p3.db"))
+    registry = FakeRegistry(FakeProwlarr())
+    asyncio.run(pop.refresh_snapshot(db, registry))
+    stale = pop.read_snapshot(db)
+    stale["generated_at"] = int(time.time()) - pop.REFRESH_INTERVAL - 1
+    db.kv_set(pop.SNAPSHOT_KEY, json.dumps(stale))
+
+    assert time.time() - pop.read_snapshot(db)["generated_at"] >= pop.REFRESH_INTERVAL
+    newer = asyncio.run(pop.refresh_snapshot(db, registry))
+    assert newer["generated_at"] > stale["generated_at"]
+
+
+def test_corrupt_or_missing_snapshots_read_as_none(tmp_path):
+    db = SettingsDB(str(tmp_path / "p4.db"))
+    assert pop.read_snapshot(db) is None
+    db.kv_set(pop.SNAPSHOT_KEY, "{not json")
+    assert pop.read_snapshot(db) is None
+    db.kv_set(pop.SNAPSHOT_KEY, '"a string"')
+    assert pop.read_snapshot(db) is None
+
+
+def test_refresh_without_prowlarr_is_a_no_op(tmp_path):
+    db = SettingsDB(str(tmp_path / "p5.db"))
+    assert asyncio.run(pop.refresh_snapshot(db, FakeRegistry(None))) is None
+    assert pop.read_snapshot(db) is None
+
+
+def test_the_snapshot_stores_more_than_the_page_shows(tmp_path):
+    # stored deep so the endpoint can slice any limit without re-querying
+    assert pop.SNAPSHOT_LIMIT > 10

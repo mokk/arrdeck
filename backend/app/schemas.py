@@ -649,6 +649,12 @@ class PopularIndexerOut(BaseModel):
     releases: list[PopularReleaseOut] = []
 
 
+class PopularSnapshotOut(BaseModel):
+    generated_at: int = 0  # unix seconds; the page shows how fresh this is
+    hours: int = 24
+    indexers: list[PopularIndexerOut] = []
+
+
 class ImportListOut(BaseModel):
     app: Literal["radarr", "sonarr"]
     id: int
