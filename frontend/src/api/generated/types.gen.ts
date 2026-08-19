@@ -680,6 +680,14 @@ export type LibraryMovieOut = {
      * Tags
      */
     tags?: Array<number>;
+    /**
+     * Tmdb Id
+     */
+    tmdb_id?: number | null;
+    /**
+     * Imdb Id
+     */
+    imdb_id?: string | null;
 };
 
 /**
@@ -730,6 +738,14 @@ export type LibrarySeriesOut = {
      * Tags
      */
     tags?: Array<number>;
+    /**
+     * Tvdb Id
+     */
+    tvdb_id?: number | null;
+    /**
+     * Imdb Id
+     */
+    imdb_id?: string | null;
 };
 
 /**
@@ -1442,6 +1458,30 @@ export type ServiceBlockVpnStatusOut = {
      */
     ok: boolean;
     data?: VpnStatusOut | null;
+    /**
+     * Error
+     */
+    error?: string | null;
+    /**
+     * Stale Age Seconds
+     */
+    stale_age_seconds?: number | null;
+};
+
+/**
+ * ServiceBlock[dict[str, WatchedItemOut]]
+ */
+export type ServiceBlockDictStrWatchedItemOut = {
+    /**
+     * Ok
+     */
+    ok: boolean;
+    /**
+     * Data
+     */
+    data?: {
+        [key: string]: WatchedItemOut;
+    } | null;
     /**
      * Error
      */
@@ -2331,6 +2371,24 @@ export type WantedPageOut = {
 };
 
 /**
+ * WatchedItemOut
+ */
+export type WatchedItemOut = {
+    /**
+     * Watched
+     */
+    watched?: boolean;
+    /**
+     * Progress
+     */
+    progress?: number;
+    /**
+     * Url
+     */
+    url?: string | null;
+};
+
+/**
  * WebhookAppOut
  */
 export type WebhookAppOut = {
@@ -2417,6 +2475,22 @@ export type DiskspaceApiV1DiskspaceGetResponses = {
 };
 
 export type DiskspaceApiV1DiskspaceGetResponse = DiskspaceApiV1DiskspaceGetResponses[keyof DiskspaceApiV1DiskspaceGetResponses];
+
+export type WatchedApiV1WatchedGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/watched';
+};
+
+export type WatchedApiV1WatchedGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ServiceBlockDictStrWatchedItemOut;
+};
+
+export type WatchedApiV1WatchedGetResponse = WatchedApiV1WatchedGetResponses[keyof WatchedApiV1WatchedGetResponses];
 
 export type PlaySessionsApiV1SessionsGetData = {
     body?: never;

@@ -10,7 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { formatBytes } from "../../api/format";
+import { WatchedDot } from "../WatchedDot";
+import { formatBytes, watchedFor } from "../../api/format";
 import type { LibraryMovie, LibrarySeries, Options } from "../../api/types";
 import { Card, EmptyNote, ErrorNote, Row, StateBadge } from "../Blocks";
 import { useRegisterSearchbar, useRegisterSortButton } from "../subnav";
@@ -20,7 +21,9 @@ import { useSort } from "../sortable";
 import {
   useBulkDeleteLibrary,
   useBulkLibrary,
+  useServices,
   useTags,
+  useWatched,
   useBulkSearchLibrary,
   useDeleteLibraryItem,
   useLibraryMovies,
@@ -250,6 +253,10 @@ export function MovieLibrary() {
   const [selectMode, setSelectMode] = useState(false);
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const { data: tags } = useTags("radarr");
+  const { data: services } = useServices();
+  const { data: watched } = useWatched(
+    (services ?? []).some((sv) => sv.service === "plex" && sv.configured),
+  );
   const [tagFilter, setTagFilter] = usePersistentState<number | null>(
     "manage.movies.tag",
     null,
@@ -358,6 +365,7 @@ export function MovieLibrary() {
                 </div>
                 <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <StateBadge state={m.status} />
+                  <WatchedDot item={watchedFor(watched?.data, m)} />
                   {formatBytes(m.size_on_disk)}
                 </div>
                 {!selectMode && (
@@ -436,6 +444,10 @@ export function SeriesLibrary() {
   const [selectMode, setSelectMode] = useState(false);
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const { data: tags } = useTags("sonarr");
+  const { data: services } = useServices();
+  const { data: watched } = useWatched(
+    (services ?? []).some((sv) => sv.service === "plex" && sv.configured),
+  );
   const [tagFilter, setTagFilter] = usePersistentState<number | null>(
     "manage.series.tag",
     null,
@@ -543,6 +555,7 @@ export function SeriesLibrary() {
                 </div>
                 <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <StateBadge state={se.monitored ? "ok" : "paused"} />
+                  <WatchedDot item={watchedFor(watched?.data, se)} />
                   {t("manage.episodes", {
                     files: se.episode_file_count,
                     total: se.episode_count,

@@ -2,6 +2,8 @@ import { ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RenameCard } from "../components/RenameCard";
+import { WatchedDot } from "../components/WatchedDot";
+import { watchedFor } from "../api/format";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +22,8 @@ import {
   useDeleteLibraryItem,
   useMovieDetail,
   useOptions,
+  useServices,
+  useWatched,
   useTriggerSearch,
   useUpdateLibraryItem,
 } from "../hooks/queries";
@@ -31,13 +35,23 @@ export default function MoviePage() {
   const navigate = useNavigate();
   const { data, error, isLoading } = useMovieDetail(movieId);
   const { data: options } = useOptions("radarr");
+  const { data: services } = useServices();
+  const { data: watchedMap } = useWatched(
+    (services ?? []).some((sv) => sv.service === "plex" && sv.configured),
+  );
   const update = useUpdateLibraryItem("movies");
   const remove = useDeleteLibraryItem("movies");
   const search = useTriggerSearch();
   const [showReleases, setShowReleases] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
+  const watched = watchedFor(watchedMap?.data, {
+    tmdb_id: data?.tmdb_id,
+    imdb_id: data?.imdb_id,
+  });
+
   const links: { label: string; url: string }[] = [];
+  if (watched?.url) links.push({ label: "Plex", url: watched.url });
   if (data?.imdb_id)
     links.push({ label: "IMDb", url: `https://www.imdb.com/title/${data.imdb_id}/` });
   if (data?.tmdb_id)
@@ -53,6 +67,7 @@ export default function MoviePage() {
           {data?.title ?? "…"}{" "}
           <span className="font-semibold text-muted-foreground">{data?.year ?? ""}</span>
         </h1>
+        <WatchedDot item={watched} />
       </div>
       {error && <ErrorNote>{(error as Error).message}</ErrorNote>}
       {isLoading && <Skeleton className="mb-4 h-40 w-full rounded-2xl" />}

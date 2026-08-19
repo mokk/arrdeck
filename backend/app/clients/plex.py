@@ -36,6 +36,18 @@ class PlexClient(BaseClient):
     async def status(self) -> dict:
         return await self.identity()
 
+    async def sections(self) -> list:
+        container = (await self.get("/library/sections")).get("MediaContainer", {})
+        return container.get("Directory") or []
+
+    async def section_items(self, key: str) -> list:
+        # includeGuids gives imdb/tmdb/tvdb ids inline, which is the whole
+        # reason this can be joined to the arrs without per-item lookups
+        container = (
+            await self.get(f"/library/sections/{key}/all", params={"includeGuids": 1}, timeout=30.0)
+        ).get("MediaContainer", {})
+        return container.get("Metadata") or []
+
     async def sessions(self) -> list:
         container = (await self.get("/status/sessions")).get("MediaContainer", {})
         return container.get("Metadata") or []

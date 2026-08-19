@@ -1,3 +1,5 @@
+import type { WatchedItem } from "./types";
+
 export const SERVICE_LABELS: Record<string, string> = {
   radarr: "Radarr",
   sonarr: "Sonarr",
@@ -55,4 +57,20 @@ export function formatDateTime(iso: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+/** Plex indexes watched state under every external id it knows; try each id the
+ * arr holds until one hits. Undefined means Plex has never seen the title. */
+export function watchedFor(
+  map: Record<string, WatchedItem> | null | undefined,
+  ids: { tmdb_id?: number | null; tvdb_id?: number | null; imdb_id?: string | null },
+): WatchedItem | undefined {
+  if (!map) return undefined;
+  const keys = [
+    ids.tmdb_id != null ? `tmdb:${ids.tmdb_id}` : null,
+    ids.tvdb_id != null ? `tvdb:${ids.tvdb_id}` : null,
+    ids.imdb_id ? `imdb:${ids.imdb_id}` : null,
+  ];
+  for (const key of keys) if (key && map[key]) return map[key];
+  return undefined;
 }

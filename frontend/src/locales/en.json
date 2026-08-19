@@ -238,7 +238,9 @@
     "import": "Import settings",
     "allTags": "All",
     "tagAdding": "Adding tag",
-    "tagRemoving": "Removing tag"
+    "tagRemoving": "Removing tag",
+    "watched": "Watched",
+    "watchedPartial": "{{percent}}% watched"
   },
   "toast": {
     "added": "Added to library",

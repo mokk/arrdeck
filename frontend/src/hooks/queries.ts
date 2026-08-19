@@ -18,6 +18,7 @@ import type {
   HealthWarning,
   MediaRequest,
   PlaySession,
+  WatchedItem,
   Subtitles,
   ImportCandidate,
   RenamePreview,
@@ -353,6 +354,14 @@ export const useDiskSpace = (enabled: boolean) =>
     queryFn: () => api.get<ServiceBlock<DiskSpace[]>>("/diskspace"),
     enabled,
     refetchInterval: SLOW,
+  });
+
+export const useWatched = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["watched"],
+    queryFn: () => api.get<ServiceBlock<Record<string, WatchedItem>>>("/watched"),
+    enabled,
+    staleTime: SLOW,
   });
 
 export const usePlaySessions = (enabled: boolean) =>

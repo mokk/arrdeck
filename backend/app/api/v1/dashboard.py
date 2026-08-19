@@ -36,6 +36,7 @@ from ...schemas import (
     HealthWarningOut,
     PlaySessionOut,
     SubtitleSearchIn,
+    WatchedItemOut,
     SubtitlesOut,
     VpnStatusOut,
     CalendarResponse,
@@ -180,6 +181,73 @@ def _plex_session(machine_id: str, item: dict) -> dict:
             else None
         ),
     }
+
+
+def _guid_keys(item: dict) -> list[str]:
+    """Plex reports imdb/tmdb/tvdb ids per item; index under all of them so
+    either arr can join on whichever id it happens to hold."""
+    keys = []
+    for guid in item.get("Guid") or []:
+        raw = guid.get("id") or ""
+        if "://" in raw:
+            source, _, value = raw.partition("://")
+            keys.append(f"{source}:{value}")
+    return keys
+
+
+@router.get("/watched", response_model=ServiceBlock[dict[str, WatchedItemOut]])
+async def watched(plex: PlexClient = Depends(get_plex)):
+    """Watched state keyed by external id (tmdb:123, imdb:tt123, tvdb:123).
+
+    One call per library section rather than per title — the arrs hold the same
+    ids, so the join happens client-side for free.
+    """
+
+    async def fetch() -> dict[str, dict]:
+        async def call() -> dict[str, dict]:
+            identity, sections = await asyncio.gather(
+                plex.identity(), plex.sections(), return_exceptions=True
+            )
+            if isinstance(sections, BaseException):
+                raise sections
+            machine_id = (
+                "" if isinstance(identity, BaseException) else identity.get("machineIdentifier", "")
+            )
+            wanted = [s for s in sections if s.get("type") in ("movie", "show")]
+            results = await asyncio.gather(
+                *(plex.section_items(s["key"]) for s in wanted), return_exceptions=True
+            )
+            out: dict[str, dict] = {}
+            for section, items in zip(wanted, results):
+                if isinstance(items, BaseException):
+                    continue
+                for item in items:
+                    if section.get("type") == "show":
+                        total = item.get("leafCount") or 0
+                        seen = item.get("viewedLeafCount") or 0
+                        progress = seen / total if total else 0.0
+                        is_watched = total > 0 and seen >= total
+                    else:
+                        progress = 1.0 if item.get("viewCount") else 0.0
+                        is_watched = bool(item.get("viewCount"))
+                    rating_key = item.get("ratingKey")
+                    entry = {
+                        "watched": is_watched,
+                        "progress": progress,
+                        "url": (
+                            f"https://app.plex.tv/desktop/#!/server/{machine_id}"
+                            f"/details?key=/library/metadata/{rating_key}"
+                            if machine_id and rating_key
+                            else None
+                        ),
+                    }
+                    for key in _guid_keys(item):
+                        out[key] = entry
+            return out
+
+        return await cached("watched", 600, call)
+
+    return await guarded(fetch(), "watched:block")
 
 
 @router.get("/sessions", response_model=ServiceBlock[list[PlaySessionOut]])

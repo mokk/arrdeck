@@ -257,6 +257,8 @@ class LibraryMovieOut(BaseModel):
     quality_profile_id: int | None = None
     poster: str | None = None
     tags: list[int] = []
+    tmdb_id: int | None = None
+    imdb_id: str | None = None
 
 
 class LibrarySeriesOut(BaseModel):
@@ -271,6 +273,8 @@ class LibrarySeriesOut(BaseModel):
     quality_profile_id: int | None = None
     poster: str | None = None
     tags: list[int] = []
+    tvdb_id: int | None = None
+    imdb_id: str | None = None
 
 
 class ServiceInfoOut(BaseModel):
@@ -544,6 +548,12 @@ class RenamePreviewOut(BaseModel):
 class RenameIn(BaseModel):
     id: int
     file_ids: list[int]
+
+
+class WatchedItemOut(BaseModel):
+    watched: bool = False
+    progress: float = 0.0  # shows: watched episodes / total
+    url: str | None = None
 
 
 class PlaySessionOut(BaseModel):

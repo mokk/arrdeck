@@ -238,7 +238,9 @@
     "import": "Importér indstillinger",
     "allTags": "Alle",
     "tagAdding": "Tilføjer tag",
-    "tagRemoving": "Fjerner tag"
+    "tagRemoving": "Fjerner tag",
+    "watched": "Set",
+    "watchedPartial": "{{percent}}% set"
   },
   "toast": {
     "added": "Tilføjet til biblioteket",

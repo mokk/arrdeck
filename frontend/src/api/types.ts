@@ -49,6 +49,7 @@ export type TorrentSummary = G.TorrentSummaryOut;
 export type ImportCandidate = G.ImportCandidateOut;
 export type RenamePreview = G.RenamePreviewOut;
 export type Tag = G.TagOut;
+export type WatchedItem = G.WatchedItemOut;
 export type PlaySession = G.PlaySessionOut;
 export type Subtitles = G.SubtitlesOut;
 export type VpnStatus = G.VpnStatusOut;

@@ -38,3 +38,28 @@ def test_every_service_can_be_version_probed():
     source = inspect.getsource(probe_version)
     for name in SERVICES:
         assert f'"{name}"' in source, f"probe_version has no branch for {name}"
+
+
+# --- plex watched-state join -------------------------------------------
+
+
+def test_guid_keys_indexes_every_external_id():
+    from app.api.v1.dashboard import _guid_keys
+
+    item = {
+        "Guid": [
+            {"id": "imdb://tt0289043"},
+            {"id": "tmdb://170"},
+            {"id": "tvdb://871"},
+        ]
+    }
+    assert _guid_keys(item) == ["imdb:tt0289043", "tmdb:170", "tvdb:871"]
+
+
+def test_guid_keys_tolerates_missing_or_malformed_guids():
+    from app.api.v1.dashboard import _guid_keys
+
+    assert _guid_keys({}) == []
+    assert _guid_keys({"Guid": [{"id": "plex://movie/abc"}, {"id": "junk"}, {}]}) == [
+        "plex:movie/abc"
+    ]

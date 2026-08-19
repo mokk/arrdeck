@@ -202,6 +202,8 @@ async def library_movies(radarr: RadarrClient = Depends(get_radarr)) -> list[dic
             "quality_profile_id": m.get("qualityProfileId"),
             "poster": _poster(m.get("images")),
             "tags": m.get("tags") or [],
+            "tmdb_id": m.get("tmdbId"),
+            "imdb_id": m.get("imdbId"),
         }
         for m in sorted(items, key=lambda m: m.get("sortTitle", ""))
     ]
@@ -223,6 +225,8 @@ async def library_series(sonarr: SonarrClient = Depends(get_sonarr)) -> list[dic
             "quality_profile_id": s.get("qualityProfileId"),
             "poster": _poster(s.get("images")),
             "tags": s.get("tags") or [],
+            "tvdb_id": s.get("tvdbId"),
+            "imdb_id": s.get("imdbId"),
         }
         for s in sorted(items, key=lambda s: s.get("sortTitle", ""))
     ]
