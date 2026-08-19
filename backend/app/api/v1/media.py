@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import re
 from pathlib import Path
 from urllib.parse import quote, urlparse
 
@@ -40,7 +41,18 @@ POSTER_HOSTS = {
     "images.fanart.tv",
     "fanart.tv",
 }
-POSTER_DIR = Path(get_settings().db_path).parent / "posters"
+from ...posters import POSTER_DIR, touch as _touch_poster
+
+
+# Radarr/Sonarr hand out TMDB's /original artwork — 2000x3000 and over 1 MB —
+# which arrdeck was caching and serving to render a 40px thumbnail. TMDB exposes
+# sized variants at the same path, so normalise to one that suits the UI.
+TMDB_SIZE_RE = re.compile(r"(https://image\.tmdb\.org/t/p/)([^/]+)(/)")
+TMDB_POSTER_SIZE = "w500"
+
+
+def normalise_poster_url(url: str) -> str:
+    return TMDB_SIZE_RE.sub(rf"\1{TMDB_POSTER_SIZE}\3", url)
 
 
 def proxy_poster(url: str | None) -> str | None:
@@ -50,7 +62,7 @@ def proxy_poster(url: str | None) -> str | None:
     host = urlparse(url).hostname
     if host not in POSTER_HOSTS:
         return url
-    return f"/api/v1/poster?u={quote(url, safe='')}"
+    return f"/api/v1/poster?u={quote(normalise_poster_url(url), safe='')}"
 
 
 @router.get("/poster", include_in_schema=False)
@@ -58,9 +70,12 @@ async def poster(u: str, request: Request):
     host = urlparse(u).hostname
     if host not in POSTER_HOSTS:
         raise HTTPException(400, "host not allowed")
+    u = normalise_poster_url(u)
     POSTER_DIR.mkdir(parents=True, exist_ok=True)
     cached_file = POSTER_DIR / (hashlib.sha1(u.encode()).hexdigest() + ".img")
-    if not cached_file.exists():
+    if cached_file.exists():
+        _touch_poster(cached_file)  # keeps popular posters out of the eviction list
+    else:
         try:
             resp = await request.app.state.http.get(u, timeout=15, follow_redirects=True)
             resp.raise_for_status()

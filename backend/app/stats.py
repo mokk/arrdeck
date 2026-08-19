@@ -3,6 +3,7 @@ import logging
 import time
 
 from .db import SettingsDB
+from .posters import prune as prune_posters
 from .registry import Registry
 
 logger = logging.getLogger("arrdeck.stats")
@@ -62,6 +63,7 @@ async def sampler_loop(db: SettingsDB, registry: Registry) -> None:
         try:
             if time.time() - db.last_sample_ts() >= MIN_GAP:
                 db.insert_sample(await collect_sample(registry))
+            await asyncio.to_thread(prune_posters)
         except Exception:  # noqa: BLE001 — the sampler must never die
             logger.exception("stats sample failed")
         await asyncio.sleep(SAMPLE_INTERVAL)
