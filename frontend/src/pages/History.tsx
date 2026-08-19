@@ -6,10 +6,68 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateTime } from "../api/format";
 import type { HistoryItem } from "../api/types";
 import { Card, EmptyNote, Row, StateBadge } from "../components/Blocks";
-import { useHistoryPage } from "../hooks/queries";
+import { SERVICE_LABELS } from "../api/format";
+import { useBlocklist, useBlocklistRemove, useHistoryPage } from "../hooks/queries";
+import { useRegisterSubnav } from "../components/subnav";
 import { usePersistentState } from "../hooks/usePersistentState";
 
 const TYPE_CHIPS = ["fetched", "imported", "failed", "deleted"];
+
+/** Releases arrdeck's own blocklist-&-retry sent here. Without this the list
+ * only ever grew, and a mistakenly blocked release stayed blocked. */
+function BlocklistView() {
+  const { t } = useTranslation();
+  const { data, isFetching } = useBlocklist(true);
+  const remove = useBlocklistRemove();
+  const items = data?.items ?? [];
+
+  if (isFetching && items.length === 0) return <Skeleton className="h-24 w-full rounded-2xl" />;
+  if (items.length === 0) return <EmptyNote>{t("history.blocklistEmpty")}</EmptyNote>;
+
+  const apps = Array.from(new Set(items.map((i) => i.app)));
+  return (
+    <>
+      <div className="mb-3 flex flex-wrap gap-2">
+        {apps.map((app) => (
+          <Button
+            key={app}
+            size="sm"
+            variant="secondary"
+            className="text-destructive"
+            disabled={remove.isPending}
+            onClick={() => remove.mutate({ app })}
+          >
+            {t("history.clearFor", { app: SERVICE_LABELS[app] ?? app })}
+          </Button>
+        ))}
+      </div>
+      <Card>
+        {items.map((item) => (
+          <Row key={`${item.app}-${item.id}`}>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-medium">{item.title || item.source_title}</div>
+              <div className="truncate text-xs text-muted-foreground">{item.source_title}</div>
+              <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <StateBadge state={item.app} />
+                {[item.quality, item.indexer].filter(Boolean).join(" · ")}
+                {item.date ? ` · ${formatDateTime(item.date)}` : ""}
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="shrink-0 text-destructive"
+              disabled={remove.isPending}
+              onClick={() => remove.mutate({ app: item.app, id: item.id })}
+            >
+              {t("history.unblock")}
+            </Button>
+          </Row>
+        ))}
+      </Card>
+    </>
+  );
+}
 
 export default function HistoryPage() {
   const { t } = useTranslation();
@@ -19,6 +77,15 @@ export default function HistoryPage() {
   const [appFilter, setAppFilter] = usePersistentState<string>("history.app", "all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const { data, isFetching } = useHistoryPage(page);
+  const [tab, setTab] = useState<"history" | "blocklist">("history");
+  useRegisterSubnav(
+    [
+      { value: "history", label: t("history.title") },
+      { value: "blocklist", label: t("history.blocklist") },
+    ],
+    tab,
+    (v) => setTab(v as "history" | "blocklist"),
+  );
 
   useEffect(() => {
     if (data) {
@@ -44,6 +111,8 @@ export default function HistoryPage() {
       {label}
     </Button>
   );
+
+  if (tab === "blocklist") return <BlocklistView />;
 
   return (
     <>

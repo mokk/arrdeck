@@ -284,7 +284,11 @@
     "title": "Historik",
     "seeAll": "Se alle",
     "loadMore": "Indlæs flere",
-    "loadingMore": "Indlæser…"
+    "loadingMore": "Indlæser…",
+    "blocklist": "Blokeringsliste",
+    "blocklistEmpty": "Intet er blokeret",
+    "unblock": "Ophæv",
+    "clearFor": "Ryd {{app}}"
   },
   "wanted": {
     "title": "Ønsket",

@@ -76,6 +76,23 @@ class ArrClient(BaseClient):
     async def health(self) -> list:
         return await self.get("/health")
 
+    async def blocklist(self, page: int = 1, page_size: int = 50) -> dict:
+        return await self.get(
+            "/blocklist",
+            params={
+                "page": page,
+                "pageSize": page_size,
+                "sortKey": "date",
+                "sortDirection": "descending",
+            },
+        )
+
+    async def blocklist_delete(self, entry_id: int) -> None:
+        await self.request("DELETE", f"/blocklist/{entry_id}")
+
+    async def blocklist_clear(self) -> None:
+        await self.request("DELETE", "/blocklist/bulk", json={"ids": []})
+
     async def rename_preview(self, **params: int) -> list:
         # Radarr: movieId=; Sonarr: seriesId= (+ optional seasonNumber=)
         return await self.get("/rename", params=params)

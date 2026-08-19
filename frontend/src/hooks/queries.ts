@@ -14,6 +14,7 @@ import type {
   HistoryPage,
   RecentItem,
   SeriesDetail,
+  BlocklistPage,
   DiskSpace,
   HealthWarning,
   MediaRequest,
@@ -346,6 +347,23 @@ export function useRevokeSessions() {
     mutationFn: (id?: string) =>
       api.delete<{ revoked?: number }>(id ? `/auth/sessions/${id}` : "/auth/sessions"),
     onSettled: () => qc.invalidateQueries({ queryKey: ["sessions"] }),
+  });
+}
+
+export const useBlocklist = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["blocklist"],
+    queryFn: () => api.get<BlocklistPage>("/blocklist"),
+    enabled,
+  });
+
+export function useBlocklistRemove() {
+  const qc = useQueryClient();
+  return useMutation({
+    // no id clears the whole list for that app
+    mutationFn: ({ app, id }: { app: string; id?: number }) =>
+      api.delete<void>(id ? `/blocklist/${app}/${id}` : `/blocklist/${app}`),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["blocklist"] }),
   });
 }
 

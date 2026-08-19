@@ -195,6 +195,54 @@ export type BackupOut = {
 };
 
 /**
+ * BlocklistItemOut
+ */
+export type BlocklistItemOut = {
+    /**
+     * App
+     */
+    app: 'radarr' | 'sonarr';
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title?: string;
+    /**
+     * Source Title
+     */
+    source_title?: string;
+    /**
+     * Quality
+     */
+    quality?: string | null;
+    /**
+     * Date
+     */
+    date?: string | null;
+    /**
+     * Indexer
+     */
+    indexer?: string | null;
+};
+
+/**
+ * BlocklistPageOut
+ */
+export type BlocklistPageOut = {
+    /**
+     * Items
+     */
+    items?: Array<BlocklistItemOut>;
+    /**
+     * Total
+     */
+    total?: number;
+};
+
+/**
  * Body_add_torrent_file_api_v1_torrents__client__add_file_post
  */
 export type BodyAddTorrentFileApiV1TorrentsClientAddFilePost = {
@@ -4481,6 +4529,100 @@ export type TestIndexerApiV1IndexersIndexerIdTestPostResponses = {
 };
 
 export type TestIndexerApiV1IndexersIndexerIdTestPostResponse = TestIndexerApiV1IndexersIndexerIdTestPostResponses[keyof TestIndexerApiV1IndexersIndexerIdTestPostResponses];
+
+export type BlocklistApiV1BlocklistGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page
+         */
+        page?: number;
+    };
+    url: '/api/v1/blocklist';
+};
+
+export type BlocklistApiV1BlocklistGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type BlocklistApiV1BlocklistGetError = BlocklistApiV1BlocklistGetErrors[keyof BlocklistApiV1BlocklistGetErrors];
+
+export type BlocklistApiV1BlocklistGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: BlocklistPageOut;
+};
+
+export type BlocklistApiV1BlocklistGetResponse = BlocklistApiV1BlocklistGetResponses[keyof BlocklistApiV1BlocklistGetResponses];
+
+export type BlocklistRemoveApiV1BlocklistAppEntryIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * App
+         */
+        app: string;
+        /**
+         * Entry Id
+         */
+        entry_id: number;
+    };
+    query?: never;
+    url: '/api/v1/blocklist/{app}/{entry_id}';
+};
+
+export type BlocklistRemoveApiV1BlocklistAppEntryIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type BlocklistRemoveApiV1BlocklistAppEntryIdDeleteError = BlocklistRemoveApiV1BlocklistAppEntryIdDeleteErrors[keyof BlocklistRemoveApiV1BlocklistAppEntryIdDeleteErrors];
+
+export type BlocklistRemoveApiV1BlocklistAppEntryIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type BlocklistRemoveApiV1BlocklistAppEntryIdDeleteResponse = BlocklistRemoveApiV1BlocklistAppEntryIdDeleteResponses[keyof BlocklistRemoveApiV1BlocklistAppEntryIdDeleteResponses];
+
+export type BlocklistClearApiV1BlocklistAppDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * App
+         */
+        app: string;
+    };
+    query?: never;
+    url: '/api/v1/blocklist/{app}';
+};
+
+export type BlocklistClearApiV1BlocklistAppDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type BlocklistClearApiV1BlocklistAppDeleteError = BlocklistClearApiV1BlocklistAppDeleteErrors[keyof BlocklistClearApiV1BlocklistAppDeleteErrors];
+
+export type BlocklistClearApiV1BlocklistAppDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type BlocklistClearApiV1BlocklistAppDeleteResponse = BlocklistClearApiV1BlocklistAppDeleteResponses[keyof BlocklistClearApiV1BlocklistAppDeleteResponses];
 
 export type TagsApiV1TagsAppGetData = {
     body?: never;

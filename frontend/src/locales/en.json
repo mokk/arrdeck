@@ -284,7 +284,11 @@
     "title": "History",
     "seeAll": "See all",
     "loadMore": "Load more",
-    "loadingMore": "Loading…"
+    "loadingMore": "Loading…",
+    "blocklist": "Blocklist",
+    "blocklistEmpty": "Nothing is blocked",
+    "unblock": "Unblock",
+    "clearFor": "Clear {{app}}"
   },
   "wanted": {
     "title": "Wanted",

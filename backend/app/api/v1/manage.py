@@ -22,6 +22,8 @@ from ...schemas import (
     EpisodeOut,
     IndexerOut,
     LibraryMovieOut,
+    BlocklistItemOut,
+    BlocklistPageOut,
     TagOut,
     LibrarySeriesOut,
     LibraryUpdateIn,
@@ -171,6 +173,64 @@ async def test_indexer(indexer_id: int, prowlarr: ProwlarrClient = Depends(get_p
     if full is None:
         raise HTTPException(404, "indexer not found")
     await prowlarr.test_indexer(full)
+
+
+def _blocklist_item(app: str, rec: dict) -> dict:
+    media = rec.get("movie") or rec.get("series") or {}
+    return {
+        "app": app,
+        "id": rec.get("id", 0),
+        "title": media.get("title", ""),
+        "source_title": rec.get("sourceTitle", ""),
+        "quality": ((rec.get("quality") or {}).get("quality") or {}).get("name"),
+        "date": rec.get("date"),
+        "indexer": rec.get("indexer"),
+    }
+
+
+@router.get("/blocklist", response_model=BlocklistPageOut)
+async def blocklist(
+    page: int = 1,
+    radarr: RadarrClient = Depends(get_radarr),
+    sonarr: SonarrClient = Depends(get_sonarr),
+) -> dict:
+    """Releases arrdeck's own blocklist-&-retry put here, with no way to undo
+    them until now. Merged newest-first across both arrs."""
+    results = await asyncio.gather(
+        radarr.blocklist(page), sonarr.blocklist(page), return_exceptions=True
+    )
+    items: list[dict] = []
+    total = 0
+    for app, result in zip(("radarr", "sonarr"), results):
+        if isinstance(result, BaseException):
+            continue
+        total += result.get("totalRecords", 0)
+        items.extend(_blocklist_item(app, r) for r in result.get("records") or [])
+    items.sort(key=lambda i: i.get("date") or "", reverse=True)
+    return {"items": items, "total": total}
+
+
+@router.delete("/blocklist/{app}/{entry_id}", status_code=204)
+async def blocklist_remove(
+    app: str,
+    entry_id: int,
+    radarr: RadarrClient = Depends(get_radarr),
+    sonarr: SonarrClient = Depends(get_sonarr),
+) -> None:
+    if app not in ("radarr", "sonarr"):
+        raise HTTPException(404, f"unknown app {app!r}")
+    await (radarr if app == "radarr" else sonarr).blocklist_delete(entry_id)
+
+
+@router.delete("/blocklist/{app}", status_code=204)
+async def blocklist_clear(
+    app: str,
+    radarr: RadarrClient = Depends(get_radarr),
+    sonarr: SonarrClient = Depends(get_sonarr),
+) -> None:
+    if app not in ("radarr", "sonarr"):
+        raise HTTPException(404, f"unknown app {app!r}")
+    await (radarr if app == "radarr" else sonarr).blocklist_clear()
 
 
 @router.get("/tags/{app}", response_model=list[TagOut])

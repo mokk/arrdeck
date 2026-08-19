@@ -628,6 +628,21 @@ class MediaRequestOut(BaseModel):
     seasons: list[int] = []
 
 
+class BlocklistItemOut(BaseModel):
+    app: Literal["radarr", "sonarr"]
+    id: int
+    title: str = ""  # the movie/series it belongs to
+    source_title: str = ""  # the release that was blocked
+    quality: str | None = None
+    date: str | None = None
+    indexer: str | None = None
+
+
+class BlocklistPageOut(BaseModel):
+    items: list[BlocklistItemOut] = []
+    total: int = 0
+
+
 class SessionOut(BaseModel):
     id: str  # a prefix of the token hash, enough to address it
     created: int
