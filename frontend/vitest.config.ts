@@ -11,6 +11,8 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    // jsdom 29 has no Storage implementation; the setup file supplies one
+    setupFiles: ["src/test-setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
   },
 });

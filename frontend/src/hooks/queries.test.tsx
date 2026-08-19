@@ -13,7 +13,13 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("../api/client", () => ({ api }));
 
-import { useDiskSpace, usePushEvents, useSavePushEvents } from "./queries";
+import {
+  useDiskSpace,
+  usePushEvents,
+  useSavePushEvents,
+  useSetSpeedLimit,
+  useSubtitleSearch,
+} from "./queries";
 
 function wrapper({ children }: { children: ReactNode }) {
   const client = new QueryClient({
@@ -64,5 +70,37 @@ describe("useDiskSpace", () => {
   it("stays quiet until the arrs are known to be configured", () => {
     renderHook(() => useDiskSpace(false), { wrapper });
     expect(api.get).not.toHaveBeenCalled();
+  });
+});
+
+describe("useSetSpeedLimit", () => {
+  it("calls every client, because they don't share a throttle", async () => {
+    api.post.mockResolvedValue(undefined);
+    const { result } = renderHook(() => useSetSpeedLimit(), { wrapper });
+    result.current.mutate({ clients: ["qbittorrent", "transmission"], enabled: true });
+    await waitFor(() => expect(api.post).toHaveBeenCalledTimes(2));
+    expect(api.post).toHaveBeenCalledWith("/torrents/qbittorrent/speed-limit", { enabled: true });
+    expect(api.post).toHaveBeenCalledWith("/torrents/transmission/speed-limit", { enabled: true });
+  });
+
+  it("does nothing when no client is configured", async () => {
+    const { result } = renderHook(() => useSetSpeedLimit(), { wrapper });
+    result.current.mutate({ clients: [], enabled: true });
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+    expect(api.post).not.toHaveBeenCalled();
+  });
+});
+
+describe("useSubtitleSearch", () => {
+  it("sends the series id for an episode, which bazarr needs alongside the episode id", async () => {
+    api.post.mockResolvedValue(undefined);
+    const { result } = renderHook(() => useSubtitleSearch(), { wrapper });
+    result.current.mutate({ kind: "episode", id: 4296, series_id: 57 });
+    await waitFor(() => expect(api.post).toHaveBeenCalled());
+    expect(api.post).toHaveBeenCalledWith("/subtitles/search", {
+      kind: "episode",
+      id: 4296,
+      series_id: 57,
+    });
   });
 });

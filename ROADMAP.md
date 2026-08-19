@@ -30,6 +30,10 @@ Full implementation notes for A–G are in this file's git history (`git log -p 
 | R | Plex now-playing + open-in-Plex links | 2026-08-19 |
 | S | Radarr/Sonarr tags: filter chips and bulk apply | 2026-08-19 |
 | T | Manual import sheet, rename preview and apply | 2026-08-19 |
+| U | Plex watched state joined to the arrs, watched dots | 2026-08-19 |
+| V | Manual-import target picker | 2026-08-19 |
+| W | Notification rules: quiet hours and tag filters | 2026-08-19 |
+| X | Frontend test depth (12 → 43 vitest tests) | 2026-08-19 |
 
 Also already done, and easy to mistake for gaps: **cutoff-unmet** (it's the second
 subnav tab on `/wanted`, `manage.py:483` takes `kind=missing|cutoff`), **per-file
@@ -52,37 +56,36 @@ Phases O, P, Q and R each add a new service. Every one touches the same eight pl
 
 ## Not done
 
-Deliberately dropped or deferred during I–T:
-
 - **Uptime Kuma** (was part of P) — skipped by choice. arrdeck already probes its
   own nine services; Uptime Kuma has no clean REST API and would mostly duplicate that.
-- **Watched state and the library id-join** (was part of R) — R shipped now-playing
-  and play deep-links only. Watched dots on library rows still need matching Plex's
-  library to the arrs by TMDB/IMDb id, which is the bulk of that work.
-- **Manual-import target picker** (was part of T) — the sheet lists what the arr
-  found, shows why it balked, and imports the files it *can* map. Re-assigning a file
-  to a different movie/episode by hand still means opening the arr.
+- **Emby and Jellyfin** — both run alongside Plex, but R and U integrated Plex only.
+  The two share an API, so one client would cover both if it ever matters.
+- **Page-component tests** — X covered the load-bearing logic (fetch wrapper, id
+  join, sorting, persistence, hooks) and one component. Full pages are still untested.
 
 ## Next candidates
 
-- **U. Watched state** — finish R: join Plex's library to Radarr/Sonarr on
-  TMDB/IMDb id, show a watched dot on library rows and the Movie page. Needs a
-  cached id map; the sessions client and service entry already exist.
-- **V. Manual-import target picker** — finish T: let a file be pointed at a
-  chosen movie/episode + quality. `GET /api/v3/movie/lookup` and the existing
-  episode endpoints supply the pickers.
-- **W. Notification rules** — per-event routing beyond on/off, e.g. only notify
-  for tagged series (phase S made tags available), or quiet hours.
-- **X. Frontend test depth** — 12 vitest tests today, all on `format.ts` and the
-  query hooks. The page components have none.
+Nothing is half-finished; these are new work.
+
+- **Y. Notification actions** — buttons on the banner itself (blocklist & retry a
+  failed download, approve a request) via `showNotification`'s `actions`, handled in
+  the service worker. iOS support is limited, so check before building.
+- **Z. Calendar polish** — the card is the first thing on the dashboard now; a
+  week strip and per-day drill-in would earn that position.
+- **AA. Library health** — surface Radarr/Sonarr's own "missing files" and
+  orphaned-file checks, which neither the health card nor Wanted covers today.
 
 Notes carried forward:
 
-- Adding a service still means the eight places listed above; `tests/test_services.py`
-  now fails the build if the `ServiceName` literal, registry branch or version probe
+- Adding a service means the eight places listed above; `tests/test_services.py`
+  fails the build if the `ServiceName` literal, registry branch or version probe
   is missed (it caught exactly that during P).
-- `stats_samples` and `push_subscriptions` both have migrations now — follow the
+- `stats_samples` and `push_subscriptions` both have migrations — follow the
   `_migrate_columns` pattern in `db.py` rather than editing the CREATE TABLE.
 - gluetun's control server is authenticated: the role lives in
   `glue_torrent/gluetun/data/auth/config.toml` (gitignored) and grants only
   `GET /v1/publicip/ip`, `/v1/portforward` and `/v1/vpn/status`.
+- `starlette` is pinned deliberately — it arrives via fastapi, whose range let a
+  fresh build jump to 1.6 while local venvs sat on 0.46.
+- jsdom 29 ships no `Storage`, so `src/test-setup.ts` supplies one; without it
+  anything built on `usePersistentState` is untestable.
