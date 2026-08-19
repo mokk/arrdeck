@@ -1465,6 +1465,30 @@ export type SettingsImportIn = {
 };
 
 /**
+ * SpeedLimitIn
+ */
+export type SpeedLimitIn = {
+    /**
+     * Enabled
+     */
+    enabled: boolean;
+};
+
+/**
+ * SpeedLimitOut
+ */
+export type SpeedLimitOut = {
+    /**
+     * Qbittorrent
+     */
+    qbittorrent?: boolean | null;
+    /**
+     * Transmission
+     */
+    transmission?: boolean | null;
+};
+
+/**
  * StatsSampleOut
  */
 export type StatsSampleOut = {
@@ -1615,6 +1639,20 @@ export type TorrentFileToggleIn = {
 };
 
 /**
+ * TorrentForceStartIn
+ */
+export type TorrentForceStartIn = {
+    /**
+     * Ids
+     */
+    ids: Array<string>;
+    /**
+     * Value
+     */
+    value?: boolean;
+};
+
+/**
  * TorrentGroupOut
  */
 export type TorrentGroupOut = {
@@ -1695,6 +1733,24 @@ export type TorrentOut = {
      * Error
      */
     error?: string | null;
+    /**
+     * Tags
+     */
+    tags?: Array<string>;
+};
+
+/**
+ * TorrentPriorityIn
+ */
+export type TorrentPriorityIn = {
+    /**
+     * Ids
+     */
+    ids: Array<string>;
+    /**
+     * Position
+     */
+    position: 'top' | 'bottom' | 'up' | 'down';
 };
 
 /**
@@ -1714,6 +1770,24 @@ export type TorrentSummaryOut = {
      * Active
      */
     active?: Array<TorrentOut>;
+};
+
+/**
+ * TorrentTagsIn
+ */
+export type TorrentTagsIn = {
+    /**
+     * Ids
+     */
+    ids: Array<string>;
+    /**
+     * Tags
+     */
+    tags: Array<string>;
+    /**
+     * Remove
+     */
+    remove?: boolean;
 };
 
 /**
@@ -2519,6 +2593,150 @@ export type TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostResponse
 };
 
 export type TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostResponse = TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostResponses[keyof TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostResponses];
+
+export type TorrentPriorityApiV1TorrentsClientPriorityPostData = {
+    body: TorrentPriorityIn;
+    path: {
+        /**
+         * Client
+         */
+        client: string;
+    };
+    query?: never;
+    url: '/api/v1/torrents/{client}/priority';
+};
+
+export type TorrentPriorityApiV1TorrentsClientPriorityPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type TorrentPriorityApiV1TorrentsClientPriorityPostError = TorrentPriorityApiV1TorrentsClientPriorityPostErrors[keyof TorrentPriorityApiV1TorrentsClientPriorityPostErrors];
+
+export type TorrentPriorityApiV1TorrentsClientPriorityPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type TorrentPriorityApiV1TorrentsClientPriorityPostResponse = TorrentPriorityApiV1TorrentsClientPriorityPostResponses[keyof TorrentPriorityApiV1TorrentsClientPriorityPostResponses];
+
+export type TorrentForceStartApiV1TorrentsQbittorrentForceStartPostData = {
+    body: TorrentForceStartIn;
+    path?: never;
+    query?: never;
+    url: '/api/v1/torrents/qbittorrent/force-start';
+};
+
+export type TorrentForceStartApiV1TorrentsQbittorrentForceStartPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type TorrentForceStartApiV1TorrentsQbittorrentForceStartPostError = TorrentForceStartApiV1TorrentsQbittorrentForceStartPostErrors[keyof TorrentForceStartApiV1TorrentsQbittorrentForceStartPostErrors];
+
+export type TorrentForceStartApiV1TorrentsQbittorrentForceStartPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type TorrentForceStartApiV1TorrentsQbittorrentForceStartPostResponse = TorrentForceStartApiV1TorrentsQbittorrentForceStartPostResponses[keyof TorrentForceStartApiV1TorrentsQbittorrentForceStartPostResponses];
+
+export type QbitTagsApiV1TorrentsQbittorrentTagsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/torrents/qbittorrent/tags';
+};
+
+export type QbitTagsApiV1TorrentsQbittorrentTagsGetResponses = {
+    /**
+     * Response Qbit Tags Api V1 Torrents Qbittorrent Tags Get
+     *
+     * Successful Response
+     */
+    200: Array<string>;
+};
+
+export type QbitTagsApiV1TorrentsQbittorrentTagsGetResponse = QbitTagsApiV1TorrentsQbittorrentTagsGetResponses[keyof QbitTagsApiV1TorrentsQbittorrentTagsGetResponses];
+
+export type QbitSetTagsApiV1TorrentsQbittorrentTagsPostData = {
+    body: TorrentTagsIn;
+    path?: never;
+    query?: never;
+    url: '/api/v1/torrents/qbittorrent/tags';
+};
+
+export type QbitSetTagsApiV1TorrentsQbittorrentTagsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type QbitSetTagsApiV1TorrentsQbittorrentTagsPostError = QbitSetTagsApiV1TorrentsQbittorrentTagsPostErrors[keyof QbitSetTagsApiV1TorrentsQbittorrentTagsPostErrors];
+
+export type QbitSetTagsApiV1TorrentsQbittorrentTagsPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type QbitSetTagsApiV1TorrentsQbittorrentTagsPostResponse = QbitSetTagsApiV1TorrentsQbittorrentTagsPostResponses[keyof QbitSetTagsApiV1TorrentsQbittorrentTagsPostResponses];
+
+export type SpeedLimitApiV1TorrentsSpeedLimitGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/torrents/speed-limit';
+};
+
+export type SpeedLimitApiV1TorrentsSpeedLimitGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: SpeedLimitOut;
+};
+
+export type SpeedLimitApiV1TorrentsSpeedLimitGetResponse = SpeedLimitApiV1TorrentsSpeedLimitGetResponses[keyof SpeedLimitApiV1TorrentsSpeedLimitGetResponses];
+
+export type SetSpeedLimitApiV1TorrentsClientSpeedLimitPostData = {
+    body: SpeedLimitIn;
+    path: {
+        /**
+         * Client
+         */
+        client: string;
+    };
+    query?: never;
+    url: '/api/v1/torrents/{client}/speed-limit';
+};
+
+export type SetSpeedLimitApiV1TorrentsClientSpeedLimitPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type SetSpeedLimitApiV1TorrentsClientSpeedLimitPostError = SetSpeedLimitApiV1TorrentsClientSpeedLimitPostErrors[keyof SetSpeedLimitApiV1TorrentsClientSpeedLimitPostErrors];
+
+export type SetSpeedLimitApiV1TorrentsClientSpeedLimitPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type SetSpeedLimitApiV1TorrentsClientSpeedLimitPostResponse = SetSpeedLimitApiV1TorrentsClientSpeedLimitPostResponses[keyof SetSpeedLimitApiV1TorrentsClientSpeedLimitPostResponses];
 
 export type BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostData = {
     body?: never;

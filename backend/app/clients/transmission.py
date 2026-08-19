@@ -106,6 +106,16 @@ class TransmissionClient(BaseClient):
             },
         )
 
+    async def queue_move(self, ids: list[int], position: str) -> None:
+        # position: "top" | "bottom" | "up" | "down"
+        await self.rpc(f"queue-move-{position}", {"ids": ids})
+
+    async def alt_speed_enabled(self) -> bool:
+        return bool((await self.session()).get("alt-speed-enabled"))
+
+    async def set_alt_speed(self, enabled: bool) -> None:
+        await self.rpc("session-set", {"alt-speed-enabled": enabled})
+
     async def add_torrent(
         self,
         url: str | None = None,

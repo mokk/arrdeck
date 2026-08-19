@@ -40,6 +40,7 @@ class TorrentOut(BaseModel):
     added_on: int | None = None  # unix seconds
     tracker: str | None = None  # tracker hostname, e.g. torrentleech.org
     error: str | None = None
+    tags: list[str] = []  # qBittorrent only
 
 
 class TransferTotals(BaseModel):
@@ -303,6 +304,31 @@ class TorrentDetailsOut(BaseModel):
     category: str | None = None  # qbittorrent only
     categories: list[str] = []
     trackers: list[TrackerOut] = []
+
+
+class TorrentPriorityIn(BaseModel):
+    ids: list[str]
+    position: Literal["top", "bottom", "up", "down"]
+
+
+class TorrentForceStartIn(BaseModel):
+    ids: list[str]
+    value: bool = True
+
+
+class TorrentTagsIn(BaseModel):
+    ids: list[str]
+    tags: list[str]
+    remove: bool = False
+
+
+class SpeedLimitOut(BaseModel):
+    qbittorrent: bool | None = None  # None = not configured / unreachable
+    transmission: bool | None = None
+
+
+class SpeedLimitIn(BaseModel):
+    enabled: bool
 
 
 class TorrentLimitsIn(BaseModel):

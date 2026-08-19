@@ -10,13 +10,18 @@ from ...clients.sonarr import SonarrClient
 from ...clients.transmission import TransmissionClient
 from ...deps import get_qbit, get_radarr, get_sonarr, get_transmission
 from ...schemas import (
+    SpeedLimitIn,
+    SpeedLimitOut,
     TorrentActionIn,
     TorrentCategoryIn,
     TorrentDeleteIn,
     TorrentDetailsOut,
     TorrentFileOut,
     TorrentFileToggleIn,
+    TorrentForceStartIn,
     TorrentLimitsIn,
+    TorrentPriorityIn,
+    TorrentTagsIn,
     TrackerOut,
 )
 
@@ -236,6 +241,86 @@ async def torrent_category(
     torrent_id: str, body: TorrentCategoryIn, qbit: QbittorrentClient = Depends(get_qbit)
 ) -> None:
     await qbit.set_category([torrent_id], body.category)
+
+
+QBIT_PRIORITY = {
+    "top": "topPrio",
+    "bottom": "bottomPrio",
+    "up": "increasePrio",
+    "down": "decreasePrio",
+}
+
+
+@router.post("/torrents/{client}/priority", status_code=204)
+async def torrent_priority(
+    client: str,
+    body: TorrentPriorityIn,
+    qbit: QbittorrentClient = Depends(get_qbit),
+    tm: TransmissionClient = Depends(get_transmission),
+) -> None:
+    if client == "qbittorrent":
+        await qbit.set_priority(body.ids, QBIT_PRIORITY[body.position])
+    elif client == "transmission":
+        await tm.queue_move(_tm_ids(body.ids), body.position)
+    else:
+        raise HTTPException(404, f"unknown client {client!r}")
+
+
+@router.post("/torrents/qbittorrent/force-start", status_code=204)
+async def torrent_force_start(
+    body: TorrentForceStartIn, qbit: QbittorrentClient = Depends(get_qbit)
+) -> None:
+    await qbit.set_force_start(body.ids, body.value)
+
+
+@router.get("/torrents/qbittorrent/tags", response_model=list[str])
+async def qbit_tags(qbit: QbittorrentClient = Depends(get_qbit)) -> list[str]:
+    return await qbit.tags()
+
+
+@router.post("/torrents/qbittorrent/tags", status_code=204)
+async def qbit_set_tags(
+    body: TorrentTagsIn, qbit: QbittorrentClient = Depends(get_qbit)
+) -> None:
+    if body.remove:
+        await qbit.remove_tags(body.ids, body.tags)
+    else:
+        await qbit.add_tags(body.ids, body.tags)
+
+
+@router.get("/torrents/speed-limit", response_model=SpeedLimitOut)
+async def speed_limit(
+    qbit: QbittorrentClient = Depends(get_qbit),
+    tm: TransmissionClient = Depends(get_transmission),
+) -> dict:
+    """Alternate ("throttled") speed mode, per client. None where the client
+    isn't configured or didn't answer — a missing client shouldn't hide the
+    toggle for the one that is there."""
+    results = await asyncio.gather(
+        qbit.alt_speed_enabled(), tm.alt_speed_enabled(), return_exceptions=True
+    )
+    return {
+        name: None if isinstance(value, BaseException) else value
+        for name, value in zip(("qbittorrent", "transmission"), results)
+    }
+
+
+@router.post("/torrents/{client}/speed-limit", status_code=204)
+async def set_speed_limit(
+    client: str,
+    body: SpeedLimitIn,
+    qbit: QbittorrentClient = Depends(get_qbit),
+    tm: TransmissionClient = Depends(get_transmission),
+) -> None:
+    if client == "qbittorrent":
+        # qBittorrent only offers a toggle, so read first and no-op when it
+        # already matches — otherwise a "turn on" could turn it off
+        if await qbit.alt_speed_enabled() != body.enabled:
+            await qbit.toggle_alt_speed()
+    elif client == "transmission":
+        await tm.set_alt_speed(body.enabled)
+    else:
+        raise HTTPException(404, f"unknown client {client!r}")
 
 
 @router.post("/queue/{app}/{item_id}/blocklist-retry", status_code=204)

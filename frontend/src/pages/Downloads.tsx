@@ -48,6 +48,12 @@ import {
   useTorrentFileToggle,
   useTorrentLimits,
   useTorrentRecheck,
+  useTorrentPriority,
+  useTorrentForceStart,
+  useQbitTags,
+  useTorrentTags,
+  useSpeedLimit,
+  useSetSpeedLimit,
   useTorrents,
 } from "../hooks/queries";
 import { Segmented } from "../components/Blocks";
@@ -104,6 +110,10 @@ function TorrentDetailsSection({ torrent }: { torrent: Torrent }) {
   const limits = useTorrentLimits();
   const category = useTorrentCategory();
   const recheck = useTorrentRecheck();
+  const priority = useTorrentPriority();
+  const forceStart = useTorrentForceStart();
+  const tags = useTorrentTags();
+  const { data: allTags } = useQbitTags(torrent.client === "qbittorrent");
   const fileToggle = useTorrentFileToggle();
   const [dl, setDl] = useState<string | null>(null);
   const [ul, setUl] = useState<string | null>(null);
@@ -161,6 +171,32 @@ function TorrentDetailsSection({ torrent }: { torrent: Torrent }) {
           {t("dl.recheck")}
         </Button>
       </div>
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <Label className="text-xs text-muted-foreground">{t("dl.queue")}</Label>
+        {(["top", "up", "down", "bottom"] as const).map((position) => (
+          <Button
+            key={position}
+            size="sm"
+            variant="secondary"
+            disabled={priority.isPending}
+            onClick={() =>
+              priority.mutate({ client: torrent.client, ids: [torrent.id], position })
+            }
+          >
+            {t(`dl.queue_${position}`)}
+          </Button>
+        ))}
+        {torrent.client === "qbittorrent" && (
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={forceStart.isPending}
+            onClick={() => forceStart.mutate({ ids: [torrent.id], value: true })}
+          >
+            {t("dl.forceStart")}
+          </Button>
+        )}
+      </div>
       {torrent.client === "qbittorrent" && (data.categories?.length ?? 0) > 0 && (
         <div className="mb-2 flex items-center gap-2">
           <Label className="text-xs text-muted-foreground">{t("dl.category")}</Label>
@@ -183,6 +219,27 @@ function TorrentDetailsSection({ torrent }: { torrent: Torrent }) {
               ))}
             </SelectContent>
           </Select>
+        </div>
+      )}
+      {torrent.client === "qbittorrent" && (allTags?.length ?? 0) > 0 && (
+        <div className="mb-2 flex flex-wrap items-center gap-1.5">
+          <Label className="text-xs text-muted-foreground">{t("dl.tags")}</Label>
+          {(allTags ?? []).map((tag) => {
+            const on = (torrent.tags ?? []).includes(tag);
+            return (
+              <button
+                key={tag}
+                disabled={tags.isPending}
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-xs font-semibold active:opacity-60",
+                  on ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
+                )}
+                onClick={() => tags.mutate({ ids: [torrent.id], tags: [tag], remove: on })}
+              >
+                {tag}
+              </button>
+            );
+          })}
         </div>
       )}
       <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -577,16 +634,26 @@ export default function Downloads() {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [adding, setAdding] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
+  const { data: speed } = useSpeedLimit(clientList.length > 0);
+  const setSpeed = useSetSpeedLimit();
+  // on when every configured client is throttled
+  const throttled =
+    clientList.length > 0 && clientList.every((c) => speed?.[c] === true);
   useRegisterSortButton(() => setSortOpen(true));
   useRegisterSubnav(
     [
       { value: "add", label: `+ ${t("dl.addTorrent")}` },
+      ...(clientList.length > 0
+        ? [{ value: "throttle", label: throttled ? t("dl.throttleOn") : t("dl.throttle") }]
+        : []),
       { value: "select", label: selectMode ? t("dl.done") : t("dl.select") },
     ],
-    selectMode ? "select" : "",
+    selectMode ? "select" : throttled ? "throttle" : "",
     (v) => {
       if (v === "add") {
         setAdding(true);
+      } else if (v === "throttle") {
+        setSpeed.mutate({ clients: [...clientList], enabled: !throttled });
       } else {
         setSelectMode(!selectMode);
         setChecked(new Set());

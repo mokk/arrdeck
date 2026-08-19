@@ -115,7 +115,16 @@
     "startPaused": "Start pauset",
     "client": "Klient",
     "trackers": "Trackere",
-    "forceImport": "Gennemtving import"
+    "forceImport": "Gennemtving import",
+    "queue": "Kø",
+    "queue_top": "Øverst",
+    "queue_up": "Op",
+    "queue_down": "Ned",
+    "queue_bottom": "Nederst",
+    "forceStart": "Tvangsstart",
+    "tags": "Tags",
+    "throttle": "Begræns",
+    "throttleOn": "Begrænset"
   },
   "add": {
     "title": "Tilføj",

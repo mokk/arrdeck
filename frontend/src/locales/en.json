@@ -115,7 +115,16 @@
     "startPaused": "Start paused",
     "client": "Client",
     "trackers": "Trackers",
-    "forceImport": "Force import"
+    "forceImport": "Force import",
+    "queue": "Queue",
+    "queue_top": "Top",
+    "queue_up": "Up",
+    "queue_down": "Down",
+    "queue_bottom": "Bottom",
+    "forceStart": "Force start",
+    "tags": "Tags",
+    "throttle": "Throttle",
+    "throttleOn": "Throttled"
   },
   "add": {
     "title": "Add",

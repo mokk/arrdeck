@@ -36,6 +36,7 @@ import type {
   ServiceInfo,
   ServiceSettings,
   ServiceStatus,
+  SpeedLimit,
   Torrent,
   TorrentGroup,
 } from "../api/types";
@@ -389,6 +390,72 @@ export const useTorrentDetails = (client: string, id: string, enabled: boolean) 
     queryFn: () => api.get<TorrentDetails>(`/torrents/${client}/${id}/details`),
     enabled,
   });
+
+export const useSpeedLimit = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["speedLimit"],
+    queryFn: () => api.get<SpeedLimit>("/torrents/speed-limit"),
+    enabled,
+    refetchInterval: MEDIUM,
+  });
+
+export function useSetSpeedLimit() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ clients, enabled }: { clients: string[]; enabled: boolean }) => {
+      // one call per client: they don't share a throttle
+      for (const client of clients) {
+        await api.post<void>(`/torrents/${client}/speed-limit`, { enabled });
+      }
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["speedLimit"] }),
+  });
+}
+
+export function useTorrentPriority() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      client,
+      ids,
+      position,
+    }: {
+      client: string;
+      ids: string[];
+      position: "top" | "bottom" | "up" | "down";
+    }) => api.post<void>(`/torrents/${client}/priority`, { ids, position }),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["torrents"] }),
+  });
+}
+
+export function useTorrentForceStart() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ids, value }: { ids: string[]; value: boolean }) =>
+      api.post<void>("/torrents/qbittorrent/force-start", { ids, value }),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["torrents"] }),
+  });
+}
+
+export const useQbitTags = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["qbitTags"],
+    queryFn: () => api.get<string[]>("/torrents/qbittorrent/tags"),
+    enabled,
+    staleTime: SLOW,
+  });
+
+export function useTorrentTags() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ids, tags, remove }: { ids: string[]; tags: string[]; remove?: boolean }) =>
+      api.post<void>("/torrents/qbittorrent/tags", { ids, tags, remove }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["qbitTags"] });
+      qc.invalidateQueries({ queryKey: ["torrents"] });
+    },
+  });
+}
 
 export function useTorrentRecheck() {
   return useMutation({

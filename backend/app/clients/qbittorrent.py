@@ -119,6 +119,37 @@ class QbittorrentClient(BaseClient):
             "POST", "/api/v2/torrents/setCategory", data={"hashes": "|".join(hashes), "category": category}
         )
 
+    async def tags(self) -> list:
+        resp = await self.request("GET", "/api/v2/torrents/tags")
+        return resp.json()
+
+    async def add_tags(self, hashes: list[str], tags: list[str]) -> None:
+        await self.request(
+            "POST",
+            "/api/v2/torrents/addTags",
+            data={"hashes": "|".join(hashes), "tags": ",".join(tags)},
+        )
+
+    async def remove_tags(self, hashes: list[str], tags: list[str]) -> None:
+        await self.request(
+            "POST",
+            "/api/v2/torrents/removeTags",
+            data={"hashes": "|".join(hashes), "tags": ",".join(tags)},
+        )
+
+    async def set_priority(self, hashes: list[str], position: str) -> None:
+        # position: "topPrio" | "bottomPrio" | "increasePrio" | "decreasePrio"
+        await self._torrent_action(position, hashes)
+
+    async def set_force_start(self, hashes: list[str], value: bool) -> None:
+        await self._torrent_action("setForceStart", hashes, value="true" if value else "false")
+
+    async def alt_speed_enabled(self) -> bool:
+        return bool((await self.transfer_info()).get("use_alt_speed_limits"))
+
+    async def toggle_alt_speed(self) -> None:
+        await self.request("POST", "/api/v2/transfer/toggleSpeedLimitsMode")
+
     async def transfer_info(self) -> dict:
         resp = await self.request("GET", "/api/v2/transfer/info")
         return resp.json()

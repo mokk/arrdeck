@@ -287,6 +287,8 @@ def _qbit_torrents(torrents: list, resolve) -> list[dict]:
                 tracker=resolve(
                     _tracker_host(t.get("tracker")), t.get("hash", "").upper()
                 ),
+                # qBittorrent sends tags as one comma-separated string
+                tags=[x.strip() for x in (t.get("tags") or "").split(",") if x.strip()],
             ).model_dump()
         )
     return out
