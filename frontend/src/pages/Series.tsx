@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { RenameCard } from "../components/RenameCard";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -201,6 +202,7 @@ export default function SeriesPage() {
           <Skeleton className="mb-3 h-16 w-full rounded-2xl" />
         </>
       )}
+      {data && <RenameCard app="sonarr" id={seriesId} />}
       {data?.seasons.map((s) => (
         <SeasonCard key={s.number} seriesId={seriesId} season={s} onReleases={setReleaseTarget} />
       ))}

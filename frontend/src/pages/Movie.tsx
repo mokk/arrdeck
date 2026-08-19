@@ -1,6 +1,7 @@
 import { ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { RenameCard } from "../components/RenameCard";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,6 +56,7 @@ export default function MoviePage() {
       </div>
       {error && <ErrorNote>{(error as Error).message}</ErrorNote>}
       {isLoading && <Skeleton className="mb-4 h-40 w-full rounded-2xl" />}
+      {data && <RenameCard app="radarr" id={movieId} />}
       {data && (
         <>
           <div className="mb-5 flex gap-4">

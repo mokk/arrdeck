@@ -44,6 +44,7 @@ import {
 } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 import { PosterGrid } from "../components/media";
+import { ImportSheet } from "../components/ImportSheet";
 import { useRegisterSearchbar } from "../components/subnav";
 import type { SearchResult } from "../api/types";
 
@@ -434,6 +435,7 @@ function QueueSection({ configured }: { configured: Set<string> }) {
   const { data } = useQueue();
   const retry = useBlocklistRetry();
   const forceImport = useForceImport();
+  const [importing, setImporting] = useState<{ app: string; id: number } | null>(null);
   const items = [...(data?.radarr?.data ?? []), ...(data?.sonarr?.data ?? [])];
   const offline = (["radarr", "sonarr"] as const).filter(
     (app) => configured.has(app) && data?.[app] && !data[app].ok,
@@ -492,10 +494,27 @@ function QueueSection({ configured }: { configured: Set<string> }) {
                   {t("dl.blocklistRetry")}
                 </Button>
               )}
+              {/* the arr couldn't place the files itself — go look at why */}
+              {(q.tracked_status === "warning" || q.tracked_status === "error") && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setImporting({ app: q.app, id: q.id })}
+                >
+                  {t("dl.manualImport")}
+                </Button>
+              )}
             </div>
           </Row>
         ))}
       </Card>
+      {importing && (
+        <ImportSheet
+          app={importing.app}
+          itemId={importing.id}
+          onClose={() => setImporting(null)}
+        />
+      )}
     </div>
   );
 }

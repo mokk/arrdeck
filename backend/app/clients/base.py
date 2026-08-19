@@ -76,6 +76,10 @@ class ArrClient(BaseClient):
     async def health(self) -> list:
         return await self.get("/health")
 
+    async def rename_preview(self, **params: int) -> list:
+        # Radarr: movieId=; Sonarr: seriesId= (+ optional seasonNumber=)
+        return await self.get("/rename", params=params)
+
     async def tags(self) -> list:
         return await self.get("/tag")
 

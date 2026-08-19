@@ -517,6 +517,35 @@ class PushSubscribeIn(BaseModel):
     subscription: dict
 
 
+class ImportCandidateOut(BaseModel):
+    path: str
+    name: str = ""
+    size: int = 0
+    title: str = ""  # the movie/series the arr matched it to
+    subtitle: str | None = None  # SxxEyy for episodes
+    quality: str | None = None
+    languages: list[str] = []
+    rejections: list[str] = []
+    importable: bool = False  # has everything needed to be imported
+
+
+class ManualImportIn(BaseModel):
+    item_id: int
+    paths: list[str]
+    mode: Literal["auto", "move", "copy"] = "auto"
+
+
+class RenamePreviewOut(BaseModel):
+    file_id: int
+    existing_path: str = ""
+    new_path: str = ""
+
+
+class RenameIn(BaseModel):
+    id: int
+    file_ids: list[int]
+
+
 class PlaySessionOut(BaseModel):
     title: str = ""
     subtitle: str | None = None  # SxxEyy – episode title

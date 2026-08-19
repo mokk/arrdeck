@@ -529,6 +529,48 @@ export type HistoryResponse = {
 };
 
 /**
+ * ImportCandidateOut
+ */
+export type ImportCandidateOut = {
+    /**
+     * Path
+     */
+    path: string;
+    /**
+     * Name
+     */
+    name?: string;
+    /**
+     * Size
+     */
+    size?: number;
+    /**
+     * Title
+     */
+    title?: string;
+    /**
+     * Subtitle
+     */
+    subtitle?: string | null;
+    /**
+     * Quality
+     */
+    quality?: string | null;
+    /**
+     * Languages
+     */
+    languages?: Array<string>;
+    /**
+     * Rejections
+     */
+    rejections?: Array<string>;
+    /**
+     * Importable
+     */
+    importable?: boolean;
+};
+
+/**
  * IndexerOut
  */
 export type IndexerOut = {
@@ -702,6 +744,24 @@ export type LibraryUpdateIn = {
      * Quality Profile Id
      */
     quality_profile_id?: number | null;
+};
+
+/**
+ * ManualImportIn
+ */
+export type ManualImportIn = {
+    /**
+     * Item Id
+     */
+    item_id: number;
+    /**
+     * Paths
+     */
+    paths: Array<string>;
+    /**
+     * Mode
+     */
+    mode?: 'auto' | 'move' | 'copy';
 };
 
 /**
@@ -1139,6 +1199,38 @@ export type ReleaseOut = {
      * Download Url
      */
     download_url?: string | null;
+};
+
+/**
+ * RenameIn
+ */
+export type RenameIn = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * File Ids
+     */
+    file_ids: Array<number>;
+};
+
+/**
+ * RenamePreviewOut
+ */
+export type RenamePreviewOut = {
+    /**
+     * File Id
+     */
+    file_id: number;
+    /**
+     * Existing Path
+     */
+    existing_path?: string;
+    /**
+     * New Path
+     */
+    new_path?: string;
 };
 
 /**
@@ -3144,6 +3236,138 @@ export type BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostResponses = {
 };
 
 export type BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostResponse = BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostResponses[keyof BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostResponses];
+
+export type ManualImportCandidatesApiV1ManualImportAppItemIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * App
+         */
+        app: string;
+        /**
+         * Item Id
+         */
+        item_id: number;
+    };
+    query?: never;
+    url: '/api/v1/manual-import/{app}/{item_id}';
+};
+
+export type ManualImportCandidatesApiV1ManualImportAppItemIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ManualImportCandidatesApiV1ManualImportAppItemIdGetError = ManualImportCandidatesApiV1ManualImportAppItemIdGetErrors[keyof ManualImportCandidatesApiV1ManualImportAppItemIdGetErrors];
+
+export type ManualImportCandidatesApiV1ManualImportAppItemIdGetResponses = {
+    /**
+     * Response Manual Import Candidates Api V1 Manual Import  App   Item Id  Get
+     *
+     * Successful Response
+     */
+    200: Array<ImportCandidateOut>;
+};
+
+export type ManualImportCandidatesApiV1ManualImportAppItemIdGetResponse = ManualImportCandidatesApiV1ManualImportAppItemIdGetResponses[keyof ManualImportCandidatesApiV1ManualImportAppItemIdGetResponses];
+
+export type ManualImportRunApiV1ManualImportAppPostData = {
+    body: ManualImportIn;
+    path: {
+        /**
+         * App
+         */
+        app: string;
+    };
+    query?: never;
+    url: '/api/v1/manual-import/{app}';
+};
+
+export type ManualImportRunApiV1ManualImportAppPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ManualImportRunApiV1ManualImportAppPostError = ManualImportRunApiV1ManualImportAppPostErrors[keyof ManualImportRunApiV1ManualImportAppPostErrors];
+
+export type ManualImportRunApiV1ManualImportAppPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type ManualImportRunApiV1ManualImportAppPostResponse = ManualImportRunApiV1ManualImportAppPostResponses[keyof ManualImportRunApiV1ManualImportAppPostResponses];
+
+export type RenamePreviewApiV1RenameAppItemIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * App
+         */
+        app: string;
+        /**
+         * Item Id
+         */
+        item_id: number;
+    };
+    query?: never;
+    url: '/api/v1/rename/{app}/{item_id}';
+};
+
+export type RenamePreviewApiV1RenameAppItemIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RenamePreviewApiV1RenameAppItemIdGetError = RenamePreviewApiV1RenameAppItemIdGetErrors[keyof RenamePreviewApiV1RenameAppItemIdGetErrors];
+
+export type RenamePreviewApiV1RenameAppItemIdGetResponses = {
+    /**
+     * Response Rename Preview Api V1 Rename  App   Item Id  Get
+     *
+     * Successful Response
+     */
+    200: Array<RenamePreviewOut>;
+};
+
+export type RenamePreviewApiV1RenameAppItemIdGetResponse = RenamePreviewApiV1RenameAppItemIdGetResponses[keyof RenamePreviewApiV1RenameAppItemIdGetResponses];
+
+export type RenameFilesApiV1RenameAppPostData = {
+    body: RenameIn;
+    path: {
+        /**
+         * App
+         */
+        app: string;
+    };
+    query?: never;
+    url: '/api/v1/rename/{app}';
+};
+
+export type RenameFilesApiV1RenameAppPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RenameFilesApiV1RenameAppPostError = RenameFilesApiV1RenameAppPostErrors[keyof RenameFilesApiV1RenameAppPostErrors];
+
+export type RenameFilesApiV1RenameAppPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type RenameFilesApiV1RenameAppPostResponse = RenameFilesApiV1RenameAppPostResponses[keyof RenameFilesApiV1RenameAppPostResponses];
 
 export type ForceImportApiV1QueueAppItemIdForceImportPostData = {
     body?: never;

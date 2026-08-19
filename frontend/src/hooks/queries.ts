@@ -19,6 +19,8 @@ import type {
   MediaRequest,
   PlaySession,
   Subtitles,
+  ImportCandidate,
+  RenamePreview,
   Tag,
   VpnStatus,
   Session,
@@ -481,6 +483,42 @@ export function useSetSpeedLimit() {
       }
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ["speedLimit"] }),
+  });
+}
+
+export const useImportCandidates = (app: string, itemId: number | null) =>
+  useQuery({
+    queryKey: ["importCandidates", app, itemId],
+    queryFn: () => api.get<ImportCandidate[]>(`/manual-import/${app}/${itemId}`),
+    enabled: itemId != null,
+  });
+
+export function useManualImport() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ app, itemId, paths }: { app: string; itemId: number; paths: string[] }) =>
+      api.post<void>(`/manual-import/${app}`, { item_id: itemId, paths }),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["queue"] }),
+  });
+}
+
+export const useRenamePreview = (app: string, id: number, enabled: boolean) =>
+  useQuery({
+    queryKey: ["renamePreview", app, id],
+    queryFn: () => api.get<RenamePreview[]>(`/rename/${app}/${id}`),
+    enabled,
+  });
+
+export function useRenameFiles() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ app, id, fileIds }: { app: string; id: number; fileIds: number[] }) =>
+      api.post<void>(`/rename/${app}`, { id, file_ids: fileIds }),
+    onSettled: (_d, _e, v) => {
+      qc.invalidateQueries({ queryKey: ["renamePreview", v.app, v.id] });
+      qc.invalidateQueries({ queryKey: ["movieDetail"] });
+      qc.invalidateQueries({ queryKey: ["seriesDetail"] });
+    },
   });
 }
 

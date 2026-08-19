@@ -138,7 +138,12 @@
     "forceStart": "Force start",
     "tags": "Tags",
     "throttle": "Throttle",
-    "throttleOn": "Throttled"
+    "throttleOn": "Throttled",
+    "manualImport": "Manual import",
+    "noCandidates": "Nothing to import",
+    "importStarted": "Import started",
+    "importSelected": "Import {{count}}",
+    "selectAll": "Select all"
   },
   "add": {
     "title": "Add",
@@ -290,7 +295,11 @@
     "file": "File",
     "noFile": "No file",
     "runtime": "{{min}} min",
-    "status": "Status"
+    "status": "Status",
+    "rename": "Rename files",
+    "renameAll": "Rename {{count}} file(s)",
+    "renameStarted": "Rename started",
+    "andMore": "and {{count}} more"
   },
   "stats": {
     "title": "Statistics",

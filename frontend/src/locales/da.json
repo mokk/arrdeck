@@ -138,7 +138,12 @@
     "forceStart": "Tvangsstart",
     "tags": "Tags",
     "throttle": "Begræns",
-    "throttleOn": "Begrænset"
+    "throttleOn": "Begrænset",
+    "manualImport": "Manuel import",
+    "noCandidates": "Intet at importere",
+    "importStarted": "Import startet",
+    "importSelected": "Importér {{count}}",
+    "selectAll": "Vælg alle"
   },
   "add": {
     "title": "Tilføj",
@@ -290,7 +295,11 @@
     "file": "Fil",
     "noFile": "Ingen fil",
     "runtime": "{{min}} min.",
-    "status": "Status"
+    "status": "Status",
+    "rename": "Omdøb filer",
+    "renameAll": "Omdøb {{count}} fil(er)",
+    "renameStarted": "Omdøbning startet",
+    "andMore": "og {{count}} mere"
   },
   "stats": {
     "title": "Statistik",
