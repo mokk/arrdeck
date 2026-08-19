@@ -487,6 +487,7 @@ def _qbit_torrents(torrents: list, resolve) -> list[dict]:
                 ul_speed=t.get("upspeed", 0),
                 eta=None if eta in (None, 8640000) else eta,
                 ratio=t.get("ratio"),
+                uploaded=t.get("uploaded", 0),
                 added_on=t.get("added_on"),
                 tracker=resolve(
                     _tracker_host(t.get("tracker")), t.get("hash", "").upper()
@@ -515,6 +516,7 @@ def _tm_torrents(torrents: list, resolve) -> list[dict]:
                 ul_speed=t.get("rateUpload", 0),
                 eta=eta if eta and eta > 0 else None,
                 ratio=t.get("uploadRatio"),
+                uploaded=t.get("uploadedEver", 0),
                 added_on=t.get("addedDate"),
                 tracker=resolve(
                     _tracker_host((t.get("trackers") or [{}])[0].get("announce")),

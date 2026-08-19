@@ -110,7 +110,8 @@
       "dl_speed": "Speed",
       "eta": "ETA",
       "ratio": "Ratio",
-      "tracker": "Indexer"
+      "tracker": "Indexer",
+      "uploaded": "Uploaded"
     },
     "files": "Files",
     "recheck": "Recheck",

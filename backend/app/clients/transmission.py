@@ -15,6 +15,7 @@ TORRENT_FIELDS = [
     "rateUpload",
     "eta",
     "uploadRatio",
+    "uploadedEver",
     "errorString",
     "downloadDir",
     "peersConnected",

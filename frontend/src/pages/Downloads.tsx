@@ -69,6 +69,7 @@ const SORT_KEYS = [
   "dl_speed",
   "eta",
   "ratio",
+  "uploaded",
   "tracker",
 ];
 
@@ -782,6 +783,10 @@ export default function Downloads() {
                   <StateBadge state={SERVICE_LABELS[torrent.client]} raw />
                   {torrent.tracker ? ` ${torrent.tracker} · ` : " "}
                   {formatBytes(torrent.size)}
+                  {/* total sent, not the current rate — the number that says
+                      whether a torrent has actually given anything back */}
+                  {` · ↑${formatBytes(torrent.uploaded)}`}
+                  {torrent.ratio != null ? ` (${torrent.ratio.toFixed(2)})` : ""}
                   {torrent.dl_speed > 0 || torrent.ul_speed > 0
                     ? ` · ↓${formatSpeed(torrent.dl_speed)} ↑${formatSpeed(torrent.ul_speed)}`
                     : ""}

@@ -110,7 +110,8 @@
       "dl_speed": "Hastighed",
       "eta": "ETA",
       "ratio": "Ratio",
-      "tracker": "Indexer"
+      "tracker": "Indexer",
+      "uploaded": "Uploadet"
     },
     "files": "Filer",
     "recheck": "Genkontrollér",

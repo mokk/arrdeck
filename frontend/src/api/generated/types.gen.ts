@@ -2212,6 +2212,10 @@ export type TorrentOut = {
      */
     ratio?: number | null;
     /**
+     * Uploaded
+     */
+    uploaded?: number;
+    /**
      * Added On
      */
     added_on?: number | null;

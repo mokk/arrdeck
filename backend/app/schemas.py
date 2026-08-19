@@ -38,6 +38,7 @@ class TorrentOut(BaseModel):
     ul_speed: int
     eta: int | None = None  # seconds, None if unknown/infinite
     ratio: float | None = None
+    uploaded: int = 0  # bytes sent for this torrent, all time
     added_on: int | None = None  # unix seconds
     tracker: str | None = None  # tracker hostname, e.g. torrentleech.org
     error: str | None = None
