@@ -1,4 +1,7 @@
 fastapi==0.141.*
+# pinned explicitly: it arrives via fastapi, whose range is wide enough that a
+# fresh build can silently move a major version
+starlette==1.6.*
 uvicorn[standard]==0.52.*
 httpx==0.28.*
 pydantic-settings==2.*
