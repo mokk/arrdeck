@@ -250,7 +250,10 @@
     "tagAdding": "Tilføjer tag",
     "tagRemoving": "Fjerner tag",
     "watched": "Set",
-    "watchedPartial": "{{percent}}% set"
+    "watchedPartial": "{{percent}}% set",
+    "backup": "Fuld sikkerhedskopi",
+    "restored": "Gendannede {{services}} tjenester og {{passkeys}} adgangsnøgler",
+    "backupHint": "Den fulde sikkerhedskopi indeholder adgangsnøgler og push-nøgleparret — opbevar den sikkert. Import accepterer begge filer."
   },
   "toast": {
     "added": "Tilføjet til biblioteket",

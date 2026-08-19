@@ -250,7 +250,10 @@
     "tagAdding": "Adding tag",
     "tagRemoving": "Removing tag",
     "watched": "Watched",
-    "watchedPartial": "{{percent}}% watched"
+    "watchedPartial": "{{percent}}% watched",
+    "backup": "Full backup",
+    "restored": "Restored {{services}} services and {{passkeys}} passkeys",
+    "backupHint": "The full backup includes passkeys and the push keypair — keep it somewhere safe. Import accepts either file."
   },
   "toast": {
     "added": "Added to library",

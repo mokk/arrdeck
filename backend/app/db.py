@@ -170,6 +170,78 @@ class SettingsDB:
             )
             self._conn.commit()
 
+    # --- whole-database snapshot (backup/restore) ---
+
+    def kv_all(self) -> dict[str, str]:
+        with self._lock:
+            rows = self._conn.execute("SELECT key, value FROM kv").fetchall()
+        return dict(rows)
+
+    def snapshot(self) -> dict:
+        """Everything worth restoring. Credentials and the VAPID keypair are
+        included deliberately: without them a restore leaves you unable to sign
+        in and silences every push subscription."""
+        with self._lock:
+            creds = self._conn.execute(
+                "SELECT credential_id, public_key, sign_count, name, created FROM credentials"
+            ).fetchall()
+            subs = self._conn.execute(
+                "SELECT endpoint, data, events FROM push_subscriptions"
+            ).fetchall()
+        return {
+            "version": 1,
+            "services": self.all(),
+            "kv": self.kv_all(),
+            "credentials": [
+                dict(zip(("credential_id", "public_key", "sign_count", "name", "created"), r))
+                for r in creds
+            ],
+            "push_subscriptions": [
+                dict(zip(("endpoint", "data", "events"), r)) for r in subs
+            ],
+            "stats_samples": self.samples_since(0),
+        }
+
+    def restore(self, snap: dict) -> dict:
+        """Merge a snapshot in. Sessions are deliberately not restored — a
+        backup shouldn't resurrect logins on devices you no longer hold."""
+        counts = {"services": 0, "kv": 0, "credentials": 0, "push_subscriptions": 0, "stats": 0}
+        for name, values in (snap.get("services") or {}).items():
+            if name in SERVICES:
+                self.upsert(name, values)
+                counts["services"] += 1
+        for key, value in (snap.get("kv") or {}).items():
+            self.kv_set(str(key), str(value))
+            counts["kv"] += 1
+        with self._lock:
+            for cred in snap.get("credentials") or []:
+                self._conn.execute(
+                    "INSERT OR REPLACE INTO credentials"
+                    " (credential_id, public_key, sign_count, name, created)"
+                    " VALUES (?, ?, ?, ?, ?)",
+                    (
+                        cred.get("credential_id"),
+                        cred.get("public_key"),
+                        cred.get("sign_count", 0),
+                        cred.get("name", ""),
+                        cred.get("created", 0),
+                    ),
+                )
+                counts["credentials"] += 1
+            for sub in snap.get("push_subscriptions") or []:
+                self._conn.execute(
+                    "INSERT OR REPLACE INTO push_subscriptions (endpoint, data, events)"
+                    " VALUES (?, ?, ?)",
+                    (sub.get("endpoint"), sub.get("data"), sub.get("events")),
+                )
+                counts["push_subscriptions"] += 1
+            self._conn.commit()
+        for sample in snap.get("stats_samples") or []:
+            if sample.get("ts"):
+                self.insert_sample(sample)
+                counts["stats"] += 1
+        return counts
+
     def push_add(self, endpoint: str, data: str) -> None:
         with self._lock:
             self._conn.execute(

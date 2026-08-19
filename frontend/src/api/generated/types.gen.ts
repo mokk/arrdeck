@@ -157,6 +157,44 @@ export type ArrReleaseOut = {
 };
 
 /**
+ * BackupOut
+ */
+export type BackupOut = {
+    /**
+     * Version
+     */
+    version?: number;
+    /**
+     * Services
+     */
+    services?: {
+        [key: string]: ServiceSettingsOut;
+    };
+    /**
+     * Kv
+     */
+    kv?: {
+        [key: string]: string;
+    };
+    /**
+     * Credentials
+     */
+    credentials?: Array<{
+        [key: string]: unknown;
+    }>;
+    /**
+     * Push Subscriptions
+     */
+    push_subscriptions?: Array<{
+        [key: string]: unknown;
+    }>;
+    /**
+     * Stats Samples
+     */
+    stats_samples?: Array<StatsSampleOut>;
+};
+
+/**
  * Body_add_torrent_file_api_v1_torrents__client__add_file_post
  */
 export type BodyAddTorrentFileApiV1TorrentsClientAddFilePost = {
@@ -1339,6 +1377,74 @@ export type RenamePreviewOut = {
      * New Path
      */
     new_path?: string;
+};
+
+/**
+ * RestoreIn
+ */
+export type RestoreIn = {
+    /**
+     * Version
+     */
+    version?: number;
+    /**
+     * Services
+     */
+    services?: {
+        [key: string]: {
+            [key: string]: unknown;
+        };
+    };
+    /**
+     * Kv
+     */
+    kv?: {
+        [key: string]: string;
+    };
+    /**
+     * Credentials
+     */
+    credentials?: Array<{
+        [key: string]: unknown;
+    }>;
+    /**
+     * Push Subscriptions
+     */
+    push_subscriptions?: Array<{
+        [key: string]: unknown;
+    }>;
+    /**
+     * Stats Samples
+     */
+    stats_samples?: Array<{
+        [key: string]: unknown;
+    }>;
+};
+
+/**
+ * RestoreOut
+ */
+export type RestoreOut = {
+    /**
+     * Services
+     */
+    services?: number;
+    /**
+     * Kv
+     */
+    kv?: number;
+    /**
+     * Credentials
+     */
+    credentials?: number;
+    /**
+     * Push Subscriptions
+     */
+    push_subscriptions?: number;
+    /**
+     * Stats
+     */
+    stats?: number;
 };
 
 /**
@@ -5379,6 +5485,47 @@ export type ImportSettingsApiV1SettingsImportPostResponses = {
 };
 
 export type ImportSettingsApiV1SettingsImportPostResponse = ImportSettingsApiV1SettingsImportPostResponses[keyof ImportSettingsApiV1SettingsImportPostResponses];
+
+export type BackupApiV1BackupGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/backup';
+};
+
+export type BackupApiV1BackupGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: BackupOut;
+};
+
+export type BackupApiV1BackupGetResponse = BackupApiV1BackupGetResponses[keyof BackupApiV1BackupGetResponses];
+
+export type RestoreApiV1RestorePostData = {
+    body: RestoreIn;
+    path?: never;
+    query?: never;
+    url: '/api/v1/restore';
+};
+
+export type RestoreApiV1RestorePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RestoreApiV1RestorePostError = RestoreApiV1RestorePostErrors[keyof RestoreApiV1RestorePostErrors];
+
+export type RestoreApiV1RestorePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: RestoreOut;
+};
+
+export type RestoreApiV1RestorePostResponse = RestoreApiV1RestorePostResponses[keyof RestoreApiV1RestorePostResponses];
 
 export type StatsHistoryApiV1StatsHistoryGetData = {
     body?: never;

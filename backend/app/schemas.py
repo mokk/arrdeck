@@ -704,3 +704,29 @@ class StatsSampleOut(BaseModel):
     torrents_tm: int = 0
     indexer_grabs: int = 0
     indexer_queries: int = 0
+
+
+class BackupOut(BaseModel):
+    version: int = 1
+    services: dict[str, ServiceSettingsOut] = {}
+    kv: dict[str, str] = {}
+    credentials: list[dict] = []
+    push_subscriptions: list[dict] = []
+    stats_samples: list[StatsSampleOut] = []
+
+
+class RestoreIn(BaseModel):
+    version: int = 1
+    services: dict[str, dict] = {}
+    kv: dict[str, str] = {}
+    credentials: list[dict] = []
+    push_subscriptions: list[dict] = []
+    stats_samples: list[dict] = []
+
+
+class RestoreOut(BaseModel):
+    services: int = 0
+    kv: int = 0
+    credentials: int = 0
+    push_subscriptions: int = 0
+    stats: int = 0

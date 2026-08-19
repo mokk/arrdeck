@@ -3,6 +3,7 @@ import time
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
+from ...api.v1.auth import is_request_allowed
 from ...cache import cache
 from ...db import SERVICES
 from ... import webhooks
@@ -21,6 +22,7 @@ from ...registry import probe_version
 from ...schemas import (
     PushEventsIn,
     PushEventsOut,
+    BackupOut,
     PushRulesIn,
     PushRulesOut,
     PushSubscribeIn,
@@ -30,6 +32,8 @@ from ...schemas import (
     ServiceSettingsOut,
     SettingsExportOut,
     SettingsImportIn,
+    RestoreIn,
+    RestoreOut,
     StatsSampleOut,
     WebhookAppOut,
     WebhookInstallIn,
@@ -187,6 +191,28 @@ def import_settings(body: SettingsImportIn, request: Request) -> None:
             request.app.state.db.upsert(name, values)
     request.app.state.registry.rebuild_all(request.app.state.db.all())
     cache.clear()
+
+
+@router.get("/backup", response_model=BackupOut)
+def backup(request: Request) -> dict:
+    """A full snapshot. This contains passkey public keys and the VAPID private
+    key — it is a credential file, not a settings file."""
+    if not is_request_allowed(request):
+        raise HTTPException(401, "unauthorized")
+    return request.app.state.db.snapshot()
+
+
+@router.post("/restore", response_model=RestoreOut)
+def restore(body: RestoreIn, request: Request) -> dict:
+    if not is_request_allowed(request):
+        raise HTTPException(401, "unauthorized")
+    if body.version != 1:
+        raise HTTPException(422, f"unsupported backup version {body.version}")
+    db = request.app.state.db
+    counts = db.restore(body.model_dump())
+    request.app.state.registry.rebuild_all(db.all())
+    cache.clear()
+    return counts
 
 
 @router.get("/stats/history", response_model=list[StatsSampleOut])
