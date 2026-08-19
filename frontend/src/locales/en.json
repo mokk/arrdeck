@@ -71,7 +71,11 @@
     "health": "Needs attention",
     "storage": "Storage",
     "freeSpace": "{{size}} free",
-    "freeSpaceShort": "Free space"
+    "freeSpaceShort": "Free space",
+    "requests": "Pending requests",
+    "approve": "Approve",
+    "decline": "Decline",
+    "seasonCount": "{{count}} season(s)"
   },
   "dl": {
     "title": "Downloads",

@@ -689,6 +689,48 @@ export type LibraryUpdateIn = {
 };
 
 /**
+ * MediaRequestOut
+ */
+export type MediaRequestOut = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Type
+     */
+    type: string;
+    /**
+     * Status
+     */
+    status: number;
+    /**
+     * Title
+     */
+    title?: string;
+    /**
+     * Year
+     */
+    year?: string | null;
+    /**
+     * Poster
+     */
+    poster?: string | null;
+    /**
+     * Requested By
+     */
+    requested_by?: string;
+    /**
+     * Created At
+     */
+    created_at?: string | null;
+    /**
+     * Seasons
+     */
+    seasons?: Array<number>;
+};
+
+/**
  * MonitorIn
  */
 export type MonitorIn = {
@@ -1300,6 +1342,28 @@ export type ServiceBlockListHistoryItemOut = {
      * Data
      */
     data?: Array<HistoryItemOut> | null;
+    /**
+     * Error
+     */
+    error?: string | null;
+    /**
+     * Stale Age Seconds
+     */
+    stale_age_seconds?: number | null;
+};
+
+/**
+ * ServiceBlock[list[MediaRequestOut]]
+ */
+export type ServiceBlockListMediaRequestOut = {
+    /**
+     * Ok
+     */
+    ok: boolean;
+    /**
+     * Data
+     */
+    data?: Array<MediaRequestOut> | null;
     /**
      * Error
      */
@@ -2848,6 +2912,74 @@ export type RemoveQueueItemApiV1QueueAppItemIdDeleteResponses = {
 };
 
 export type RemoveQueueItemApiV1QueueAppItemIdDeleteResponse = RemoveQueueItemApiV1QueueAppItemIdDeleteResponses[keyof RemoveQueueItemApiV1QueueAppItemIdDeleteResponses];
+
+export type MediaRequestsApiV1RequestsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filter
+         */
+        filter?: string;
+        /**
+         * Take
+         */
+        take?: number;
+    };
+    url: '/api/v1/requests';
+};
+
+export type MediaRequestsApiV1RequestsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MediaRequestsApiV1RequestsGetError = MediaRequestsApiV1RequestsGetErrors[keyof MediaRequestsApiV1RequestsGetErrors];
+
+export type MediaRequestsApiV1RequestsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ServiceBlockListMediaRequestOut;
+};
+
+export type MediaRequestsApiV1RequestsGetResponse = MediaRequestsApiV1RequestsGetResponses[keyof MediaRequestsApiV1RequestsGetResponses];
+
+export type RequestActionApiV1RequestsRequestIdActionPostData = {
+    body?: never;
+    path: {
+        /**
+         * Request Id
+         */
+        request_id: number;
+        /**
+         * Action
+         */
+        action: string;
+    };
+    query?: never;
+    url: '/api/v1/requests/{request_id}/{action}';
+};
+
+export type RequestActionApiV1RequestsRequestIdActionPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RequestActionApiV1RequestsRequestIdActionPostError = RequestActionApiV1RequestsRequestIdActionPostErrors[keyof RequestActionApiV1RequestsRequestIdActionPostErrors];
+
+export type RequestActionApiV1RequestsRequestIdActionPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type RequestActionApiV1RequestsRequestIdActionPostResponse = RequestActionApiV1RequestsRequestIdActionPostResponses[keyof RequestActionApiV1RequestsRequestIdActionPostResponses];
 
 export type DiscoverMoviesApiV1DiscoverMoviesGetData = {
     body?: never;

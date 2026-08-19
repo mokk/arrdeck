@@ -1,5 +1,8 @@
 import time
-from typing import Any
+from typing import Any, Callable, Coroutine
+
+from .clients.base import ServiceUnavailable
+from .schemas import ServiceBlock
 
 
 class TTLCache:
@@ -34,3 +37,30 @@ class TTLCache:
 
 
 cache = TTLCache()
+
+
+async def guarded(coro: Coroutine, cache_key: str | None = None):
+    """Run an upstream call; on failure return ok=false, falling back to the
+    last good cached value if one exists."""
+    try:
+        data = await coro
+        if cache_key:
+            cache.set(cache_key, data)
+        return ServiceBlock(ok=True, data=data)
+    except ServiceUnavailable as exc:
+        stale = cache.get_stale(cache_key) if cache_key else None
+        if stale:
+            age, value = stale
+            return ServiceBlock(ok=False, error=exc.message, data=value, stale_age_seconds=age)
+        return ServiceBlock(ok=False, error=exc.message)
+    except Exception as exc:  # noqa: BLE001 — aggregates must never 500
+        return ServiceBlock(ok=False, error=str(exc))
+
+
+async def cached(key: str, ttl: float, fetch: Callable[[], Coroutine]) -> Any:
+    hit = cache.get(key, ttl)
+    if hit is not None:
+        return hit
+    data = await fetch()
+    cache.set(key, data)
+    return data

@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, Request
 
-from ...cache import cache
+from ...cache import cache, cached, guarded
 from ...clients.base import ServiceUnavailable
 from ...registry import probe_version
 from .media import _poster
@@ -62,33 +62,6 @@ QBIT_STATE_MAP = {
 }
 
 TM_STATUS_MAP = {0: "paused", 1: "queued", 2: "checking", 3: "queued", 4: "downloading", 5: "queued", 6: "seeding"}
-
-
-async def guarded(coro: Coroutine, cache_key: str | None = None):
-    """Run an upstream call; on failure return ok=false, falling back to the
-    last good cached value if one exists."""
-    try:
-        data = await coro
-        if cache_key:
-            cache.set(cache_key, data)
-        return ServiceBlock(ok=True, data=data)
-    except ServiceUnavailable as exc:
-        stale = cache.get_stale(cache_key) if cache_key else None
-        if stale:
-            age, value = stale
-            return ServiceBlock(ok=False, error=exc.message, data=value, stale_age_seconds=age)
-        return ServiceBlock(ok=False, error=exc.message)
-    except Exception as exc:  # noqa: BLE001 — aggregates must never 500
-        return ServiceBlock(ok=False, error=str(exc))
-
-
-async def cached(key: str, ttl: float, fetch: Callable[[], Coroutine]) -> Any:
-    hit = cache.get(key, ttl)
-    if hit is not None:
-        return hit
-    data = await fetch()
-    cache.set(key, data)
-    return data
 
 
 @router.get("/status", response_model=list[ServiceStatus])

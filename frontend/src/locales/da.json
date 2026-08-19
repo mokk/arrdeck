@@ -71,7 +71,11 @@
     "health": "Kræver opmærksomhed",
     "storage": "Lagerplads",
     "freeSpace": "{{size}} ledig",
-    "freeSpaceShort": "Ledig plads"
+    "freeSpaceShort": "Ledig plads",
+    "requests": "Afventende ønsker",
+    "approve": "Godkend",
+    "decline": "Afvis",
+    "seasonCount": "{{count}} sæson(er)"
   },
   "dl": {
     "title": "Downloads",

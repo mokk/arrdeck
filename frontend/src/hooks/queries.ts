@@ -16,6 +16,7 @@ import type {
   SeriesDetail,
   DiskSpace,
   HealthWarning,
+  MediaRequest,
   Session,
   PushEvents,
   StatsSample,
@@ -333,6 +334,26 @@ export const useDiskSpace = (enabled: boolean) =>
     enabled,
     refetchInterval: SLOW,
   });
+
+export const useMediaRequests = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["requests"],
+    queryFn: () => api.get<ServiceBlock<MediaRequest[]>>("/requests?filter=pending"),
+    enabled,
+    refetchInterval: MEDIUM,
+  });
+
+export function useRequestAction() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, action }: { id: number; action: "approve" | "decline" }) =>
+      api.post<void>(`/requests/${id}/${action}`),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["requests"] });
+      qc.invalidateQueries({ queryKey: ["queue"] });
+    },
+  });
+}
 
 export const useHealth = (enabled: boolean) =>
   useQuery({

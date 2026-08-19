@@ -24,6 +24,8 @@ import {
   useBlocklistRetry,
   useDiskSpace,
   useHealth,
+  useMediaRequests,
+  useRequestAction,
   useCalendar,
   useForceImport,
   useHistory,
@@ -180,6 +182,66 @@ function HealthSection({ configured }: { configured: Set<string> }) {
                 <StateBadge state={w.level === "error" ? "error" : "warning"} />
               </div>
               <div className="mt-1 text-sm">{w.message}</div>
+            </div>
+          </Row>
+        ))}
+      </Card>
+    </div>
+  );
+}
+
+/** Pending Overseerr requests, with the approve/deny that would otherwise mean
+ * opening Overseerr. Hidden when the queue is empty. */
+function RequestsSection({ configured }: { configured: Set<string> }) {
+  const { t } = useTranslation();
+  const hasOverseerr = configured.has("overseerr");
+  const { data } = useMediaRequests(hasOverseerr);
+  const act = useRequestAction();
+  const requests = data?.data ?? [];
+  if (!hasOverseerr || requests.length === 0) return null;
+  return (
+    <div className="mb-6">
+      <SectionTitle>{t("dash.requests")}</SectionTitle>
+      <Card>
+        {requests.map((r) => (
+          <Row key={r.id}>
+            {r.poster && (
+              <img
+                src={r.poster}
+                alt=""
+                className="h-16 w-11 shrink-0 rounded-lg object-cover"
+                loading="lazy"
+              />
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-medium">
+                {r.title || `#${r.id}`} {r.year && <span className="text-muted-foreground">({r.year})</span>}
+              </div>
+              <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <StateBadge state={r.type === "tv" ? "sonarr" : "radarr"} />
+                {r.requested_by}
+                {(r.seasons?.length ?? 0) > 0 && ` · ${t("dash.seasonCount", { count: r.seasons!.length })}`}
+              </div>
+            </div>
+            <div className="flex shrink-0 flex-col gap-1.5">
+              <Button
+                size="sm"
+                variant="secondary"
+                className="text-success"
+                disabled={act.isPending}
+                onClick={() => act.mutate({ id: r.id, action: "approve" })}
+              >
+                {t("dash.approve")}
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="text-destructive"
+                disabled={act.isPending}
+                onClick={() => act.mutate({ id: r.id, action: "decline" })}
+              >
+                {t("dash.decline")}
+              </Button>
             </div>
           </Row>
         ))}
@@ -620,6 +682,7 @@ export default function Dashboard() {
   return (
     <>
       <HealthSection configured={configured} />
+      <RequestsSection configured={configured} />
       <RecentSection />
       <TorrentSummary configured={configured} />
       {hasArr && <QueueSection configured={configured} />}

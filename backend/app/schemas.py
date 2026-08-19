@@ -506,6 +506,18 @@ class PushSubscribeIn(BaseModel):
     subscription: dict
 
 
+class MediaRequestOut(BaseModel):
+    id: int
+    type: str  # movie | tv
+    status: int  # 1 pending, 2 approved, 3 declined, 4 available
+    title: str = ""
+    year: str | None = None
+    poster: str | None = None
+    requested_by: str = ""
+    created_at: str | None = None
+    seasons: list[int] = []
+
+
 class SessionOut(BaseModel):
     id: str  # a prefix of the token hash, enough to address it
     created: int
