@@ -22,6 +22,8 @@ import {
 } from "../components/Blocks";
 import {
   useBlocklistRetry,
+  useDiskSpace,
+  useHealth,
   useCalendar,
   useForceImport,
   useHistory,
@@ -158,6 +160,76 @@ function TorrentSummary({ configured }: { configured: Set<string> }) {
   );
 }
 
+/** Only rendered when something is actually wrong — a permanently visible
+ * "all good" card trains you to stop reading it. */
+function HealthSection({ configured }: { configured: Set<string> }) {
+  const { t } = useTranslation();
+  const hasArr = configured.has("radarr") || configured.has("sonarr");
+  const { data } = useHealth(hasArr);
+  const warnings = data?.data ?? [];
+  if (!hasArr || warnings.length === 0) return null;
+  return (
+    <div className="mb-6">
+      <SectionTitle>{t("dash.health")}</SectionTitle>
+      <Card>
+        {warnings.map((w, i) => (
+          <Row key={`${w.app}-${i}`}>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <StateBadge state={w.app} />
+                <StateBadge state={w.level === "error" ? "error" : "warning"} />
+              </div>
+              <div className="mt-1 text-sm">{w.message}</div>
+            </div>
+          </Row>
+        ))}
+      </Card>
+    </div>
+  );
+}
+
+function StorageSection({ configured }: { configured: Set<string> }) {
+  const { t } = useTranslation();
+  const hasArr = configured.has("radarr") || configured.has("sonarr");
+  const { data } = useDiskSpace(hasArr);
+  if (!hasArr) return null;
+  return (
+    <div className="mb-6">
+      <SectionTitle>{t("dash.storage")}</SectionTitle>
+      <Card>
+        <BlockView block={data}>
+          {(disks) =>
+            disks.map((d) => {
+              const free = d.free_bytes ?? 0;
+              const total = d.total_bytes ?? 0;
+              // root folders don't report a total, so a bar is only honest
+              // when a matching mount supplied one
+              const used = total ? (total - free) / total : null;
+              return (
+                <Row key={d.path}>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="truncate font-mono text-xs">{d.path}</span>
+                      <span className="shrink-0 text-sm font-semibold">
+                        {t("dash.freeSpace", { size: formatBytes(free) })}
+                      </span>
+                    </div>
+                    <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <StateBadge state={d.label ?? ""} />
+                      {total > 0 && formatBytes(total)}
+                    </div>
+                    {used != null && <ProgressBar value={used} />}
+                  </div>
+                </Row>
+              );
+            })
+          }
+        </BlockView>
+      </Card>
+    </div>
+  );
+}
+
 function QueueSection({ configured }: { configured: Set<string> }) {
   const { t } = useTranslation();
   const { data } = useQueue();
@@ -183,7 +255,15 @@ function QueueSection({ configured }: { configured: Set<string> }) {
               <div className="truncate text-sm font-medium">{q.title}</div>
               <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <StateBadge state={q.app} />
-                <StateBadge state={(q.errors ?? []).length ? "error" : q.status} />
+                <StateBadge
+                  state={
+                    (q.errors ?? []).length || q.tracked_status === "error"
+                      ? "error"
+                      : q.tracked_status === "warning"
+                        ? "warning"
+                        : q.status
+                  }
+                />
                 {q.time_left ?? ""}
               </div>
               <ProgressBar value={q.size ? (q.size - q.size_left) / q.size : 0} />
@@ -200,7 +280,9 @@ function QueueSection({ configured }: { configured: Set<string> }) {
                   {t("dl.forceImport")}
                 </Button>
               )}
-              {(q.errors ?? []).length > 0 && (
+              {((q.errors ?? []).length > 0 ||
+                q.tracked_status === "warning" ||
+                q.tracked_status === "error") && (
                 <Button
                   variant="secondary"
                   size="sm"
@@ -537,10 +619,12 @@ export default function Dashboard() {
   if (query.trim().length > 1) return <GlobalSearch query={query} />;
   return (
     <>
+      <HealthSection configured={configured} />
       <RecentSection />
       <TorrentSummary configured={configured} />
       {hasArr && <QueueSection configured={configured} />}
       <div className="lg:columns-2 lg:gap-5 [&>div]:break-inside-avoid">
+        <StorageSection configured={configured} />
         {hasArr && <CalendarSection configured={configured} />}
         {hasArr && <HistorySection configured={configured} />}
         {configured.has("prowlarr") && <IndexerSection />}

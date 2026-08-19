@@ -14,6 +14,8 @@ import type {
   HistoryPage,
   RecentItem,
   SeriesDetail,
+  DiskSpace,
+  HealthWarning,
   PushEvents,
   StatsSample,
   TorrentDetails,
@@ -304,6 +306,22 @@ export function usePushSubscribe() {
       }),
   });
 }
+
+export const useDiskSpace = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["diskspace"],
+    queryFn: () => api.get<ServiceBlock<DiskSpace[]>>("/diskspace"),
+    enabled,
+    refetchInterval: SLOW,
+  });
+
+export const useHealth = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["health"],
+    queryFn: () => api.get<ServiceBlock<HealthWarning[]>>("/health"),
+    enabled,
+    refetchInterval: SLOW,
+  });
 
 export const usePushEvents = (enabled: boolean) =>
   useQuery({

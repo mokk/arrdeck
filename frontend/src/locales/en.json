@@ -67,7 +67,11 @@
     "seriesCount": "Series",
     "grabs": "Grabs",
     "recentlyAdded": "Recently added",
-    "wanted": "Wanted"
+    "wanted": "Wanted",
+    "health": "Needs attention",
+    "storage": "Storage",
+    "freeSpace": "{{size}} free",
+    "freeSpaceShort": "Free space"
   },
   "dl": {
     "title": "Downloads",

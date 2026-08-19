@@ -68,7 +68,18 @@ class SettingsDB:
                     indexer_queries INTEGER NOT NULL DEFAULT 0
                 )"""
             )
+            # CREATE TABLE IF NOT EXISTS leaves an existing table alone, so
+            # columns added after a release need an explicit ALTER.
+            self._migrate_columns(
+                "stats_samples", {"disk_free_bytes": "INTEGER NOT NULL DEFAULT 0"}
+            )
             self._conn.commit()
+
+    def _migrate_columns(self, table: str, columns: dict[str, str]) -> None:
+        existing = {row[1] for row in self._conn.execute(f"PRAGMA table_info({table})")}
+        for name, ddl in columns.items():
+            if name not in existing:
+                self._conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}")
 
     def all(self) -> dict[str, dict]:
         with self._lock:
@@ -107,6 +118,7 @@ class SettingsDB:
     STATS_COLUMNS = [
         "ts", "movies", "series", "episode_files", "library_bytes",
         "torrents_qbit", "torrents_tm", "indexer_grabs", "indexer_queries",
+        "disk_free_bytes",
     ]
 
     def insert_sample(self, sample: dict) -> None:

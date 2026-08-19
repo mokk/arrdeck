@@ -58,6 +58,7 @@ class QueueItemOut(BaseModel):
     title: str
     status: str
     tracked_state: str | None = None
+    tracked_status: str | None = None  # ok | warning | error
     size: float
     size_left: float
     time_left: str | None = None
@@ -189,6 +190,21 @@ class HistoryResponse(BaseModel):
 class HealthItemOut(BaseModel):
     type: str | None = None
     message: str | None = None
+
+
+class DiskSpaceOut(BaseModel):
+    path: str
+    label: str = ""
+    free_bytes: int = 0
+    total_bytes: int = 0
+
+
+class HealthWarningOut(BaseModel):
+    app: str
+    level: str = "warning"  # arr "type": warning | error
+    message: str = ""
+    wiki_url: str | None = None
+    source: str | None = None
 
 
 class IndexerStatOut(BaseModel):
@@ -498,6 +514,7 @@ class WebhookInstallIn(BaseModel):
 
 class StatsSampleOut(BaseModel):
     ts: int  # unix seconds
+    disk_free_bytes: int = 0
     movies: int = 0
     series: int = 0
     episode_files: int = 0

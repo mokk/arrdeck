@@ -67,7 +67,11 @@
     "seriesCount": "Serier",
     "grabs": "Hentninger",
     "recentlyAdded": "Senest tilføjet",
-    "wanted": "Ønsket"
+    "wanted": "Ønsket",
+    "health": "Kræver opmærksomhed",
+    "storage": "Lagerplads",
+    "freeSpace": "{{size}} ledig",
+    "freeSpaceShort": "Ledig plads"
   },
   "dl": {
     "title": "Downloads",

@@ -11,9 +11,6 @@ class ProwlarrClient(ArrClient):
     async def indexer_stats(self) -> dict:
         return await self.get("/indexerstats")
 
-    async def health(self) -> list:
-        return await self.get("/health")
-
     async def search(self, query: str, categories: list[int] | None = None) -> list:
         params: dict = {"query": query, "type": "search"}
         if categories:

@@ -305,6 +305,28 @@ export type CollectionOut = {
 };
 
 /**
+ * DiskSpaceOut
+ */
+export type DiskSpaceOut = {
+    /**
+     * Path
+     */
+    path: string;
+    /**
+     * Label
+     */
+    label?: string;
+    /**
+     * Free Bytes
+     */
+    free_bytes?: number;
+    /**
+     * Total Bytes
+     */
+    total_bytes?: number;
+};
+
+/**
  * EpisodeIdsIn
  */
 export type EpisodeIdsIn = {
@@ -398,6 +420,32 @@ export type HealthItemOut = {
      * Message
      */
     message?: string | null;
+};
+
+/**
+ * HealthWarningOut
+ */
+export type HealthWarningOut = {
+    /**
+     * App
+     */
+    app: string;
+    /**
+     * Level
+     */
+    level?: string;
+    /**
+     * Message
+     */
+    message?: string;
+    /**
+     * Wiki Url
+     */
+    wiki_url?: string | null;
+    /**
+     * Source
+     */
+    source?: string | null;
 };
 
 /**
@@ -842,6 +890,10 @@ export type QueueItemOut = {
      */
     tracked_state?: string | null;
     /**
+     * Tracked Status
+     */
+    tracked_status?: string | null;
+    /**
      * Size
      */
     size: number;
@@ -1165,6 +1217,50 @@ export type ServiceBlockListCalendarItemOut = {
 };
 
 /**
+ * ServiceBlock[list[DiskSpaceOut]]
+ */
+export type ServiceBlockListDiskSpaceOut = {
+    /**
+     * Ok
+     */
+    ok: boolean;
+    /**
+     * Data
+     */
+    data?: Array<DiskSpaceOut> | null;
+    /**
+     * Error
+     */
+    error?: string | null;
+    /**
+     * Stale Age Seconds
+     */
+    stale_age_seconds?: number | null;
+};
+
+/**
+ * ServiceBlock[list[HealthWarningOut]]
+ */
+export type ServiceBlockListHealthWarningOut = {
+    /**
+     * Ok
+     */
+    ok: boolean;
+    /**
+     * Data
+     */
+    data?: Array<HealthWarningOut> | null;
+    /**
+     * Error
+     */
+    error?: string | null;
+    /**
+     * Stale Age Seconds
+     */
+    stale_age_seconds?: number | null;
+};
+
+/**
  * ServiceBlock[list[HistoryItemOut]]
  */
 export type ServiceBlockListHistoryItemOut = {
@@ -1326,6 +1422,10 @@ export type StatsSampleOut = {
      * Ts
      */
     ts: number;
+    /**
+     * Disk Free Bytes
+     */
+    disk_free_bytes?: number;
     /**
      * Movies
      */
@@ -1785,6 +1885,38 @@ export type StatusApiV1StatusGetResponses = {
 };
 
 export type StatusApiV1StatusGetResponse = StatusApiV1StatusGetResponses[keyof StatusApiV1StatusGetResponses];
+
+export type DiskspaceApiV1DiskspaceGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/diskspace';
+};
+
+export type DiskspaceApiV1DiskspaceGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ServiceBlockListDiskSpaceOut;
+};
+
+export type DiskspaceApiV1DiskspaceGetResponse = DiskspaceApiV1DiskspaceGetResponses[keyof DiskspaceApiV1DiskspaceGetResponses];
+
+export type HealthApiV1HealthGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/health';
+};
+
+export type HealthApiV1HealthGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ServiceBlockListHealthWarningOut;
+};
+
+export type HealthApiV1HealthGetResponse = HealthApiV1HealthGetResponses[keyof HealthApiV1HealthGetResponses];
 
 export type QueueApiV1QueueGetData = {
     body?: never;

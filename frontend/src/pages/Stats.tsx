@@ -107,6 +107,12 @@ export default function StatsPage() {
             pick={(s) => s.library_bytes ?? 0}
             format={formatBytes}
           />
+          <Chart
+            label={t("dash.freeSpaceShort")}
+            samples={data}
+            pick={(s) => s.disk_free_bytes ?? 0}
+            format={formatBytes}
+          />
           <Chart label={t("dash.movies")} samples={data} pick={(s) => s.movies ?? 0} format={count} />
           <Chart
             label={t("dash.seriesCount")}

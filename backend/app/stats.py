@@ -32,6 +32,19 @@ async def collect_sample(registry: Registry) -> dict:
         sample["library_bytes"] = sample.get("library_bytes", 0) + sum(
             st.get("sizeOnDisk", 0) for st in stats
         )
+    # Root folders, not /diskspace: in Docker the arrs only report their own
+    # container root there. Distinct paths on the same volume report a
+    # byte-identical freeSpace, so de-duplicating on the value (rather than the
+    # path) is what keeps a shared disk from being counted twice.
+    free_space: set[int] = set()
+    for name in ("radarr", "sonarr"):
+        if not registry.is_configured(name):
+            continue
+        for entry in await safe(registry.get(name).root_folders(), []):
+            if entry.get("freeSpace"):
+                free_space.add(entry["freeSpace"])
+    if free_space:
+        sample["disk_free_bytes"] = sum(free_space)
     if registry.is_configured("qbittorrent"):
         sample["torrents_qbit"] = len(await safe(registry.get("qbittorrent").torrents(), []))
     if registry.is_configured("transmission"):

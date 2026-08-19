@@ -73,6 +73,12 @@ class ArrClient(BaseClient):
         # The arr fans out to all indexers — slow; allow for it.
         return await self.get("/release", params=params, timeout=90.0)
 
+    async def health(self) -> list:
+        return await self.get("/health")
+
+    async def diskspace(self) -> list:
+        return await self.get("/diskspace")
+
     # --- Connect / notification settings (used to install arrdeck's webhook) ---
 
     async def notifications(self) -> list:
