@@ -7,7 +7,7 @@ import {
   Settings2,
   X,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { Suspense, lazy, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
@@ -17,16 +17,20 @@ import { LoginScreen } from "./components/LoginScreen";
 import { PullToRefresh } from "./components/PullToRefresh";
 import { SubnavProvider, useSubnav } from "./components/subnav";
 import { useAuthState, useServices } from "./hooks/queries";
-import Add from "./pages/Add";
+// Dashboard is the landing route and stays in the entry chunk; everything else
+// is fetched on first visit, which keeps the initial download small. The PWA
+// precache globs **/*.js, so the split chunks are still available offline.
 import Dashboard from "./pages/Dashboard";
-import Downloads from "./pages/Downloads";
-import HistoryPage from "./pages/History";
-import CalendarPage from "./pages/Calendar";
-import Manage from "./pages/Manage";
-import MoviePage from "./pages/Movie";
-import StatsPage from "./pages/Stats";
-import SeriesPage from "./pages/Series";
-import WantedPage from "./pages/Wanted";
+
+const Add = lazy(() => import("./pages/Add"));
+const Downloads = lazy(() => import("./pages/Downloads"));
+const HistoryPage = lazy(() => import("./pages/History"));
+const CalendarPage = lazy(() => import("./pages/Calendar"));
+const Manage = lazy(() => import("./pages/Manage"));
+const MoviePage = lazy(() => import("./pages/Movie"));
+const StatsPage = lazy(() => import("./pages/Stats"));
+const SeriesPage = lazy(() => import("./pages/Series"));
+const WantedPage = lazy(() => import("./pages/Wanted"));
 
 /** With zero services configured, everything except Manage is empty —
  * send the user to the Services settings instead. */
@@ -38,6 +42,15 @@ function RequireSetup({ children }: { children: ReactNode }) {
     return <Navigate to="/manage" replace />;
   }
   return <>{children}</>;
+}
+
+function RouteFallback() {
+  return (
+    <div className="space-y-3">
+      <div className="h-24 animate-pulse rounded-2xl bg-card" />
+      <div className="h-24 animate-pulse rounded-2xl bg-card" />
+    </div>
+  );
 }
 
 const TABS = [
@@ -95,6 +108,7 @@ function Shell() {
         <RequireSetup>
           {/* keyed on the path so navigating away clears a failed route */}
           <ErrorBoundary key={location.pathname}>
+          <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/downloads" element={<Downloads />} />
@@ -108,6 +122,7 @@ function Shell() {
             <Route path="/movie/:id" element={<MoviePage />} />
             <Route path="/stats" element={<StatsPage />} />
           </Routes>
+          </Suspense>
           </ErrorBoundary>
         </RequireSetup>
       </main>
