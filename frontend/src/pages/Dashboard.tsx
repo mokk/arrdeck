@@ -844,10 +844,10 @@ export default function Dashboard() {
       <TorrentSummary configured={configured} />
       {hasArr && <QueueSection configured={configured} />}
       <div className="lg:columns-2 lg:gap-5 [&>div]:break-inside-avoid">
+        {hasArr && <CalendarSection configured={configured} />}
         <StorageSection configured={configured} />
         <VpnSection configured={configured} />
         <SubtitlesSection configured={configured} />
-        {hasArr && <CalendarSection configured={configured} />}
         {hasArr && <HistorySection configured={configured} />}
         {configured.has("prowlarr") && <IndexerSection />}
         <TrendsSection />
