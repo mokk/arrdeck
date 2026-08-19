@@ -12,16 +12,25 @@ from ...cache import cache, cached, guarded
 from ...clients.base import ServiceUnavailable
 from ...registry import probe_version
 from .media import _poster
+from ...clients.gluetun import GluetunClient
 from ...clients.prowlarr import ProwlarrClient
 from ...clients.qbittorrent import QbittorrentClient
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
 from ...clients.transmission import TransmissionClient
-from ...deps import get_prowlarr, get_qbit, get_radarr, get_sonarr, get_transmission
+from ...deps import (
+    get_gluetun,
+    get_prowlarr,
+    get_qbit,
+    get_radarr,
+    get_sonarr,
+    get_transmission,
+)
 from ...schemas import (
     CalendarItemOut,
     DiskSpaceOut,
     HealthWarningOut,
+    VpnStatusOut,
     CalendarResponse,
     HistoryPageOut,
     HistoryResponse,
@@ -134,6 +143,47 @@ async def diskspace(
         return await cached("diskspace", 300, call)
 
     return await guarded(fetch(), "diskspace:block")
+
+
+@router.get("/vpn", response_model=ServiceBlock[VpnStatusOut])
+async def vpn_status(
+    gluetun: GluetunClient = Depends(get_gluetun),
+    qbit: QbittorrentClient = Depends(get_qbit),
+):
+    """Tunnel state, exit IP, and whether qBittorrent is actually listening on
+    the port the VPN forwarded — a mismatch is silently unconnectable."""
+
+    async def fetch() -> dict:
+        async def call() -> dict:
+            status, ip, forward, prefs = await asyncio.gather(
+                gluetun.status(),
+                gluetun.public_ip(),
+                gluetun.port_forward(),
+                qbit.preferences(),
+                return_exceptions=True,
+            )
+            if isinstance(status, BaseException):
+                raise status
+            ip = {} if isinstance(ip, BaseException) else ip
+            forward = {} if isinstance(forward, BaseException) else forward
+            prefs = {} if isinstance(prefs, BaseException) else prefs
+            forwarded = forward.get("port") or None
+            client_port = prefs.get("listen_port") or None
+            return {
+                "status": status.get("status", ""),
+                "public_ip": ip.get("public_ip", ""),
+                "country": ip.get("country"),
+                "city": ip.get("city"),
+                "forwarded_port": forwarded,
+                "client_port": client_port,
+                "port_matches": (
+                    None if not forwarded or not client_port else forwarded == client_port
+                ),
+            }
+
+        return await cached("vpn", 60, call)
+
+    return await guarded(fetch(), "vpn:block")
 
 
 @router.get("/health", response_model=ServiceBlock[list[HealthWarningOut]])

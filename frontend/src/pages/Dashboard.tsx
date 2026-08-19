@@ -25,6 +25,7 @@ import {
   useDiskSpace,
   useHealth,
   useMediaRequests,
+  useVpn,
   useRequestAction,
   useCalendar,
   useForceImport,
@@ -245,6 +246,50 @@ function RequestsSection({ configured }: { configured: Set<string> }) {
             </div>
           </Row>
         ))}
+      </Card>
+    </div>
+  );
+}
+
+function VpnSection({ configured }: { configured: Set<string> }) {
+  const { t } = useTranslation();
+  const hasGluetun = configured.has("gluetun");
+  const { data } = useVpn(hasGluetun);
+  if (!hasGluetun) return null;
+  return (
+    <div className="mb-6">
+      <SectionTitle>{t("dash.vpn")}</SectionTitle>
+      <Card>
+        <BlockView block={data}>
+          {(vpn) => (
+            <Row>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <StateBadge state={vpn.status === "running" ? "ok" : "error"} raw />
+                  <span className="truncate text-sm font-medium">{vpn.public_ip || "—"}</span>
+                </div>
+                <div className="mt-0.5 text-xs text-muted-foreground">
+                  {[vpn.city, vpn.country].filter(Boolean).join(", ")}
+                </div>
+                <div className="mt-1 flex items-center gap-1.5 text-xs">
+                  <span className="text-muted-foreground">
+                    {t("dash.forwardedPort", { port: vpn.forwarded_port ?? "—" })}
+                  </span>
+                  {/* a forwarded port the client isn't listening on is
+                      silently unconnectable — worth calling out */}
+                  {vpn.port_matches === false && (
+                    <StateBadge state="warning" raw />
+                  )}
+                  {vpn.port_matches === false && (
+                    <span className="text-warning">
+                      {t("dash.portMismatch", { port: vpn.client_port ?? "—" })}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </Row>
+          )}
+        </BlockView>
       </Card>
     </div>
   );
@@ -688,6 +733,7 @@ export default function Dashboard() {
       {hasArr && <QueueSection configured={configured} />}
       <div className="lg:columns-2 lg:gap-5 [&>div]:break-inside-avoid">
         <StorageSection configured={configured} />
+        <VpnSection configured={configured} />
         {hasArr && <CalendarSection configured={configured} />}
         {hasArr && <HistorySection configured={configured} />}
         {configured.has("prowlarr") && <IndexerSection />}

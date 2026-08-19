@@ -50,6 +50,7 @@ const SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password
   overseerr: ["url", "api_key"],
   qbittorrent: ["url", "username", "password"],
   transmission: ["url"],
+  gluetun: ["url", "api_key"],
 };
 
 const FIELD_KEYS: Record<string, string> = {

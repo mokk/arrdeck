@@ -75,7 +75,10 @@
     "requests": "Pending requests",
     "approve": "Approve",
     "decline": "Decline",
-    "seasonCount": "{{count}} season(s)"
+    "seasonCount": "{{count}} season(s)",
+    "vpn": "VPN",
+    "forwardedPort": "Forwarded port {{port}}",
+    "portMismatch": "qBittorrent is on {{port}}"
   },
   "dl": {
     "title": "Downloads",

@@ -46,6 +46,7 @@ def _seed_from_env(db: SettingsDB) -> None:
         },
         "transmission": {"url": s.transmission_url},
         "overseerr": {"url": s.overseerr_url, "api_key": s.overseerr_api_key},
+        "gluetun": {"url": s.gluetun_url, "api_key": s.gluetun_api_key},
     }
     for name, values in seeds.items():
         db.upsert(name, values)

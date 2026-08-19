@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     transmission_url: str = "http://10.0.0.154:9091"
     overseerr_url: str = "http://10.0.0.154:5055"
     overseerr_api_key: str = ""
+    gluetun_url: str = "http://10.0.0.154:8029"
+    gluetun_api_key: str = ""
     cors_origins: list[str] = ["*"]
     request_timeout: float = 8.0
     db_path: str = "data/arrdeck.db"

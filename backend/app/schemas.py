@@ -5,7 +5,7 @@ from pydantic import BaseModel
 T = TypeVar("T")
 
 ServiceName = Literal[
-    "radarr", "sonarr", "prowlarr", "qbittorrent", "transmission", "overseerr"
+    "radarr", "sonarr", "prowlarr", "qbittorrent", "transmission", "overseerr", "gluetun",
 ]
 
 
@@ -504,6 +504,16 @@ class MovieDetailOut(BaseModel):
 
 class PushSubscribeIn(BaseModel):
     subscription: dict
+
+
+class VpnStatusOut(BaseModel):
+    status: str = ""  # running | stopped | ...
+    public_ip: str = ""
+    country: str | None = None
+    city: str | None = None
+    forwarded_port: int | None = None
+    client_port: int | None = None  # qBittorrent's listen port
+    port_matches: bool | None = None  # None when either side is unknown
 
 
 class MediaRequestOut(BaseModel):

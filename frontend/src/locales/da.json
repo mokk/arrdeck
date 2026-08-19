@@ -75,7 +75,10 @@
     "requests": "Afventende ønsker",
     "approve": "Godkend",
     "decline": "Afvis",
-    "seasonCount": "{{count}} sæson(er)"
+    "seasonCount": "{{count}} sæson(er)",
+    "vpn": "VPN",
+    "forwardedPort": "Videresendt port {{port}}",
+    "portMismatch": "qBittorrent bruger {{port}}"
   },
   "dl": {
     "title": "Downloads",

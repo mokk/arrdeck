@@ -5,6 +5,7 @@ export const SERVICE_LABELS: Record<string, string> = {
   qbittorrent: "qBittorrent",
   transmission: "Transmission",
   overseerr: "Overseerr",
+  gluetun: "gluetun",
 };
 
 export function formatBytes(bytes: number | null | undefined): string {

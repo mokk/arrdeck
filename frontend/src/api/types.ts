@@ -46,6 +46,7 @@ export type Tracker = G.TrackerOut;
 export type SettingsExport = G.SettingsExportOut;
 export type MovieDetail = G.MovieDetailOut;
 export type TorrentSummary = G.TorrentSummaryOut;
+export type VpnStatus = G.VpnStatusOut;
 export type MediaRequest = G.MediaRequestOut;
 export type SpeedLimit = G.SpeedLimitOut;
 export type Session = G.SessionOut;

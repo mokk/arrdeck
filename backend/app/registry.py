@@ -1,6 +1,7 @@
 import httpx
 
 from .clients.base import ServiceUnavailable
+from .clients.gluetun import GluetunClient
 from .clients.overseerr import OverseerrClient
 from .clients.prowlarr import ProwlarrClient
 from .clients.qbittorrent import QbittorrentClient
@@ -9,7 +10,7 @@ from .clients.sonarr import SonarrClient
 from .clients.transmission import TransmissionClient
 from .db import SERVICES
 
-NEEDS_API_KEY = {"radarr", "sonarr", "prowlarr", "overseerr"}
+NEEDS_API_KEY = {"radarr", "sonarr", "prowlarr", "overseerr", "gluetun"}
 
 
 def is_configured(name: str, conf: dict) -> bool:
@@ -64,6 +65,8 @@ class Registry:
             )
         elif name == "transmission":
             self._clients[name] = TransmissionClient(self._tm_http, conf["url"])
+        elif name == "gluetun":
+            self._clients[name] = GluetunClient(self._arr_http, conf["url"], conf["api_key"])
 
     def rebuild_all(self, confs: dict[str, dict]) -> None:
         for name in SERVICES:
@@ -87,4 +90,7 @@ async def probe_version(name: str, client) -> str:
         return await client.version()
     if name == "transmission":
         return (await client.session()).get("version", "?")
+    if name == "gluetun":
+        # no version endpoint; the tunnel state is the useful signal
+        return (await client.status()).get("status", "?")
     raise ServiceUnavailable(name, "unknown service")

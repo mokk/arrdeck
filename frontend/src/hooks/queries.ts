@@ -17,6 +17,7 @@ import type {
   DiskSpace,
   HealthWarning,
   MediaRequest,
+  VpnStatus,
   Session,
   PushEvents,
   StatsSample,
@@ -333,6 +334,14 @@ export const useDiskSpace = (enabled: boolean) =>
     queryFn: () => api.get<ServiceBlock<DiskSpace[]>>("/diskspace"),
     enabled,
     refetchInterval: SLOW,
+  });
+
+export const useVpn = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["vpn"],
+    queryFn: () => api.get<ServiceBlock<VpnStatus>>("/vpn"),
+    enabled,
+    refetchInterval: MEDIUM,
   });
 
 export const useMediaRequests = (enabled: boolean) =>

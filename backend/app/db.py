@@ -3,7 +3,9 @@ import sqlite3
 import threading
 from pathlib import Path
 
-SERVICES = ["radarr", "sonarr", "prowlarr", "qbittorrent", "transmission", "overseerr"]
+SERVICES = [
+    "radarr", "sonarr", "prowlarr", "qbittorrent", "transmission", "overseerr", "gluetun",
+]
 EMPTY = {"url": "", "api_key": "", "username": "", "password": ""}
 
 

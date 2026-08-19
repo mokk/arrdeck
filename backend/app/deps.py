@@ -1,5 +1,6 @@
 from fastapi import Request
 
+from .clients.gluetun import GluetunClient
 from .clients.overseerr import OverseerrClient
 from .clients.prowlarr import ProwlarrClient
 from .clients.qbittorrent import QbittorrentClient
@@ -33,3 +34,7 @@ def get_transmission(request: Request) -> TransmissionClient:
 
 def get_overseerr(request: Request) -> OverseerrClient:
     return request.app.state.registry.get("overseerr")
+
+
+def get_gluetun(request: Request) -> GluetunClient:
+    return request.app.state.registry.get("gluetun")

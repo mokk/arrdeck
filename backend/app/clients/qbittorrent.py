@@ -150,6 +150,10 @@ class QbittorrentClient(BaseClient):
     async def toggle_alt_speed(self) -> None:
         await self.request("POST", "/api/v2/transfer/toggleSpeedLimitsMode")
 
+    async def preferences(self) -> dict:
+        resp = await self.request("GET", "/api/v2/app/preferences")
+        return resp.json()
+
     async def transfer_info(self) -> dict:
         resp = await self.request("GET", "/api/v2/transfer/info")
         return resp.json()

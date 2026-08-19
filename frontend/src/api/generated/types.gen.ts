@@ -1265,6 +1265,25 @@ export type ServiceBlockTorrentSummaryOut = {
 };
 
 /**
+ * ServiceBlock[VpnStatusOut]
+ */
+export type ServiceBlockVpnStatusOut = {
+    /**
+     * Ok
+     */
+    ok: boolean;
+    data?: VpnStatusOut | null;
+    /**
+     * Error
+     */
+    error?: string | null;
+    /**
+     * Stale Age Seconds
+     */
+    stale_age_seconds?: number | null;
+};
+
+/**
  * ServiceBlock[list[CalendarItemOut]]
  */
 export type ServiceBlockListCalendarItemOut = {
@@ -1465,7 +1484,7 @@ export type ServiceStatus = {
     /**
      * Service
      */
-    service: 'radarr' | 'sonarr' | 'prowlarr' | 'qbittorrent' | 'transmission' | 'overseerr';
+    service: 'radarr' | 'sonarr' | 'prowlarr' | 'qbittorrent' | 'transmission' | 'overseerr' | 'gluetun';
     /**
      * Ok
      */
@@ -1951,6 +1970,40 @@ export type VerifyIn = {
 };
 
 /**
+ * VpnStatusOut
+ */
+export type VpnStatusOut = {
+    /**
+     * Status
+     */
+    status?: string;
+    /**
+     * Public Ip
+     */
+    public_ip?: string;
+    /**
+     * Country
+     */
+    country?: string | null;
+    /**
+     * City
+     */
+    city?: string | null;
+    /**
+     * Forwarded Port
+     */
+    forwarded_port?: number | null;
+    /**
+     * Client Port
+     */
+    client_port?: number | null;
+    /**
+     * Port Matches
+     */
+    port_matches?: boolean | null;
+};
+
+/**
  * WantedItemOut
  */
 export type WantedItemOut = {
@@ -2089,6 +2142,22 @@ export type DiskspaceApiV1DiskspaceGetResponses = {
 };
 
 export type DiskspaceApiV1DiskspaceGetResponse = DiskspaceApiV1DiskspaceGetResponses[keyof DiskspaceApiV1DiskspaceGetResponses];
+
+export type VpnStatusApiV1VpnGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/vpn';
+};
+
+export type VpnStatusApiV1VpnGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ServiceBlockVpnStatusOut;
+};
+
+export type VpnStatusApiV1VpnGetResponse = VpnStatusApiV1VpnGetResponses[keyof VpnStatusApiV1VpnGetResponses];
 
 export type HealthApiV1HealthGetData = {
     body?: never;
