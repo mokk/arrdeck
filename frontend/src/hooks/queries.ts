@@ -806,16 +806,37 @@ export const useQueue = () =>
     refetchInterval: FAST,
   });
 
-export const useTorrents = () =>
-  useQuery({
-    queryKey: ["torrents"],
+export type TorrentQuery = {
+  q?: string;
+  state?: string;
+  sort?: string;
+  dir?: string;
+  limit?: number;
+};
+
+/** Filtering and sorting happen server-side: the stack holds ~1,800 torrents and
+ * shipping all of them every 5s cost hundreds of MB an hour. Each client is
+ * capped independently, which is still correct once both lists are merged. */
+export const useTorrents = (query: TorrentQuery = {}) => {
+  const params = new URLSearchParams();
+  if (query.q) params.set("q", query.q);
+  if (query.state && query.state !== "all") params.set("state", query.state);
+  if (query.sort) params.set("sort", query.sort);
+  if (query.dir) params.set("dir", query.dir);
+  if (query.limit) params.set("limit", String(query.limit));
+  const suffix = params.toString() ? `?${params}` : "";
+  return useQuery({
+    queryKey: ["torrents", suffix],
     queryFn: () =>
       api.get<{
         qbittorrent: ServiceBlock<TorrentGroup>;
         transmission: ServiceBlock<TorrentGroup>;
-      }>("/torrents"),
+      }>(`/torrents${suffix}`),
     refetchInterval: FAST,
+    // keep the previous page on screen while a filter change is in flight
+    placeholderData: (prev) => prev,
   });
+};
 
 export const useCalendar = () =>
   useQuery({

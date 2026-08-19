@@ -1,4 +1,5 @@
 import asyncio
+import functools
 import re
 import time
 from collections import deque
@@ -595,8 +596,67 @@ async def _history_indexer_map(radarr: RadarrClient, sonarr: SonarrClient) -> di
         return {}
 
 
+# Mirrors useSort's comparator exactly, so a server-limited page and the client's
+# re-sort agree. Note nulls sort last in BOTH directions: the JS returns its
+# null verdict before applying the direction flip, so a plain reverse=True here
+# would surface them first.
+def _compare(a: dict, b: dict, key: str) -> int:
+    va, vb = a.get(key), b.get(key)
+    if va is None and vb is None:
+        return 0
+    if va is None:
+        return 1
+    if vb is None:
+        return -1
+    if isinstance(va, str) and isinstance(vb, str):
+        fa, fb = va.casefold(), vb.casefold()
+        return (fa > fb) - (fa < fb)
+    fa, fb = float(va), float(vb)
+    return (fa > fb) - (fa < fb)
+
+
+def _sorted_rows(rows: list[dict], key: str, direction: str) -> list[dict]:
+    sign = -1 if direction == "desc" else 1
+
+    def cmp(a: dict, b: dict) -> int:
+        base = _compare(a, b, key)
+        if a.get(key) is None or b.get(key) is None:
+            return base  # direction must not move nulls off the end
+        return base * sign
+
+    return sorted(rows, key=functools.cmp_to_key(cmp))
+
+
+def _select(rows: list[dict], q: str, state: str, sort: str, direction: str, limit: int) -> dict:
+    """Filter, sort and cap one client's torrents.
+
+    Each client is capped independently and the client merges the two lists, which
+    is still globally correct: an item in the overall top N must also be in its own
+    client's top N.
+    """
+    states = sorted({r.get("state", "") for r in rows if r.get("state")})
+    needle = q.strip().casefold()
+    matched = [
+        r
+        for r in rows
+        if (not state or state == "all" or r.get("state") == state)
+        and (not needle or needle in (r.get("name") or "").casefold())
+    ]
+    matched = _sorted_rows(matched, sort, direction)
+    return {
+        "torrents": matched[: max(1, limit)],
+        "total": len(matched),
+        "states": states,
+    }
+
+
 @router.get("/torrents", response_model=TorrentsResponse)
 async def torrents(
+    q: str = "",
+    state: str = "",
+    sort: str = "added_on",
+    dir: str = "desc",
+    limit: int = 200,
     qbit: QbittorrentClient = Depends(get_qbit),
     transmission: TransmissionClient = Depends(get_transmission),
     prowlarr: ProwlarrClient = Depends(get_prowlarr),
@@ -625,7 +685,7 @@ async def torrents(
     async def fetch_qbit() -> dict:
         items, transfer = await asyncio.gather(qbit.torrents(), qbit.transfer_info())
         return {
-            "torrents": _qbit_torrents(items, resolve),
+            **_select(_qbit_torrents(items, resolve), q, state, sort, dir, limit),
             "totals": _averaged_totals(
                 "qbittorrent",
                 transfer.get("dl_info_speed", 0),
@@ -636,7 +696,7 @@ async def torrents(
     async def fetch_tm() -> dict:
         items, stats = await asyncio.gather(transmission.torrents(), transmission.session_stats())
         return {
-            "torrents": _tm_torrents(items, resolve),
+            **_select(_tm_torrents(items, resolve), q, state, sort, dir, limit),
             "totals": _averaged_totals(
                 "transmission",
                 stats.get("downloadSpeed", 0),

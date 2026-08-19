@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,6 +72,9 @@ const SORT_KEYS = [
   "uploaded",
   "tracker",
 ];
+
+// how many rows each client returns per request; raised by "load more"
+const PAGE = 200;
 
 function isPaused(t: Torrent) {
   return t.state === "paused" || t.state === "completed";
@@ -613,7 +616,29 @@ function BulkBar({
 
 export default function Downloads() {
   const { t } = useTranslation();
-  const { data } = useTorrents();
+  const [stateFilter, setStateFilter] = usePersistentState<string>("downloads.state", "all");
+  const [clients, setClients] = usePersistentState<Record<Torrent["client"], boolean>>(
+    "downloads.clients",
+    { qbittorrent: true, transmission: true },
+  );
+  const [nameFilter, setNameFilter] = usePersistentState<string>("downloads.name", "");
+  const sort = useSort<Record<string, unknown>>("downloads.sort", "added_on", "desc");
+  const [limit, setLimit] = useState(PAGE);
+  // the name filter now reaches the server, so debounce it rather than firing a
+  // request per keystroke — it used to be a free client-side filter
+  const [debouncedName, setDebouncedName] = useState(nameFilter);
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedName(nameFilter), 300);
+    return () => clearTimeout(id);
+  }, [nameFilter]);
+  useEffect(() => setLimit(PAGE), [debouncedName, stateFilter, sort.sortKey, sort.sortDir]);
+  const { data } = useTorrents({
+    q: debouncedName,
+    state: stateFilter,
+    sort: sort.sortKey,
+    dir: sort.sortDir,
+    limit,
+  });
   const { data: services } = useServices();
   const action = useTorrentAction();
   const configured = new Set(
@@ -623,13 +648,6 @@ export default function Downloads() {
     configured.has(c),
   );
 
-  const [stateFilter, setStateFilter] = usePersistentState<string>("downloads.state", "all");
-  const [clients, setClients] = usePersistentState<Record<Torrent["client"], boolean>>(
-    "downloads.clients",
-    { qbittorrent: true, transmission: true },
-  );
-  const [nameFilter, setNameFilter] = usePersistentState<string>("downloads.name", "");
-  const sort = useSort<Record<string, unknown>>("downloads.sort", "added_on", "desc");
   const [selected, setSelected] = useState<{ torrent: Torrent; del?: boolean } | null>(null);
   const [selectMode, setSelectMode] = useState(false);
   const [checked, setChecked] = useState<Set<string>>(new Set());
@@ -683,18 +701,25 @@ export default function Downloads() {
     ],
     [data],
   );
-  const states = Array.from(new Set(all.map((torrent) => torrent.state))).sort();
+  const states = Array.from(
+    new Set([
+      ...(data?.qbittorrent?.data?.states ?? []),
+      ...(data?.transmission?.data?.states ?? []),
+    ]),
+  ).sort();
+  const matchTotal =
+    (data?.qbittorrent?.data?.total ?? 0) + (data?.transmission?.data?.total ?? 0);
 
-  const shown = useMemo(() => {
-    const needle = nameFilter.trim().toLowerCase();
-    const filtered = all.filter(
-      (torrent) =>
-        (stateFilter === "all" || torrent.state === stateFilter) &&
-        clients[torrent.client] &&
-        (!needle || torrent.name.toLowerCase().includes(needle)),
-    );
-    return sort.sortRows(filtered as unknown as Record<string, unknown>[]) as unknown as Torrent[];
-  }, [all, stateFilter, clients, nameFilter, sort.sortKey, sort.sortDir]);
+  // state and name filtering happen server-side now; the client toggle between
+  // clients stays local, and the merge of two independently-capped lists is
+  // re-sorted so the visible order is globally correct
+  const shown = useMemo(
+    () =>
+      sort.sortRows(
+        all.filter((torrent) => clients[torrent.client]) as unknown as Record<string, unknown>[],
+      ) as unknown as Torrent[],
+    [all, clients, sort.sortKey, sort.sortDir],
+  );
 
   const chip = (label: string, active: boolean, onClick: () => void) => (
     <Button
@@ -804,6 +829,18 @@ export default function Downloads() {
           }
         />
         {shown.length === 0 && <EmptyNote>{t("dl.noMatch")}</EmptyNote>}
+        {/* each client is capped independently, so "more" exists when either
+            has rows the server held back */}
+        {matchTotal > shown.length && (
+          <div className="flex items-center justify-between gap-2 px-4 py-3">
+            <span className="text-xs text-muted-foreground">
+              {t("dl.showing", { shown: shown.length, total: matchTotal })}
+            </span>
+            <Button size="sm" variant="secondary" onClick={() => setLimit(limit + PAGE)}>
+              {t("dl.loadMore")}
+            </Button>
+          </div>
+        )}
       </Card>
       {selectMode && (
         <BulkBar

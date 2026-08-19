@@ -151,7 +151,9 @@
     "pickEpisode": "Vælg et afsnit",
     "season": "Sæson",
     "enterSeason": "Indtast et sæsonnummer",
-    "chooseTarget": "Tryk for at vælge hvad det er"
+    "chooseTarget": "Tryk for at vælge hvad det er",
+    "loadMore": "Hent flere",
+    "showing": "Viser {{shown}} af {{total}}"
   },
   "add": {
     "title": "Tilføj",

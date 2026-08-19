@@ -53,6 +53,8 @@ class TransferTotals(BaseModel):
 class TorrentGroupOut(BaseModel):
     torrents: list[TorrentOut]
     totals: TransferTotals
+    total: int = 0  # matches before the limit was applied
+    states: list[str] = []  # every state present, so the filter can list them
 
 
 class QueueItemOut(BaseModel):

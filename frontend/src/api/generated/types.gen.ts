@@ -2151,6 +2151,14 @@ export type TorrentGroupOut = {
      */
     torrents: Array<TorrentOut>;
     totals: TransferTotals;
+    /**
+     * Total
+     */
+    total?: number;
+    /**
+     * States
+     */
+    states?: Array<string>;
 };
 
 /**
@@ -2696,9 +2704,39 @@ export type QueueApiV1QueueGetResponse = QueueApiV1QueueGetResponses[keyof Queue
 export type TorrentsApiV1TorrentsGetData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Q
+         */
+        q?: string;
+        /**
+         * State
+         */
+        state?: string;
+        /**
+         * Sort
+         */
+        sort?: string;
+        /**
+         * Dir
+         */
+        dir?: string;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
     url: '/api/v1/torrents';
 };
+
+export type TorrentsApiV1TorrentsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type TorrentsApiV1TorrentsGetError = TorrentsApiV1TorrentsGetErrors[keyof TorrentsApiV1TorrentsGetErrors];
 
 export type TorrentsApiV1TorrentsGetResponses = {
     /**

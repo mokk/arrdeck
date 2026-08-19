@@ -754,16 +754,18 @@ function GlobalSearch({ query }: { query: string }) {
   const navigate = useNavigate();
   const movies = useSearch("movies", query);
   const series = useSearch("series", query);
-  const { data: torrentsData } = useTorrents();
+  // the server does the matching; asking for 15 avoids pulling ~1,800 rows to
+  // filter them down in the browser
+  const { data: torrentsData } = useTorrents({ q: query, limit: 15 });
 
-  const torrentMatches = useMemo(() => {
-    const needle = query.toLowerCase();
-    const all = [
-      ...(torrentsData?.qbittorrent?.data?.torrents ?? []),
-      ...(torrentsData?.transmission?.data?.torrents ?? []),
-    ];
-    return all.filter((tor) => tor.name.toLowerCase().includes(needle)).slice(0, 15);
-  }, [torrentsData, query]);
+  const torrentMatches = useMemo(
+    () =>
+      [
+        ...(torrentsData?.qbittorrent?.data?.torrents ?? []),
+        ...(torrentsData?.transmission?.data?.torrents ?? []),
+      ].slice(0, 15),
+    [torrentsData],
+  );
 
   const movieResults = (movies.data ?? []) as SearchResult[];
   const seriesResults = (series.data ?? []) as SearchResult[];

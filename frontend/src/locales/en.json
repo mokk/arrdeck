@@ -151,7 +151,9 @@
     "pickEpisode": "Choose an episode",
     "season": "Season",
     "enterSeason": "Enter a season number",
-    "chooseTarget": "Tap to choose what this is"
+    "chooseTarget": "Tap to choose what this is",
+    "loadMore": "Load more",
+    "showing": "Showing {{shown}} of {{total}}"
   },
   "add": {
     "title": "Add",
