@@ -1,6 +1,8 @@
 """Torrent clients: the list, its server-side filtering, and the tracker
 resolution that turns an announce host into the indexer it came from."""
 
+from collections import deque
+
 import asyncio
 import functools
 import time
@@ -137,6 +139,12 @@ def _tm_torrents(torrents: list, resolve) -> list[dict]:
             ).model_dump()
         )
     return out
+
+
+# Rolling window so the dashboard's transfer speeds don't jitter with each
+# poll. Module-level state, so it has to live beside the function using it.
+SPEED_WINDOW_SECONDS = 60.0
+_speed_samples: dict[str, deque] = {"qbittorrent": deque(), "transmission": deque()}
 
 
 def _averaged_totals(client: str, dl_speed: int, ul_speed: int) -> dict:

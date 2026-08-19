@@ -2,7 +2,6 @@ import asyncio
 import functools
 import re
 import time
-from collections import deque
 from datetime import date, timedelta
 from typing import Any, Callable, Coroutine
 from urllib.parse import urlparse
@@ -139,8 +138,6 @@ async def queue(
 # Rolling window of transfer-speed samples per client. Instantaneous speeds
 # bounce around a lot; the dashboard polls every ~5s, so averaging the last
 # minute of samples smooths the totals.
-SPEED_WINDOW_SECONDS = 60.0
-_speed_samples: dict[str, deque] = {"qbittorrent": deque(), "transmission": deque()}
 
 
 # Mirrors useSort's comparator exactly, so a server-limited page and the client's

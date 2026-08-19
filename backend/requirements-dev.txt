@@ -4,3 +4,5 @@ respx==0.22.*
 # starlette's TestClient transport; without it 1.6+ emits a deprecation
 # warning. The app's own clients still use httpx.
 httpx2==2.*
+# used by test_no_undefined_names to catch code moved away from its state
+pyflakes==3.*
