@@ -67,3 +67,51 @@ def test_every_ui_position_maps_to_a_qbit_action():
     assert set(QBIT_PRIORITY) == {"top", "bottom", "up", "down"}
     assert QBIT_PRIORITY["top"] == "topPrio"
     assert QBIT_PRIORITY["bottom"] == "bottomPrio"
+
+
+# --- reading qBittorrent's alt-speed mode --------------------------------
+
+
+class FakeResponse:
+    def __init__(self, text):
+        self.text = text
+
+
+class RecordingQbit:
+    """Stands in for the client so the parsing of speedLimitsMode is pinned.
+
+    qBittorrent 5.x stopped returning use_alt_speed_limits from /transfer/info;
+    reading it from there silently reported "never throttled", so every toggle
+    flipped the real state while the UI showed nothing.
+    """
+
+    def __init__(self, body):
+        self.body = body
+        self.paths = []
+
+    async def request(self, method, path, **kwargs):
+        self.paths.append(path)
+        return FakeResponse(self.body)
+
+
+async def _enabled(body):
+    from app.clients.qbittorrent import QbittorrentClient
+
+    client = RecordingQbit(body)
+    return await QbittorrentClient.alt_speed_enabled(client), client.paths
+
+
+def test_alt_speed_reads_the_speed_limits_mode_endpoint():
+    enabled, paths = asyncio.run(_enabled("1"))
+    assert enabled is True
+    assert paths == ["/api/v2/transfer/speedLimitsMode"]
+
+
+def test_alt_speed_off_is_a_plain_zero():
+    enabled, _ = asyncio.run(_enabled("0"))
+    assert enabled is False
+
+
+def test_alt_speed_tolerates_surrounding_whitespace():
+    assert asyncio.run(_enabled("1\n"))[0] is True
+    assert asyncio.run(_enabled(" 0 "))[0] is False

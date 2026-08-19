@@ -539,6 +539,19 @@ class ManualImportIn(BaseModel):
     mode: Literal["auto", "move", "copy"] = "auto"
 
 
+class ManualImportFileIn(BaseModel):
+    path: str
+    movie_id: int | None = None
+    series_id: int | None = None
+    episode_ids: list[int] = []
+
+
+class ManualImportAssignIn(BaseModel):
+    item_id: int
+    files: list[ManualImportFileIn]
+    mode: Literal["auto", "move", "copy"] = "auto"
+
+
 class RenamePreviewOut(BaseModel):
     file_id: int
     existing_path: str = ""

@@ -145,7 +145,11 @@ class QbittorrentClient(BaseClient):
         await self._torrent_action("setForceStart", hashes, value="true" if value else "false")
 
     async def alt_speed_enabled(self) -> bool:
-        return bool((await self.transfer_info()).get("use_alt_speed_limits"))
+        # /transfer/info dropped use_alt_speed_limits in 5.x (it comes back
+        # absent, which reads as "off" forever); speedLimitsMode is the
+        # authoritative source and answers a plain "0" or "1"
+        resp = await self.request("GET", "/api/v2/transfer/speedLimitsMode")
+        return resp.text.strip() == "1"
 
     async def toggle_alt_speed(self) -> None:
         await self.request("POST", "/api/v2/transfer/toggleSpeedLimitsMode")

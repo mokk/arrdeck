@@ -636,9 +636,9 @@ export default function Downloads() {
   const [sortOpen, setSortOpen] = useState(false);
   const { data: speed } = useSpeedLimit(clientList.length > 0);
   const setSpeed = useSetSpeedLimit();
-  // on when every configured client is throttled
-  const throttled =
-    clientList.length > 0 && clientList.every((c) => speed?.[c] === true);
+  // "some", not "every": if either client is throttled the label has to say so,
+  // otherwise a half-applied state reads as off. Tapping then releases both.
+  const throttled = clientList.some((c) => speed?.[c] === true);
   useRegisterSortButton(() => setSortOpen(true));
   useRegisterSubnav(
     [

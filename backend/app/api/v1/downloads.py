@@ -11,6 +11,7 @@ from ...clients.transmission import TransmissionClient
 from ...deps import get_qbit, get_radarr, get_sonarr, get_transmission
 from ...schemas import (
     ImportCandidateOut,
+    ManualImportAssignIn,
     ManualImportIn,
     RenameIn,
     RenamePreviewOut,
@@ -451,6 +452,52 @@ async def manual_import_run(
     ]
     if not files:
         raise HTTPException(409, "none of the selected files could be mapped")
+    await client.command({"name": "ManualImport", "files": files, "importMode": body.mode})
+
+
+@router.post("/manual-import/{app}/assign", status_code=204)
+async def manual_import_assign(
+    app: str,
+    body: ManualImportAssignIn,
+    radarr: RadarrClient = Depends(get_radarr),
+    sonarr: SonarrClient = Depends(get_sonarr),
+) -> None:
+    """Import files against targets the user picked, for the ones the arr
+    couldn't place itself. Quality and language still come from the arr's own
+    detection — it parses those from the filename even when the title is a
+    mystery, and guessing them here would be worse than reusing its answer."""
+    if app not in ("radarr", "sonarr"):
+        raise HTTPException(404, f"unknown app {app!r}")
+    client = radarr if app == "radarr" else sonarr
+    candidates = await client.manual_import(await _queue_download_id(client, body.item_id))
+    by_path = {c.get("path"): c for c in candidates}
+
+    files = []
+    for choice in body.files:
+        candidate = by_path.get(choice.path)
+        if candidate is None:
+            raise HTTPException(404, f"no candidate for {choice.path!r}")
+        if not candidate.get("quality"):
+            raise HTTPException(409, f"the arr could not determine a quality for {choice.path!r}")
+        entry = {
+            "path": choice.path,
+            "quality": candidate["quality"],
+            "languages": candidate.get("languages", []),
+            "releaseGroup": candidate.get("releaseGroup") or "",
+        }
+        if app == "radarr":
+            if not choice.movie_id:
+                raise HTTPException(422, "a movie must be chosen for each file")
+            entry["movieId"] = choice.movie_id
+        else:
+            if not choice.series_id or not choice.episode_ids:
+                raise HTTPException(422, "a series and at least one episode must be chosen")
+            entry["seriesId"] = choice.series_id
+            entry["episodeIds"] = choice.episode_ids
+        files.append(entry)
+
+    if not files:
+        raise HTTPException(422, "nothing to import")
     await client.command({"name": "ManualImport", "files": files, "importMode": body.mode})
 
 
