@@ -1,6 +1,8 @@
 import base64
 import hashlib
 import ipaddress
+import json
+import math
 import secrets
 import time
 
@@ -22,6 +24,7 @@ from webauthn.helpers.structs import (
 )
 
 from ...cache import cache
+from ...schemas import SessionOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -44,6 +47,59 @@ def is_lan(request: Request) -> bool:
     except ValueError:
         return False
     return ip.is_private or ip.is_loopback
+
+
+# --- brute-force throttling ----------------------------------------------
+#
+# Deliberately global rather than per-IP: Docker Desktop NATs every inbound
+# connection to one gateway address (the same reason is_lan() reads the Host
+# header), so per-IP buckets would either be one shared bucket anyway or be
+# trivially evaded. The cost is that one attacker can slow down the real user —
+# acceptable when the real user is on the LAN, which bypasses this entirely.
+FAILURES_KEY = "auth_failures"
+FREE_ATTEMPTS = 5  # a fat-fingered code or a failed biometric shouldn't cost anything
+FAILURE_WINDOW = 900  # quiet for this long and the counter resets
+MAX_LOCKOUT = 300
+
+
+def _failures(db) -> tuple[int, float]:
+    raw = db.kv_get(FAILURES_KEY)
+    if not raw:
+        return 0, 0.0
+    try:
+        count, last = json.loads(raw)
+    except (ValueError, TypeError):
+        return 0, 0.0
+    if time.time() - last > FAILURE_WINDOW:
+        return 0, 0.0
+    return int(count), float(last)
+
+
+def _lockout_remaining(db) -> float:
+    count, last = _failures(db)
+    if count <= FREE_ATTEMPTS:
+        return 0.0
+    delay = min(2 ** (count - FREE_ATTEMPTS), MAX_LOCKOUT)
+    return max(0.0, delay - (time.time() - last))
+
+
+def _check_throttle(request: Request) -> None:
+    if is_lan(request):
+        return
+    remaining = _lockout_remaining(request.app.state.db)
+    if remaining > 0:
+        raise HTTPException(
+            429, f"too many failed attempts — try again in {math.ceil(remaining)}s"
+        )
+
+
+def _record_failure(db) -> None:
+    count, _ = _failures(db)
+    db.kv_set(FAILURES_KEY, json.dumps([count + 1, time.time()]))
+
+
+def _clear_failures(db) -> None:
+    db.kv_set(FAILURES_KEY, json.dumps([0, 0.0]))
 
 
 def _token_hash(token: str) -> str:
@@ -140,7 +196,9 @@ def setup_code(request: Request) -> dict:
 
 @router.post("/register/options")
 def register_options(request: Request, body: RegisterOptionsIn | None = None) -> Response:
+    _check_throttle(request)
     if not (is_request_allowed(request) or _code_ok(request, body.code if body else "")):
+        _record_failure(request.app.state.db)
         raise HTTPException(403, "passkeys can only be added with the setup code or a signed-in session")
     options = generate_registration_options(
         rp_id=_rp_id(request),
@@ -162,7 +220,9 @@ def register_options(request: Request, body: RegisterOptionsIn | None = None) ->
 
 @router.post("/register/verify")
 def register_verify(body: VerifyIn, request: Request, response: Response) -> dict:
+    _check_throttle(request)
     if not (is_request_allowed(request) or _code_ok(request, body.code)):
+        _record_failure(request.app.state.db)
         raise HTTPException(403, "not allowed")
     challenge_b64 = cache.get("webauthn:register", CHALLENGE_TTL)
     if challenge_b64 is None:
@@ -184,6 +244,7 @@ def register_verify(body: VerifyIn, request: Request, response: Response) -> dic
         int(time.time()),
     )
     _rotate_setup_code(db)  # single-use: a fresh code is issued after each registration
+    _clear_failures(db)
     _start_session(request, response)
     return {"ok": True}
 
@@ -207,6 +268,7 @@ def login_options(request: Request) -> Response:
 
 @router.post("/login/verify")
 def login_verify(body: VerifyIn, request: Request, response: Response) -> dict:
+    _check_throttle(request)
     challenge_b64 = cache.get("webauthn:login", CHALLENGE_TTL)
     if challenge_b64 is None:
         raise HTTPException(400, "login challenge expired — try again")
@@ -217,6 +279,7 @@ def login_verify(body: VerifyIn, request: Request, response: Response) -> dict:
         None,
     )
     if stored is None:
+        _record_failure(db)
         raise HTTPException(400, "unknown credential")
     try:
         verification = verify_authentication_response(
@@ -228,8 +291,10 @@ def login_verify(body: VerifyIn, request: Request, response: Response) -> dict:
             credential_current_sign_count=stored["sign_count"],
         )
     except Exception as exc:  # noqa: BLE001
+        _record_failure(db)
         raise HTTPException(401, f"sign-in failed: {exc}") from exc
     db.cred_update_count(stored["credential_id"], verification.new_sign_count)
+    _clear_failures(db)
     _start_session(request, response)
     return {"ok": True}
 
@@ -240,6 +305,43 @@ def logout(request: Request, response: Response) -> None:
     if token:
         request.app.state.db.session_delete(_token_hash(token))
     response.delete_cookie(SESSION_COOKIE)
+
+
+SESSION_ID_LEN = 16
+
+
+@router.get("/sessions", response_model=list[SessionOut])
+def sessions(request: Request) -> list[dict]:
+    if not is_request_allowed(request):
+        raise HTTPException(401, "unauthorized")
+    token = request.cookies.get(SESSION_COOKIE) or ""
+    current = _token_hash(token) if token else ""
+    return [
+        {
+            "id": s["token_hash"][:SESSION_ID_LEN],
+            "created": s["created"],
+            "last_used": s["last_used"],
+            "current": s["token_hash"] == current,
+        }
+        for s in request.app.state.db.session_list()
+    ]
+
+
+@router.delete("/sessions", status_code=200)
+def revoke_other_sessions(request: Request) -> dict:
+    """Sign out everywhere else. The 180-day cookie outlives a deleted passkey,
+    so this is the control that actually ends access on a lost device."""
+    if not is_request_allowed(request):
+        raise HTTPException(401, "unauthorized")
+    token = request.cookies.get(SESSION_COOKIE) or ""
+    return {"revoked": request.app.state.db.session_delete_others(_token_hash(token) if token else "")}
+
+
+@router.delete("/sessions/{session_id}", status_code=204)
+def revoke_session(session_id: str, request: Request) -> None:
+    if not is_request_allowed(request):
+        raise HTTPException(401, "unauthorized")
+    request.app.state.db.session_delete_by_prefix(session_id[:SESSION_ID_LEN])
 
 
 @router.get("/credentials")

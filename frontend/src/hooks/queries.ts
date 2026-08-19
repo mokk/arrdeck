@@ -16,6 +16,7 @@ import type {
   SeriesDetail,
   DiskSpace,
   HealthWarning,
+  Session,
   PushEvents,
   StatsSample,
   TorrentDetails,
@@ -304,6 +305,23 @@ export function usePushSubscribe() {
       api.post<void>(input.unsubscribe ? "/push/unsubscribe" : "/push/subscribe", {
         subscription: input.subscription,
       }),
+  });
+}
+
+export const useSessions = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["sessions"],
+    queryFn: () => api.get<Session[]>("/auth/sessions"),
+    enabled,
+  });
+
+export function useRevokeSessions() {
+  const qc = useQueryClient();
+  return useMutation({
+    // no id = sign out everywhere except here
+    mutationFn: (id?: string) =>
+      api.delete<{ revoked?: number }>(id ? `/auth/sessions/${id}` : "/auth/sessions"),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["sessions"] }),
   });
 }
 

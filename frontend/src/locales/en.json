@@ -326,6 +326,11 @@
     "needsHttps": "Passkeys require HTTPS — open the app via deck.thrawn.dk.",
     "noPasskeys": "No passkeys registered",
     "signOut": "Sign out",
-    "lanNote": "You're on the home network — no sign-in needed."
+    "lanNote": "You're on the home network — no sign-in needed.",
+    "sessions": "Signed-in devices",
+    "signOutOthers": "Sign out others",
+    "sessionsRevoked": "Signed out {{count}} device(s)",
+    "sessionSeen": "Last used {{when}}",
+    "thisDevice": "this device"
   }
 }

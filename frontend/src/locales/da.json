@@ -326,6 +326,11 @@
     "needsHttps": "Adgangsnøgler kræver HTTPS — åbn appen via deck.thrawn.dk.",
     "noPasskeys": "Ingen adgangsnøgler registreret",
     "signOut": "Log ud",
-    "lanNote": "Du er på hjemmenetværket — login er ikke nødvendigt."
+    "lanNote": "Du er på hjemmenetværket — login er ikke nødvendigt.",
+    "sessions": "Tilmeldte enheder",
+    "signOutOthers": "Log andre ud",
+    "sessionsRevoked": "Loggede {{count}} enhed(er) ud",
+    "sessionSeen": "Sidst brugt {{when}}",
+    "thisDevice": "denne enhed"
   }
 }

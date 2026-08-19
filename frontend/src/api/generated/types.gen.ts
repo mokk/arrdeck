@@ -1417,6 +1417,28 @@ export type ServiceStatus = {
 };
 
 /**
+ * SessionOut
+ */
+export type SessionOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Created
+     */
+    created: number;
+    /**
+     * Last Used
+     */
+    last_used: number;
+    /**
+     * Current
+     */
+    current?: boolean;
+};
+
+/**
  * SettingsExportOut
  */
 export type SettingsExportOut = {
@@ -4383,6 +4405,74 @@ export type LogoutApiV1AuthLogoutPostResponses = {
 };
 
 export type LogoutApiV1AuthLogoutPostResponse = LogoutApiV1AuthLogoutPostResponses[keyof LogoutApiV1AuthLogoutPostResponses];
+
+export type RevokeOtherSessionsApiV1AuthSessionsDeleteData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/sessions';
+};
+
+export type RevokeOtherSessionsApiV1AuthSessionsDeleteResponses = {
+    /**
+     * Response Revoke Other Sessions Api V1 Auth Sessions Delete
+     *
+     * Successful Response
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type RevokeOtherSessionsApiV1AuthSessionsDeleteResponse = RevokeOtherSessionsApiV1AuthSessionsDeleteResponses[keyof RevokeOtherSessionsApiV1AuthSessionsDeleteResponses];
+
+export type SessionsApiV1AuthSessionsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/sessions';
+};
+
+export type SessionsApiV1AuthSessionsGetResponses = {
+    /**
+     * Response Sessions Api V1 Auth Sessions Get
+     *
+     * Successful Response
+     */
+    200: Array<SessionOut>;
+};
+
+export type SessionsApiV1AuthSessionsGetResponse = SessionsApiV1AuthSessionsGetResponses[keyof SessionsApiV1AuthSessionsGetResponses];
+
+export type RevokeSessionApiV1AuthSessionsSessionIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Session Id
+         */
+        session_id: string;
+    };
+    query?: never;
+    url: '/api/v1/auth/sessions/{session_id}';
+};
+
+export type RevokeSessionApiV1AuthSessionsSessionIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RevokeSessionApiV1AuthSessionsSessionIdDeleteError = RevokeSessionApiV1AuthSessionsSessionIdDeleteErrors[keyof RevokeSessionApiV1AuthSessionsSessionIdDeleteErrors];
+
+export type RevokeSessionApiV1AuthSessionsSessionIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type RevokeSessionApiV1AuthSessionsSessionIdDeleteResponse = RevokeSessionApiV1AuthSessionsSessionIdDeleteResponses[keyof RevokeSessionApiV1AuthSessionsSessionIdDeleteResponses];
 
 export type CredentialsApiV1AuthCredentialsGetData = {
     body?: never;

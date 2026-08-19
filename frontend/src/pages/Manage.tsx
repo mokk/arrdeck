@@ -49,6 +49,8 @@ import {
   useAuthState,
   useDeleteLibraryItem,
   useDeletePasskey,
+  useRevokeSessions,
+  useSessions,
   useLogout,
   usePasskeys,
   useSetupCode,
@@ -245,6 +247,9 @@ function SecurityCard() {
   const { data: setup } = useSetupCode((auth?.lan ?? false) || (auth?.authenticated ?? false));
   const deletePasskey = useDeletePasskey();
   const logout = useLogout();
+  const signedIn = (auth?.lan ?? false) || (auth?.authenticated ?? false);
+  const { data: sessions } = useSessions(signedIn);
+  const revoke = useRevokeSessions();
   const [busy, setBusy] = useState(false);
 
   const addPasskey = async () => {
@@ -308,6 +313,48 @@ function SecurityCard() {
         ))}
         {passkeys && passkeys.length === 0 && (
           <span className="text-xs text-muted-foreground">{t("auth.noPasskeys")}</span>
+        )}
+        {(sessions ?? []).length > 0 && (
+          <div className="flex flex-col gap-1.5 border-t border-border/60 pt-2.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">{t("auth.sessions")}</Label>
+              {(sessions ?? []).some((s) => !s.current) && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive"
+                  disabled={revoke.isPending}
+                  onClick={() =>
+                    revoke.mutate(undefined, {
+                      onSuccess: (r) =>
+                        toast.success(t("auth.sessionsRevoked", { count: r?.revoked ?? 0 })),
+                    })
+                  }
+                >
+                  {t("auth.signOutOthers")}
+                </Button>
+              )}
+            </div>
+            {(sessions ?? []).map((s) => (
+              <div key={s.id} className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">
+                  {t("auth.sessionSeen", { when: new Date(s.last_used * 1000).toLocaleString() })}
+                  {s.current && ` · ${t("auth.thisDevice")}`}
+                </span>
+                {!s.current && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive"
+                    disabled={revoke.isPending}
+                    onClick={() => revoke.mutate(s.id)}
+                  >
+                    ✕
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
         )}
         {setup && (
           <div className="flex items-center justify-between text-sm">

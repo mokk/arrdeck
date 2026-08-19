@@ -284,6 +284,31 @@ class SettingsDB:
             self._conn.commit()
         return True
 
+    def session_list(self) -> list[dict]:
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT token_hash, created, last_used FROM sessions ORDER BY last_used DESC"
+            ).fetchall()
+        return [dict(zip(("token_hash", "created", "last_used"), r)) for r in rows]
+
+    def session_delete_others(self, keep_hash: str) -> int:
+        with self._lock:
+            cur = self._conn.execute(
+                "DELETE FROM sessions WHERE token_hash != ?", (keep_hash,)
+            )
+            self._conn.commit()
+            return cur.rowcount
+
+    def session_delete_by_prefix(self, prefix: str) -> int:
+        """Sessions are addressed by a prefix of their hash — the full token
+        never leaves the browser, and the hash itself is not worth exposing."""
+        with self._lock:
+            cur = self._conn.execute(
+                "DELETE FROM sessions WHERE substr(token_hash, 1, ?) = ?", (len(prefix), prefix)
+            )
+            self._conn.commit()
+            return cur.rowcount
+
     def session_delete(self, token_hash: str) -> None:
         with self._lock:
             self._conn.execute("DELETE FROM sessions WHERE token_hash = ?", (token_hash,))

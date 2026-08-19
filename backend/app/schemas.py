@@ -480,6 +480,13 @@ class PushSubscribeIn(BaseModel):
     subscription: dict
 
 
+class SessionOut(BaseModel):
+    id: str  # a prefix of the token hash, enough to address it
+    created: int
+    last_used: int
+    current: bool = False
+
+
 class PushEventOut(BaseModel):
     key: str
     label: str
