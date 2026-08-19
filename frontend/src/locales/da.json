@@ -78,7 +78,11 @@
     "seasonCount": "{{count}} sæson(er)",
     "vpn": "VPN",
     "forwardedPort": "Videresendt port {{port}}",
-    "portMismatch": "qBittorrent bruger {{port}}"
+    "portMismatch": "qBittorrent bruger {{port}}",
+    "subtitles": "Undertekster",
+    "subtitlesMissing": "{{movies}} film, {{episodes}} afsnit mangler undertekster",
+    "noProviders": "Ingen udbydere konfigureret",
+    "searchSubs": "Søg"
   },
   "dl": {
     "title": "Downloads",

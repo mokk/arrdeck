@@ -17,6 +17,7 @@ import type {
   DiskSpace,
   HealthWarning,
   MediaRequest,
+  Subtitles,
   VpnStatus,
   Session,
   PushEvents,
@@ -335,6 +336,23 @@ export const useDiskSpace = (enabled: boolean) =>
     enabled,
     refetchInterval: SLOW,
   });
+
+export const useSubtitles = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["subtitles"],
+    queryFn: () => api.get<ServiceBlock<Subtitles>>("/subtitles"),
+    enabled,
+    refetchInterval: SLOW,
+  });
+
+export function useSubtitleSearch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { kind: "movie" | "episode"; id: number; series_id?: number | null }) =>
+      api.post<void>("/subtitles/search", input),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["subtitles"] }),
+  });
+}
 
 export const useVpn = (enabled: boolean) =>
   useQuery({

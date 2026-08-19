@@ -1,6 +1,7 @@
 import httpx
 
 from .clients.base import ServiceUnavailable
+from .clients.bazarr import BazarrClient
 from .clients.gluetun import GluetunClient
 from .clients.overseerr import OverseerrClient
 from .clients.prowlarr import ProwlarrClient
@@ -10,7 +11,7 @@ from .clients.sonarr import SonarrClient
 from .clients.transmission import TransmissionClient
 from .db import SERVICES
 
-NEEDS_API_KEY = {"radarr", "sonarr", "prowlarr", "overseerr", "gluetun"}
+NEEDS_API_KEY = {"radarr", "sonarr", "prowlarr", "overseerr", "gluetun", "bazarr"}
 
 
 def is_configured(name: str, conf: dict) -> bool:
@@ -67,6 +68,8 @@ class Registry:
             self._clients[name] = TransmissionClient(self._tm_http, conf["url"])
         elif name == "gluetun":
             self._clients[name] = GluetunClient(self._arr_http, conf["url"], conf["api_key"])
+        elif name == "bazarr":
+            self._clients[name] = BazarrClient(self._arr_http, conf["url"], conf["api_key"])
 
     def rebuild_all(self, confs: dict[str, dict]) -> None:
         for name in SERVICES:
@@ -93,4 +96,6 @@ async def probe_version(name: str, client) -> str:
     if name == "gluetun":
         # no version endpoint; the tunnel state is the useful signal
         return (await client.status()).get("status", "?")
+    if name == "bazarr":
+        return (await client.status()).get("bazarr_version", "?")
     raise ServiceUnavailable(name, "unknown service")

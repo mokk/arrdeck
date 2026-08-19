@@ -6,6 +6,7 @@ T = TypeVar("T")
 
 ServiceName = Literal[
     "radarr", "sonarr", "prowlarr", "qbittorrent", "transmission", "overseerr", "gluetun",
+    "bazarr",
 ]
 
 
@@ -504,6 +505,28 @@ class MovieDetailOut(BaseModel):
 
 class PushSubscribeIn(BaseModel):
     subscription: dict
+
+
+class SubtitleItemOut(BaseModel):
+    kind: str  # movie | episode
+    id: int  # radarrId, or sonarrEpisodeId for episodes
+    series_id: int | None = None  # episodes need both ids to search
+    title: str = ""
+    subtitle: str | None = None
+    missing: list[str] = []
+
+
+class SubtitlesOut(BaseModel):
+    episodes: int = 0  # counts come straight from Bazarr's badges
+    movies: int = 0
+    providers: int = 0
+    items: list[SubtitleItemOut] = []
+
+
+class SubtitleSearchIn(BaseModel):
+    kind: Literal["movie", "episode"]
+    id: int
+    series_id: int | None = None
 
 
 class VpnStatusOut(BaseModel):

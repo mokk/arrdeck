@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     overseerr_api_key: str = ""
     gluetun_url: str = "http://10.0.0.154:8029"
     gluetun_api_key: str = ""
+    bazarr_url: str = "http://10.0.0.154:6767"
+    bazarr_api_key: str = ""
     cors_origins: list[str] = ["*"]
     request_timeout: float = 8.0
     db_path: str = "data/arrdeck.db"

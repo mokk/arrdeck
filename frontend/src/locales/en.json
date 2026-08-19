@@ -78,7 +78,11 @@
     "seasonCount": "{{count}} season(s)",
     "vpn": "VPN",
     "forwardedPort": "Forwarded port {{port}}",
-    "portMismatch": "qBittorrent is on {{port}}"
+    "portMismatch": "qBittorrent is on {{port}}",
+    "subtitles": "Subtitles",
+    "subtitlesMissing": "{{movies}} movies, {{episodes}} episodes missing subtitles",
+    "noProviders": "No providers configured",
+    "searchSubs": "Search"
   },
   "dl": {
     "title": "Downloads",

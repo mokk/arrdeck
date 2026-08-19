@@ -1227,6 +1227,25 @@ export type ServiceBlockIndexerStatsOut = {
 };
 
 /**
+ * ServiceBlock[SubtitlesOut]
+ */
+export type ServiceBlockSubtitlesOut = {
+    /**
+     * Ok
+     */
+    ok: boolean;
+    data?: SubtitlesOut | null;
+    /**
+     * Error
+     */
+    error?: string | null;
+    /**
+     * Stale Age Seconds
+     */
+    stale_age_seconds?: number | null;
+};
+
+/**
  * ServiceBlock[TorrentGroupOut]
  */
 export type ServiceBlockTorrentGroupOut = {
@@ -1484,7 +1503,7 @@ export type ServiceStatus = {
     /**
      * Service
      */
-    service: 'radarr' | 'sonarr' | 'prowlarr' | 'qbittorrent' | 'transmission' | 'overseerr' | 'gluetun';
+    service: 'radarr' | 'sonarr' | 'prowlarr' | 'qbittorrent' | 'transmission' | 'overseerr' | 'gluetun' | 'bazarr';
     /**
      * Ok
      */
@@ -1615,6 +1634,76 @@ export type StatsSampleOut = {
      * Indexer Queries
      */
     indexer_queries?: number;
+};
+
+/**
+ * SubtitleItemOut
+ */
+export type SubtitleItemOut = {
+    /**
+     * Kind
+     */
+    kind: string;
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Series Id
+     */
+    series_id?: number | null;
+    /**
+     * Title
+     */
+    title?: string;
+    /**
+     * Subtitle
+     */
+    subtitle?: string | null;
+    /**
+     * Missing
+     */
+    missing?: Array<string>;
+};
+
+/**
+ * SubtitleSearchIn
+ */
+export type SubtitleSearchIn = {
+    /**
+     * Kind
+     */
+    kind: 'movie' | 'episode';
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Series Id
+     */
+    series_id?: number | null;
+};
+
+/**
+ * SubtitlesOut
+ */
+export type SubtitlesOut = {
+    /**
+     * Episodes
+     */
+    episodes?: number;
+    /**
+     * Movies
+     */
+    movies?: number;
+    /**
+     * Providers
+     */
+    providers?: number;
+    /**
+     * Items
+     */
+    items?: Array<SubtitleItemOut>;
 };
 
 /**
@@ -2142,6 +2231,47 @@ export type DiskspaceApiV1DiskspaceGetResponses = {
 };
 
 export type DiskspaceApiV1DiskspaceGetResponse = DiskspaceApiV1DiskspaceGetResponses[keyof DiskspaceApiV1DiskspaceGetResponses];
+
+export type SubtitlesApiV1SubtitlesGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/subtitles';
+};
+
+export type SubtitlesApiV1SubtitlesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ServiceBlockSubtitlesOut;
+};
+
+export type SubtitlesApiV1SubtitlesGetResponse = SubtitlesApiV1SubtitlesGetResponses[keyof SubtitlesApiV1SubtitlesGetResponses];
+
+export type SubtitleSearchApiV1SubtitlesSearchPostData = {
+    body: SubtitleSearchIn;
+    path?: never;
+    query?: never;
+    url: '/api/v1/subtitles/search';
+};
+
+export type SubtitleSearchApiV1SubtitlesSearchPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type SubtitleSearchApiV1SubtitlesSearchPostError = SubtitleSearchApiV1SubtitlesSearchPostErrors[keyof SubtitleSearchApiV1SubtitlesSearchPostErrors];
+
+export type SubtitleSearchApiV1SubtitlesSearchPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type SubtitleSearchApiV1SubtitlesSearchPostResponse = SubtitleSearchApiV1SubtitlesSearchPostResponses[keyof SubtitleSearchApiV1SubtitlesSearchPostResponses];
 
 export type VpnStatusApiV1VpnGetData = {
     body?: never;

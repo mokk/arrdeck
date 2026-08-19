@@ -26,6 +26,8 @@ import {
   useHealth,
   useMediaRequests,
   useVpn,
+  useSubtitles,
+  useSubtitleSearch,
   useRequestAction,
   useCalendar,
   useForceImport,
@@ -244,6 +246,54 @@ function RequestsSection({ configured }: { configured: Set<string> }) {
                 {t("dash.decline")}
               </Button>
             </div>
+          </Row>
+        ))}
+      </Card>
+    </div>
+  );
+}
+
+function SubtitlesSection({ configured }: { configured: Set<string> }) {
+  const { t } = useTranslation();
+  const hasBazarr = configured.has("bazarr");
+  const { data } = useSubtitles(hasBazarr);
+  const search = useSubtitleSearch();
+  const subs = data?.data;
+  const total = (subs?.episodes ?? 0) + (subs?.movies ?? 0);
+  if (!hasBazarr || total === 0) return null;
+  return (
+    <div className="mb-6">
+      <SectionTitle>{t("dash.subtitles")}</SectionTitle>
+      <Card>
+        <Row>
+          <div className="flex-1 text-sm text-muted-foreground">
+            {t("dash.subtitlesMissing", { movies: subs?.movies ?? 0, episodes: subs?.episodes ?? 0 })}
+          </div>
+          {/* no providers means every search is guaranteed to come back empty */}
+          {subs?.providers === 0 && (
+            <span className="text-xs text-warning">{t("dash.noProviders")}</span>
+          )}
+        </Row>
+        {(subs?.items ?? []).slice(0, 8).map((item) => (
+          <Row key={`${item.kind}-${item.id}`}>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-medium">{item.title}</div>
+              <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <StateBadge state={item.kind === "episode" ? "sonarr" : "radarr"} />
+                {item.subtitle}
+                {(item.missing?.length ?? 0) > 0 && ` · ${item.missing!.join(", ")}`}
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={search.isPending}
+              onClick={() =>
+                search.mutate({ kind: item.kind as "movie" | "episode", id: item.id, series_id: item.series_id })
+              }
+            >
+              {t("dash.searchSubs")}
+            </Button>
           </Row>
         ))}
       </Card>
@@ -734,6 +784,7 @@ export default function Dashboard() {
       <div className="lg:columns-2 lg:gap-5 [&>div]:break-inside-avoid">
         <StorageSection configured={configured} />
         <VpnSection configured={configured} />
+        <SubtitlesSection configured={configured} />
         {hasArr && <CalendarSection configured={configured} />}
         {hasArr && <HistorySection configured={configured} />}
         {configured.has("prowlarr") && <IndexerSection />}

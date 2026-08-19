@@ -6,6 +6,7 @@ export const SERVICE_LABELS: Record<string, string> = {
   transmission: "Transmission",
   overseerr: "Overseerr",
   gluetun: "gluetun",
+  bazarr: "Bazarr",
 };
 
 export function formatBytes(bytes: number | null | undefined): string {

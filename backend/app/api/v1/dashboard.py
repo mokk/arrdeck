@@ -6,12 +6,13 @@ from datetime import date, timedelta
 from typing import Any, Callable, Coroutine
 from urllib.parse import urlparse
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from ...cache import cache, cached, guarded
 from ...clients.base import ServiceUnavailable
 from ...registry import probe_version
 from .media import _poster
+from ...clients.bazarr import BazarrClient
 from ...clients.gluetun import GluetunClient
 from ...clients.prowlarr import ProwlarrClient
 from ...clients.qbittorrent import QbittorrentClient
@@ -19,6 +20,7 @@ from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
 from ...clients.transmission import TransmissionClient
 from ...deps import (
+    get_bazarr,
     get_gluetun,
     get_prowlarr,
     get_qbit,
@@ -30,6 +32,8 @@ from ...schemas import (
     CalendarItemOut,
     DiskSpaceOut,
     HealthWarningOut,
+    SubtitleSearchIn,
+    SubtitlesOut,
     VpnStatusOut,
     CalendarResponse,
     HistoryPageOut,
@@ -143,6 +147,60 @@ async def diskspace(
         return await cached("diskspace", 300, call)
 
     return await guarded(fetch(), "diskspace:block")
+
+
+@router.get("/subtitles", response_model=ServiceBlock[SubtitlesOut])
+async def subtitles(bazarr: BazarrClient = Depends(get_bazarr)):
+    """What Bazarr is still missing. Counts come from its badges endpoint, so
+    they stay right even though the item list is capped."""
+
+    async def fetch() -> dict:
+        async def call() -> dict:
+            badges, episodes, movies = await asyncio.gather(
+                bazarr.badges(), bazarr.wanted_episodes(), bazarr.wanted_movies()
+            )
+            items = [
+                {
+                    "kind": "movie",
+                    "id": m.get("radarrId", 0),
+                    "title": m.get("title", ""),
+                    "missing": [x.get("name", "") for x in m.get("missing_subtitles") or []],
+                }
+                for m in movies
+            ] + [
+                {
+                    "kind": "episode",
+                    "id": e.get("sonarrEpisodeId", 0),
+                    "series_id": e.get("sonarrSeriesId"),
+                    "title": e.get("seriesTitle", ""),
+                    "subtitle": f"{e.get('episode_number', '')} {e.get('episodeTitle', '')}".strip(),
+                    "missing": [x.get("name", "") for x in e.get("missing_subtitles") or []],
+                }
+                for e in episodes
+            ]
+            return {
+                "episodes": badges.get("episodes", 0),
+                "movies": badges.get("movies", 0),
+                "providers": badges.get("providers", 0),
+                "items": items,
+            }
+
+        return await cached("subtitles", 300, call)
+
+    return await guarded(fetch(), "subtitles:block")
+
+
+@router.post("/subtitles/search", status_code=204)
+async def subtitle_search(
+    body: SubtitleSearchIn, bazarr: BazarrClient = Depends(get_bazarr)
+) -> None:
+    if body.kind == "movie":
+        await bazarr.search_movie(body.id)
+    else:
+        if body.series_id is None:
+            raise HTTPException(422, "episodes need a series_id")
+        await bazarr.search_episode(body.series_id, body.id)
+    cache.set("subtitles", None)
 
 
 @router.get("/vpn", response_model=ServiceBlock[VpnStatusOut])

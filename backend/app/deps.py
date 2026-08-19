@@ -1,5 +1,6 @@
 from fastapi import Request
 
+from .clients.bazarr import BazarrClient
 from .clients.gluetun import GluetunClient
 from .clients.overseerr import OverseerrClient
 from .clients.prowlarr import ProwlarrClient
@@ -38,3 +39,7 @@ def get_overseerr(request: Request) -> OverseerrClient:
 
 def get_gluetun(request: Request) -> GluetunClient:
     return request.app.state.registry.get("gluetun")
+
+
+def get_bazarr(request: Request) -> BazarrClient:
+    return request.app.state.registry.get("bazarr")
