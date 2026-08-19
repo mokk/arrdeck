@@ -8,7 +8,8 @@
     "build": "node scripts/check-locales.mjs && tsc --noEmit && vite build",
     "preview": "vite preview",
     "gen:api": "npx -y --package typescript@5.9 --package @hey-api/openapi-ts@0.99 openapi-ts",
-    "gen:icons": "node scripts/gen-icons.mjs"
+    "gen:icons": "node scripts/gen-icons.mjs",
+    "test": "vitest run"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^13.3.0",
@@ -35,13 +36,16 @@
     "vaul": "^1.1.2"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.0.5",
+    "jsdom": "^29.1.1",
     "sharp": "^0.35.3",
     "typescript": "^7.0.2",
     "vite": "^8.2.1",
     "vite-plugin-pwa": "^1.3.0",
+    "vitest": "^3.2.7",
     "workbox-core": "^7.4.1",
     "workbox-expiration": "^7.4.1",
     "workbox-precaching": "^7.4.1",

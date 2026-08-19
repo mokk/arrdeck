@@ -1,0 +1,631 @@
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import { api } from "../../api/client";
+import { passkeysSupported, registerPasskey } from "../../lib/passkey";
+import { SERVICE_LABELS } from "../../api/format";
+import i18n, { LANGUAGES, setLanguage } from "../../i18n";
+import type { ServiceSettings } from "../../api/types";
+import { Card, EmptyNote, ErrorNote } from "../Blocks";
+import {
+  useAuthState,
+  useDeletePasskey,
+  useRevokeSessions,
+  useSessions,
+  useLogout,
+  usePasskeys,
+  useSetupCode,
+  useImportSettings,
+  useInstallWebhooks,
+  usePushEvents,
+  usePushSubscribe,
+  useSavePushEvents,
+  useTestPush,
+  useWebhookStatus,
+  useSaveServiceSettings,
+  useServiceSettings,
+  useStatus,
+  useTestService,
+  useVapidKey,
+} from "../../hooks/queries";
+
+/* ---------------- services (connection settings) ---------------- */
+
+const SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password")[]> = {
+  radarr: ["url", "api_key"],
+  sonarr: ["url", "api_key"],
+  prowlarr: ["url", "api_key"],
+  overseerr: ["url", "api_key"],
+  qbittorrent: ["url", "username", "password"],
+  transmission: ["url"],
+};
+
+const FIELD_KEYS: Record<string, string> = {
+  url: "manage.url",
+  api_key: "manage.apiKey",
+  username: "manage.usernameOptional",
+  password: "manage.passwordOptional",
+};
+
+function ServiceSettingsCard({ name, initial }: { name: string; initial: ServiceSettings }) {
+  const { t } = useTranslation();
+  const save = useSaveServiceSettings();
+  const test = useTestService();
+  const [form, setForm] = useState({
+    url: initial.url,
+    api_key: initial.api_key,
+    username: initial.username,
+    password: initial.password,
+  });
+  const [result, setResult] = useState<string | null>(null);
+  const dirty =
+    form.url !== initial.url ||
+    form.api_key !== initial.api_key ||
+    form.username !== initial.username ||
+    form.password !== initial.password;
+
+  return (
+    <Card>
+      <div className="flex flex-col gap-2.5 p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-semibold">{SERVICE_LABELS[name] ?? name}</span>
+          <Badge
+            variant="secondary"
+            className={cn(
+              "px-2 py-0 text-[0.68rem]",
+              initial.configured ? "text-success" : "text-muted-foreground",
+            )}
+          >
+            {initial.configured ? t("manage.configured") : t("manage.notConfigured")}
+          </Badge>
+          {result && (
+            <span
+              className={cn(
+                "text-xs",
+                result.startsWith("ok") ? "text-success" : "text-destructive",
+              )}
+            >
+              {result}
+            </span>
+          )}
+        </div>
+        {SERVICE_FIELDS[name].map((field) => (
+          <div key={field}>
+            <Label className="mb-1 text-xs text-muted-foreground">{t(FIELD_KEYS[field])}</Label>
+            <Input
+              value={form[field]}
+              placeholder={field === "url" ? t("manage.urlPlaceholder") : ""}
+              onChange={(e) => setForm({ ...form, [field]: e.target.value })}
+            />
+          </div>
+        ))}
+        <div className="flex gap-2">
+          <Button
+            disabled={!dirty || save.isPending}
+            onClick={() =>
+              save.mutate(
+                { service: name, ...form },
+                {
+                  onSuccess: (r) =>
+                    setResult(r.configured ? t("manage.savedOk") : t("manage.savedDisabled")),
+                  onError: (e) => setResult(`error: ${(e as Error).message}`),
+                },
+              )
+            }
+          >
+            {save.isPending ? t("common.saving") : t("common.save")}
+          </Button>
+          <Button
+            variant="secondary"
+            disabled={test.isPending || dirty}
+            title={dirty ? t("manage.saveFirst") : t("manage.testSaved")}
+            onClick={() =>
+              test.mutate(name, {
+                onSuccess: (r) => setResult(`ok: v${r.version}`),
+                onError: (e) => setResult(`error: ${(e as Error).message}`),
+              })
+            }
+          >
+            {test.isPending ? t("common.testing") : t("common.test")}
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function LanguagePicker() {
+  const { t } = useTranslation();
+  return (
+    <Card>
+      <div className="flex items-center justify-between p-4">
+        <span className="font-semibold">{t("common.language")}</span>
+        <Select value={i18n.language} onValueChange={setLanguage}>
+          <SelectTrigger size="sm" className="w-auto bg-secondary">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {LANGUAGES.map((l) => (
+              <SelectItem key={l.code} value={l.code}>
+                {l.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </Card>
+  );
+}
+
+function StatusStrip() {
+  const { t } = useTranslation();
+  const { data } = useStatus();
+  if (!data?.length) return null;
+  return (
+    <div className="mb-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+      {data.map((s) => (
+        <div
+          key={s.service}
+          className={cn(
+            "flex shrink-0 items-center gap-2 rounded-full bg-card px-3.5 py-2 text-xs font-semibold",
+            !s.ok && "text-destructive",
+          )}
+        >
+          <span className={cn("size-2 rounded-full", s.ok ? "bg-success" : "bg-destructive")} />
+          {SERVICE_LABELS[s.service] ?? s.service}
+          <span className="font-normal text-muted-foreground">
+            {s.ok ? s.version : t("manage.offlineShort")}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function urlBase64ToUint8Array(base64: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+  const raw = atob((base64 + padding).replace(/-/g, "+").replace(/_/g, "/"));
+  return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+}
+
+function SecurityCard() {
+  const { t } = useTranslation();
+  const { data: auth, refetch } = useAuthState();
+  const supported = passkeysSupported();
+  const { data: passkeys } = usePasskeys(supported || (auth?.lan ?? false));
+  const { data: setup } = useSetupCode((auth?.lan ?? false) || (auth?.authenticated ?? false));
+  const deletePasskey = useDeletePasskey();
+  const logout = useLogout();
+  const signedIn = (auth?.lan ?? false) || (auth?.authenticated ?? false);
+  const { data: sessions } = useSessions(signedIn);
+  const revoke = useRevokeSessions();
+  const [busy, setBusy] = useState(false);
+
+  const addPasskey = async () => {
+    setBusy(true);
+    try {
+      await registerPasskey(`passkey ${new Date().toISOString().slice(0, 10)}`);
+      toast.success(t("auth.passkeys"));
+      refetch();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card>
+      <div className="flex flex-col gap-2.5 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="font-semibold">{t("auth.security")}</span>
+          <div className="flex gap-1.5">
+            {supported && (
+              <Button size="sm" variant="secondary" disabled={busy} onClick={addPasskey}>
+                {t("auth.addPasskey")}
+              </Button>
+            )}
+            {auth?.authenticated && (
+              <Button
+                size="sm"
+                variant="secondary"
+                className="text-destructive"
+                disabled={logout.isPending}
+                onClick={() => logout.mutate()}
+              >
+                {t("auth.signOut")}
+              </Button>
+            )}
+          </div>
+        </div>
+        {!supported && (
+          <span className="text-xs text-muted-foreground">{t("auth.needsHttps")}</span>
+        )}
+        {(passkeys ?? []).map((pk) => (
+          <div key={pk.id} className="flex items-center justify-between text-sm">
+            <span>
+              {pk.name}{" "}
+              <span className="text-xs text-muted-foreground">
+                {new Date(pk.created * 1000).toLocaleDateString()}
+              </span>
+            </span>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-destructive"
+              disabled={deletePasskey.isPending}
+              onClick={() => deletePasskey.mutate(pk.id)}
+            >
+              ✕
+            </Button>
+          </div>
+        ))}
+        {passkeys && passkeys.length === 0 && (
+          <span className="text-xs text-muted-foreground">{t("auth.noPasskeys")}</span>
+        )}
+        {(sessions ?? []).length > 0 && (
+          <div className="flex flex-col gap-1.5 border-t border-border/60 pt-2.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">{t("auth.sessions")}</Label>
+              {(sessions ?? []).some((s) => !s.current) && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive"
+                  disabled={revoke.isPending}
+                  onClick={() =>
+                    revoke.mutate(undefined, {
+                      onSuccess: (r) =>
+                        toast.success(t("auth.sessionsRevoked", { count: r?.revoked ?? 0 })),
+                    })
+                  }
+                >
+                  {t("auth.signOutOthers")}
+                </Button>
+              )}
+            </div>
+            {(sessions ?? []).map((s) => (
+              <div key={s.id} className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">
+                  {t("auth.sessionSeen", { when: new Date(s.last_used * 1000).toLocaleString() })}
+                  {s.current && ` · ${t("auth.thisDevice")}`}
+                </span>
+                {!s.current && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive"
+                    disabled={revoke.isPending}
+                    onClick={() => revoke.mutate(s.id)}
+                  >
+                    ✕
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {setup && (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">{t("auth.setupCode")}</span>
+            <span className="font-mono font-semibold tracking-[0.2em]">{setup.code}</span>
+          </div>
+        )}
+        <span className="text-xs text-muted-foreground">{t("auth.registerHint")}</span>
+      </div>
+    </Card>
+  );
+}
+
+function EventToggles({ endpoint }: { endpoint: string }) {
+  const { t } = useTranslation();
+  const { data } = usePushEvents(true, endpoint);
+  const save = useSavePushEvents();
+  if (!data) return null;
+  // With a subscription the chips edit this device alone; without one they set
+  // the default that every unconfigured device follows.
+  const current = save.variables?.enabled ?? data.device ?? data.enabled;
+  const enabled = new Set(current);
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label className="text-xs text-muted-foreground">
+        {endpoint ? t("push.eventsThisDevice") : t("push.events")}
+      </Label>
+      <div className="flex flex-wrap gap-1.5">
+        {data.available.map((event) => {
+          const on = enabled.has(event.key);
+          return (
+            <button
+              key={event.key}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
+                on ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
+              )}
+              onClick={() =>
+                save.mutate({
+                  endpoint,
+                  enabled: on
+                    ? [...enabled].filter((k) => k !== event.key)
+                    : [...enabled, event.key],
+                })
+              }
+            >
+              {t(`push.event.${event.key}`, event.label)}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** Radarr and Sonarr push events to arrdeck the moment they happen; without
+ * this the backend falls back to polling their history every minute. */
+function WebhookSection() {
+  const { t } = useTranslation();
+  const { data, isLoading } = useWebhookStatus(true);
+  const install = useInstallWebhooks();
+  const [edited, setEdited] = useState<string | null>(null);
+  const baseUrl = edited ?? data?.base_url ?? "";
+  const connected = (data?.apps ?? []).some((a) => a.installed);
+
+  const run = (remove?: boolean) =>
+    install.mutate(
+      { baseUrl, remove },
+      {
+        onSuccess: (rows) => {
+          const failed = rows.filter((r) => r.error);
+          if (failed.length === 0) {
+            toast.success(remove ? t("push.hookRemoved") : t("push.hookConnected"));
+            return;
+          }
+          for (const row of failed) {
+            toast.error(`${SERVICE_LABELS[row.app] ?? row.app}: ${row.error}`);
+          }
+        },
+      },
+    );
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Label className="text-xs text-muted-foreground">{t("push.delivery")}</Label>
+      {isLoading ? (
+        <span className="text-xs text-muted-foreground">{t("common.loading")}</span>
+      ) : (
+        <>
+          {(data?.apps ?? []).map((row) => (
+            <div key={row.app} className="flex items-center justify-between text-sm">
+              <span>{SERVICE_LABELS[row.app] ?? row.app}</span>
+              <span
+                className={cn(
+                  "text-xs",
+                  row.installed ? "text-success" : "text-muted-foreground",
+                  row.error && "text-destructive",
+                )}
+              >
+                {row.error
+                  ? row.error
+                  : !row.configured
+                    ? t("manage.notConfigured")
+                    : row.installed
+                      ? t("push.hookOn")
+                      : t("push.hookOff")}
+              </span>
+            </div>
+          ))}
+          <Input
+            value={baseUrl}
+            onChange={(e) => setEdited(e.target.value)}
+            placeholder="http://10.0.0.154:3500"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+          <div className="flex gap-2">
+            <Button disabled={install.isPending || !baseUrl.trim()} onClick={() => run()}>
+              {install.isPending
+                ? t("common.saving")
+                : connected
+                  ? t("push.hookReconnect")
+                  : t("push.hookConnect")}
+            </Button>
+            {connected && (
+              <Button
+                variant="secondary"
+                className="text-destructive"
+                disabled={install.isPending}
+                onClick={() => run(true)}
+              >
+                {t("push.hookRemove")}
+              </Button>
+            )}
+          </div>
+          <span className="text-xs text-muted-foreground">{t("push.hookHint")}</span>
+          {data?.last_event != null && (
+            <span className="text-xs text-muted-foreground">
+              {t("push.lastEvent", {
+                when: new Date(data.last_event * 1000).toLocaleString(),
+              })}
+            </span>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function NotificationsCard() {
+  const { t } = useTranslation();
+  const supported =
+    typeof window !== "undefined" &&
+    window.isSecureContext &&
+    "serviceWorker" in navigator &&
+    "PushManager" in window;
+  const { data: vapid } = useVapidKey(supported);
+  const pushApi = usePushSubscribe();
+  const testPush = useTestPush();
+  // "" when this device isn't subscribed — also what scopes the event chips
+  const [endpoint, setEndpoint] = useState("");
+  const [busy, setBusy] = useState(false);
+  const enabled = endpoint !== "";
+
+  useEffect(() => {
+    if (!supported) return;
+    navigator.serviceWorker.ready
+      .then((reg) => reg.pushManager.getSubscription())
+      .then((sub) => setEndpoint(sub?.endpoint ?? ""))
+      .catch(() => {});
+  }, [supported]);
+
+  const toggle = async () => {
+    if (!vapid) return;
+    setBusy(true);
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if (enabled) {
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          pushApi.mutate({ subscription: sub.toJSON(), unsubscribe: true });
+          await sub.unsubscribe();
+        }
+        setEndpoint("");
+      } else {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          toast.error(t("push.denied"));
+          return;
+        }
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapid.key).buffer as ArrayBuffer,
+        });
+        pushApi.mutate({ subscription: sub.toJSON() });
+        setEndpoint(sub.endpoint);
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card>
+      <div className="flex flex-col gap-3.5 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="font-semibold">{t("push.title")}</span>
+          {supported ? (
+            <div className="flex gap-1.5">
+              {enabled && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={testPush.isPending}
+                  onClick={() =>
+                    testPush.mutate(endpoint, {
+                      onSuccess: () => toast.success(t("push.testSent")),
+                    })
+                  }
+                >
+                  {t("common.test")}
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant={enabled ? "default" : "secondary"}
+                disabled={busy || !vapid}
+                onClick={toggle}
+              >
+                {enabled ? t("push.enabled") : t("push.enable")}
+              </Button>
+            </div>
+          ) : (
+            <span className="text-xs text-muted-foreground">{t("push.needsHttps")}</span>
+          )}
+        </div>
+        <EventToggles endpoint={endpoint} />
+        <WebhookSection />
+      </div>
+    </Card>
+  );
+}
+
+function SettingsTransfer() {
+  const { t } = useTranslation();
+  const importSettings = useImportSettings();
+
+  const doExport = async () => {
+    const data = await api.get<{ services: Record<string, unknown> }>("/settings/export");
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "arrdeck-settings.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const doImport = (file: File) => {
+    file.text().then((text) => {
+      const parsed = JSON.parse(text);
+      importSettings.mutate(parsed.services ?? parsed);
+    });
+  };
+
+  return (
+    <Card>
+      <div className="flex flex-wrap items-center gap-2 p-4">
+        <Button variant="secondary" size="sm" onClick={doExport}>
+          {t("manage.export")}
+        </Button>
+        <Button variant="secondary" size="sm" asChild disabled={importSettings.isPending}>
+          <label className="cursor-pointer">
+            {t("manage.import")}
+            <input
+              type="file"
+              accept="application/json"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) doImport(f);
+                e.target.value = "";
+              }}
+            />
+          </label>
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
+export function ServiceSettingsTab() {
+  const { t } = useTranslation();
+  const { data, error } = useServiceSettings();
+  if (error) return <ErrorNote>{(error as Error).message}</ErrorNote>;
+  if (!data) return <EmptyNote>{t("common.loading")}</EmptyNote>;
+  return (
+    <>
+      <StatusStrip />
+      <LanguagePicker />
+      <SecurityCard />
+      <NotificationsCard />
+      <SettingsTransfer />
+      {Object.entries(data).map(([name, conf]) => (
+        <ServiceSettingsCard
+          key={`${name}-${conf.url}-${conf.api_key}`}
+          name={name}
+          initial={conf}
+        />
+      ))}
+    </>
+  );
+}
