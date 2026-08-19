@@ -27,6 +27,13 @@ export default defineConfig({
           { src: "/pwa-512.png", sizes: "512x512", type: "image/png" },
           { src: "/pwa-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
+        // long-press the home-screen icon; honoured on Android and desktop,
+        // ignored by iOS
+        shortcuts: [
+          { name: "Downloads", url: "/downloads", icons: [{ src: "/pwa-192.png", sizes: "192x192" }] },
+          { name: "Add", url: "/add", icons: [{ src: "/pwa-192.png", sizes: "192x192" }] },
+          { name: "Calendar", url: "/calendar", icons: [{ src: "/pwa-192.png", sizes: "192x192" }] },
+        ],
       },
       injectManifest: {
         globPatterns: ["**/*.{js,css,html,svg,png}"],
