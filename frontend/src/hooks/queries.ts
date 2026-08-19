@@ -511,6 +511,27 @@ export function useManualImport() {
   });
 }
 
+export function useManualImportAssign() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      app,
+      itemId,
+      files,
+    }: {
+      app: string;
+      itemId: number;
+      files: {
+        path: string;
+        movie_id?: number | null;
+        series_id?: number | null;
+        episode_ids?: number[];
+      }[];
+    }) => api.post<void>(`/manual-import/${app}/assign`, { item_id: itemId, files }),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["queue"] }),
+  });
+}
+
 export const useRenamePreview = (app: string, id: number, enabled: boolean) =>
   useQuery({
     queryKey: ["renamePreview", app, id],

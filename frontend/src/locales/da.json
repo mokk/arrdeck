@@ -143,7 +143,13 @@
     "noCandidates": "Intet at importere",
     "importStarted": "Import startet",
     "importSelected": "Importér {{count}}",
-    "selectAll": "Vælg alle"
+    "selectAll": "Vælg alle",
+    "pickMovie": "Vælg en film",
+    "pickSeries": "Vælg en serie",
+    "pickEpisode": "Vælg et afsnit",
+    "season": "Sæson",
+    "enterSeason": "Indtast et sæsonnummer",
+    "chooseTarget": "Tryk for at vælge hvad det er"
   },
   "add": {
     "title": "Tilføj",

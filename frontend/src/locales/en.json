@@ -143,7 +143,13 @@
     "noCandidates": "Nothing to import",
     "importStarted": "Import started",
     "importSelected": "Import {{count}}",
-    "selectAll": "Select all"
+    "selectAll": "Select all",
+    "pickMovie": "Choose a movie",
+    "pickSeries": "Choose a series",
+    "pickEpisode": "Choose an episode",
+    "season": "Season",
+    "enterSeason": "Enter a season number",
+    "chooseTarget": "Tap to choose what this is"
   },
   "add": {
     "title": "Add",

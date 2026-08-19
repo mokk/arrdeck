@@ -6,7 +6,12 @@ import { cn } from "@/lib/utils";
 import { formatBytes } from "../api/format";
 import { EmptyNote } from "./Blocks";
 import { Sheet } from "./Sheet";
-import { useImportCandidates, useManualImport } from "../hooks/queries";
+import {
+  useImportCandidates,
+  useManualImport,
+  useManualImportAssign,
+} from "../hooks/queries";
+import { TargetPicker, type Target } from "./TargetPicker";
 
 /** Everything the arr found in a stuck download, including the files it
  * refused, so a rejection can be read and overridden rather than guessed at. */
@@ -22,7 +27,11 @@ export function ImportSheet({
   const { t } = useTranslation();
   const { data, isLoading } = useImportCandidates(app, itemId);
   const run = useManualImport();
+  const assign = useManualImportAssign();
   const [picked, setPicked] = useState<Set<string>>(new Set());
+  // files the arr couldn't place, pointed at a target by hand
+  const [targets, setTargets] = useState<Record<string, Target>>({});
+  const [choosingFor, setChoosingFor] = useState<string | null>(null);
 
   const toggle = (path: string) => {
     const next = new Set(picked);
@@ -40,11 +49,12 @@ export function ImportSheet({
       {(data ?? []).map((c) => (
         <button
           key={c.path}
-          disabled={!c.importable}
-          onClick={() => toggle(c.path)}
+          onClick={() =>
+            c.importable || targets[c.path] ? toggle(c.path) : setChoosingFor(c.path)
+          }
           className={cn(
             "flex w-full items-start gap-2.5 border-t border-border py-2 text-left first:border-t-0",
-            !c.importable && "opacity-60",
+            !c.importable && !targets[c.path] && "opacity-60",
           )}
         >
           <span
@@ -65,34 +75,73 @@ export function ImportSheet({
                 {c.rejections!.join(" · ")}
               </span>
             )}
+            {targets[c.path] ? (
+              <span className="mt-0.5 block text-xs text-primary">
+                → {targets[c.path].label}
+              </span>
+            ) : (
+              !c.importable && (
+                <span className="mt-0.5 block text-xs text-primary">{t("dl.chooseTarget")}</span>
+              )
+            )}
           </span>
         </button>
       ))}
-      {importable.length > 0 && (
+      {(data ?? []).length > 0 && (
         <div className="mt-3 flex gap-2">
           <Button
-            disabled={run.isPending || picked.size === 0}
-            onClick={() =>
-              run.mutate(
-                { app, itemId, paths: [...picked] },
+            disabled={run.isPending || assign.isPending || picked.size === 0}
+            onClick={() => {
+              const chosen = [...picked];
+              const auto = chosen.filter((p) => !targets[p]);
+              const manual = chosen.filter((p) => targets[p]);
+              const done = () => {
+                toast.success(t("dl.importStarted"));
+                onClose();
+              };
+              // hand-assigned files go through the endpoint that takes explicit
+              // targets; the rest keep using the arr's own mapping
+              if (manual.length === 0) {
+                run.mutate({ app, itemId, paths: auto }, { onSuccess: done });
+                return;
+              }
+              assign.mutate(
+                {
+                  app,
+                  itemId,
+                  files: manual.map((p) => ({ path: p, ...targets[p] })),
+                },
                 {
                   onSuccess: () => {
-                    toast.success(t("dl.importStarted"));
-                    onClose();
+                    if (auto.length) run.mutate({ app, itemId, paths: auto }, { onSuccess: done });
+                    else done();
                   },
                 },
-              )
-            }
+              );
+            }}
           >
             {t("dl.importSelected", { count: picked.size })}
           </Button>
-          <Button
-            variant="secondary"
-            onClick={() => setPicked(new Set(importable.map((c) => c.path)))}
-          >
-            {t("dl.selectAll")}
-          </Button>
+          {importable.length > 0 && (
+            <Button
+              variant="secondary"
+              onClick={() => setPicked(new Set(importable.map((c) => c.path)))}
+            >
+              {t("dl.selectAll")}
+            </Button>
+          )}
         </div>
+      )}
+      {choosingFor && (
+        <TargetPicker
+          app={app}
+          onClose={() => setChoosingFor(null)}
+          onPick={(target) => {
+            setTargets({ ...targets, [choosingFor]: target });
+            setPicked(new Set([...picked, choosingFor]));
+            setChoosingFor(null);
+          }}
+        />
       )}
     </Sheet>
   );

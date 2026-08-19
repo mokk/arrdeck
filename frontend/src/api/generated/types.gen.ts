@@ -763,6 +763,46 @@ export type LibraryUpdateIn = {
 };
 
 /**
+ * ManualImportAssignIn
+ */
+export type ManualImportAssignIn = {
+    /**
+     * Item Id
+     */
+    item_id: number;
+    /**
+     * Files
+     */
+    files: Array<ManualImportFileIn>;
+    /**
+     * Mode
+     */
+    mode?: 'auto' | 'move' | 'copy';
+};
+
+/**
+ * ManualImportFileIn
+ */
+export type ManualImportFileIn = {
+    /**
+     * Path
+     */
+    path: string;
+    /**
+     * Movie Id
+     */
+    movie_id?: number | null;
+    /**
+     * Series Id
+     */
+    series_id?: number | null;
+    /**
+     * Episode Ids
+     */
+    episode_ids?: Array<number>;
+};
+
+/**
  * ManualImportIn
  */
 export type ManualImportIn = {
@@ -3376,6 +3416,36 @@ export type ManualImportRunApiV1ManualImportAppPostResponses = {
 };
 
 export type ManualImportRunApiV1ManualImportAppPostResponse = ManualImportRunApiV1ManualImportAppPostResponses[keyof ManualImportRunApiV1ManualImportAppPostResponses];
+
+export type ManualImportAssignApiV1ManualImportAppAssignPostData = {
+    body: ManualImportAssignIn;
+    path: {
+        /**
+         * App
+         */
+        app: string;
+    };
+    query?: never;
+    url: '/api/v1/manual-import/{app}/assign';
+};
+
+export type ManualImportAssignApiV1ManualImportAppAssignPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ManualImportAssignApiV1ManualImportAppAssignPostError = ManualImportAssignApiV1ManualImportAppAssignPostErrors[keyof ManualImportAssignApiV1ManualImportAppAssignPostErrors];
+
+export type ManualImportAssignApiV1ManualImportAppAssignPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type ManualImportAssignApiV1ManualImportAppAssignPostResponse = ManualImportAssignApiV1ManualImportAppAssignPostResponses[keyof ManualImportAssignApiV1ManualImportAppAssignPostResponses];
 
 export type RenamePreviewApiV1RenameAppItemIdGetData = {
     body?: never;
