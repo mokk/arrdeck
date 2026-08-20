@@ -6,7 +6,7 @@ T = TypeVar("T")
 
 ServiceName = Literal[
     "radarr", "sonarr", "prowlarr", "qbittorrent", "transmission", "overseerr", "gluetun",
-    "bazarr", "plex",
+    "bazarr", "plex", "prometheus",
 ]
 
 

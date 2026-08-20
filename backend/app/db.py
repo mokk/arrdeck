@@ -5,7 +5,7 @@ from pathlib import Path
 
 SERVICES = [
     "radarr", "sonarr", "prowlarr", "qbittorrent", "transmission", "overseerr", "gluetun",
-    "bazarr", "plex",
+    "bazarr", "plex", "prometheus",
 ]
 EMPTY = {"url": "", "api_key": "", "username": "", "password": ""}
 

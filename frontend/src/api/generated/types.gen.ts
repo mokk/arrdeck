@@ -2142,7 +2142,7 @@ export type ServiceStatus = {
     /**
      * Service
      */
-    service: 'radarr' | 'sonarr' | 'prowlarr' | 'qbittorrent' | 'transmission' | 'overseerr' | 'gluetun' | 'bazarr' | 'plex';
+    service: 'radarr' | 'sonarr' | 'prowlarr' | 'qbittorrent' | 'transmission' | 'overseerr' | 'gluetun' | 'bazarr' | 'plex' | 'prometheus';
     /**
      * Ok
      */

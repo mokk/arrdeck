@@ -76,6 +76,9 @@ class ArrClient(BaseClient):
     async def health(self) -> list:
         return await self.get("/health")
 
+    async def download_clients(self) -> list:
+        return await self.get("/downloadclient")
+
     async def import_lists(self) -> list:
         return await self.get("/importlist")
 

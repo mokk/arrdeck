@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     bazarr_api_key: str = ""
     plex_url: str = "http://10.0.0.154:32400"
     plex_api_key: str = ""
+    prometheus_url: str = "http://10.0.0.154:9090"
     cors_origins: list[str] = ["*"]
     request_timeout: float = 8.0
     db_path: str = "data/arrdeck.db"

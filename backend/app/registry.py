@@ -4,6 +4,7 @@ from .clients.base import ServiceUnavailable
 from .clients.bazarr import BazarrClient
 from .clients.gluetun import GluetunClient
 from .clients.plex import PlexClient
+from .clients.prometheus import PrometheusClient
 from .clients.overseerr import OverseerrClient
 from .clients.prowlarr import ProwlarrClient
 from .clients.qbittorrent import QbittorrentClient
@@ -75,6 +76,8 @@ class Registry:
             self._clients[name] = BazarrClient(self._arr_http, conf["url"], conf["api_key"])
         elif name == "plex":
             self._clients[name] = PlexClient(self._arr_http, conf["url"], conf["api_key"])
+        elif name == "prometheus":
+            self._clients[name] = PrometheusClient(self._arr_http, conf["url"])
 
     def rebuild_all(self, confs: dict[str, dict]) -> None:
         for name in SERVICES:
@@ -105,4 +108,6 @@ async def probe_version(name: str, client) -> str:
         return (await client.status()).get("bazarr_version", "?")
     if name == "plex":
         return (await client.identity()).get("version", "?")
+    if name == "prometheus":
+        return (await client.status()).get("version", "?")
     raise ServiceUnavailable(name, "unknown service")

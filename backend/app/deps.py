@@ -3,6 +3,7 @@ from fastapi import Request
 from .clients.bazarr import BazarrClient
 from .clients.gluetun import GluetunClient
 from .clients.plex import PlexClient
+from .clients.prometheus import PrometheusClient
 from .clients.overseerr import OverseerrClient
 from .clients.prowlarr import ProwlarrClient
 from .clients.qbittorrent import QbittorrentClient
@@ -48,3 +49,7 @@ def get_bazarr(request: Request) -> BazarrClient:
 
 def get_plex(request: Request) -> PlexClient:
     return request.app.state.registry.get("plex")
+
+
+def get_prometheus(request: Request) -> PrometheusClient:
+    return request.app.state.registry.get("prometheus")

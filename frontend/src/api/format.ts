@@ -10,6 +10,7 @@ export const SERVICE_LABELS: Record<string, string> = {
   gluetun: "gluetun",
   bazarr: "Bazarr",
   plex: "Plex",
+  prometheus: "Prometheus",
 };
 
 export function formatBytes(bytes: number | null | undefined): string {

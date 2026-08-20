@@ -52,6 +52,7 @@ def _seed_from_env(db: SettingsDB) -> None:
         "gluetun": {"url": s.gluetun_url, "api_key": s.gluetun_api_key},
         "bazarr": {"url": s.bazarr_url, "api_key": s.bazarr_api_key},
         "plex": {"url": s.plex_url, "api_key": s.plex_api_key},
+        "prometheus": {"url": s.prometheus_url, "api_key": ""},
     }
     for name, values in seeds.items():
         db.upsert(name, values)

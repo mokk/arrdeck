@@ -7,11 +7,13 @@ from ...cache import cache, cached, guarded
 from ...clients.base import ServiceUnavailable
 from ...registry import probe_version
 from ...clients.gluetun import GluetunClient
+from ...clients.prometheus import PrometheusClient
 from ...clients.qbittorrent import QbittorrentClient
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
 from ...deps import (
     get_bazarr,
+    get_prometheus,
     get_gluetun,
     get_plex,
     get_prowlarr,
@@ -162,10 +164,79 @@ async def vpn_status(
     return await guarded(fetch(), "vpn:block")
 
 
+# unpackerr publishes these as one metric family keyed by a name label
+UNPACKERR_FAILURE_GAUGES = ("failed",)
+UNPACKERR_FAILURE_COUNTERS = ("cmd_fail", "hook_fail")
+
+
+async def _unpackerr_warnings(prometheus: PrometheusClient) -> list[dict]:
+    """Extraction problems. A download that completes and never imports is
+    usually unpackerr failing quietly, which nothing else in arrdeck surfaces."""
+    warnings: list[dict] = []
+    gauges, counters, fetch_errors = await asyncio.gather(
+        prometheus.scalars("unpackerr_gauges"),
+        prometheus.scalars("unpackerr_counters"),
+        # keyed by "app" (Radarr/Sonarr), not "name" like the gauge families —
+        # using the wrong label collapses both series into one empty key
+        prometheus.scalars("unpackerr_app_queue_fetch_errors_total", label="app"),
+        return_exceptions=True,
+    )
+    if isinstance(gauges, dict):
+        for key in UNPACKERR_FAILURE_GAUGES:
+            if gauges.get(key, 0) > 0:
+                warnings.append({
+                    "app": "unpackerr",
+                    "level": "error",
+                    "message": f"{int(gauges[key])} extraction(s) failed",
+                    "source": "Unpackerr",
+                })
+    if isinstance(counters, dict):
+        for key in UNPACKERR_FAILURE_COUNTERS:
+            if counters.get(key, 0) > 0:
+                warnings.append({
+                    "app": "unpackerr",
+                    "level": "warning",
+                    "message": f"{int(counters[key])} {key.replace('_', ' ')} since start",
+                    "source": "Unpackerr",
+                })
+    if isinstance(fetch_errors, dict):
+        for app_name, count in sorted(fetch_errors.items()):
+            if count > 0:
+                warnings.append({
+                    "app": "unpackerr",
+                    "level": "warning",
+                    "message": f"cannot read {app_name or 'an arr'}'s queue ({int(count)} errors)",
+                    "source": "Unpackerr",
+                })
+    return warnings
+
+
+async def _download_client_warnings(radarr, sonarr) -> list[dict]:
+    """A disabled or absent download client is a silent failure: the arr simply
+    never grabs anything and says nothing about it."""
+    results = await asyncio.gather(
+        radarr.download_clients(), sonarr.download_clients(), return_exceptions=True
+    )
+    warnings: list[dict] = []
+    for app, result in zip(("radarr", "sonarr"), results):
+        if isinstance(result, BaseException):
+            continue
+        enabled = [c for c in result if c.get("enable")]
+        if not enabled:
+            warnings.append({
+                "app": app,
+                "level": "error",
+                "message": "no download client is enabled",
+                "source": "DownloadClient",
+            })
+    return warnings
+
+
 @router.get("/health", response_model=ServiceBlock[list[HealthWarningOut]])
 async def health(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    prometheus: PrometheusClient = Depends(get_prometheus),
 ):
     """Radarr and Sonarr's own health checks. Prowlarr's are already shown on
     the indexer card, so they're deliberately left out of this list."""
@@ -194,6 +265,14 @@ async def health(
                             "source": entry.get("source"),
                         }
                     )
+            extras = await asyncio.gather(
+                _unpackerr_warnings(prometheus),
+                _download_client_warnings(radarr, sonarr),
+                return_exceptions=True,
+            )
+            for extra in extras:
+                if isinstance(extra, list):
+                    warnings.extend(extra)
             # errors first, so the worst thing is the first thing read
             warnings.sort(key=lambda w: (w["level"] != "error", w["app"]))
             return warnings
