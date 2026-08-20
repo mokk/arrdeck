@@ -17,8 +17,6 @@ from ...schemas import (
 
 router = APIRouter(tags=["subtitles"])
 
-router = APIRouter(tags=["dashboard"])
-
 
 @router.get("/subtitles", response_model=ServiceBlock[SubtitlesOut])
 async def subtitles(bazarr: BazarrClient = Depends(get_bazarr)):

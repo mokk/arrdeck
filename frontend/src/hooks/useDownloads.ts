@@ -12,7 +12,15 @@ import type {
   TorrentGroup,
   TorrentSummary,
 } from "../api/types";
-import { FAST, MEDIUM, SLOW, type TorrentsCache } from "./shared";
+import {
+  FAST,
+  IDLE,
+  MEDIUM,
+  SLOW,
+  summaryMoving,
+  type TorrentsCache,
+  torrentsMoving,
+} from "./shared";
 
 type TorrentQuery = {
   q?: string;
@@ -20,6 +28,9 @@ type TorrentQuery = {
   sort?: string;
   dir?: string;
   limit?: number;
+  // Global search reuses this endpoint for a one-shot lookup. Re-running the
+  // search every few seconds while the user reads the results buys nothing.
+  poll?: boolean;
 };
 
 export const useQbitCategories = (enabled: boolean) =>
@@ -67,7 +78,7 @@ export const useTorrentsSummary = () =>
         qbittorrent: ServiceBlock<TorrentSummary>;
         transmission: ServiceBlock<TorrentSummary>;
       }>("/torrents/summary"),
-    refetchInterval: FAST,
+    refetchInterval: (query) => (summaryMoving(query.state.data) ? FAST : IDLE),
   });
 
 export function useTorrentFileToggle() {
@@ -224,7 +235,10 @@ export const useTorrents = (query: TorrentQuery = {}) => {
         qbittorrent: ServiceBlock<TorrentGroup>;
         transmission: ServiceBlock<TorrentGroup>;
       }>(`/torrents${suffix}`),
-    refetchInterval: FAST,
+    refetchInterval:
+      query.poll === false
+        ? false
+        : (result) => (torrentsMoving(result.state.data) ? FAST : IDLE),
     // keep the previous page on screen while a filter change is in flight
     placeholderData: (prev) => prev,
   });

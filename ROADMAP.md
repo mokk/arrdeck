@@ -203,7 +203,40 @@ odd app out in daylight.
 **Verification**: toggle system appearance and read every page; contrast checked
 on the badges and dots. **Size: M.**
 
-## H. Calm the polling
+## H. Calm the polling — done
+
+Shipped: the four 5s pollers (torrent list, torrent summary, arr queue, Plex
+sessions) now pick their cadence from their own payload — FAST while something
+is moving, IDLE (20s) otherwise. Each has a small predicate in `hooks/shared.ts`
+with its own tests.
+
+"Moving" deliberately means *downloading or checking*, not "active". This stack
+holds ~384 torrents seeding permanently, so an activity check that counted
+seeding would never back off and the phase would buy nothing. A steady upload
+rate is a number that wiggles; 20s reads fine for it, and any user action still
+refetches immediately through the existing `invalidateQueries`. `stalled` counts
+as not moving, which is the point — a stuck download has nothing to animate.
+
+Also found: global search reuses the torrent-list endpoint for a one-shot lookup
+and was re-running the search every 5 seconds while the user read the results.
+It now passes `poll: false`.
+
+The merged "activity" endpoint was not built. It would cut three requests to one,
+but the three have genuinely different natural cadences now, and merging them
+would force the slowest to the fastest — the opposite of this phase.
+
+**Verified**: same tab, same Dashboard, `window.fetch` counted before and after.
+Requests fell from **61 in 107s to 25 in 105s** — a 59% drop — with `sessions`,
+`queue` and `torrents/summary` each going from 17 samples to 5. (The tab was
+hidden, so timers were throttled below the nominal 12/min in *both* runs; the
+ratio is what matters.)
+
+The FAST side is not live-verified: forcing it means starting a real download on
+the user's stack. It rests on the predicate tests instead. Worth knowing: a
+download started outside arrdeck is noticed on the next idle poll, so the switch
+back to 5s can lag by up to 20s.
+
+## H-original. Calm the polling
 
 Queue, torrent summary and Plex sessions each refetch every 5 seconds. That was
 tuned for progress bars on a desktop; on a phone it is three requests a second

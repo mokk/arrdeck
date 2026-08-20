@@ -29,8 +29,6 @@ from ...schemas import (
 )
 
 router = APIRouter(tags=["torrents"])
-
-router = APIRouter(tags=["dashboard"])
 QBIT_STATE_MAP = {
     "downloading": "downloading",
     "forcedDL": "downloading",

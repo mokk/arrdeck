@@ -17,8 +17,6 @@ from ...schemas import (
 
 router = APIRouter(tags=["plex"])
 
-router = APIRouter(tags=["dashboard"])
-
 
 def _plex_session(machine_id: str, item: dict) -> dict:
     kind = item.get("type", "")

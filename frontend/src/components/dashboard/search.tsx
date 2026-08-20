@@ -17,7 +17,7 @@ export function GlobalSearch({ query }: { query: string }) {
   const series = useSearch("series", query);
   // the server does the matching; asking for 15 avoids pulling ~1,800 rows to
   // filter them down in the browser
-  const { data: torrentsData } = useTorrents({ q: query, limit: 15 });
+  const { data: torrentsData } = useTorrents({ q: query, limit: 15, poll: false });
 
   const torrentMatches = useMemo(
     () =>

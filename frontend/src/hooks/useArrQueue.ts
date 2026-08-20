@@ -11,7 +11,7 @@ import type {
   RenamePreview,
   ServiceBlock,
 } from "../api/types";
-import { FAST } from "./shared";
+import { FAST, IDLE, queueMoving } from "./shared";
 
 export function useForceImport() {
   const qc = useQueryClient();
@@ -127,7 +127,7 @@ export const useQueue = () =>
       api.get<{ radarr: ServiceBlock<QueueItem[]>; sonarr: ServiceBlock<QueueItem[]> }>(
         "/queue",
       ),
-    refetchInterval: FAST,
+    refetchInterval: (query) => (queueMoving(query.state.data) ? FAST : IDLE),
   });
 
 /** Filtering and sorting happen server-side: the stack holds ~1,800 torrents and

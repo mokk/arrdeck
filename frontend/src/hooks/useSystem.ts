@@ -30,7 +30,7 @@ import type {
   WebhookApp,
   WebhookStatus,
 } from "../api/types";
-import { FAST, MEDIUM, SLOW } from "./shared";
+import { FAST, IDLE, MEDIUM, SLOW, sessionsMoving } from "./shared";
 
 export const useAuthState = () =>
   useQuery({
@@ -123,7 +123,7 @@ export const usePlaySessions = (enabled: boolean) =>
     queryKey: ["sessions"],
     queryFn: () => api.get<ServiceBlock<PlaySession[]>>("/sessions"),
     enabled,
-    refetchInterval: FAST,
+    refetchInterval: (query) => (sessionsMoving(query.state.data) ? FAST : IDLE),
   });
 
 export const useSubtitles = (enabled: boolean) =>

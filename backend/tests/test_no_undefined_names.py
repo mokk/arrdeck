@@ -27,3 +27,33 @@ def test_no_module_has_an_undefined_name():
         if "undefined name '" in line
     ]
     assert not undefined, "undefined names:\n" + "\n".join(undefined)
+
+
+def test_no_module_redefines_a_top_level_name():
+    """Another split artefact, and one no linter flags: reassigning a name at
+    module level is legal Python.
+
+    Four API modules ended up with two `router = APIRouter(...)` lines, so every
+    decorator bound to the second one and the first — carrying the intended tag —
+    was thrown away. Harmless here (tags only group the OpenAPI docs), but the
+    same shape would silently discard a real object.
+    """
+    import ast
+
+    offenders = []
+    for path in sorted((BACKEND / "app").rglob("*.py")):
+        tree = ast.parse(path.read_text())
+        seen: dict[str, int] = {}
+        for node in tree.body:
+            if not isinstance(node, ast.Assign):
+                continue
+            for target in node.targets:
+                if not isinstance(target, ast.Name):
+                    continue
+                if target.id in seen:
+                    offenders.append(
+                        f"{path.name}:{node.lineno} redefines "
+                        f"{target.id} (first at line {seen[target.id]})"
+                    )
+                seen[target.id] = node.lineno
+    assert not offenders, "top-level names assigned twice:\n" + "\n".join(offenders)
