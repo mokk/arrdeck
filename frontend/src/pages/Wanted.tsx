@@ -33,13 +33,16 @@ function WantedList({ app, kind }: { app: "radarr" | "sonarr"; kind: Kind }) {
   useEffect(() => {
     setPage(1);
     setItems([]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: resetting is the
+    // point — the list must clear when the app or kind filter changes.
+  }, [app, kind]);
 
   useEffect(() => {
     if (data) setItems((prev) => (page === 1 ? data.items : [...prev, ...data.items]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, page]);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: appending on a
+    // `page` change too would re-append the same data and duplicate rows.
+  }, [data]);
 
   return (
     <>

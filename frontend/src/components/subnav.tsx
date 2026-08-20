@@ -61,7 +61,10 @@ export function useRegisterSubnav(
   const { setSubnav } = useContext(SubnavContext);
   const refs = useRef({ onChange, onReset });
   refs.current = { onChange, onReset };
-  const _optionsKey = options.map((o) => `${o.value}:${o.label}`).join("|");
+  // A string key, not the array itself: `options` is a fresh literal on every
+  // render, so depending on it re-runs the effect forever (setSubnav ->
+  // re-render -> effect). Same for the onReset closure.
+  const optionsKey = options.map((o) => `${o.value}:${o.label}`).join("|");
 
   useEffect(() => {
     if (options.length < 2) {
@@ -74,8 +77,10 @@ export function useRegisterSubnav(
       onChange: (v) => refs.current.onChange(v),
       onReset: onReset ? () => refs.current.onReset?.() : undefined,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, setSubnav, onReset, options.length, options]);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: optionsKey and
+    // Boolean(onReset) are stable stand-ins for values that change identity
+    // every render; listing the real ones causes an infinite update loop.
+  }, [optionsKey, value, Boolean(onReset), setSubnav]);
 
   useEffect(() => () => setSubnav(null), [setSubnav]);
 }
@@ -100,8 +105,9 @@ export function useRegisterSearchbar(
       onSubmit: onSubmit ? () => refs.current.onSubmit?.() : undefined,
       onClear: () => (refs.current.onClear ?? (() => refs.current.onChange("")))(),
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [placeholder, value, setSearchbar, onSubmit]);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: onSubmit is a new
+    // closure each render; Boolean() keeps the dependency stable.
+  }, [placeholder, value, Boolean(onSubmit), setSearchbar]);
 
   useEffect(() => () => setSearchbar(null), [setSearchbar]);
 }

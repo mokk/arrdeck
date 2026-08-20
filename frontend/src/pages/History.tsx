@@ -93,7 +93,9 @@ export default function HistoryPage() {
       setItems((prev) => (page === 1 ? data.items : [...prev, ...data.items]));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, page]);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: appending on a
+    // `page` change too would re-append the same data and duplicate rows.
+  }, [data]);
 
   const shown = items.filter(
     (h) =>
