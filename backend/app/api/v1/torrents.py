@@ -1,13 +1,14 @@
 """Torrent clients: the list, its server-side filtering, and the tracker
 resolution that turns an announce host into the indexer it came from."""
 
-from collections import deque
-
 import asyncio
 import functools
 import time
+from collections import deque
 from urllib.parse import urlparse
-from fastapi import APIRouter, Depends, HTTPException, Request
+
+from fastapi import APIRouter, Depends
+
 from ...cache import cache, cached, guarded
 from ...clients.prowlarr import ProwlarrClient
 from ...clients.qbittorrent import QbittorrentClient
@@ -15,9 +16,6 @@ from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
 from ...clients.transmission import TransmissionClient
 from ...deps import (
-    get_bazarr,
-    get_gluetun,
-    get_plex,
     get_prowlarr,
     get_qbit,
     get_radarr,
@@ -25,27 +23,9 @@ from ...deps import (
     get_transmission,
 )
 from ...schemas import (
-    CalendarItemOut,
-    DiskSpaceOut,
-    HealthWarningOut,
-    PlaySessionOut,
-    SubtitleSearchIn,
-    WatchedItemOut,
-    SubtitlesOut,
-    VpnStatusOut,
-    CalendarResponse,
-    HistoryPageOut,
-    HistoryResponse,
-    IndexerStatsOut,
-    QueueResponse,
-    RecentItemOut,
-    TorrentsSummaryResponse,
-    TorrentsResponse,
-    HistoryItemOut,
-    QueueItemOut,
-    ServiceBlock,
-    ServiceStatus,
     TorrentOut,
+    TorrentsResponse,
+    TorrentsSummaryResponse,
 )
 
 router = APIRouter(tags=["torrents"])

@@ -4,30 +4,30 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-import { cn, focusRing } from "@/lib/utils";
-import { WatchedDot } from "../../WatchedDot";
+import { clickable, cn, focusRing } from "@/lib/utils";
 import { formatBytes, watchedFor } from "../../../api/format";
 import type { LibrarySeries } from "../../../api/types";
-import { Card, EmptyNote, ErrorNote, Row, StateBadge } from "../../Blocks";
-import { useRegisterSearchbar, useRegisterSortButton } from "../../subnav";
-import { SortSheet } from "../../SortSheet";
-import { VirtualList } from "../../VirtualList";
-import { useSort } from "../../sortable";
 import {
-  useServices,
-  useTags,
-  useWatched,
   useDeleteLibraryItem,
   useLibrarySeries,
   useOptions,
+  useServices,
+  useTags,
   useTriggerSearch,
   useUpdateLibraryItem,
+  useWatched,
 } from "../../../hooks/queries";
 import { usePersistentState } from "../../../hooks/usePersistentState";
+import { Card, EmptyNote, ErrorNote, Row, StateBadge } from "../../Blocks";
+import { SortSheet } from "../../SortSheet";
+import { useSort } from "../../sortable";
+import { useRegisterSearchbar, useRegisterSortButton } from "../../subnav";
+import { VirtualList } from "../../VirtualList";
+import { WatchedDot } from "../../WatchedDot";
 
 /* ---------------- libraries ---------------- */
 
-import { ProfileSelect, DeleteButtons, LibraryBulkBar } from "./shared";
+import { DeleteButtons, LibraryBulkBar, ProfileSelect } from "./shared";
 
 const SERIES_SORT_KEYS = ["title", "year", "status", "episode_file_count", "size_on_disk"];
 
@@ -77,10 +77,13 @@ export function SeriesLibrary() {
       {(tags?.length ?? 0) > 0 && (
         <div className="mb-3 flex flex-wrap gap-1.5">
           <button
+            type="button"
             className={cn(
-                focusRing,
+              focusRing,
               "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
-              tagFilter == null ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
+              tagFilter == null
+                ? "bg-primary/15 text-primary"
+                : "bg-secondary text-muted-foreground",
             )}
             onClick={() => setTagFilter(null)}
           >
@@ -88,6 +91,7 @@ export function SeriesLibrary() {
           </button>
           {(tags ?? []).map((tag) => (
             <button
+              type="button"
               key={tag.id}
               className={cn(
                 focusRing,
@@ -143,18 +147,25 @@ export function SeriesLibrary() {
                   alt=""
                   loading="lazy"
                   className="w-10 shrink-0 cursor-pointer rounded-md bg-secondary object-cover [aspect-ratio:2/3]"
-                  onClick={selectMode ? undefined : () => navigate(`/series/${se.id}`)}
+                  {...clickable(selectMode ? undefined : () => navigate(`/series/${se.id}`))}
                 />
               ) : (
                 <div className="w-10 shrink-0 rounded-md bg-secondary [aspect-ratio:2/3]" />
               )}
               <div className="min-w-0 flex-1">
                 <div
-                  className={cn("truncate text-sm font-medium", !selectMode && "cursor-pointer active:opacity-70")}
-                  onClick={selectMode ? undefined : () => navigate(`/series/${se.id}`)}
+                  className={cn(
+                    "truncate text-sm font-medium",
+                    !selectMode && "cursor-pointer active:opacity-70",
+                  )}
+                  {...clickable(selectMode ? undefined : () => navigate(`/series/${se.id}`))}
                 >
                   {se.title} <span className="text-muted-foreground">{se.year ?? ""}</span>{" "}
-                  {!selectMode && <span aria-hidden="true" className="text-primary">›</span>}
+                  {!selectMode && (
+                    <span aria-hidden="true" className="text-primary">
+                      ›
+                    </span>
+                  )}
                 </div>
                 <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <StateBadge state={se.monitored ? "ok" : "paused"} />

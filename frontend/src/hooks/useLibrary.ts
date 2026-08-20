@@ -6,16 +6,16 @@ import { toast } from "sonner";
 import { api } from "../api/client";
 import type {
   ArrRelease,
-  MovieDetail,
   Collection,
   CollectionDetail,
   Episode,
+  LibraryMovie,
+  LibrarySeries,
+  MovieDetail,
+  Options,
   SeriesDetail,
   Tag,
   WantedPage,
-  LibraryMovie,
-  LibrarySeries,
-  Options,
 } from "../api/types";
 import { SLOW } from "./shared";
 
@@ -86,8 +86,7 @@ export function useBulkLibrary(kind: "movies" | "series") {
       quality_profile_id?: number;
       tags?: number[];
       apply_tags?: "add" | "remove" | "replace";
-    }) =>
-      api.post<void>(`/library/${kind}/bulk`, input),
+    }) => api.post<void>(`/library/${kind}/bulk`, input),
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["library", kind] });
       qc.invalidateQueries({ queryKey: ["discover"] });
@@ -177,9 +176,7 @@ export const useArrReleases = (
     queryFn: () => {
       if (app === "radarr") return api.get<ArrRelease[]>(`/releases/movie/${params.movieId}`);
       const qs =
-        params.episodeId != null
-          ? `episode_id=${params.episodeId}`
-          : `season=${params.season}`;
+        params.episodeId != null ? `episode_id=${params.episodeId}` : `season=${params.season}`;
       return api.get<ArrRelease[]>(`/releases/series/${params.seriesId}?${qs}`);
     },
     enabled,

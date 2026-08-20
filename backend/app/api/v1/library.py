@@ -1,33 +1,26 @@
 """The movie and series libraries: listing, detail, editing and bulk actions."""
 
 from fastapi import APIRouter, Depends, HTTPException
+
 from ...cache import cache
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_prowlarr, get_radarr, get_sonarr
+from ...deps import get_radarr, get_sonarr
 from ...schemas import (
     BulkDeleteIn,
     BulkEditIn,
-    HistoryEventOut,
-    MovieDetailOut,
-    MovieFileOut,
     EpisodeIdsIn,
     EpisodeMonitorIn,
     EpisodeOut,
-    IndexerOut,
+    HistoryEventOut,
     LibraryMovieOut,
-    BlocklistItemOut,
-    ImportListOut,
-    LogEntryOut,
-    BlocklistPageOut,
-    TagOut,
     LibrarySeriesOut,
     LibraryUpdateIn,
     MonitorIn,
+    MovieDetailOut,
+    MovieFileOut,
     SeasonOut,
     SeriesDetailOut,
-    WantedItemOut,
-    WantedPageOut,
 )
 from .dashboard import EVENT_LABELS
 from .discover import _poster

@@ -63,7 +63,21 @@ are the same shape.
 **Verification**: browse a year of weeks, confirm the entry count settles and an
 offline service still shows stale data with its age. **Size: S.**
 
-## C. Wire up the linters
+## C. Wire up the linters — done
+
+Shipped: **ruff** for the backend (the rules the 27 `# noqa` comments already
+assumed) and **Biome** for the frontend. Biome does *not* support Python — it is a
+JS/TS toolchain — so one tool for both isn't available; ruff is its analogue in
+that ecosystem.
+
+What they found: **308 unused Python imports** and **43 unused TS imports** left
+by the module splits, 4 duplicated docstrings and a `ServiceName` literal
+duplicated into every schemas module, **22 buttons with no `type`** (inside a form
+those default to submit), and **6 clickable `<div>`s with no keyboard path** —
+an accessibility gap phase K missed because it only audited `<button>` elements.
+Both linters now run in CI.
+
+## C-original. Wire up the linters
 
 19 files carry `# noqa: BLE001` comments written for ruff, which was never
 installed. The frontend has no linter at all — the over-exporting in phase A and

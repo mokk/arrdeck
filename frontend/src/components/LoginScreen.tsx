@@ -47,7 +47,11 @@ export function LoginScreen({ onDone }: { onDone: () => void }) {
       {supported ? (
         <div className="flex w-full max-w-xs flex-col gap-3">
           {hasCredentials && (
-            <Button className="h-12 w-full rounded-2xl text-base" disabled={busy} onClick={signIn}>
+            <Button
+              className="h-12 w-full rounded-2xl text-base"
+              disabled={busy}
+              onClick={signIn}
+            >
               {busy ? t("auth.signingIn") : t("auth.passkey")}
             </Button>
           )}
@@ -70,7 +74,9 @@ export function LoginScreen({ onDone }: { onDone: () => void }) {
               >
                 {t("auth.createPasskey")}
               </Button>
-              <p className="text-center text-xs text-muted-foreground">{t("auth.setupCodeHint")}</p>
+              <p className="text-center text-xs text-muted-foreground">
+                {t("auth.setupCodeHint")}
+              </p>
             </>
           ) : (
             <button

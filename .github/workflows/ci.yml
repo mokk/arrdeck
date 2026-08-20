@@ -17,6 +17,8 @@ jobs:
           cache-dependency-path: backend/requirements*.txt
       - run: pip install -r requirements.txt -r requirements-dev.txt
         working-directory: backend
+      - run: ruff check .
+        working-directory: backend
       - run: python -m pytest tests -q
         working-directory: backend
 
@@ -33,6 +35,8 @@ jobs:
         working-directory: frontend
       # locale sync + tsc --noEmit + production build
       - run: npm run build
+        working-directory: frontend
+      - run: npm run lint
         working-directory: frontend
       - run: npm test
         working-directory: frontend

@@ -2,35 +2,16 @@
 
 import copy
 from typing import Any
+
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+
 from ...cache import cache
 from ...clients.prowlarr import ProwlarrClient
-from ...deps import get_prowlarr, get_radarr, get_sonarr
+from ...deps import get_prowlarr
 from ...schemas import (
-    BulkDeleteIn,
-    BulkEditIn,
-    HistoryEventOut,
-    MovieDetailOut,
-    MovieFileOut,
-    EpisodeIdsIn,
-    EpisodeMonitorIn,
-    EpisodeOut,
     IndexerOut,
-    LibraryMovieOut,
-    BlocklistItemOut,
-    ImportListOut,
-    LogEntryOut,
-    BlocklistPageOut,
-    TagOut,
-    LibrarySeriesOut,
-    LibraryUpdateIn,
-    MonitorIn,
-    SeasonOut,
-    SeriesDetailOut,
-    WantedItemOut,
-    WantedPageOut,
 )
 
 router = APIRouter(tags=["indexers"])

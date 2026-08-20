@@ -1,30 +1,27 @@
 // Passkeys, signed-in devices and the setup code.
 import { useState } from "react";
-import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
 import { Label } from "@/components/ui/label";
-
-import { passkeysSupported, registerPasskey } from "../../../lib/passkey";
-
-import i18n, { LANGUAGES, setLanguage } from "../../../i18n";
-
-import { Card } from "../../Blocks";
 import {
   useAuthState,
   useDeletePasskey,
-  useRevokeSessions,
-  useSessions,
   useLogout,
   usePasskeys,
+  useRevokeSessions,
+  useSessions,
   useSetupCode,
 } from "../../../hooks/queries";
 
+import { passkeysSupported, registerPasskey } from "../../../lib/passkey";
+import { Card } from "../../Blocks";
+
 /* ---------------- services (connection settings) ---------------- */
 
-const SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password")[]> = {
+const _SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password")[]> = {
   radarr: ["url", "api_key"],
   sonarr: ["url", "api_key"],
   prowlarr: ["url", "api_key"],
@@ -37,7 +34,7 @@ const SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password
   prometheus: ["url"],
 };
 
-const FIELD_KEYS: Record<string, string> = {
+const _FIELD_KEYS: Record<string, string> = {
   url: "manage.url",
   api_key: "manage.apiKey",
   username: "manage.usernameOptional",
@@ -144,7 +141,9 @@ export function SecurityCard() {
             {(sessions ?? []).map((s) => (
               <div key={s.id} className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">
-                  {t("auth.sessionSeen", { when: new Date(s.last_used * 1000).toLocaleString() })}
+                  {t("auth.sessionSeen", {
+                    when: new Date(s.last_used * 1000).toLocaleString(),
+                  })}
                   {s.current && ` · ${t("auth.thisDevice")}`}
                 </span>
                 {!s.current && (

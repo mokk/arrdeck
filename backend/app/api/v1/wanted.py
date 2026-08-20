@@ -1,30 +1,11 @@
 """Missing and cutoff-unmet items, and searching for them in bulk."""
 
 from fastapi import APIRouter, Depends, HTTPException
+
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_prowlarr, get_radarr, get_sonarr
+from ...deps import get_radarr, get_sonarr
 from ...schemas import (
-    BulkDeleteIn,
-    BulkEditIn,
-    HistoryEventOut,
-    MovieDetailOut,
-    MovieFileOut,
-    EpisodeIdsIn,
-    EpisodeMonitorIn,
-    EpisodeOut,
-    IndexerOut,
-    LibraryMovieOut,
-    BlocklistItemOut,
-    ImportListOut,
-    LogEntryOut,
-    BlocklistPageOut,
-    TagOut,
-    LibrarySeriesOut,
-    LibraryUpdateIn,
-    MonitorIn,
-    SeasonOut,
-    SeriesDetailOut,
     WantedItemOut,
     WantedPageOut,
 )

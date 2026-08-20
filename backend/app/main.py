@@ -13,14 +13,15 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .api.v1.auth import is_request_allowed
+from .api.v1.popular import popular_loop
 from .api.v1.router import router as v1_router
 from .clients.base import ServiceUnavailable
 from .config import get_settings
 from .db import SettingsDB
-from .logging_setup import HEADER, REQUEST_ID, RequestIdMiddleware, configure as configure_logging
-from .registry import Registry
-from .api.v1.popular import popular_loop
+from .logging_setup import HEADER, REQUEST_ID, RequestIdMiddleware
+from .logging_setup import configure as configure_logging
 from .push import flush_loop, push_loop
+from .registry import Registry
 from .stats import sampler_loop
 
 # Docker layout: /srv/arrdeck/{app,static}. Dev layout: arrdeck/{backend/app,frontend/dist}.

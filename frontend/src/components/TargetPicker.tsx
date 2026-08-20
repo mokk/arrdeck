@@ -2,11 +2,16 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useLibraryMovies, useLibrarySeries, useSeriesEpisodes } from "../hooks/queries";
 import { EmptyNote } from "./Blocks";
 import { Sheet } from "./Sheet";
-import { useLibraryMovies, useLibrarySeries, useSeriesEpisodes } from "../hooks/queries";
 
-export type Target = { movie_id?: number; series_id?: number; episode_ids?: number[]; label: string };
+export type Target = {
+  movie_id?: number;
+  series_id?: number;
+  episode_ids?: number[];
+  label: string;
+};
 
 /** Points one unplaceable file at a library entry. Movies are a single choice;
  * series need a season and episode, so the sheet drills in rather than trying
@@ -35,11 +40,16 @@ export function TargetPicker({
     const shown = (movies.data ?? []).filter((m) => match(m.title)).slice(0, 60);
     return (
       <Sheet title={t("dl.pickMovie")} onClose={onClose}>
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("manage.filterMovies")} />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder={t("manage.filterMovies")}
+        />
         <div className="mt-2 max-h-80 overflow-y-auto">
           {shown.length === 0 && <EmptyNote>{t("manage.noMatches")}</EmptyNote>}
           {shown.map((m) => (
             <button
+              type="button"
               key={m.id}
               className="block w-full border-t border-border py-2 text-left text-sm first:border-t-0 active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
               onClick={() => onPick({ movie_id: m.id, label: `${m.title} (${m.year ?? "?"})` })}
@@ -56,11 +66,16 @@ export function TargetPicker({
     const shown = (shows.data ?? []).filter((s) => match(s.title)).slice(0, 60);
     return (
       <Sheet title={t("dl.pickSeries")} onClose={onClose}>
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("manage.filterSeries")} />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder={t("manage.filterSeries")}
+        />
         <div className="mt-2 max-h-80 overflow-y-auto">
           {shown.length === 0 && <EmptyNote>{t("manage.noMatches")}</EmptyNote>}
           {shown.map((s) => (
             <button
+              type="button"
               key={s.id}
               className="block w-full border-t border-border py-2 text-left text-sm first:border-t-0 active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
               onClick={() => setSeries({ id: s.id, title: s.title ?? "" })}
@@ -76,7 +91,14 @@ export function TargetPicker({
   return (
     <Sheet title={series.title} subtitle={t("dl.pickEpisode")} onClose={onClose}>
       <div className="mb-2 flex flex-wrap gap-1.5">
-        <Button size="sm" variant="ghost" onClick={() => { setSeries(null); setSeason(null); }}>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            setSeries(null);
+            setSeason(null);
+          }}
+        >
           {t("common.back")}
         </Button>
         {/* seasons aren't listed anywhere cheap, so offer a plain number entry */}
@@ -95,6 +117,7 @@ export function TargetPicker({
         )}
         {(episodes.data ?? []).map((e) => (
           <button
+            type="button"
             key={e.id}
             className="block w-full border-t border-border py-2 text-left text-sm first:border-t-0 active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
             onClick={() =>

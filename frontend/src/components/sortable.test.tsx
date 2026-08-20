@@ -1,7 +1,7 @@
-import { renderHook, act } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
-import { useSort } from "./sortable";
 import { usePersistentState } from "../hooks/usePersistentState";
+import { useSort } from "./sortable";
 
 beforeEach(() => localStorage.clear());
 
@@ -16,7 +16,11 @@ const rows: Row[] = [
 describe("useSort", () => {
   it("sorts strings case-insensitively", () => {
     const { result } = renderHook(() => useSort<Row>("t1", "name"));
-    expect(result.current.sortRows(rows).map((r) => r.name)).toEqual(["Alpha", "beta", "gamma"]);
+    expect(result.current.sortRows(rows).map((r) => r.name)).toEqual([
+      "Alpha",
+      "beta",
+      "gamma",
+    ]);
   });
 
   it("keeps nulls last regardless of direction", () => {

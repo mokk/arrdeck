@@ -1,5 +1,7 @@
 from types import SimpleNamespace
 
+from fastapi import HTTPException
+
 from app.api.v1.auth import _code_ok, _setup_code, is_lan
 
 
@@ -114,7 +116,7 @@ def test_lan_requests_are_never_throttled():
     _check_throttle(req("10.0.0.154:3500", db))  # must not raise
     import pytest
 
-    with pytest.raises(Exception):
+    with pytest.raises(HTTPException):
         _check_throttle(req("deck.thrawn.dk", db))
 
 

@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -21,7 +21,7 @@ const files = sources().map((path) => ({ path, text: readFileSync(path, "utf8") 
 
 // Barrels exist precisely to re-export, and entry points are used by the
 // bundler rather than by another module.
-const EXEMPT = [
+const EXEMPT = new Set([
   "src/hooks/queries.ts",
   "src/api/types.ts",
   "src/components/manage/Libraries.tsx",
@@ -30,13 +30,13 @@ const EXEMPT = [
   "src/sw.ts",
   "src/i18n.ts",
   "src/test-setup.ts",
-];
+]);
 
 describe("module boundaries", () => {
   it("every export has a consumer outside its own file", () => {
     const orphans: string[] = [];
     for (const { path, text } of files) {
-      if (EXEMPT.includes(path) || path.includes("/components/ui/")) continue;
+      if (EXEMPT.has(path) || path.includes("/components/ui/")) continue;
       for (const m of text.matchAll(/^export (?:const|function|type|class) (\w+)/gm)) {
         const name = m[1];
         const used = files.some(
@@ -50,7 +50,7 @@ describe("module boundaries", () => {
 
   it("no default export outside pages, so imports name what they get", () => {
     const offenders = files
-      .filter(({ path }) => !path.startsWith("src/pages/") && !EXEMPT.includes(path))
+      .filter(({ path }) => !path.startsWith("src/pages/") && !EXEMPT.has(path))
       .filter(({ text }) => /^export default/m.test(text))
       .map(({ path }) => path);
     expect(offenders).toEqual([]);

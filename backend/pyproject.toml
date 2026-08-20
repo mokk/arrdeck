@@ -1,0 +1,37 @@
+# Linting only — packaging is handled by the Dockerfile, not this file.
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+# BLE001 is assumed by 27 existing `# noqa: BLE001` comments; the rest are the
+# rules that would have caught the bugs this codebase actually shipped.
+select = [
+    "E", "W",    # pycodestyle
+    "F",         # pyflakes — undefined names, unused imports
+    "I",         # import sorting
+    "UP",        # pyupgrade
+    "B",         # bugbear
+    "BLE",       # blind except
+    "C4",        # comprehensions
+    "SIM",       # simplifiable code
+    "RUF",       # ruff's own
+]
+ignore = [
+    "E501",      # line length is enforced by the formatter, not the linter
+    "SIM108",    # ternaries are not always clearer than an if/else
+    "B008",      # FastAPI's Depends() in a default is the framework's idiom
+    "RUF001",    # en-dashes and non-ascii in user-facing strings are deliberate
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# mimetypes.add_type has to run before the imports that read the registry, so
+# the import order here is deliberate. SIM102: the nested ifs read better than
+# one compound condition.
+"app/main.py" = ["E402", "SIM102"]
+# UP046: pydantic generic models still need the explicit Generic[T] form.
+"app/schemas/common.py" = ["UP046"]
+# tests import inside functions deliberately, to keep the split modules honest
+"tests/*" = ["E402", "F401"]

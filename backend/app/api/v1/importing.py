@@ -1,28 +1,16 @@
 """Rescuing a stuck download: manual import, hand-picked targets, renaming."""
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException
+
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_qbit, get_radarr, get_sonarr, get_transmission
+from ...deps import get_radarr, get_sonarr
 from ...schemas import (
     ImportCandidateOut,
     ManualImportAssignIn,
     ManualImportIn,
     RenameIn,
     RenamePreviewOut,
-    SpeedLimitIn,
-    SpeedLimitOut,
-    TorrentActionIn,
-    TorrentCategoryIn,
-    TorrentDeleteIn,
-    TorrentDetailsOut,
-    TorrentFileOut,
-    TorrentFileToggleIn,
-    TorrentForceStartIn,
-    TorrentLimitsIn,
-    TorrentPriorityIn,
-    TorrentTagsIn,
-    TrackerOut,
 )
 
 router = APIRouter(tags=["importing"])

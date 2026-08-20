@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
+import { clickable, cn } from "@/lib/utils";
 import type { ServiceBlock } from "../api/types";
 
 /** Renders a ServiceBlock: offline note (with stale fallback) or the content. */
@@ -110,7 +110,9 @@ export function Segmented<T extends string>({
 
 /** Shared list-row primitives */
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn("mb-4 overflow-hidden rounded-2xl bg-card", className)}>{children}</div>;
+  return (
+    <div className={cn("mb-4 overflow-hidden rounded-2xl bg-card", className)}>{children}</div>
+  );
 }
 
 export function Row({
@@ -129,7 +131,7 @@ export function Row({
         onClick && "cursor-pointer active:opacity-70",
         className,
       )}
-      onClick={onClick}
+      {...clickable(onClick)}
     >
       {children}
     </div>

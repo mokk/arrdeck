@@ -8,9 +8,9 @@ import {
   Settings2,
   X,
 } from "lucide-react";
-import { Suspense, lazy, type ReactNode } from "react";
+import { lazy, type ReactNode, Suspense } from "react";
 import { useTranslation } from "react-i18next";
-import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { cn, focusRing } from "@/lib/utils";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -39,7 +39,7 @@ const WantedPage = lazy(() => import("./pages/Wanted"));
 function RequireSetup({ children }: { children: ReactNode }) {
   const { data: services } = useServices();
   const location = useLocation();
-  const nothingConfigured = services != null && services.every((s) => !s.configured);
+  const nothingConfigured = services?.every((s) => !s.configured);
   if (nothingConfigured && location.pathname !== "/manage") {
     return <Navigate to="/manage" replace />;
   }
@@ -91,7 +91,8 @@ function Shell() {
     if (searchbar?.value) searchbar.onClear?.();
     if (subnav) {
       if (subnav.onReset) subnav.onReset();
-      else if (subnav.value !== subnav.options[0].value) subnav.onChange(subnav.options[0].value);
+      else if (subnav.value !== subnav.options[0].value)
+        subnav.onChange(subnav.options[0].value);
     }
   };
 
@@ -111,29 +112,34 @@ function Shell() {
         <RequireSetup>
           {/* keyed on the path so navigating away clears a failed route */}
           <ErrorBoundary key={location.pathname}>
-          <Suspense fallback={<RouteFallback />}>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/popular" element={<PopularPage />} />
-            <Route path="/downloads" element={<Downloads />} />
-            <Route path="/add" element={<Add />} />
-            <Route path="/search" element={<Navigate to="/add" replace />} />
-            <Route path="/manage" element={<Manage />} />
-            <Route path="/series/:id" element={<SeriesPage />} />
-            <Route path="/history" element={<HistoryPage />} />
-            <Route path="/wanted" element={<WantedPage />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/movie/:id" element={<MoviePage />} />
-            <Route path="/stats" element={<StatsPage />} />
-          </Routes>
-          </Suspense>
+            <Suspense fallback={<RouteFallback />}>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/popular" element={<PopularPage />} />
+                <Route path="/downloads" element={<Downloads />} />
+                <Route path="/add" element={<Add />} />
+                <Route path="/search" element={<Navigate to="/add" replace />} />
+                <Route path="/manage" element={<Manage />} />
+                <Route path="/series/:id" element={<SeriesPage />} />
+                <Route path="/history" element={<HistoryPage />} />
+                <Route path="/wanted" element={<WantedPage />} />
+                <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/movie/:id" element={<MoviePage />} />
+                <Route path="/stats" element={<StatsPage />} />
+              </Routes>
+            </Suspense>
           </ErrorBoundary>
         </RequireSetup>
       </main>
       <div className="fixed inset-x-0 bottom-0 z-50">
         {(searchbar || sortButton) && (
           <div className="pointer-events-none px-4 pb-2.5">
-            <div className={cn("mx-auto flex max-w-md items-center gap-2", !searchbar && "justify-center")}>
+            <div
+              className={cn(
+                "mx-auto flex max-w-md items-center gap-2",
+                !searchbar && "justify-center",
+              )}
+            >
               {searchbar && (
                 <form
                   className="pointer-events-auto flex min-w-0 flex-1 items-center gap-2 rounded-full border border-white/10 bg-card/90 px-4 shadow-2xl shadow-black/50 backdrop-blur-xl"
@@ -165,6 +171,7 @@ function Shell() {
               )}
               {sortButton && (
                 <button
+                  type="button"
                   className="pointer-events-auto flex size-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-card/90 text-muted-foreground shadow-2xl shadow-black/50 backdrop-blur-xl active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                   onClick={sortButton.open}
                   title={t("common.sortBy")}
@@ -180,9 +187,10 @@ function Shell() {
             <div className="mx-auto flex max-w-3xl gap-1 px-2 py-1.5">
               {subnav.options.map((o) => (
                 <button
+                  type="button"
                   key={o.value}
                   className={cn(
-                focusRing,
+                    focusRing,
                     "flex-1 rounded-full px-2 py-1.5 text-xs font-semibold text-muted-foreground active:opacity-60",
                     o.value === subnav.value && "bg-primary/15 text-primary",
                   )}

@@ -4,13 +4,11 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { SERVICE_LABELS } from "../../api/format";
-
+import type { SearchResult } from "../../api/types";
 import { Card, EmptyNote, Row, SectionTitle, StateBadge } from "../../components/Blocks";
-import { useSearch, useTorrents } from "../../hooks/queries";
 
 import { PosterGrid } from "../../components/media";
-
-import type { SearchResult } from "../../api/types";
+import { useSearch, useTorrents } from "../../hooks/queries";
 
 export function GlobalSearch({ query }: { query: string }) {
   const { t } = useTranslation();

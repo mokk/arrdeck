@@ -1,49 +1,30 @@
 """Infrastructure health: service probes, disk space, VPN, arr warnings."""
 
 import asyncio
-import re
-from fastapi import APIRouter, Depends, HTTPException, Request
-from ...cache import cache, cached, guarded
+
+from fastapi import APIRouter, Depends, Request
+
+from ...cache import cached, guarded
 from ...clients.base import ServiceUnavailable
-from ...registry import probe_version
 from ...clients.gluetun import GluetunClient
 from ...clients.prometheus import PrometheusClient
 from ...clients.qbittorrent import QbittorrentClient
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
 from ...deps import (
-    get_bazarr,
-    get_prometheus,
     get_gluetun,
-    get_plex,
-    get_prowlarr,
+    get_prometheus,
     get_qbit,
     get_radarr,
     get_sonarr,
-    get_transmission,
 )
+from ...registry import probe_version
 from ...schemas import (
-    CalendarItemOut,
     DiskSpaceOut,
     HealthWarningOut,
-    PlaySessionOut,
-    SubtitleSearchIn,
-    WatchedItemOut,
-    SubtitlesOut,
-    VpnStatusOut,
-    CalendarResponse,
-    HistoryPageOut,
-    HistoryResponse,
-    IndexerStatsOut,
-    QueueResponse,
-    RecentItemOut,
-    TorrentsSummaryResponse,
-    TorrentsResponse,
-    HistoryItemOut,
-    QueueItemOut,
     ServiceBlock,
     ServiceStatus,
-    TorrentOut,
+    VpnStatusOut,
 )
 
 router = APIRouter(tags=["system"])
@@ -101,7 +82,7 @@ async def diskspace(
                         totals[entry["path"]] = entry.get("totalSpace", 0)
 
             merged: dict[str, dict] = {}
-            for app, result in zip(("radarr", "sonarr"), roots):
+            for app, result in zip(("radarr", "sonarr"), roots, strict=False):
                 if isinstance(result, BaseException):
                     continue
                 for entry in result:
@@ -227,7 +208,7 @@ async def _download_client_warnings(radarr, sonarr) -> list[dict]:
         radarr.download_clients(), sonarr.download_clients(), return_exceptions=True
     )
     warnings: list[dict] = []
-    for app, result in zip(("radarr", "sonarr"), results):
+    for app, result in zip(("radarr", "sonarr"), results, strict=False):
         if isinstance(result, BaseException):
             continue
         enabled = [c for c in result if c.get("enable")]
@@ -256,7 +237,7 @@ async def health(
                 radarr.health(), sonarr.health(), return_exceptions=True
             )
             warnings: list[dict] = []
-            for app, result in zip(("radarr", "sonarr"), results):
+            for app, result in zip(("radarr", "sonarr"), results, strict=False):
                 if isinstance(result, BaseException):
                     continue
                 for entry in result:

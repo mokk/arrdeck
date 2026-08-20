@@ -1,26 +1,26 @@
 from fastapi import APIRouter
 
 from . import (
+    arrmeta,
+    arrqueue,
     auth,
     dashboard,
-    arrqueue,
-    importing,
-    torrentactions,
+    discover,
     hooks,
-    arrmeta,
+    importing,
     indexers,
     library,
-    wanted,
-    discover,
+    plex,
+    popular,
     posters,
     releases,
     requests,
-    plex,
-    popular,
     settings,
     subtitles,
     system,
+    torrentactions,
     torrents,
+    wanted,
 )
 
 router = APIRouter(prefix="/api/v1")

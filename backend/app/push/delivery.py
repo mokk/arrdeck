@@ -1,28 +1,13 @@
 """Getting a notification onto a device: VAPID keys and the web-push send."""
 
-"""Push notifications.
-
-Two sources feed the same pipeline: webhooks posted by Radarr/Sonarr (instant)
-and the history poller (fallback, in case the webhooks aren't installed or the
-arr can't reach us). Both go through `notify()`, which drops duplicates so the
-two paths can never notify twice about the same thing, and buffers events for a
-few seconds so a season pack arrives as one banner instead of ten.
-"""
 import asyncio
-import hashlib
 import json
-import logging
-import time
-from dataclasses import dataclass, field
-from datetime import datetime
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
 from py_vapid import Vapid, b64urlencode
 from pywebpush import WebPushException, webpush
+
 from ..db import SettingsDB
-from ..registry import Registry
-
 from .events import Event, enabled_events, logger
-
 
 VAPID_CLAIMS = {"sub": "mailto:arrdeck@thrawn.dk"}
 
@@ -81,9 +66,12 @@ def _send_all(
         if only_endpoint and sub.get("endpoint") != only_endpoint:
             continue
         # a device that hasn't chosen its own set follows the global default
-        if event_key and event_key != "test":
-            if event_key not in (default if events is None else events):
-                continue
+        if (
+            event_key
+            and event_key != "test"
+            and event_key not in (default if events is None else events)
+        ):
+            continue
         try:
             webpush(sub, payload, vapid_private_key=key, vapid_claims=dict(VAPID_CLAIMS))
             sent += 1

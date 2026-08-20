@@ -1,12 +1,8 @@
 import { ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { RenameCard } from "../components/RenameCard";
-import { WatchedDot } from "../components/WatchedDot";
-import { watchedFor } from "../api/format";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -14,18 +10,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatBytes, formatDateTime } from "../api/format";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatBytes, formatDateTime, watchedFor } from "../api/format";
 import { Card, ErrorNote, Row, SectionTitle, StateBadge } from "../components/Blocks";
 import { BigButton } from "../components/media";
 import { ReleasesSheet } from "../components/ReleasesSheet";
+import { RenameCard } from "../components/RenameCard";
+import { WatchedDot } from "../components/WatchedDot";
 import {
   useDeleteLibraryItem,
   useMovieDetail,
   useOptions,
   useServices,
-  useWatched,
   useTriggerSearch,
   useUpdateLibraryItem,
+  useWatched,
 } from "../hooks/queries";
 
 export default function MoviePage() {
@@ -60,7 +59,12 @@ export default function MoviePage() {
   return (
     <>
       <div className="mb-4 mt-1 flex items-center gap-2">
-        <Button variant="ghost" size="icon" aria-label={t("common.back")} onClick={() => navigate(-1)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={t("common.back")}
+          onClick={() => navigate(-1)}
+        >
           <ChevronLeft className="size-6" />
         </Button>
         <h1 className="min-w-0 truncate text-2xl font-extrabold tracking-tight">
@@ -88,10 +92,14 @@ export default function MoviePage() {
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                 <StateBadge
-                  state={data.has_file ? "downloaded" : data.monitored ? "wanted" : "unmonitored"}
+                  state={
+                    data.has_file ? "downloaded" : data.monitored ? "wanted" : "unmonitored"
+                  }
                 />
                 {data.status && <span className="capitalize">{data.status}</span>}
-                {data.runtime ? <span>· {t("movie.runtime", { min: data.runtime })}</span> : null}
+                {data.runtime ? (
+                  <span>· {t("movie.runtime", { min: data.runtime })}</span>
+                ) : null}
               </div>
               {links.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -114,7 +122,9 @@ export default function MoviePage() {
           <div className="mb-5">
             <div className="mb-2 flex items-center gap-2">
               <Select
-                value={data.quality_profile_id != null ? String(data.quality_profile_id) : undefined}
+                value={
+                  data.quality_profile_id != null ? String(data.quality_profile_id) : undefined
+                }
                 disabled={update.isPending || !options}
                 onValueChange={(v) =>
                   update.mutate({ id: movieId, quality_profile_id: Number(v) })

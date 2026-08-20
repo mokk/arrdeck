@@ -28,7 +28,8 @@ export function formatEta(seconds: number | null | undefined): string {
   if (seconds == null) return "—";
   if (seconds < 60) return `${seconds}s`;
   if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ${Math.round((seconds % 3600) / 60)}m`;
+  if (seconds < 86400)
+    return `${Math.floor(seconds / 3600)}h ${Math.round((seconds % 3600) / 60)}m`;
   return `${Math.floor(seconds / 86400)}d`;
 }
 

@@ -1,41 +1,18 @@
 """Bazarr: what is missing subtitles, and asking it to look again."""
 
 import asyncio
-from fastapi import APIRouter, Depends, HTTPException, Request
+
+from fastapi import APIRouter, Depends, HTTPException
+
 from ...cache import cache, cached, guarded
 from ...clients.bazarr import BazarrClient
 from ...deps import (
     get_bazarr,
-    get_gluetun,
-    get_plex,
-    get_prowlarr,
-    get_qbit,
-    get_radarr,
-    get_sonarr,
-    get_transmission,
 )
 from ...schemas import (
-    CalendarItemOut,
-    DiskSpaceOut,
-    HealthWarningOut,
-    PlaySessionOut,
-    SubtitleSearchIn,
-    WatchedItemOut,
-    SubtitlesOut,
-    VpnStatusOut,
-    CalendarResponse,
-    HistoryPageOut,
-    HistoryResponse,
-    IndexerStatsOut,
-    QueueResponse,
-    RecentItemOut,
-    TorrentsSummaryResponse,
-    TorrentsResponse,
-    HistoryItemOut,
-    QueueItemOut,
     ServiceBlock,
-    ServiceStatus,
-    TorrentOut,
+    SubtitleSearchIn,
+    SubtitlesOut,
 )
 
 router = APIRouter(tags=["subtitles"])

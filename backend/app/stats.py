@@ -2,9 +2,10 @@ import asyncio
 import logging
 import time
 
-from .db import SettingsDB
 from .config import get_settings
-from .posters import backup_database, prune as prune_posters
+from .db import SettingsDB
+from .posters import backup_database
+from .posters import prune as prune_posters
 from .registry import Registry
 
 logger = logging.getLogger("arrdeck.stats")
@@ -66,6 +67,6 @@ async def sampler_loop(db: SettingsDB, registry: Registry) -> None:
                 db.insert_sample(await collect_sample(registry))
             await asyncio.to_thread(prune_posters)
             await asyncio.to_thread(backup_database, get_settings().db_path)
-        except Exception:  # noqa: BLE001 — the sampler must never die
+        except Exception:
             logger.exception("stats sample failed")
         await asyncio.sleep(SAMPLE_INTERVAL)

@@ -1,34 +1,18 @@
 """Arr metadata and housekeeping: tags, blocklist, import lists, logs, profiles."""
 
 import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException
+
 from ...clients.prowlarr import ProwlarrClient
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
 from ...deps import get_prowlarr, get_radarr, get_sonarr
 from ...schemas import (
-    BulkDeleteIn,
-    BulkEditIn,
-    HistoryEventOut,
-    MovieDetailOut,
-    MovieFileOut,
-    EpisodeIdsIn,
-    EpisodeMonitorIn,
-    EpisodeOut,
-    IndexerOut,
-    LibraryMovieOut,
-    BlocklistItemOut,
+    BlocklistPageOut,
     ImportListOut,
     LogEntryOut,
-    BlocklistPageOut,
     TagOut,
-    LibrarySeriesOut,
-    LibraryUpdateIn,
-    MonitorIn,
-    SeasonOut,
-    SeriesDetailOut,
-    WantedItemOut,
-    WantedPageOut,
 )
 
 router = APIRouter(tags=["arrmeta"])
@@ -53,7 +37,7 @@ async def import_lists(
         radarr.import_lists(), sonarr.import_lists(), return_exceptions=True
     )
     out: list[dict] = []
-    for app, result in zip(LIST_APPS, results):
+    for app, result in zip(LIST_APPS, results, strict=False):
         if isinstance(result, BaseException):
             continue
         for entry in result:
@@ -156,7 +140,7 @@ async def blocklist(
     )
     items: list[dict] = []
     total = 0
-    for app, result in zip(("radarr", "sonarr"), results):
+    for app, result in zip(("radarr", "sonarr"), results, strict=False):
         if isinstance(result, BaseException):
             continue
         total += result.get("totalRecords", 0)

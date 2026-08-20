@@ -79,8 +79,12 @@ describe("useSetSpeedLimit", () => {
     const { result } = renderHook(() => useSetSpeedLimit(), { wrapper });
     result.current.mutate({ clients: ["qbittorrent", "transmission"], enabled: true });
     await waitFor(() => expect(api.post).toHaveBeenCalledTimes(2));
-    expect(api.post).toHaveBeenCalledWith("/torrents/qbittorrent/speed-limit", { enabled: true });
-    expect(api.post).toHaveBeenCalledWith("/torrents/transmission/speed-limit", { enabled: true });
+    expect(api.post).toHaveBeenCalledWith("/torrents/qbittorrent/speed-limit", {
+      enabled: true,
+    });
+    expect(api.post).toHaveBeenCalledWith("/torrents/transmission/speed-limit", {
+      enabled: true,
+    });
   });
 
   it("does nothing when no client is configured", async () => {

@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -9,7 +9,7 @@ function sources(dir = "src"): string[] {
   return readdirSync(dir).flatMap((entry) => {
     const path = join(dir, entry);
     if (statSync(path).isDirectory()) return sources(path);
-    return /\.tsx$/.test(path) && !/\.test\./.test(path) ? [path] : [];
+    return path.endsWith(".tsx") && !/\.test\./.test(path) ? [path] : [];
   });
 }
 

@@ -11,13 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { clickable, cn } from "@/lib/utils";
 import type { IndexerSchema } from "../../api/types";
-import { Card, EmptyNote, ErrorNote, Row } from "../Blocks";
-import { Sheet } from "../Sheet";
-import { useRegisterSortButton } from "../subnav";
-import { SortSheet } from "../SortSheet";
-import { useSort } from "../sortable";
 import {
   useAddIndexer,
   useIndexerSchemas,
@@ -26,6 +21,11 @@ import {
   useTestNewIndexer,
   useToggleIndexer,
 } from "../../hooks/queries";
+import { Card, EmptyNote, ErrorNote, Row } from "../Blocks";
+import { Sheet } from "../Sheet";
+import { SortSheet } from "../SortSheet";
+import { useSort } from "../sortable";
+import { useRegisterSortButton } from "../subnav";
 
 /* ---------------- indexers ---------------- */
 
@@ -54,7 +54,11 @@ function AddIndexerSheet({ onClose }: { onClose: () => void }) {
       .filter((s) => s.name.toLowerCase().includes(filter.toLowerCase()))
       .slice(0, 60);
     return (
-      <Sheet title={t("manage.addIndexerTitle")} subtitle={t("manage.pickDefinition")} onClose={onClose}>
+      <Sheet
+        title={t("manage.addIndexerTitle")}
+        subtitle={t("manage.pickDefinition")}
+        onClose={onClose}
+      >
         <Input
           placeholder={t("manage.searchIndexers")}
           value={filter}
@@ -68,11 +72,11 @@ function AddIndexerSheet({ onClose }: { onClose: () => void }) {
           <div
             key={s.name}
             className="cursor-pointer border-t border-border py-2.5 first:border-t-0 active:opacity-70"
-            onClick={() => {
+            {...clickable(() => {
               setSchema(s);
               setDisplayName(s.name);
               setValues({});
-            }}
+            })}
           >
             <div className="text-sm font-medium">{s.name}</div>
             <div className="mt-0.5 text-xs text-muted-foreground">
@@ -132,7 +136,10 @@ function AddIndexerSheet({ onClose }: { onClose: () => void }) {
         }
         return (
           <div key={f.name} className="mt-3">
-            <Label className="mb-1 text-xs text-muted-foreground" title={f.help_text ?? undefined}>
+            <Label
+              className="mb-1 text-xs text-muted-foreground"
+              title={f.help_text ?? undefined}
+            >
               {f.label}
             </Label>
             <Input
@@ -204,7 +211,9 @@ export function Indexers() {
   useRegisterSortButton(() => setSortOpen(true));
 
   if (error) return <ErrorNote>{(error as Error).message}</ErrorNote>;
-  const rows = sort.sortRows((data ?? []) as unknown as Record<string, unknown>[]) as unknown as {
+  const rows = sort.sortRows(
+    (data ?? []) as unknown as Record<string, unknown>[],
+  ) as unknown as {
     id: number;
     name: string;
     protocol: string;

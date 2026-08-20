@@ -3,11 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-import { SERVICE_LABELS } from "../../api/format";
-
-import { Sheet } from "../../components/Sheet";
-
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -15,9 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { useAddTorrent, useQbitCategories } from "../../hooks/queries";
+import { SERVICE_LABELS } from "../../api/format";
 import { Segmented } from "../../components/Blocks";
+import { Sheet } from "../../components/Sheet";
+import { useAddTorrent, useQbitCategories } from "../../hooks/queries";
 
 // how many rows each client returns per request; raised by "load more"
 

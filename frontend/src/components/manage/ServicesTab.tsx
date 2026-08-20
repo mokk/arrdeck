@@ -1,59 +1,14 @@
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { cn, focusRing } from "@/lib/utils";
-import { api } from "../../api/client";
-import { passkeysSupported, registerPasskey } from "../../lib/passkey";
-import { SERVICE_LABELS } from "../../api/format";
-import i18n, { LANGUAGES, setLanguage } from "../../i18n";
-import type { ServiceSettings } from "../../api/types";
-import { Card, EmptyNote, ErrorNote } from "../Blocks";
-import {
-  useAuthState,
-  useDeletePasskey,
-  useRevokeSessions,
-  useSessions,
-  useLogout,
-  usePasskeys,
-  useSetupCode,
-  useImportSettings,
-  useInstallWebhooks,
-  usePushEvents,
-  useImportLists,
-  usePushRules,
-  useSyncImportLists,
-  useToggleImportList,
-  useSavePushRules,
-  useTags,
-  usePushSubscribe,
-  useSavePushEvents,
-  useTestPush,
-  useWebhookStatus,
-  useSaveServiceSettings,
-  useServiceSettings,
-  useStatus,
-  useTestService,
-  useVapidKey,
-} from "../../hooks/queries";
-import { ServiceSettingsCard, StatusStrip, LanguagePicker } from "./settings/connections";
-import { SecurityCard } from "./settings/security";
+import { useServiceSettings } from "../../hooks/queries";
+import { EmptyNote, ErrorNote } from "../Blocks";
+import { LanguagePicker, ServiceSettingsCard, StatusStrip } from "./settings/connections";
 import { NotificationsCard } from "./settings/notifications";
+import { SecurityCard } from "./settings/security";
 import { ImportLists, SettingsTransfer } from "./settings/transfer";
 
 /* ---------------- services (connection settings) ---------------- */
 
-const SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password")[]> = {
+const _SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password")[]> = {
   radarr: ["url", "api_key"],
   sonarr: ["url", "api_key"],
   prowlarr: ["url", "api_key"],
@@ -66,7 +21,7 @@ const SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password
   prometheus: ["url"],
 };
 
-const FIELD_KEYS: Record<string, string> = {
+const _FIELD_KEYS: Record<string, string> = {
   url: "manage.url",
   api_key: "manage.apiKey",
   username: "manage.usernameOptional",

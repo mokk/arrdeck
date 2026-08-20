@@ -28,12 +28,13 @@ def test_every_service_has_a_registry_branch():
 
 
 def test_api_key_services_are_a_subset_of_all_services():
-    assert NEEDS_API_KEY <= set(SERVICES)
+    assert set(SERVICES) >= NEEDS_API_KEY
 
 
 def test_every_service_can_be_version_probed():
-    from app.registry import probe_version
     import inspect
+
+    from app.registry import probe_version
 
     source = inspect.getsource(probe_version)
     for name in SERVICES:

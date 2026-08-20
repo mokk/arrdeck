@@ -1,53 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import {
-  SERVICE_LABELS,
-  formatBytes,
-  formatDate,
-  formatDateTime,
-  formatSpeed,
-} from "../api/format";
-import type { CalendarItem, HistoryItem, Torrent } from "../api/types";
-import {
-  BlockView,
-  Card,
-  EmptyNote,
-  ErrorNote,
-  ProgressBar,
-  Row,
-  SectionTitle,
-  StateBadge,
-} from "../components/Blocks";
-import {
-  useBlocklistRetry,
-  useDiskSpace,
-  useHealth,
-  useMediaRequests,
-  useVpn,
-  useSubtitles,
-  usePlaySessions,
-  useSubtitleSearch,
-  useRequestAction,
-  useCalendar,
-  useForceImport,
-  useHistory,
-  useIndexerStats,
-  useQueue,
-  useRecent,
-  useSearch,
-  useServices,
-  useStatsHistory,
-  useTorrents,
-  useTorrentsSummary,
-} from "../hooks/queries";
-import { usePersistentState } from "../hooks/usePersistentState";
-import { PosterGrid } from "../components/media";
-import { ImportSheet } from "../components/ImportSheet";
-import { ErrorBoundary } from "../components/ErrorBoundary";
-import { useRegisterSearchbar } from "../components/subnav";
-import type { SearchResult } from "../api/types";
+  CalendarSection,
+  HistorySection,
+  IndexerSection,
+  QueueSection,
+  RecentSection,
+  TorrentSummary,
+} from "../components/dashboard/activity";
 import {
   HealthSection,
   NowPlayingSection,
@@ -57,16 +17,10 @@ import {
   TrendsSection,
   VpnSection,
 } from "../components/dashboard/cards";
-import {
-  CalendarSection,
-  HistorySection,
-  IndexerSection,
-  QueueSection,
-  RecentSection,
-  TorrentSummary,
-} from "../components/dashboard/activity";
 import { GlobalSearch } from "../components/dashboard/search";
-
+import { ErrorBoundary } from "../components/ErrorBoundary";
+import { useRegisterSearchbar } from "../components/subnav";
+import { useServices } from "../hooks/queries";
 
 export default function Dashboard() {
   const { t } = useTranslation();

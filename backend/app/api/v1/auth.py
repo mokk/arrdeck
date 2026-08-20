@@ -234,7 +234,7 @@ def register_verify(body: VerifyIn, request: Request, response: Response) -> dic
             expected_origin=_origin(request),
             expected_rp_id=_rp_id(request),
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         raise HTTPException(400, f"registration failed: {exc}") from exc
     db = request.app.state.db
     db.cred_add(
@@ -290,7 +290,7 @@ def login_verify(body: VerifyIn, request: Request, response: Response) -> dict:
             credential_public_key=base64.b64decode(stored["public_key"]),
             credential_current_sign_count=stored["sign_count"],
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         _record_failure(db)
         raise HTTPException(401, f"sign-in failed: {exc}") from exc
     db.cred_update_count(stored["credential_id"], verification.new_sign_count)

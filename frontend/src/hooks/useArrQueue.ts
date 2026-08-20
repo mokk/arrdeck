@@ -7,8 +7,8 @@ import { api } from "../api/client";
 import type {
   BlocklistPage,
   ImportCandidate,
-  RenamePreview,
   QueueItem,
+  RenamePreview,
   ServiceBlock,
 } from "../api/types";
 import { FAST } from "./shared";
@@ -124,7 +124,9 @@ export const useQueue = () =>
   useQuery({
     queryKey: ["queue"],
     queryFn: () =>
-      api.get<{ radarr: ServiceBlock<QueueItem[]>; sonarr: ServiceBlock<QueueItem[]> }>("/queue"),
+      api.get<{ radarr: ServiceBlock<QueueItem[]>; sonarr: ServiceBlock<QueueItem[]> }>(
+        "/queue",
+      ),
     refetchInterval: FAST,
   });
 

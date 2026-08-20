@@ -1,7 +1,7 @@
 // Push: enabling it, which events, quiet hours and the arr webhooks.
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,25 +10,23 @@ import { Label } from "@/components/ui/label";
 import { cn, focusRing } from "@/lib/utils";
 
 import { SERVICE_LABELS } from "../../../api/format";
-import i18n, { LANGUAGES, setLanguage } from "../../../i18n";
-
-import { Card } from "../../Blocks";
 import {
   useInstallWebhooks,
   usePushEvents,
   usePushRules,
-  useSavePushRules,
-  useTags,
   usePushSubscribe,
   useSavePushEvents,
+  useSavePushRules,
+  useTags,
   useTestPush,
-  useWebhookStatus,
   useVapidKey,
+  useWebhookStatus,
 } from "../../../hooks/queries";
+import { Card } from "../../Blocks";
 
 /* ---------------- services (connection settings) ---------------- */
 
-const SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password")[]> = {
+const _SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password")[]> = {
   radarr: ["url", "api_key"],
   sonarr: ["url", "api_key"],
   prowlarr: ["url", "api_key"],
@@ -41,7 +39,7 @@ const SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password
   prometheus: ["url"],
 };
 
-const FIELD_KEYS: Record<string, string> = {
+const _FIELD_KEYS: Record<string, string> = {
   url: "manage.url",
   api_key: "manage.apiKey",
   username: "manage.usernameOptional",
@@ -73,6 +71,7 @@ function EventToggles({ endpoint }: { endpoint: string }) {
           const on = enabled.has(event.key);
           return (
             <button
+              type="button"
               key={event.key}
               className={cn(
                 focusRing,
@@ -131,9 +130,12 @@ function NotificationRules() {
     persist({ tags: { radarr: tags.radarr ?? [], sonarr: tags.sonarr ?? [], [app]: next } });
   };
 
-  const tagRows = ([["radarr", radarrTags.data], ["sonarr", sonarrTags.data]] as const).filter(
-    ([, list]) => (list?.length ?? 0) > 0,
-  );
+  const tagRows = (
+    [
+      ["radarr", radarrTags.data],
+      ["sonarr", sonarrTags.data],
+    ] as const
+  ).filter(([, list]) => (list?.length ?? 0) > 0);
 
   return (
     <div className="flex flex-col gap-2">
@@ -183,9 +185,10 @@ function NotificationRules() {
             const on = (tags[app] ?? []).includes(tag.id);
             return (
               <button
+                type="button"
                 key={tag.id}
                 className={cn(
-                focusRing,
+                  focusRing,
                   "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
                   on ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
                 )}

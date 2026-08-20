@@ -1,26 +1,24 @@
 // Import lists, plus settings export and full backup/restore.
 import { useState } from "react";
-import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
 import { api } from "../../../api/client";
 
 import { SERVICE_LABELS } from "../../../api/format";
-import i18n, { LANGUAGES, setLanguage } from "../../../i18n";
-
-import { Card } from "../../Blocks";
 import {
-  useImportSettings,
   useImportLists,
+  useImportSettings,
   useSyncImportLists,
   useToggleImportList,
 } from "../../../hooks/queries";
+import { Card } from "../../Blocks";
 
 /* ---------------- services (connection settings) ---------------- */
 
-const SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password")[]> = {
+const _SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password")[]> = {
   radarr: ["url", "api_key"],
   sonarr: ["url", "api_key"],
   prowlarr: ["url", "api_key"],
@@ -33,7 +31,7 @@ const SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password
   prometheus: ["url"],
 };
 
-const FIELD_KEYS: Record<string, string> = {
+const _FIELD_KEYS: Record<string, string> = {
   url: "manage.url",
   api_key: "manage.apiKey",
   username: "manage.usernameOptional",
@@ -69,7 +67,10 @@ export function ImportLists() {
           </div>
         </div>
         {data.map((list) => (
-          <div key={`${list.app}-${list.id}`} className="flex items-center justify-between gap-2">
+          <div
+            key={`${list.app}-${list.id}`}
+            className="flex items-center justify-between gap-2"
+          >
             <div className="min-w-0">
               <div className="truncate text-sm">{list.name}</div>
               <div className="truncate text-xs text-muted-foreground">

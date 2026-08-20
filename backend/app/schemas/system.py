@@ -1,12 +1,7 @@
 """Services, auth, push, backups, health and the media-server integrations."""
 
-from typing import Generic, Literal, TypeVar
+
 from pydantic import BaseModel
-T = TypeVar("T")
-ServiceName = Literal[
-    "radarr", "sonarr", "prowlarr", "qbittorrent", "transmission", "overseerr", "gluetun",
-    "bazarr", "plex", "prometheus",
-]
 
 from .common import ServiceSettingsOut
 

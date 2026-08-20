@@ -1,3 +1,4 @@
+import { registerSW } from "virtual:pwa-register";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { MutationCache, QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -6,9 +7,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { toast } from "sonner";
-import { ApiError } from "./api/client";
-import { registerSW } from "virtual:pwa-register";
 import App from "./App";
+import { ApiError } from "./api/client";
 import "./i18n";
 import "./index.css";
 
@@ -64,8 +64,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         buster: "v1",
         dehydrateOptions: {
           shouldDehydrateQuery: (query) =>
-            query.state.status === "success" &&
-            !NEVER_PERSIST.has(String(query.queryKey[0])),
+            query.state.status === "success" && !NEVER_PERSIST.has(String(query.queryKey[0])),
         },
       }}
     >

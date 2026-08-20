@@ -6,3 +6,5 @@ respx==0.22.*
 httpx2==2.*
 # used by test_no_undefined_names to catch code moved away from its state
 pyflakes==3.*
+# lint + format; the 27 `# noqa: BLE001` comments assume it
+ruff==0.16.*

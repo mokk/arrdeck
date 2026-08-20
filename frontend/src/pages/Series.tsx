@@ -1,7 +1,6 @@
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { RenameCard } from "../components/RenameCard";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,6 +8,7 @@ import { formatBytes, formatDate } from "../api/format";
 import type { Season } from "../api/types";
 import { Card, ErrorNote, Row, StateBadge } from "../components/Blocks";
 import { ReleasesSheet } from "../components/ReleasesSheet";
+import { RenameCard } from "../components/RenameCard";
 import {
   useEpisodeMonitor,
   useEpisodeSearch,
@@ -85,7 +85,7 @@ function EpisodeList({
               variant="ghost"
               size="icon-sm"
               aria-label={t("releases.interactive")}
-            title={t("releases.interactive")}
+              title={t("releases.interactive")}
               onClick={() =>
                 onReleases({
                   episodeId: e.id,
@@ -183,7 +183,12 @@ export default function SeriesPage() {
   return (
     <>
       <div className="mb-4 mt-2 flex items-center gap-2.5">
-        <Button variant="ghost" size="icon" aria-label={t("common.back")} onClick={() => navigate(-1)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={t("common.back")}
+          onClick={() => navigate(-1)}
+        >
           <ChevronLeft className="size-6" />
         </Button>
         {data?.poster && (
@@ -206,7 +211,12 @@ export default function SeriesPage() {
       )}
       {data && <RenameCard app="sonarr" id={seriesId} />}
       {data?.seasons.map((s) => (
-        <SeasonCard key={s.number} seriesId={seriesId} season={s} onReleases={setReleaseTarget} />
+        <SeasonCard
+          key={s.number}
+          seriesId={seriesId}
+          season={s}
+          onReleases={setReleaseTarget}
+        />
       ))}
       {releaseTarget && (
         <ReleasesSheet

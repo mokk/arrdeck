@@ -1,41 +1,18 @@
 """Plex: what is playing now, and what has been watched."""
 
 import asyncio
-from fastapi import APIRouter, Depends, HTTPException, Request
-from ...cache import cache, cached, guarded
+
+from fastapi import APIRouter, Depends
+
+from ...cache import cached, guarded
 from ...clients.plex import PlexClient
 from ...deps import (
-    get_bazarr,
-    get_gluetun,
     get_plex,
-    get_prowlarr,
-    get_qbit,
-    get_radarr,
-    get_sonarr,
-    get_transmission,
 )
 from ...schemas import (
-    CalendarItemOut,
-    DiskSpaceOut,
-    HealthWarningOut,
     PlaySessionOut,
-    SubtitleSearchIn,
-    WatchedItemOut,
-    SubtitlesOut,
-    VpnStatusOut,
-    CalendarResponse,
-    HistoryPageOut,
-    HistoryResponse,
-    IndexerStatsOut,
-    QueueResponse,
-    RecentItemOut,
-    TorrentsSummaryResponse,
-    TorrentsResponse,
-    HistoryItemOut,
-    QueueItemOut,
     ServiceBlock,
-    ServiceStatus,
-    TorrentOut,
+    WatchedItemOut,
 )
 
 router = APIRouter(tags=["plex"])
@@ -108,7 +85,7 @@ async def watched(plex: PlexClient = Depends(get_plex)):
                 *(plex.section_items(s["key"]) for s in wanted), return_exceptions=True
             )
             out: dict[str, dict] = {}
-            for section, items in zip(wanted, results):
+            for section, items in zip(wanted, results, strict=False):
                 if isinstance(items, BaseException):
                     continue
                 for item in items:

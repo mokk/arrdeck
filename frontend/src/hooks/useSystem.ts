@@ -1,31 +1,32 @@
 // Services, auth, push, backups and the media-server integrations.
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import type {
-  MediaRequest,
-  StatsSample,
-  IndexerStats,
-  Indexer,
-  IndexerSchema,
-  ImportList,
-  LogEntry,
   DiskSpace,
   HealthWarning,
+  ImportList,
+  Indexer,
+  IndexerSchema,
+  IndexerStats,
+  LogEntry,
+  MediaRequest,
   PlaySession,
-  WatchedItem,
-  Subtitles,
-  VpnStatus,
-  Session,
   PushEvents,
   PushRules,
-  WebhookApp,
-  WebhookStatus,
   ServiceBlock,
   ServiceInfo,
   ServiceSettings,
   ServiceStatus,
+  Session,
+  StatsSample,
+  Subtitles,
+  VpnStatus,
+  WatchedItem,
+  WebhookApp,
+  WebhookStatus,
 } from "../api/types";
 import { FAST, MEDIUM, SLOW } from "./shared";
 
@@ -33,7 +34,9 @@ export const useAuthState = () =>
   useQuery({
     queryKey: ["authState"],
     queryFn: () =>
-      api.get<{ authenticated: boolean; lan: boolean; has_credentials: boolean }>("/auth/state"),
+      api.get<{ authenticated: boolean; lan: boolean; has_credentials: boolean }>(
+        "/auth/state",
+      ),
     staleTime: 30_000,
     retry: false,
   });
@@ -49,7 +52,8 @@ export const useSetupCode = (enabled: boolean) =>
 export const usePasskeys = (enabled: boolean) =>
   useQuery({
     queryKey: ["passkeys"],
-    queryFn: () => api.get<{ id: number; name: string; created: number }[]>("/auth/credentials"),
+    queryFn: () =>
+      api.get<{ id: number; name: string; created: number }[]>("/auth/credentials"),
     enabled,
     retry: false,
   });
@@ -147,8 +151,7 @@ export const useHealth = (enabled: boolean) =>
 export const usePushEvents = (enabled: boolean, endpoint: string) =>
   useQuery({
     queryKey: ["pushEvents", endpoint],
-    queryFn: () =>
-      api.get<PushEvents>(`/push/events?endpoint=${encodeURIComponent(endpoint)}`),
+    queryFn: () => api.get<PushEvents>(`/push/events?endpoint=${encodeURIComponent(endpoint)}`),
     enabled,
     staleTime: Infinity,
   });
@@ -221,7 +224,10 @@ export const useServiceSettings = () =>
 export function useSaveServiceSettings() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ service, ...body }: { service: string } & Omit<ServiceSettings, "configured">) =>
+    mutationFn: ({
+      service,
+      ...body
+    }: { service: string } & Omit<ServiceSettings, "configured">) =>
       api.put<{ service: string; configured: boolean }>(`/settings/services/${service}`, body),
     // connection settings affect every query in the app
     onSettled: () => qc.invalidateQueries(),
@@ -241,7 +247,6 @@ export const useStatus = () =>
     queryFn: () => api.get<ServiceStatus[]>("/status"),
     refetchInterval: MEDIUM,
   });
-
 
 export const useImportLists = (enabled: boolean) =>
   useQuery({
@@ -268,8 +273,7 @@ export function useSyncImportLists() {
 export const useLogs = (app: string, level: string, enabled: boolean) =>
   useQuery({
     queryKey: ["logs", app, level],
-    queryFn: () =>
-      api.get<LogEntry[]>(`/logs/${app}?page=1${level ? `&level=${level}` : ""}`),
+    queryFn: () => api.get<LogEntry[]>(`/logs/${app}?page=1${level ? `&level=${level}` : ""}`),
     enabled,
     refetchInterval: MEDIUM,
   });

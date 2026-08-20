@@ -34,7 +34,10 @@ function range(view: View, offset: number): { start: Date; days: number } {
   const now = new Date();
   if (view === "month") {
     const first = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-    return { start: first, days: new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate() };
+    return {
+      start: first,
+      days: new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate(),
+    };
   }
   if (view === "week") {
     return { start: addDays(weekStart(now), offset * 7), days: 7 };
@@ -98,6 +101,7 @@ export default function CalendarPage() {
     const dayItems = byDay.get(iso) ?? [];
     return (
       <button
+        type="button"
         key={iso}
         // the coloured dots alone don't say how much is on a day
         aria-label={`${date.toLocaleDateString(i18n.language, { weekday: "long", day: "numeric", month: "long" })} — ${t("cal.itemCount", { count: dayItems.length })}`}

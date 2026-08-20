@@ -1,27 +1,14 @@
 """What an event is, and which ones a device wants: the catalogue, the
 Event record, per-device preferences and the quiet-hours/tag rules."""
 
-"""Push notifications.
-
-Two sources feed the same pipeline: webhooks posted by Radarr/Sonarr (instant)
-and the history poller (fallback, in case the webhooks aren't installed or the
-arr can't reach us). Both go through `notify()`, which drops duplicates so the
-two paths can never notify twice about the same thing, and buffers events for a
-few seconds so a season pack arrives as one banner instead of ten.
-"""
-import asyncio
 import hashlib
 import json
 import logging
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-from py_vapid import Vapid, b64urlencode
-from pywebpush import WebPushException, webpush
-from ..db import SettingsDB
-from ..registry import Registry
 
+from ..db import SettingsDB
 
 logger = logging.getLogger("arrdeck.push")
 
@@ -216,7 +203,4 @@ def wants_event(db: SettingsDB, key: str) -> bool:
     if key == "test":
         return True
     default = enabled_events(db)
-    for _raw, events in db.push_targets():
-        if key in (default if events is None else events):
-            return True
-    return False
+    return any(key in (default if events is None else events) for _raw, events in db.push_targets())

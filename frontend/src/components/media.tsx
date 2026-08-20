@@ -10,12 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { clickable, cn } from "@/lib/utils";
 import { formatBytes } from "../api/format";
 import type { SearchResult } from "../api/types";
-import { ErrorNote } from "./Blocks";
-import { ReleasesSheet } from "./ReleasesSheet";
-import { Sheet } from "./Sheet";
 import {
   useAddMedia,
   useDeleteLibraryItem,
@@ -23,6 +20,9 @@ import {
   useTriggerSearch,
   useUpdateLibraryItem,
 } from "../hooks/queries";
+import { ErrorNote } from "./Blocks";
+import { ReleasesSheet } from "./ReleasesSheet";
+import { Sheet } from "./Sheet";
 
 function MediaHead({ result }: { result: SearchResult }) {
   const { t } = useTranslation();
@@ -145,7 +145,10 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
   const title = `${result.title}${result.year ? ` (${result.year})` : ""}`;
 
   const profileSelect = (value: number | null | undefined, onChange: (id: number) => void) => (
-    <Select value={value != null ? String(value) : undefined} onValueChange={(v) => onChange(Number(v))}>
+    <Select
+      value={value != null ? String(value) : undefined}
+      onValueChange={(v) => onChange(Number(v))}
+    >
       <SelectTrigger className="w-full bg-secondary">
         <SelectValue placeholder="Quality profile" />
       </SelectTrigger>
@@ -165,9 +168,13 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
     return (
       <Sheet title={title} onClose={onClose}>
         <MediaHead result={result} />
-        <Label className="mb-1.5 text-xs text-muted-foreground">{t("add.qualityProfile")}</Label>
+        <Label className="mb-1.5 text-xs text-muted-foreground">
+          {t("add.qualityProfile")}
+        </Label>
         {profileSelect(profile, setProfileId)}
-        <Label className="mb-1.5 mt-3 text-xs text-muted-foreground">{t("add.rootFolder")}</Label>
+        <Label className="mb-1.5 mt-3 text-xs text-muted-foreground">
+          {t("add.rootFolder")}
+        </Label>
         <Select value={root ?? undefined} onValueChange={setRootPath}>
           <SelectTrigger className="w-full bg-secondary">
             <SelectValue placeholder={t("add.rootFolder")} />
@@ -237,7 +244,9 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
         </>
       ) : (
         <>
-          <Label className="mb-1.5 text-xs text-muted-foreground">{t("add.qualityProfile")}</Label>
+          <Label className="mb-1.5 text-xs text-muted-foreground">
+            {t("add.qualityProfile")}
+          </Label>
           {profileSelect(result.quality_profile_id, (pid) =>
             update.mutate({ id, quality_profile_id: pid }, { onSettled: onClose }),
           )}
@@ -289,7 +298,7 @@ export function PosterGrid({ results }: { results: SearchResult[] }) {
           <div
             key={`${r.kind}-${r.remote_id}`}
             className="flex cursor-pointer flex-col gap-1.5 active:opacity-70"
-            onClick={() => setSelected(r)}
+            {...clickable(() => setSelected(r))}
           >
             {r.poster ? (
               <img
@@ -324,4 +333,3 @@ export function PosterGrid({ results }: { results: SearchResult[] }) {
     </>
   );
 }
-

@@ -55,7 +55,11 @@ function Chart({
           </span>
         )}
       </div>
-      <svg viewBox={`0 0 ${w} ${h}`} className="h-[72px] w-full text-primary">
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        aria-hidden="true"
+        className="h-[72px] w-full text-primary"
+      >
         <polyline
           points={points}
           fill="none"
@@ -84,7 +88,12 @@ export default function StatsPage() {
   return (
     <>
       <div className="mb-4 mt-1 flex items-center gap-2">
-        <Button variant="ghost" size="icon" aria-label={t("common.back")} onClick={() => navigate(-1)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={t("common.back")}
+          onClick={() => navigate(-1)}
+        >
           <ChevronLeft className="size-6" />
         </Button>
         <h1 className="text-2xl font-extrabold tracking-tight">{t("stats.title")}</h1>
@@ -113,7 +122,12 @@ export default function StatsPage() {
             pick={(s) => s.disk_free_bytes ?? 0}
             format={formatBytes}
           />
-          <Chart label={t("dash.movies")} samples={data} pick={(s) => s.movies ?? 0} format={count} />
+          <Chart
+            label={t("dash.movies")}
+            samples={data}
+            pick={(s) => s.movies ?? 0}
+            format={count}
+          />
           <Chart
             label={t("dash.seriesCount")}
             samples={data}
@@ -147,7 +161,9 @@ export default function StatsPage() {
         </>
       ) : (
         !isLoading && (
-          <div className="px-4 py-3 text-sm text-muted-foreground">{t("dash.nothingScheduled")}</div>
+          <div className="px-4 py-3 text-sm text-muted-foreground">
+            {t("dash.nothingScheduled")}
+          </div>
         )
       )}
     </>

@@ -1,22 +1,15 @@
 """Release search and grabbing, via Prowlarr and the arrs themselves."""
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
+
 from ...clients.prowlarr import ProwlarrClient
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_overseerr, get_prowlarr, get_radarr, get_sonarr
+from ...deps import get_prowlarr, get_radarr, get_sonarr
 from ...schemas import (
-    AddMovieIn,
-    AddSeriesIn,
     ArrReleaseOut,
-    CollectionDetailOut,
-    CollectionOut,
     GrabIn,
-    OptionsOut,
     ReleaseOut,
-    MediaRequestOut,
-    SearchResultOut,
-    ServiceBlock,
 )
 
 router = APIRouter(tags=["releases"])

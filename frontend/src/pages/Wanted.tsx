@@ -34,12 +34,12 @@ function WantedList({ app, kind }: { app: "radarr" | "sonarr"; kind: Kind }) {
     setPage(1);
     setItems([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [app, kind]);
+  }, []);
 
   useEffect(() => {
     if (data) setItems((prev) => (page === 1 ? data.items : [...prev, ...data.items]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  }, [data, page]);
 
   return (
     <>
@@ -101,7 +101,7 @@ function WantedList({ app, kind }: { app: "radarr" | "sonarr"; kind: Kind }) {
                 variant="ghost"
                 size="icon-sm"
                 aria-label={t("releases.interactive")}
-            title={t("releases.interactive")}
+                title={t("releases.interactive")}
                 onClick={() => setReleaseTarget(w)}
               >
                 <ChevronRight />
@@ -164,7 +164,12 @@ export default function WantedPage() {
   return (
     <>
       <div className="mb-4 mt-1 flex items-center gap-2">
-        <Button variant="ghost" size="icon" aria-label={t("common.back")} onClick={() => navigate(-1)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={t("common.back")}
+          onClick={() => navigate(-1)}
+        >
           <ChevronLeft className="size-6" />
         </Button>
         <h1 className="text-2xl font-extrabold tracking-tight">{t("wanted.title")}</h1>

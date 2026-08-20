@@ -1,45 +1,23 @@
 import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { clickable, cn } from "@/lib/utils";
 import { formatBytes } from "../api/format";
 import type { Release, SearchResult } from "../api/types";
-import {
-  Card,
-  EmptyNote,
-  ErrorNote,
-  Row,
-  SectionTitle,
-} from "../components/Blocks";
+import { Card, EmptyNote, ErrorNote, Row, SectionTitle } from "../components/Blocks";
 import { MediaSheet, PosterGrid } from "../components/media";
-import { ReleasesSheet } from "../components/ReleasesSheet";
-import { useRegisterSearchbar, useRegisterSubnav } from "../components/subnav";
 import { Sheet } from "../components/Sheet";
+import { useRegisterSearchbar, useRegisterSubnav } from "../components/subnav";
 import {
-  useAddMedia,
   useCollectionDetail,
   useCollections,
-  useDeleteLibraryItem,
   useDiscover,
   useGrabRelease,
-  useOptions,
   useSearch,
   useServices,
   useToggleCollection,
-  useTriggerSearch,
-  useUpdateLibraryItem,
 } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 
@@ -106,13 +84,8 @@ function CollectionSheet({ id, onClose }: { id: number; onClose: () => void }) {
       }
       onClose={onClose}
     >
-      {isLoading && (
-        <>
-          {[0, 1, 2].map((i) => (
-            <Skeleton key={i} className="mb-2 h-12 w-full rounded-xl" />
-          ))}
-        </>
-      )}
+      {isLoading &&
+        [0, 1, 2].map((i) => <Skeleton key={i} className="mb-2 h-12 w-full rounded-xl" />)}
       {data && (
         <div className="mb-3">
           <Button
@@ -130,7 +103,7 @@ function CollectionSheet({ id, onClose }: { id: number; onClose: () => void }) {
         <div
           key={m.remote_id}
           className="flex cursor-pointer items-center gap-3 border-t border-border py-2 first:border-t-0 active:opacity-70"
-          onClick={() => setSelected(m)}
+          {...clickable(() => setSelected(m))}
         >
           {m.poster ? (
             <img
@@ -254,7 +227,7 @@ export default function Add() {
     tab === "series" ? "series" : "movies",
     tab != null && tab !== "releases" && tab !== "collections" && !searching && canDiscover,
   );
-  const collections = useCollections(tab === "collections");
+  const _collections = useCollections(tab === "collections");
 
   const onTab = (t: Tab) => {
     setTab(t);
@@ -301,11 +274,7 @@ export default function Add() {
   );
 
   if (services && tabs.length === 0) {
-    return (
-      <>
-        <EmptyNote>{t("add.noServices")}</EmptyNote>
-      </>
-    );
+    return <EmptyNote>{t("add.noServices")}</EmptyNote>;
   }
 
   return (

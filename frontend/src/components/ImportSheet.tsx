@@ -4,14 +4,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn, focusRing } from "@/lib/utils";
 import { formatBytes } from "../api/format";
+import { useImportCandidates, useManualImport, useManualImportAssign } from "../hooks/queries";
 import { EmptyNote } from "./Blocks";
 import { Sheet } from "./Sheet";
-import {
-  useImportCandidates,
-  useManualImport,
-  useManualImportAssign,
-} from "../hooks/queries";
-import { TargetPicker, type Target } from "./TargetPicker";
+import { type Target, TargetPicker } from "./TargetPicker";
 
 /** Everything the arr found in a stuck download, including the files it
  * refused, so a rejection can be read and overridden rather than guessed at. */
@@ -48,12 +44,13 @@ export function ImportSheet({
       {data && data.length === 0 && <EmptyNote>{t("dl.noCandidates")}</EmptyNote>}
       {(data ?? []).map((c) => (
         <button
+          type="button"
           key={c.path}
           onClick={() =>
             c.importable || targets[c.path] ? toggle(c.path) : setChoosingFor(c.path)
           }
           className={cn(
-                focusRing,
+            focusRing,
             "flex w-full items-start gap-2.5 border-t border-border py-2 text-left first:border-t-0",
             !c.importable && !targets[c.path] && "opacity-60",
           )}
@@ -69,7 +66,9 @@ export function ImportSheet({
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm">{c.name}</span>
             <span className="mt-0.5 block text-xs text-muted-foreground">
-              {[c.title, c.subtitle, c.quality, formatBytes(c.size)].filter(Boolean).join(" · ")}
+              {[c.title, c.subtitle, c.quality, formatBytes(c.size)]
+                .filter(Boolean)
+                .join(" · ")}
             </span>
             {(c.rejections?.length ?? 0) > 0 && (
               <span className="mt-0.5 block text-xs text-warning">
@@ -82,7 +81,9 @@ export function ImportSheet({
               </span>
             ) : (
               !c.importable && (
-                <span className="mt-0.5 block text-xs text-primary">{t("dl.chooseTarget")}</span>
+                <span className="mt-0.5 block text-xs text-primary">
+                  {t("dl.chooseTarget")}
+                </span>
               )
             )}
           </span>
@@ -114,7 +115,8 @@ export function ImportSheet({
                 },
                 {
                   onSuccess: () => {
-                    if (auto.length) run.mutate({ app, itemId, paths: auto }, { onSuccess: done });
+                    if (auto.length)
+                      run.mutate({ app, itemId, paths: auto }, { onSuccess: done });
                     else done();
                   },
                 },

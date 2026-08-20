@@ -1,12 +1,8 @@
 """Movies, series, episodes, discovery, calendar, history and indexers."""
 
-from typing import Generic, Literal, TypeVar
+from typing import Literal
+
 from pydantic import BaseModel
-T = TypeVar("T")
-ServiceName = Literal[
-    "radarr", "sonarr", "prowlarr", "qbittorrent", "transmission", "overseerr", "gluetun",
-    "bazarr", "plex", "prometheus",
-]
 
 from .common import ServiceBlock
 from .system import HealthItemOut

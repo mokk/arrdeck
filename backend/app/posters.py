@@ -5,6 +5,7 @@ across 283 files by the time anyone looked). Eviction is least-recently-used by
 mtime, with a size cap and an age cap.
 """
 
+import contextlib
 import logging
 import time
 from pathlib import Path
@@ -100,15 +101,13 @@ def backup_database(db_path: str, keep: int = BACKUP_KEEP) -> str | None:
             src.backup(dst)
         src.close()
         dst.close()
-    except Exception:  # noqa: BLE001 — a failed backup must not stop the loop
+    except Exception:
         logger.exception("database backup failed")
         return None
 
     existing = sorted(target_dir.glob(f"{source.stem}-*.db"))
     for stale in existing[:-keep]:
-        try:
+        with contextlib.suppress(OSError):
             stale.unlink()
-        except OSError:
-            pass
     logger.info("database backed up to %s", target.name)
     return str(target)

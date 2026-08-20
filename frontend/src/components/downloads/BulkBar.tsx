@@ -26,7 +26,8 @@ export function BulkBar({
     const byClient: Record<string, string[]> = {};
     for (const torrent of torrents) {
       if (selected.has(`${torrent.client}-${torrent.id}`)) {
-        (byClient[torrent.client] ??= []).push(torrent.id);
+        byClient[torrent.client] ??= [];
+        byClient[torrent.client].push(torrent.id);
       }
     }
     for (const [client, ids] of Object.entries(byClient)) {
@@ -45,19 +46,39 @@ export function BulkBar({
           <Button size="sm" variant="destructive" onClick={() => run("delete", true)}>
             {t("manage.plusFiles")}
           </Button>
-          <Button size="sm" variant="secondary" className="text-destructive" onClick={() => run("delete", false)}>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="text-destructive"
+            onClick={() => run("delete", false)}
+          >
             {t("manage.entryOnly")}
           </Button>
-          <Button size="sm" variant="ghost" aria-label={t("common.cancel")} onClick={() => setConfirmingDelete(false)}>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-label={t("common.cancel")}
+            onClick={() => setConfirmingDelete(false)}
+          >
             ✕
           </Button>
         </>
       ) : (
         <>
-          <Button size="sm" variant="secondary" disabled={!selected.size} onClick={() => run("pause")}>
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={!selected.size}
+            onClick={() => run("pause")}
+          >
             {t("common.pause")}
           </Button>
-          <Button size="sm" variant="secondary" disabled={!selected.size} onClick={() => run("resume")}>
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={!selected.size}
+            onClick={() => run("resume")}
+          >
             {t("common.resume")}
           </Button>
           <Button

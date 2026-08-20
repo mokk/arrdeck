@@ -2,9 +2,9 @@ from fastapi import Request
 
 from .clients.bazarr import BazarrClient
 from .clients.gluetun import GluetunClient
+from .clients.overseerr import OverseerrClient
 from .clients.plex import PlexClient
 from .clients.prometheus import PrometheusClient
-from .clients.overseerr import OverseerrClient
 from .clients.prowlarr import ProwlarrClient
 from .clients.qbittorrent import QbittorrentClient
 from .clients.radarr import RadarrClient

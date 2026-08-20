@@ -1,29 +1,12 @@
 """Between an event and a banner: dedupe, coalesce a burst, then flush."""
 
-"""Push notifications.
-
-Two sources feed the same pipeline: webhooks posted by Radarr/Sonarr (instant)
-and the history poller (fallback, in case the webhooks aren't installed or the
-arr can't reach us). Both go through `notify()`, which drops duplicates so the
-two paths can never notify twice about the same thing, and buffers events for a
-few seconds so a season pack arrives as one banner instead of ten.
-"""
 import asyncio
-import hashlib
-import json
-import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-from py_vapid import Vapid, b64urlencode
-from pywebpush import WebPushException, webpush
+
 from ..db import SettingsDB
-from ..registry import Registry
-
 from .delivery import _send_all
-from .events import COALESCE_WINDOW, Event, NOUNS, get_rules, logger, passes_rules, wants_event
-
+from .events import COALESCE_WINDOW, NOUNS, Event, get_rules, logger, passes_rules, wants_event
 
 FLUSH_INTERVAL = 5
 

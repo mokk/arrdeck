@@ -16,8 +16,8 @@ import type { Options } from "../../../api/types";
 import {
   useBulkDeleteLibrary,
   useBulkLibrary,
-  useTags,
   useBulkSearchLibrary,
+  useTags,
 } from "../../../hooks/queries";
 
 /* ---------------- libraries ---------------- */
@@ -131,7 +131,9 @@ export function LibraryBulkBar({
             size="sm"
             variant="destructive"
             disabled={pending}
-            onClick={() => bulkDelete.mutate({ ids, delete_files: true }, { onSettled: onDone })}
+            onClick={() =>
+              bulkDelete.mutate({ ids, delete_files: true }, { onSettled: onDone })
+            }
           >
             {t("manage.plusFiles")}
           </Button>
@@ -140,11 +142,18 @@ export function LibraryBulkBar({
             variant="secondary"
             className="text-destructive"
             disabled={pending}
-            onClick={() => bulkDelete.mutate({ ids, delete_files: false }, { onSettled: onDone })}
+            onClick={() =>
+              bulkDelete.mutate({ ids, delete_files: false }, { onSettled: onDone })
+            }
           >
             {t("manage.entryOnly")}
           </Button>
-          <Button size="sm" variant="ghost" aria-label={t("common.cancel")} onClick={() => setConfirmingDelete(false)}>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-label={t("common.cancel")}
+            onClick={() => setConfirmingDelete(false)}
+          >
             ✕
           </Button>
         </>
@@ -154,7 +163,9 @@ export function LibraryBulkBar({
             value={null}
             options={options}
             disabled={pending || !ids.length}
-            onChange={(pid) => bulk.mutate({ ids, quality_profile_id: pid }, { onSettled: onDone })}
+            onChange={(pid) =>
+              bulk.mutate({ ids, quality_profile_id: pid }, { onSettled: onDone })
+            }
           />
           <Button
             size="sm"
@@ -227,4 +238,3 @@ export function LibraryBulkBar({
     </div>
   );
 }
-

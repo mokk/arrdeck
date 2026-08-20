@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatDateTime } from "../api/format";
+import { formatDateTime, SERVICE_LABELS } from "../api/format";
 import type { HistoryItem } from "../api/types";
 import { Card, EmptyNote, Row, StateBadge } from "../components/Blocks";
-import { SERVICE_LABELS } from "../api/format";
-import { useBlocklist, useBlocklistRemove, useHistoryPage } from "../hooks/queries";
 import { useRegisterSubnav } from "../components/subnav";
+import { useBlocklist, useBlocklistRemove, useHistoryPage } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 
 const TYPE_CHIPS = ["fetched", "imported", "failed", "deleted"];
@@ -45,7 +44,9 @@ function BlocklistView() {
         {items.map((item) => (
           <Row key={`${item.app}-${item.id}`}>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-medium">{item.title || item.source_title}</div>
+              <div className="truncate text-sm font-medium">
+                {item.title || item.source_title}
+              </div>
               <div className="truncate text-xs text-muted-foreground">{item.source_title}</div>
               <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <StateBadge state={item.app} />
@@ -92,7 +93,7 @@ export default function HistoryPage() {
       setItems((prev) => (page === 1 ? data.items : [...prev, ...data.items]));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  }, [data, page]);
 
   const shown = items.filter(
     (h) =>

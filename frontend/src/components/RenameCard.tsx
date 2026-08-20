@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, SectionTitle } from "./Blocks";
 import { useRenameFiles, useRenamePreview } from "../hooks/queries";
+import { Card, SectionTitle } from "./Blocks";
 
 /** Files whose names drifted from the arr's naming scheme. The card is absent
  * when everything already matches, so its presence is the signal. */

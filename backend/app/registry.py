@@ -3,9 +3,9 @@ import httpx
 from .clients.base import ServiceUnavailable
 from .clients.bazarr import BazarrClient
 from .clients.gluetun import GluetunClient
+from .clients.overseerr import OverseerrClient
 from .clients.plex import PlexClient
 from .clients.prometheus import PrometheusClient
-from .clients.overseerr import OverseerrClient
 from .clients.prowlarr import ProwlarrClient
 from .clients.qbittorrent import QbittorrentClient
 from .clients.radarr import RadarrClient
@@ -21,9 +21,7 @@ NEEDS_API_KEY = {
 def is_configured(name: str, conf: dict) -> bool:
     if not conf.get("url"):
         return False
-    if name in NEEDS_API_KEY and not conf.get("api_key"):
-        return False
-    return True
+    return not (name in NEEDS_API_KEY and not conf.get("api_key"))
 
 
 class Unconfigured:
@@ -50,7 +48,7 @@ class Registry:
         self._arr_http = arr_http
         self._qbit_http = qbit_http
         self._tm_http = tm_http
-        self._clients: dict[str, object | None] = {s: None for s in SERVICES}
+        self._clients: dict[str, object | None] = dict.fromkeys(SERVICES)
 
     def rebuild(self, name: str, conf: dict) -> None:
         if not is_configured(name, conf):

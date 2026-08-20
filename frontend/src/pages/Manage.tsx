@@ -1,11 +1,11 @@
 import { useTranslation } from "react-i18next";
+import { Indexers } from "../components/manage/Indexers";
+import { MovieLibrary, SeriesLibrary } from "../components/manage/Libraries";
+import { Logs } from "../components/manage/Logs";
+import { ServiceSettingsTab } from "../components/manage/ServicesTab";
 import { useRegisterSubnav } from "../components/subnav";
 import { useServices } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
-import { ServiceSettingsTab } from "../components/manage/ServicesTab";
-import { Indexers } from "../components/manage/Indexers";
-import { Logs } from "../components/manage/Logs";
-import { MovieLibrary, SeriesLibrary } from "../components/manage/Libraries";
 
 /* ---------------- page ---------------- */
 
@@ -18,8 +18,12 @@ export default function Manage() {
     (services ?? []).filter((s) => s.configured).map((s) => s.service as string),
   );
   const tabs: { value: Tab; label: string }[] = [
-    ...(configured.has("radarr") ? [{ value: "movies" as Tab, label: t("manage.movies") }] : []),
-    ...(configured.has("sonarr") ? [{ value: "series" as Tab, label: t("manage.series") }] : []),
+    ...(configured.has("radarr")
+      ? [{ value: "movies" as Tab, label: t("manage.movies") }]
+      : []),
+    ...(configured.has("sonarr")
+      ? [{ value: "series" as Tab, label: t("manage.series") }]
+      : []),
     ...(configured.has("prowlarr")
       ? [{ value: "indexers" as Tab, label: t("manage.indexers") }]
       : []),

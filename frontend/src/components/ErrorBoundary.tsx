@@ -24,9 +24,12 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.props.fallback) return this.props.fallback(error, this.reset);
     return (
       <div className="mb-6 rounded-2xl border border-destructive/40 bg-destructive/10 p-4">
-        <div className="text-sm font-semibold text-destructive">Something broke rendering this</div>
+        <div className="text-sm font-semibold text-destructive">
+          Something broke rendering this
+        </div>
         <div className="mt-1 break-words text-xs text-muted-foreground">{error.message}</div>
         <button
+          type="button"
           className="mt-3 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
           onClick={this.reset}
         >

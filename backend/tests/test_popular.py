@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 from app.api.v1.popular import _describe, _kind, _query_categories
 
@@ -43,7 +43,7 @@ def test_kind_is_derived_from_the_category_range():
 
 
 def test_describe_pulls_out_what_the_ui_ranks_and_shows():
-    now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
     out = _describe({
         "guid": "g1", "indexerId": 3, "title": "Reacher S04E04",
         "categories": [{"id": 5040, "name": "TV/HD"}, {"id": None}],
@@ -71,7 +71,7 @@ def test_ranking_prefers_grabs_then_seeders():
 
 
 def test_the_window_cutoff_excludes_older_releases():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     cutoff = now - timedelta(hours=24)
     fresh = now - timedelta(hours=3)
     stale = now - timedelta(hours=48)
@@ -98,7 +98,7 @@ class FakeProwlarr:
 
     async def search(self, query, categories=None, indexer_ids=None, limit=0):
         self.calls += 1
-        now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
         return [{"guid": f"g{i}", "indexerId": 1, "title": f"Release {i}",
                  "categories": [{"id": 2000, "name": "Movies"}],
                  "grabs": i, "seeders": i, "publishDate": now} for i in range(5)]

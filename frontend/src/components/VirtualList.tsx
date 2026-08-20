@@ -1,5 +1,5 @@
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { useRef, type ReactNode } from "react";
+import { type ReactNode, useRef } from "react";
 
 /** Window-scrolled virtual list — renders only visible rows, so full
  * 1000+-item lists stay smooth on a phone. */

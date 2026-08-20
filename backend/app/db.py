@@ -2,6 +2,7 @@ import json
 import sqlite3
 import threading
 from pathlib import Path
+from typing import ClassVar
 
 SERVICES = [
     "radarr", "sonarr", "prowlarr", "qbittorrent", "transmission", "overseerr", "gluetun",
@@ -121,7 +122,7 @@ class SettingsDB:
             )
             self._conn.commit()
 
-    STATS_COLUMNS = [
+    STATS_COLUMNS: ClassVar[list[str]] = [
         "ts", "movies", "series", "episode_files", "library_bytes",
         "torrents_qbit", "torrents_tm", "indexer_grabs", "indexer_queries",
         "disk_free_bytes",
@@ -154,7 +155,7 @@ class SettingsDB:
                 f"SELECT {cols} FROM stats_samples WHERE ts >= ? ORDER BY ts",
                 (since_ts,),
             ).fetchall()
-        return [dict(zip(self.STATS_COLUMNS, r)) for r in rows]
+        return [dict(zip(self.STATS_COLUMNS, r, strict=False)) for r in rows]
 
     def kv_get(self, key: str) -> str | None:
         with self._lock:
@@ -193,11 +194,11 @@ class SettingsDB:
             "services": self.all(),
             "kv": self.kv_all(),
             "credentials": [
-                dict(zip(("credential_id", "public_key", "sign_count", "name", "created"), r))
+                dict(zip(("credential_id", "public_key", "sign_count", "name", "created"), r, strict=False))
                 for r in creds
             ],
             "push_subscriptions": [
-                dict(zip(("endpoint", "data", "events"), r)) for r in subs
+                dict(zip(("endpoint", "data", "events"), r, strict=False)) for r in subs
             ],
             "stats_samples": self.samples_since(0),
         }
@@ -321,7 +322,7 @@ class SettingsDB:
                 "SELECT id, credential_id, public_key, sign_count, name, created FROM credentials"
             ).fetchall()
         keys = ["id", "credential_id", "public_key", "sign_count", "name", "created"]
-        return [dict(zip(keys, r)) for r in rows]
+        return [dict(zip(keys, r, strict=False)) for r in rows]
 
     def cred_delete(self, cred_id: int) -> None:
         with self._lock:
@@ -364,7 +365,7 @@ class SettingsDB:
             rows = self._conn.execute(
                 "SELECT token_hash, created, last_used FROM sessions ORDER BY last_used DESC"
             ).fetchall()
-        return [dict(zip(("token_hash", "created", "last_used"), r)) for r in rows]
+        return [dict(zip(("token_hash", "created", "last_used"), r, strict=False)) for r in rows]
 
     def session_delete_others(self, keep_hash: str) -> int:
         with self._lock:

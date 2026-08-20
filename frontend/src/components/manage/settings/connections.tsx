@@ -16,10 +16,10 @@ import {
 import { cn } from "@/lib/utils";
 
 import { SERVICE_LABELS } from "../../../api/format";
-import i18n, { LANGUAGES, setLanguage } from "../../../i18n";
 import type { ServiceSettings } from "../../../api/types";
-import { Card } from "../../Blocks";
 import { useSaveServiceSettings, useStatus, useTestService } from "../../../hooks/queries";
+import i18n, { LANGUAGES, setLanguage } from "../../../i18n";
+import { Card } from "../../Blocks";
 
 /* ---------------- services (connection settings) ---------------- */
 
@@ -43,7 +43,13 @@ const FIELD_KEYS: Record<string, string> = {
   password: "manage.passwordOptional",
 };
 
-export function ServiceSettingsCard({ name, initial }: { name: string; initial: ServiceSettings }) {
+export function ServiceSettingsCard({
+  name,
+  initial,
+}: {
+  name: string;
+  initial: ServiceSettings;
+}) {
   const { t } = useTranslation();
   const save = useSaveServiceSettings();
   const test = useTestService();

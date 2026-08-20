@@ -11,7 +11,7 @@ import asyncio
 import json
 import logging
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Request
 
@@ -103,11 +103,11 @@ async def collect(prowlarr: ProwlarrClient, hours: int, limit: int) -> list[dict
             owners.append(indexer)
     results = await asyncio.gather(*jobs)
 
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+    cutoff = datetime.now(UTC) - timedelta(hours=hours)
     # dedupe within an indexer: a release appears under every sub-category it
     # is tagged with
     seen: dict[int, dict[str, dict]] = {i["id"]: {} for i in indexers}
-    for indexer, rows in zip(owners, results):
+    for indexer, rows in zip(owners, results, strict=False):
         bucket = seen[indexer["id"]]
         for row in rows:
             published = row.get("publishDate")
@@ -181,7 +181,7 @@ async def popular_loop(db, registry) -> None:
             age = time.time() - (snap or {}).get("generated_at", 0)
             if snap is None or age >= REFRESH_INTERVAL:
                 await refresh_snapshot(db, registry)
-        except Exception:  # noqa: BLE001 — the loop must outlive a bad response
+        except Exception:
             logger.exception("popular refresh failed")
         await asyncio.sleep(300)
 

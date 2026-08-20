@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState, type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
 /** iOS-style swipeable list row: swipe left to reveal action buttons,
  * tap to trigger onTap (tap also closes an open row). */

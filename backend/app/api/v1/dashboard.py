@@ -1,58 +1,31 @@
 import asyncio
-import functools
 import re
-import time
 from datetime import date, timedelta
-from typing import Any, Callable, Coroutine
-from urllib.parse import urlparse
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends
 
-from ...cache import cache, cached, guarded
-from ...clients.base import ServiceUnavailable
-from ...registry import probe_version
-from .discover import _poster
-from ...clients.bazarr import BazarrClient
-from ...clients.gluetun import GluetunClient
-from ...clients.plex import PlexClient
+from ...cache import cached, guarded
 from ...clients.prowlarr import ProwlarrClient
-from ...clients.qbittorrent import QbittorrentClient
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
-from ...clients.transmission import TransmissionClient
 from ...deps import (
-    get_bazarr,
-    get_gluetun,
-    get_plex,
     get_prowlarr,
-    get_qbit,
     get_radarr,
     get_sonarr,
-    get_transmission,
 )
 from ...schemas import (
     CalendarItemOut,
-    DiskSpaceOut,
-    HealthWarningOut,
-    PlaySessionOut,
-    SubtitleSearchIn,
-    WatchedItemOut,
-    SubtitlesOut,
-    VpnStatusOut,
     CalendarResponse,
+    HistoryItemOut,
     HistoryPageOut,
     HistoryResponse,
     IndexerStatsOut,
+    QueueItemOut,
     QueueResponse,
     RecentItemOut,
-    TorrentsSummaryResponse,
-    TorrentsResponse,
-    HistoryItemOut,
-    QueueItemOut,
     ServiceBlock,
-    ServiceStatus,
-    TorrentOut,
 )
+from .discover import _poster
 
 router = APIRouter(tags=["dashboard"])
 

@@ -3,9 +3,12 @@
 import hashlib
 import re
 from urllib.parse import quote, urlparse
-from fastapi import APIRouter, Depends, HTTPException, Request
+
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse
-from ...posters import POSTER_DIR, touch as _touch_poster
+
+from ...posters import POSTER_DIR
+from ...posters import touch as _touch_poster
 
 router = APIRouter(tags=["posters"])
 
@@ -48,7 +51,7 @@ async def poster(u: str, request: Request):
         try:
             resp = await request.app.state.http.get(u, timeout=15, follow_redirects=True)
             resp.raise_for_status()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             raise HTTPException(502, "poster fetch failed") from exc
         cached_file.write_bytes(resp.content)
     return FileResponse(

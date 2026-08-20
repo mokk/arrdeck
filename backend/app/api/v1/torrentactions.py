@@ -2,17 +2,14 @@
 
 import asyncio
 import base64
+
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
+
 from ...clients.qbittorrent import QbittorrentClient
 from ...clients.transmission import TransmissionClient
-from ...deps import get_qbit, get_radarr, get_sonarr, get_transmission
+from ...deps import get_qbit, get_transmission
 from ...schemas import (
-    ImportCandidateOut,
-    ManualImportAssignIn,
-    ManualImportIn,
-    RenameIn,
-    RenamePreviewOut,
     SpeedLimitIn,
     SpeedLimitOut,
     TorrentActionIn,
@@ -301,7 +298,7 @@ async def speed_limit(
     )
     return {
         name: None if isinstance(value, BaseException) else value
-        for name, value in zip(("qbittorrent", "transmission"), results)
+        for name, value in zip(("qbittorrent", "transmission"), results, strict=False)
     }
 
 

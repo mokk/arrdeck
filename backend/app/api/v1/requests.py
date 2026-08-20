@@ -1,24 +1,17 @@
 """Overseerr's request queue, with approve and decline."""
 
 import asyncio
-from fastapi import APIRouter, Depends, HTTPException, Request
+
+from fastapi import APIRouter, Depends, HTTPException
+
 from ...cache import cache, cached, guarded
 from ...clients.overseerr import OverseerrClient
-from ...deps import get_overseerr, get_prowlarr, get_radarr, get_sonarr
-from .posters import proxy_poster
+from ...deps import get_overseerr
 from ...schemas import (
-    AddMovieIn,
-    AddSeriesIn,
-    ArrReleaseOut,
-    CollectionDetailOut,
-    CollectionOut,
-    GrabIn,
-    OptionsOut,
-    ReleaseOut,
     MediaRequestOut,
-    SearchResultOut,
     ServiceBlock,
 )
+from .posters import proxy_poster
 
 router = APIRouter(tags=["requests"])
 

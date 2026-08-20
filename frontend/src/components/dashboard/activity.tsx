@@ -1,9 +1,11 @@
 // What the stack is doing: recent adds, transfers, queue, calendar, history.
+
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { SERVICE_LABELS, formatDate, formatDateTime, formatSpeed } from "../../api/format";
+import { clickable } from "@/lib/utils";
+import { formatDate, formatDateTime, formatSpeed, SERVICE_LABELS } from "../../api/format";
 import type { CalendarItem, HistoryItem } from "../../api/types";
 import {
   BlockView,
@@ -15,6 +17,7 @@ import {
   SectionTitle,
   StateBadge,
 } from "../../components/Blocks";
+import { ImportSheet } from "../../components/ImportSheet";
 import {
   useBlocklistRetry,
   useCalendar,
@@ -26,8 +29,6 @@ import {
   useTorrentsSummary,
 } from "../../hooks/queries";
 import { usePersistentState } from "../../hooks/usePersistentState";
-
-import { ImportSheet } from "../../components/ImportSheet";
 
 export function RecentSection() {
   const { t } = useTranslation();
@@ -47,10 +48,13 @@ export function RecentSection() {
           <div
             key={i}
             className="w-[92px] shrink-0 cursor-pointer active:opacity-70"
-            onClick={() =>
-              r.library_id &&
-              navigate(r.app === "sonarr" ? `/series/${r.library_id}` : `/movie/${r.library_id}`)
-            }
+            {...clickable(() =>
+              r.library_id
+                ? navigate(
+                    r.app === "sonarr" ? `/series/${r.library_id}` : `/movie/${r.library_id}`,
+                  )
+                : undefined,
+            )}
           >
             {r.poster ? (
               <img
@@ -83,9 +87,7 @@ export function TorrentSummary({ configured }: { configured: Set<string> }) {
     {},
   );
 
-  const clients = (["qbittorrent", "transmission"] as const).filter((c) =>
-    configured.has(c),
-  );
+  const clients = (["qbittorrent", "transmission"] as const).filter((c) => configured.has(c));
   if (clients.length === 0) return null;
 
   return (
@@ -98,9 +100,7 @@ export function TorrentSummary({ configured }: { configured: Set<string> }) {
               {(group) => (
                 <>
                   <Row
-                    onClick={() =>
-                      setCollapsed({ ...collapsed, [client]: !collapsed[client] })
-                    }
+                    onClick={() => setCollapsed({ ...collapsed, [client]: !collapsed[client] })}
                   >
                     <div className="min-w-0 flex-1 select-none">
                       <div
@@ -111,10 +111,16 @@ export function TorrentSummary({ configured }: { configured: Set<string> }) {
                           {collapsed[client] ? "▸" : "▾"} {SERVICE_LABELS[client]}
                         </span>
                         <span>
-                          ↓ <b className="text-foreground">{formatSpeed(group.totals.dl_speed)}</b>
+                          ↓{" "}
+                          <b className="text-foreground">
+                            {formatSpeed(group.totals.dl_speed)}
+                          </b>
                         </span>
                         <span>
-                          ↑ <b className="text-foreground">{formatSpeed(group.totals.ul_speed)}</b>
+                          ↑{" "}
+                          <b className="text-foreground">
+                            {formatSpeed(group.totals.ul_speed)}
+                          </b>
                         </span>
                       </div>
                       <div className="mt-0.5 text-xs text-muted-foreground">
@@ -127,17 +133,17 @@ export function TorrentSummary({ configured }: { configured: Set<string> }) {
                   </Row>
                   {!collapsed[client] &&
                     (group.active ?? []).map((torrent) => (
-                        <Row key={torrent.id}>
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate text-sm font-medium">{torrent.name}</div>
-                            <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-                              <StateBadge state={torrent.state} /> ↓{formatSpeed(torrent.dl_speed)} ↑
-                              {formatSpeed(torrent.ul_speed)}
-                            </div>
-                            <ProgressBar value={torrent.progress} />
+                      <Row key={torrent.id}>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-medium">{torrent.name}</div>
+                          <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+                            <StateBadge state={torrent.state} /> ↓
+                            {formatSpeed(torrent.dl_speed)} ↑{formatSpeed(torrent.ul_speed)}
                           </div>
-                        </Row>
-                      ))}
+                          <ProgressBar value={torrent.progress} />
+                        </div>
+                      </Row>
+                    ))}
                 </>
               )}
             </BlockView>
@@ -168,7 +174,10 @@ export function QueueSection({ configured }: { configured: Set<string> }) {
       <Card>
         {offline.map((app) => (
           <ErrorNote key={app}>
-            {t("dash.serviceOffline", { service: SERVICE_LABELS[app], error: data?.[app]?.error })}
+            {t("dash.serviceOffline", {
+              service: SERVICE_LABELS[app],
+              error: data?.[app]?.error,
+            })}
           </ErrorNote>
         ))}
         {items.map((q) => (

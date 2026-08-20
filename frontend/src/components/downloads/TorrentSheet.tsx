@@ -3,13 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn, focusRing } from "@/lib/utils";
-import { SERVICE_LABELS, formatBytes, formatEpoch } from "../../api/format";
-import type { Torrent } from "../../api/types";
-
-import { Sheet } from "../../components/Sheet";
-
-import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -17,17 +11,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn, focusRing } from "@/lib/utils";
+import { formatBytes, formatEpoch, SERVICE_LABELS } from "../../api/format";
+import type { Torrent } from "../../api/types";
+import { Sheet } from "../../components/Sheet";
 import {
+  useQbitTags,
   useTorrentAction,
   useTorrentCategory,
   useTorrentDetails,
   useTorrentFileToggle,
-  useTorrentLimits,
-  useTorrentRecheck,
-  useTorrentPriority,
   useTorrentForceStart,
-  useQbitTags,
+  useTorrentLimits,
+  useTorrentPriority,
+  useTorrentRecheck,
   useTorrentTags,
 } from "../../hooks/queries";
 
@@ -189,10 +187,11 @@ function TorrentDetailsSection({ torrent }: { torrent: Torrent }) {
             const on = (torrent.tags ?? []).includes(tag);
             return (
               <button
+                type="button"
                 key={tag}
                 disabled={tags.isPending}
                 className={cn(
-                focusRing,
+                  focusRing,
                   "rounded-full px-2.5 py-1 text-xs font-semibold active:opacity-60",
                   on ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
                 )}
@@ -214,6 +213,7 @@ function TorrentDetailsSection({ torrent }: { torrent: Torrent }) {
             className="flex items-center gap-2 border-t border-border py-1.5 text-xs first:border-t-0"
           >
             <button
+              type="button"
               className={cn(
                 focusRing,
                 "flex size-4 shrink-0 items-center justify-center rounded border text-[9px] text-white",
@@ -232,7 +232,10 @@ function TorrentDetailsSection({ torrent }: { torrent: Torrent }) {
               {f.wanted ? "✓" : ""}
             </button>
             <span
-              className={cn("min-w-0 flex-1 truncate", !f.wanted && "text-muted-foreground line-through")}
+              className={cn(
+                "min-w-0 flex-1 truncate",
+                !f.wanted && "text-muted-foreground line-through",
+              )}
             >
               {f.name}
             </span>
@@ -302,10 +305,18 @@ export function TorrentSheet({
     >
       {confirmingDelete ? (
         <>
-          <SheetButton color="red" disabled={action.isPending} onClick={() => run("delete", true)}>
+          <SheetButton
+            color="red"
+            disabled={action.isPending}
+            onClick={() => run("delete", true)}
+          >
             {t("dl.deleteWithFiles")}
           </SheetButton>
-          <SheetButton color="red" disabled={action.isPending} onClick={() => run("delete", false)}>
+          <SheetButton
+            color="red"
+            disabled={action.isPending}
+            onClick={() => run("delete", false)}
+          >
             {t("dl.deleteOnly")}
           </SheetButton>
           <SheetButton color="muted" onClick={() => setConfirmingDelete(false)}>

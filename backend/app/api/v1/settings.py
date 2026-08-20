@@ -3,10 +3,10 @@ import time
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
+from ... import webhooks
 from ...api.v1.auth import is_request_allowed
 from ...cache import cache
 from ...db import SERVICES
-from ... import webhooks
 from ...push import (
     EVENT_LABELS,
     WEBHOOK_SEEN_KEY,
@@ -14,26 +14,26 @@ from ...push import (
     ensure_vapid,
     get_rules,
     in_quiet_hours,
-    set_rules,
     send_test,
     set_enabled_events,
+    set_rules,
 )
 from ...registry import probe_version
 from ...schemas import (
+    BackupOut,
     PushEventsIn,
     PushEventsOut,
-    BackupOut,
     PushRulesIn,
     PushRulesOut,
     PushSubscribeIn,
     PushTestIn,
     PushTestOut,
+    RestoreIn,
+    RestoreOut,
     ServiceInfoOut,
     ServiceSettingsOut,
     SettingsExportOut,
     SettingsImportIn,
-    RestoreIn,
-    RestoreOut,
     StatsSampleOut,
     WebhookAppOut,
     WebhookInstallIn,

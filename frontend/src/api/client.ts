@@ -16,7 +16,8 @@ export class ApiError extends Error {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const resp = await fetch(`${BASE_URL}/api/v1${path}`, {
     // JSON header only for string bodies; FormData sets its own boundary
-    headers: typeof init?.body === "string" ? { "Content-Type": "application/json" } : undefined,
+    headers:
+      typeof init?.body === "string" ? { "Content-Type": "application/json" } : undefined,
     ...init,
   });
   if (!resp.ok) {

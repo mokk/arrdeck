@@ -5,14 +5,14 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { api } from "../api/client";
 import type {
-  TorrentSummary,
-  TorrentDetails,
   ServiceBlock,
   SpeedLimit,
   Torrent,
+  TorrentDetails,
   TorrentGroup,
+  TorrentSummary,
 } from "../api/types";
-import { FAST, MEDIUM, SLOW, TorrentsCache } from "./shared";
+import { FAST, MEDIUM, SLOW, type TorrentsCache } from "./shared";
 
 type TorrentQuery = {
   q?: string;

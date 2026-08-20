@@ -16,12 +16,12 @@ import {
   useDiskSpace,
   useHealth,
   useMediaRequests,
-  useVpn,
-  useSubtitles,
   usePlaySessions,
-  useSubtitleSearch,
   useRequestAction,
   useStatsHistory,
+  useSubtitleSearch,
+  useSubtitles,
+  useVpn,
 } from "../../hooks/queries";
 
 export function NowPlayingSection({ configured }: { configured: Set<string> }) {
@@ -115,12 +115,14 @@ export function RequestsSection({ configured }: { configured: Set<string> }) {
             )}
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium">
-                {r.title || `#${r.id}`} {r.year && <span className="text-muted-foreground">({r.year})</span>}
+                {r.title || `#${r.id}`}{" "}
+                {r.year && <span className="text-muted-foreground">({r.year})</span>}
               </div>
               <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <StateBadge state={r.type === "tv" ? "sonarr" : "radarr"} />
                 {r.requested_by}
-                {(r.seasons?.length ?? 0) > 0 && ` · ${t("dash.seasonCount", { count: r.seasons!.length })}`}
+                {(r.seasons?.length ?? 0) > 0 &&
+                  ` · ${t("dash.seasonCount", { count: r.seasons!.length })}`}
               </div>
             </div>
             <div className="flex shrink-0 flex-col gap-1.5">
@@ -221,9 +223,7 @@ export function VpnSection({ configured }: { configured: Set<string> }) {
                   </span>
                   {/* a forwarded port the client isn't listening on is
                       silently unconnectable — worth calling out */}
-                  {vpn.port_matches === false && (
-                    <StateBadge state="warning" raw />
-                  )}
+                  {vpn.port_matches === false && <StateBadge state="warning" raw />}
                   {vpn.port_matches === false && (
                     <span className="text-warning">
                       {t("dash.portMismatch", { port: vpn.client_port ?? "—" })}
@@ -253,7 +253,10 @@ export function SubtitlesSection({ configured }: { configured: Set<string> }) {
       <Card>
         <Row>
           <div className="flex-1 text-sm text-muted-foreground">
-            {t("dash.subtitlesMissing", { movies: subs?.movies ?? 0, episodes: subs?.episodes ?? 0 })}
+            {t("dash.subtitlesMissing", {
+              movies: subs?.movies ?? 0,
+              episodes: subs?.episodes ?? 0,
+            })}
           </div>
           {/* no providers means every search is guaranteed to come back empty */}
           {subs?.providers === 0 && (
@@ -275,7 +278,11 @@ export function SubtitlesSection({ configured }: { configured: Set<string> }) {
               variant="secondary"
               disabled={search.isPending}
               onClick={() =>
-                search.mutate({ kind: item.kind as "movie" | "episode", id: item.id, series_id: item.series_id })
+                search.mutate({
+                  kind: item.kind as "movie" | "episode",
+                  id: item.id,
+                  series_id: item.series_id,
+                })
               }
             >
               {t("dash.searchSubs")}
@@ -351,7 +358,7 @@ function Sparkline({ values }: { values: number[] }) {
     )
     .join(" ");
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="h-7 w-full text-primary">
+    <svg viewBox={`0 0 ${w} ${h}`} aria-hidden="true" className="h-7 w-full text-primary">
       <polyline
         points={points}
         fill="none"

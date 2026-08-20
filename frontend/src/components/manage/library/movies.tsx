@@ -4,30 +4,30 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-import { cn, focusRing } from "@/lib/utils";
-import { WatchedDot } from "../../WatchedDot";
+import { clickable, cn, focusRing } from "@/lib/utils";
 import { formatBytes, watchedFor } from "../../../api/format";
 import type { LibraryMovie } from "../../../api/types";
-import { Card, EmptyNote, ErrorNote, Row, StateBadge } from "../../Blocks";
-import { useRegisterSearchbar, useRegisterSortButton } from "../../subnav";
-import { SortSheet } from "../../SortSheet";
-import { VirtualList } from "../../VirtualList";
-import { useSort } from "../../sortable";
 import {
-  useServices,
-  useTags,
-  useWatched,
   useDeleteLibraryItem,
   useLibraryMovies,
   useOptions,
+  useServices,
+  useTags,
   useTriggerSearch,
   useUpdateLibraryItem,
+  useWatched,
 } from "../../../hooks/queries";
 import { usePersistentState } from "../../../hooks/usePersistentState";
+import { Card, EmptyNote, ErrorNote, Row, StateBadge } from "../../Blocks";
+import { SortSheet } from "../../SortSheet";
+import { useSort } from "../../sortable";
+import { useRegisterSearchbar, useRegisterSortButton } from "../../subnav";
+import { VirtualList } from "../../VirtualList";
+import { WatchedDot } from "../../WatchedDot";
 
 /* ---------------- libraries ---------------- */
 
-import { ProfileSelect, DeleteButtons, LibraryBulkBar } from "./shared";
+import { DeleteButtons, LibraryBulkBar, ProfileSelect } from "./shared";
 
 const MOVIE_SORT_KEYS = ["title", "year", "status", "size_on_disk"];
 
@@ -81,10 +81,13 @@ export function MovieLibrary() {
       {(tags?.length ?? 0) > 0 && (
         <div className="mb-3 flex flex-wrap gap-1.5">
           <button
+            type="button"
             className={cn(
-                focusRing,
+              focusRing,
               "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
-              tagFilter == null ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
+              tagFilter == null
+                ? "bg-primary/15 text-primary"
+                : "bg-secondary text-muted-foreground",
             )}
             onClick={() => setTagFilter(null)}
           >
@@ -92,6 +95,7 @@ export function MovieLibrary() {
           </button>
           {(tags ?? []).map((tag) => (
             <button
+              type="button"
               key={tag.id}
               className={cn(
                 focusRing,
@@ -133,7 +137,9 @@ export function MovieLibrary() {
                 <div
                   className={cn(
                     "flex size-5 shrink-0 items-center justify-center rounded-full border-2 text-[10px] text-white",
-                    checked.has(m.id) ? "border-primary bg-primary" : "border-muted-foreground/50",
+                    checked.has(m.id)
+                      ? "border-primary bg-primary"
+                      : "border-muted-foreground/50",
                   )}
                 >
                   {checked.has(m.id) ? "✓" : ""}
@@ -151,11 +157,18 @@ export function MovieLibrary() {
               )}
               <div className="min-w-0 flex-1">
                 <div
-                  className={cn("truncate text-sm font-medium", !selectMode && "cursor-pointer active:opacity-70")}
-                  onClick={selectMode ? undefined : () => navigate(`/movie/${m.id}`)}
+                  className={cn(
+                    "truncate text-sm font-medium",
+                    !selectMode && "cursor-pointer active:opacity-70",
+                  )}
+                  {...clickable(selectMode ? undefined : () => navigate(`/movie/${m.id}`))}
                 >
                   {m.title} <span className="text-muted-foreground">{m.year ?? ""}</span>{" "}
-                  {!selectMode && <span aria-hidden="true" className="text-primary">›</span>}
+                  {!selectMode && (
+                    <span aria-hidden="true" className="text-primary">
+                      ›
+                    </span>
+                  )}
                 </div>
                 <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <StateBadge state={m.status} />
@@ -221,4 +234,3 @@ export function MovieLibrary() {
     </>
   );
 }
-

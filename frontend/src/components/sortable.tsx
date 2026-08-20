@@ -1,5 +1,3 @@
-import {
-} from "@/components/ui/select";
 import { usePersistentState } from "../hooks/usePersistentState";
 
 /** Persisted sort state + a generic row sorter (nulls always last). */
@@ -34,4 +32,3 @@ export function useSort<T extends Record<string, unknown>>(
 
   return { sortKey, setSortKey, sortDir, setSortDir, sortRows };
 }
-

@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "gen:api": "npx -y --package typescript@5.9 --package @hey-api/openapi-ts@0.99 openapi-ts",
     "gen:icons": "node scripts/gen-icons.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lint": "biome check src",
+    "lint:fix": "biome check src --write"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^13.3.0",
@@ -36,6 +38,7 @@
     "vaul": "^1.1.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.9",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",

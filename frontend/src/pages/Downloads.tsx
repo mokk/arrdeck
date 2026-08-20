@@ -4,60 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
-  SERVICE_LABELS,
   formatBytes,
   formatEpoch,
   formatEta,
   formatSpeed,
+  SERVICE_LABELS,
 } from "../api/format";
 import type { Torrent } from "../api/types";
-import {
-  Card,
-  EmptyNote,
-  ErrorNote,
-  ProgressBar,
-  Row,
-  SectionTitle,
-  StateBadge,
-} from "../components/Blocks";
-import { Sheet } from "../components/Sheet";
-import { SwipeableRow } from "../components/SwipeableRow";
-import { VirtualList } from "../components/VirtualList";
+import { Card, EmptyNote, ErrorNote, ProgressBar, Row, StateBadge } from "../components/Blocks";
 import { SortSheet } from "../components/SortSheet";
+import { SwipeableRow } from "../components/SwipeableRow";
 import { useSort } from "../components/sortable";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useRegisterSortButton, useRegisterSubnav } from "../components/subnav";
+import { VirtualList } from "../components/VirtualList";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import {
-  useAddTorrent,
-  useBlocklistRetry,
-  useForceImport,
-  useQbitCategories,
-  useQueue,
-  useQueueRemove,
   useServices,
-  useTorrentAction,
-  useTorrentCategory,
-  useTorrentDetails,
-  useTorrentFileToggle,
-  useTorrentLimits,
-  useTorrentRecheck,
-  useTorrentPriority,
-  useTorrentForceStart,
-  useQbitTags,
-  useTorrentTags,
-  useSpeedLimit,
   useSetSpeedLimit,
+  useSpeedLimit,
+  useTorrentAction,
   useTorrents,
 } from "../hooks/queries";
-import { Segmented } from "../components/Blocks";
-import { useRegisterSortButton, useRegisterSubnav } from "../components/subnav";
 import { usePersistentState } from "../hooks/usePersistentState";
 
 const SORT_KEYS = [
@@ -72,11 +38,11 @@ const SORT_KEYS = [
   "uploaded",
   "tracker",
 ];
-import { TorrentSheet, isPaused } from "../components/downloads/TorrentSheet";
+
 import { AddTorrentSheet } from "../components/downloads/AddTorrentSheet";
 import { ArrQueue } from "../components/downloads/ArrQueue";
 import { BulkBar } from "../components/downloads/BulkBar";
-
+import { isPaused, TorrentSheet } from "../components/downloads/TorrentSheet";
 
 // how many rows each client returns per request; raised by "load more"
 const PAGE = 200;
@@ -98,7 +64,7 @@ export default function Downloads() {
     const id = setTimeout(() => setDebouncedName(nameFilter), 300);
     return () => clearTimeout(id);
   }, [nameFilter]);
-  useEffect(() => setLimit(PAGE), [debouncedName, stateFilter, sort.sortKey, sort.sortDir]);
+  useEffect(() => setLimit(PAGE), []);
   const { data } = useTorrents({
     q: debouncedName,
     state: stateFilter,
@@ -183,9 +149,12 @@ export default function Downloads() {
   const shown = useMemo(
     () =>
       sort.sortRows(
-        all.filter((torrent) => clients[torrent.client]) as unknown as Record<string, unknown>[],
+        all.filter((torrent) => clients[torrent.client]) as unknown as Record<
+          string,
+          unknown
+        >[],
       ) as unknown as Torrent[],
-    [all, clients, sort.sortKey, sort.sortDir],
+    [all, clients, sort.sortRows],
   );
 
   const chip = (label: string, active: boolean, onClick: () => void) => (
@@ -215,83 +184,85 @@ export default function Downloads() {
           items={shown}
           renderRow={(torrent) =>
             selectMode ? (
-            <Row
-              key={`${torrent.client}-${torrent.id}`}
-              onClick={() => toggleChecked(`${torrent.client}-${torrent.id}`)}
-            >
-              <div
-                className={cn(
-                  "flex size-5 shrink-0 items-center justify-center rounded-full border-2 text-[10px] text-white",
-                  checked.has(`${torrent.client}-${torrent.id}`)
-                    ? "border-primary bg-primary"
-                    : "border-muted-foreground/50",
+              <Row
+                key={`${torrent.client}-${torrent.id}`}
+                onClick={() => toggleChecked(`${torrent.client}-${torrent.id}`)}
+              >
+                <div
+                  className={cn(
+                    "flex size-5 shrink-0 items-center justify-center rounded-full border-2 text-[10px] text-white",
+                    checked.has(`${torrent.client}-${torrent.id}`)
+                      ? "border-primary bg-primary"
+                      : "border-muted-foreground/50",
+                  )}
+                >
+                  {checked.has(`${torrent.client}-${torrent.id}`) ? "✓" : ""}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">{torrent.name}</div>
+                  <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                    <StateBadge state={torrent.state} /> {formatBytes(torrent.size)}
+                  </div>
+                </div>
+              </Row>
+            ) : (
+              <SwipeableRow
+                key={`${torrent.client}-${torrent.id}`}
+                onTap={() => setSelected({ torrent })}
+                actions={(close) => (
+                  <>
+                    <button
+                      type="button"
+                      className="flex-1 bg-primary text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                      onClick={() => {
+                        action.mutate({
+                          client: torrent.client,
+                          action: isPaused(torrent) ? "resume" : "pause",
+                          ids: [torrent.id],
+                        });
+                        close();
+                      }}
+                    >
+                      {isPaused(torrent) ? t("common.resume") : t("common.pause")}
+                    </button>
+                    <button
+                      type="button"
+                      className="flex-1 bg-destructive text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                      onClick={() => {
+                        setSelected({ torrent, del: true });
+                        close();
+                      }}
+                    >
+                      {t("common.delete")}
+                    </button>
+                  </>
                 )}
               >
-                {checked.has(`${torrent.client}-${torrent.id}`) ? "✓" : ""}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium">{torrent.name}</div>
-                <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                  <StateBadge state={torrent.state} /> {formatBytes(torrent.size)}
-                </div>
-              </div>
-            </Row>
-          ) : (
-          <SwipeableRow
-            key={`${torrent.client}-${torrent.id}`}
-            onTap={() => setSelected({ torrent })}
-            actions={(close) => (
-              <>
-                <button
-                  className="flex-1 bg-primary text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-                  onClick={() => {
-                    action.mutate({
-                      client: torrent.client,
-                      action: isPaused(torrent) ? "resume" : "pause",
-                      ids: [torrent.id],
-                    });
-                    close();
-                  }}
-                >
-                  {isPaused(torrent) ? t("common.resume") : t("common.pause")}
-                </button>
-                <button
-                  className="flex-1 bg-destructive text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-                  onClick={() => {
-                    setSelected({ torrent, del: true });
-                    close();
-                  }}
-                >
-                  {t("common.delete")}
-                </button>
-              </>
-            )}
-          >
-            <Row className="border-t-0">
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium">{torrent.name}</div>
-                <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                  <StateBadge state={torrent.state} />{" "}
-                  <StateBadge state={SERVICE_LABELS[torrent.client]} raw />
-                  {torrent.tracker ? ` ${torrent.tracker} · ` : " "}
-                  {formatBytes(torrent.size)}
-                  {/* total sent, not the current rate — the number that says
+                <Row className="border-t-0">
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium">{torrent.name}</div>
+                    <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                      <StateBadge state={torrent.state} />{" "}
+                      <StateBadge state={SERVICE_LABELS[torrent.client]} raw />
+                      {torrent.tracker ? ` ${torrent.tracker} · ` : " "}
+                      {formatBytes(torrent.size)}
+                      {/* total sent, not the current rate — the number that says
                       whether a torrent has actually given anything back */}
-                  {` · ↑${formatBytes(torrent.uploaded)}`}
-                  {torrent.ratio != null ? ` (${torrent.ratio.toFixed(2)})` : ""}
-                  {torrent.dl_speed > 0 || torrent.ul_speed > 0
-                    ? ` · ↓${formatSpeed(torrent.dl_speed)} ↑${formatSpeed(torrent.ul_speed)}`
-                    : ""}
-                  {torrent.eta != null ? ` · ${formatEta(torrent.eta)}` : ""}
-                  {torrent.error ? ` · ${torrent.error}` : ""}
-                </div>
-                <ProgressBar value={torrent.progress} />
-              </div>
-              <div className="shrink-0 text-xs text-muted-foreground">
-                {formatEpoch(torrent.added_on)?.split(",")[0]}
-              </div>
-            </Row>
-          </SwipeableRow>
+                      {` · ↑${formatBytes(torrent.uploaded)}`}
+                      {torrent.ratio != null ? ` (${torrent.ratio.toFixed(2)})` : ""}
+                      {torrent.dl_speed > 0 || torrent.ul_speed > 0
+                        ? ` · ↓${formatSpeed(torrent.dl_speed)} ↑${formatSpeed(torrent.ul_speed)}`
+                        : ""}
+                      {torrent.eta != null ? ` · ${formatEta(torrent.eta)}` : ""}
+                      {torrent.error ? ` · ${torrent.error}` : ""}
+                    </div>
+                    <ProgressBar value={torrent.progress} />
+                  </div>
+                  <div className="shrink-0 text-xs text-muted-foreground">
+                    {formatEpoch(torrent.added_on)?.split(",")[0]}
+                  </div>
+                </Row>
+              </SwipeableRow>
             )
           }
         />

@@ -1,7 +1,9 @@
 """Shared envelope types: the ServiceBlock wrapper and service identity."""
 
 from typing import Generic, Literal, TypeVar
+
 from pydantic import BaseModel
+
 T = TypeVar("T")
 ServiceName = Literal[
     "radarr", "sonarr", "prowlarr", "qbittorrent", "transmission", "overseerr", "gluetun",

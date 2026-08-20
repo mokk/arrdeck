@@ -1,26 +1,23 @@
 """Finding and adding titles: discovery, search, collections, quality options."""
 
 import asyncio
-from fastapi import APIRouter, Depends, HTTPException, Request
-from ...cache import cache, cached, guarded
+
+from fastapi import APIRouter, Depends, HTTPException
+
+from ...cache import cache
 from ...clients.overseerr import OverseerrClient
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_overseerr, get_prowlarr, get_radarr, get_sonarr
-from .posters import proxy_poster
+from ...deps import get_overseerr, get_radarr, get_sonarr
 from ...schemas import (
     AddMovieIn,
     AddSeriesIn,
-    ArrReleaseOut,
     CollectionDetailOut,
     CollectionOut,
-    GrabIn,
     OptionsOut,
-    ReleaseOut,
-    MediaRequestOut,
     SearchResultOut,
-    ServiceBlock,
 )
+from .posters import proxy_poster
 
 router = APIRouter(tags=["discover"])
 

@@ -4,10 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { formatBytes } from "../api/format";
-import { BlockView, Card, EmptyNote, Row, SectionTitle, StateBadge } from "../components/Blocks";
+import {
+  BlockView,
+  Card,
+  EmptyNote,
+  Row,
+  SectionTitle,
+  StateBadge,
+} from "../components/Blocks";
+import { useRegisterSubnav } from "../components/subnav";
 import { useGrabRelease, usePopular } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
-import { useRegisterSubnav } from "../components/subnav";
 
 // Torznab has no "trending", so this is the newest releases ranked by the
 // indexer's own grab count. 24h is what a single 100-result page can honestly

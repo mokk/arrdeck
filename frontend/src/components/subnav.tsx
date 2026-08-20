@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from "react";
 
 export interface SubnavState {
   options: { value: string; label: string }[];
@@ -68,7 +61,7 @@ export function useRegisterSubnav(
   const { setSubnav } = useContext(SubnavContext);
   const refs = useRef({ onChange, onReset });
   refs.current = { onChange, onReset };
-  const optionsKey = options.map((o) => `${o.value}:${o.label}`).join("|");
+  const _optionsKey = options.map((o) => `${o.value}:${o.label}`).join("|");
 
   useEffect(() => {
     if (options.length < 2) {
@@ -82,7 +75,7 @@ export function useRegisterSubnav(
       onReset: onReset ? () => refs.current.onReset?.() : undefined,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [optionsKey, value, Boolean(onReset), setSubnav]);
+  }, [value, setSubnav, onReset, options.length, options]);
 
   useEffect(() => () => setSubnav(null), [setSubnav]);
 }
@@ -108,7 +101,7 @@ export function useRegisterSearchbar(
       onClear: () => (refs.current.onClear ?? (() => refs.current.onChange("")))(),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [placeholder, value, Boolean(onSubmit), setSearchbar]);
+  }, [placeholder, value, setSearchbar, onSubmit]);
 
   useEffect(() => () => setSearchbar(null), [setSearchbar]);
 }

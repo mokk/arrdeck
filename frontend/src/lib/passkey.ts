@@ -18,6 +18,4 @@ export async function registerPasskey(name: string, code = ""): Promise<void> {
 }
 
 export const passkeysSupported = () =>
-  typeof window !== "undefined" &&
-  window.isSecureContext &&
-  "PublicKeyCredential" in window;
+  typeof window !== "undefined" && window.isSecureContext && "PublicKeyCredential" in window;

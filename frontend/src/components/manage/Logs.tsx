@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, focusRing } from "@/lib/utils";
 import { SERVICE_LABELS } from "../../api/format";
-import { Card, EmptyNote } from "../Blocks";
 import { useLogs, useServices } from "../../hooks/queries";
+import { Card, EmptyNote } from "../Blocks";
 
 const LEVELS = ["", "error", "warn", "info"];
 
@@ -25,10 +25,11 @@ export function Logs() {
 
   const chip = (label: string, active: boolean, onClick: () => void, key: string) => (
     <button
+      type="button"
       key={key}
       onClick={onClick}
       className={cn(
-                focusRing,
+        focusRing,
         "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
         active ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
       )}
@@ -46,7 +47,12 @@ export function Logs() {
       </div>
       <div className="mb-3 flex flex-wrap gap-1.5">
         {LEVELS.map((l) =>
-          chip(l === "" ? t("manage.allLevels") : l, level === l, () => setLevel(l), l || "all"),
+          chip(
+            l === "" ? t("manage.allLevels") : l,
+            level === l,
+            () => setLevel(l),
+            l || "all",
+          ),
         )}
       </div>
       {isFetching && !data && <Skeleton className="h-40 w-full rounded-2xl" />}
