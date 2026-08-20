@@ -54,7 +54,7 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
   return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
 }
 
-export function EventToggles({ endpoint }: { endpoint: string }) {
+function EventToggles({ endpoint }: { endpoint: string }) {
   const { t } = useTranslation();
   const { data } = usePushEvents(true, endpoint);
   const save = useSavePushEvents();
@@ -101,7 +101,7 @@ export function EventToggles({ endpoint }: { endpoint: string }) {
  * the container runs UTC and a window entered as 23:00 would otherwise take
  * effect at the wrong time of night. */
 
-export function NotificationRules() {
+function NotificationRules() {
   const { t } = useTranslation();
   const { data } = usePushRules();
   const save = useSavePushRules();
@@ -204,7 +204,7 @@ export function NotificationRules() {
 /** Radarr and Sonarr push events to arrdeck the moment they happen; without
  * this the backend falls back to polling their history every minute. */
 
-export function WebhookSection() {
+function WebhookSection() {
   const { t } = useTranslation();
   const { data, isLoading } = useWebhookStatus(true);
   const install = useInstallWebhooks();

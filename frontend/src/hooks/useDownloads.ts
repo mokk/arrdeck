@@ -14,7 +14,7 @@ import type {
 } from "../api/types";
 import { FAST, MEDIUM, SLOW, TorrentsCache } from "./shared";
 
-export type TorrentQuery = {
+type TorrentQuery = {
   q?: string;
   state?: string;
   sort?: string;

@@ -1,12 +1,4 @@
-import { ArrowDown, ArrowUp } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { usePersistentState } from "../hooks/usePersistentState";
 
@@ -43,39 +35,3 @@ export function useSort<T extends Record<string, unknown>>(
   return { sortKey, setSortKey, sortDir, setSortDir, sortRows };
 }
 
-/** Compact sort control: field select + direction toggle. */
-export function SortBar({
-  options,
-  sort,
-}: {
-  options: { key: string; label: string }[];
-  sort: ReturnType<typeof useSort>;
-}) {
-  const { t } = useTranslation();
-  return (
-    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-      <span>{t("common.sortBy")}</span>
-      <Select value={sort.sortKey} onValueChange={sort.setSortKey}>
-        <SelectTrigger size="sm" className="w-auto min-w-24 bg-secondary">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((o) => (
-            <SelectItem key={o.key} value={o.key}>
-              {o.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label={sort.sortDir === "asc" ? t("common.ascending") : t("common.descending")}
-        title={sort.sortDir === "asc" ? t("common.ascending") : t("common.descending")}
-        onClick={() => sort.setSortDir(sort.sortDir === "asc" ? "desc" : "asc")}
-      >
-        {sort.sortDir === "asc" ? <ArrowUp /> : <ArrowDown />}
-      </Button>
-    </div>
-  );
-}

@@ -41,7 +41,7 @@ export function BlockView<T>({
   );
 }
 
-export const STATE_COLORS: Record<string, string> = {
+const STATE_COLORS: Record<string, string> = {
   downloading: "text-primary",
   fetched: "text-primary",
   seeding: "text-success",

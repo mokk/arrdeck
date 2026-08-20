@@ -37,7 +37,7 @@ export function isPaused(t: Torrent) {
   return t.state === "paused" || t.state === "completed";
 }
 
-export function SheetButton({
+function SheetButton({
   color,
   disabled,
   onClick,
@@ -65,7 +65,7 @@ export function SheetButton({
   );
 }
 
-export function TorrentDetailsSection({ torrent }: { torrent: Torrent }) {
+function TorrentDetailsSection({ torrent }: { torrent: Torrent }) {
   const { t } = useTranslation();
   const { data, isLoading } = useTorrentDetails(torrent.client, torrent.id, true);
   const limits = useTorrentLimits();

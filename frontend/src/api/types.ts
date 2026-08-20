@@ -4,7 +4,6 @@
 import type * as G from "./generated";
 
 export type ServiceStatus = G.ServiceStatus;
-export type ServiceName = ServiceStatus["service"];
 export type ServiceInfo = G.ServiceInfoOut;
 export type ServiceSettings = G.ServiceSettingsOut;
 
@@ -23,7 +22,6 @@ export type TorrentDetails = G.TorrentDetailsOut;
 export type QueueItem = G.QueueItemOut;
 export type CalendarItem = G.CalendarItemOut;
 export type HistoryItem = G.HistoryItemOut;
-export type HistoryEvent = G.HistoryEventOut;
 export type HistoryPage = G.HistoryPageOut;
 export type IndexerStats = G.IndexerStatsOut;
 export type SearchResult = G.SearchResultOut;
@@ -42,8 +40,6 @@ export type WantedItem = G.WantedItemOut;
 export type WantedPage = G.WantedPageOut;
 export type Collection = G.CollectionOut;
 export type CollectionDetail = G.CollectionDetailOut;
-export type Tracker = G.TrackerOut;
-export type SettingsExport = G.SettingsExportOut;
 export type MovieDetail = G.MovieDetailOut;
 export type TorrentSummary = G.TorrentSummaryOut;
 export type ImportCandidate = G.ImportCandidateOut;
@@ -56,11 +52,8 @@ export type VpnStatus = G.VpnStatusOut;
 export type MediaRequest = G.MediaRequestOut;
 export type SpeedLimit = G.SpeedLimitOut;
 export type PopularSnapshot = G.PopularSnapshotOut;
-export type PopularIndexer = G.PopularIndexerOut;
-export type PopularRelease = G.PopularReleaseOut;
 export type ImportList = G.ImportListOut;
 export type LogEntry = G.LogEntryOut;
-export type BlocklistItem = G.BlocklistItemOut;
 export type BlocklistPage = G.BlocklistPageOut;
 export type Session = G.SessionOut;
 export type DiskSpace = G.DiskSpaceOut;

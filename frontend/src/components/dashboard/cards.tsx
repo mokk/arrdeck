@@ -337,7 +337,7 @@ export function TrendsSection() {
   );
 }
 
-export function Sparkline({ values }: { values: number[] }) {
+function Sparkline({ values }: { values: number[] }) {
   if (values.length < 2) return null;
   const w = 110;
   const h = 28;

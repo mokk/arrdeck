@@ -24,7 +24,7 @@ import {
   useUpdateLibraryItem,
 } from "../hooks/queries";
 
-export function MediaHead({ result }: { result: SearchResult }) {
+function MediaHead({ result }: { result: SearchResult }) {
   const { t } = useTranslation();
   const links: { label: string; url: string }[] = [];
   if (result.imdb_id)
