@@ -318,7 +318,15 @@
     "digital": "Digital",
     "physical": "Physical",
     "previousMonth": "Previous month",
-    "nextMonth": "Next month"
+    "nextMonth": "Next month",
+    "month": "Month",
+    "week": "Week",
+    "agenda": "Agenda",
+    "today": "today",
+    "nextDays": "Next {{count}} days",
+    "itemCount": "{{count}} scheduled",
+    "previous": "Previous {{unit}}",
+    "next": "Next {{unit}}"
   },
   "movie": {
     "file": "File",

@@ -318,7 +318,15 @@
     "digital": "Digital",
     "physical": "Fysisk",
     "previousMonth": "Forrige måned",
-    "nextMonth": "Næste måned"
+    "nextMonth": "Næste måned",
+    "month": "Måned",
+    "week": "Uge",
+    "agenda": "Agenda",
+    "today": "i dag",
+    "nextDays": "Næste {{count}} dage",
+    "itemCount": "{{count}} planlagt",
+    "previous": "Forrige {{unit}}",
+    "next": "Næste {{unit}}"
   },
   "movie": {
     "file": "Fil",
