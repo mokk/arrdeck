@@ -22,6 +22,10 @@ class FakePrometheus:
             return self._counters
         return self._fetch
 
+    # counters must be read through increase(), not raw, or a blip at startup
+    # warns forever
+    windowed = True
+
 
 class FakeArr:
     def __init__(self, clients):
@@ -90,6 +94,27 @@ def test_an_unreachable_arr_is_skipped_not_reported_as_misconfigured():
     assert asyncio.run(_download_client_warnings(FakeArr(None), FakeArr([{"enable": True}]))) == []
 
 
+def test_counters_are_read_over_a_window_not_as_lifetime_totals():
+    """unpackerr's fetch-error and cmd/hook counters are lifetime totals. Read
+    raw, a single failure during a restart produced a permanent warning even
+    though the service had been healthy for hours."""
+    import inspect
+
+    from app.api.v1 import system
+
+    source = inspect.getsource(system._unpackerr_warnings)
+    assert "increase(unpackerr_counters[" in source
+    assert "increase(unpackerr_app_queue_fetch_errors_total[" in source
+    # the gauge is current state and must NOT be wrapped
+    assert 'scalars("unpackerr_gauges")' in source
+
+
+def test_a_fractional_increase_is_not_reported_as_a_whole_error():
+    # increase() interpolates, so a long-settled counter can read as 0.3
+    prom = FakePrometheus(fetch={"Radarr": 0.4}, counters={"cmd_fail": 0.7})
+    assert asyncio.run(_unpackerr_warnings(prom)) == []
+
+
 def test_the_fetch_error_query_uses_the_app_label():
     """unpackerr labels the gauge/counter families with `name` but the per-app
     fetch errors with `app`. Querying `name` there silently collapsed Radarr and
@@ -99,7 +124,7 @@ def test_the_fetch_error_query_uses_the_app_label():
     from app.api.v1 import system
 
     source = inspect.getsource(system._unpackerr_warnings)
-    assert 'unpackerr_app_queue_fetch_errors_total", label="app"' in source
+    assert 'label="app"' in source and "unpackerr_app_queue_fetch_errors_total" in source
 
 
 def test_two_apps_failing_produce_two_distinct_warnings():

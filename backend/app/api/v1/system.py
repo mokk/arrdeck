@@ -167,6 +167,9 @@ async def vpn_status(
 # unpackerr publishes these as one metric family keyed by a name label
 UNPACKERR_FAILURE_GAUGES = ("failed",)
 UNPACKERR_FAILURE_COUNTERS = ("cmd_fail", "hook_fail")
+# Counters are lifetime totals: a single blip during a restart would otherwise
+# warn forever. Only a failure inside this window is worth surfacing.
+FAILURE_WINDOW = "1h"
 
 
 async def _unpackerr_warnings(prometheus: PrometheusClient) -> list[dict]:
@@ -174,11 +177,14 @@ async def _unpackerr_warnings(prometheus: PrometheusClient) -> list[dict]:
     usually unpackerr failing quietly, which nothing else in arrdeck surfaces."""
     warnings: list[dict] = []
     gauges, counters, fetch_errors = await asyncio.gather(
+        # a gauge is the current state, so it is read directly
         prometheus.scalars("unpackerr_gauges"),
-        prometheus.scalars("unpackerr_counters"),
+        prometheus.scalars(f"increase(unpackerr_counters[{FAILURE_WINDOW}])"),
         # keyed by "app" (Radarr/Sonarr), not "name" like the gauge families —
         # using the wrong label collapses both series into one empty key
-        prometheus.scalars("unpackerr_app_queue_fetch_errors_total", label="app"),
+        prometheus.scalars(
+            f"increase(unpackerr_app_queue_fetch_errors_total[{FAILURE_WINDOW}])", label="app"
+        ),
         return_exceptions=True,
     )
     if isinstance(gauges, dict):
@@ -192,20 +198,23 @@ async def _unpackerr_warnings(prometheus: PrometheusClient) -> list[dict]:
                 })
     if isinstance(counters, dict):
         for key in UNPACKERR_FAILURE_COUNTERS:
-            if counters.get(key, 0) > 0:
+            if counters.get(key, 0) >= 1:
                 warnings.append({
                     "app": "unpackerr",
                     "level": "warning",
-                    "message": f"{int(counters[key])} {key.replace('_', ' ')} since start",
+                    "message": f"{int(counters[key])} {key.replace('_', ' ')} in the last hour",
                     "source": "Unpackerr",
                 })
     if isinstance(fetch_errors, dict):
         for app_name, count in sorted(fetch_errors.items()):
-            if count > 0:
+            if count >= 1:
                 warnings.append({
                     "app": "unpackerr",
                     "level": "warning",
-                    "message": f"cannot read {app_name or 'an arr'}'s queue ({int(count)} errors)",
+                    "message": (
+                        f"cannot read {app_name or 'an arr'}'s queue "
+                        f"({int(count)} errors in the last hour)"
+                    ),
                     "source": "Unpackerr",
                 })
     return warnings
