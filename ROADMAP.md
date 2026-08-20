@@ -175,7 +175,35 @@ unpackerr "1 error" that started a whole investigation came about.
 **Verification**: block a service mid-request and confirm one retry, and that a
 grab is *not* retried. **Size: S.**
 
-## F. Collapse the library lists
+## F. Collapse the library lists — done
+
+Shipped: one `LibraryList` in `library/list.tsx` holding the tag chips, select
+mode, virtual list, bulk bar and sort sheet. `movies.tsx` went 236 -> 30 lines
+and `series.tsx` 235 -> 30, both now pure configuration.
+
+Only the genuinely different parts stay parameterised: `renderBadge` (movies
+derive a download status Radarr doesn't return; series show monitored state),
+`renderStats` (size vs episode counts plus size), `showSearch` (movies hide it
+once the file is on disk), `prepare` (the derived movie status has to exist on
+the row before sorting) and `posterOpens`.
+
+That last one is an existing inconsistency, not a feature: only the series
+poster opens its detail page. It is preserved behind a flag rather than
+unified, since this phase was meant to change nothing — worth deciding on
+separately.
+
+**Verified**: 17 component tests in `list.test.tsx` covering both lists — tag
+filtering including the All chip, select mode swapping row actions for the bulk
+bar, per-kind sort keys, the badge and stats differences, navigation targets,
+the search-button rule and the error path. Suite is 89 tests, and
+`module-boundaries` caught an exported type with no consumer along the way.
+
+Note: the browser check could not run this round — the automation browser lost
+LAN access mid-phase, though the app served 200 throughout. The component tests
+carry the verification instead, which for a behaviour-preserving refactor is
+the stronger check anyway.
+
+## F-original. Collapse the library lists
 
 `movies.tsx` and `series.tsx` are 76% identical: same select mode, same tag
 chips, same bulk bar, same sort, differing only in fields and hooks.
