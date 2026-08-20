@@ -1,116 +1,238 @@
 # arrdeck roadmap
 
-Phases are lettered so a task can be started with just "do phase C". Each is
-self-contained and deployable on its own.
+Phases are lettered so a task can be started with just "do phase C".
 
-**Lettering restarted here.** The previous roadmap (phases A–X, all shipped:
-toasts, generated types, bulk actions, series management, interactive search,
-history, stats, push/webhooks, disk & health, sessions, offline cache, CI,
-downloads power-ups, Overseerr requests, gluetun, Bazarr, Plex, tags, manual
-import, watched state, notification rules, frontend tests) is in git history —
-`git log -p -- ROADMAP.md`.
+**Third lettering round.** The previous two rounds are shipped in full and live in
+git history (`git log -p -- ROADMAP.md`): the first built the app out (toasts,
+series management, interactive search, push/webhooks, stats), the second hardened
+it (payload size, bundle splitting, error boundaries, backup/restore, request ids,
+blocklist, import lists, arr logs, accessibility, calendar views, unpackerr) and
+finished by getting every module under 400 lines.
 
-Everything below came out of a survey of the running system on 2026-08-19, not
-from a wishlist. Measurements are from the live stack.
+Everything below came from a survey of the running system on 2026-08-20.
+Measurements are from the live stack, not estimates.
 
-## Where the pain actually is
+## Where things actually stand
+
+18,400 lines, 120 endpoints, 216 tests, a 231 MB image, 27 JS chunks, ten
+services integrated. Nothing is broken. What follows is mostly the debt left by
+moving fast, plus capability the arrs expose that arrdeck still ignores.
 
 | Finding | Measured |
 |---|---|
-| `/torrents` is re-fetched every 5s while Downloads is open | **536 KB × 12/min ≈ 385 MB/hour** (1,789 torrents: 383 qBittorrent + 1,406 Transmission) |
-| Single JS bundle, no code splitting | **831 KB** (250 KB gzip); build warns about it every time |
-| Poster cache never pruned | **71 MB / 283 files** and only grows |
-| A render error blanks the whole app | no error boundary anywhere |
-| Losing `data/arrdeck.db` loses passkeys, VAPID key, rules and stats | settings export covers `services` only |
-| Backend has no request ids or structured logs | uvicorn defaults only |
-| Accessibility | 4 `aria-*` attributes total, 20 raw `<button>`s |
+| Internal helpers exported from every split module | **17 exports** no other file imports |
+| `TTLCache` never evicts, and keys embed date ranges | `calendar:radarr:{start}:{end}` — a new permanent key per week browsed |
+| Linter comments for a linter that was never wired up | **19 files** carry `# noqa`; no ruff, eslint or biome anywhere |
+| No coverage measurement | 216 tests, no idea what they miss |
+| No retry on upstream calls | one blip fails the request; no backoff in any client |
+| The two library lists are near-copies | `movies.tsx` / `series.tsx`, 225 lines each, **76% identical** |
+| Dark theme only | zero `prefers-color-scheme` handling |
+| Three hooks poll every 5s | queue, torrent summary, Plex sessions — battery cost on a phone |
 
 ---
 
-## Shipped
+## A. Tighten module boundaries
 
-| Phase | What | Result |
-|-------|------|--------|
-| A | Server-side torrent filter/sort/cap | 536 KB → 126 KB per poll; search 536 KB → 1 KB |
-| B | Route-level lazy loading | entry chunk 831 KB → 236 KB (73 KB gzipped) |
-| C | Poster cache eviction + TMDB size normalisation | 1.1 MB `/original` → 157 KB `w500`; 256 MB cap |
-| D | Error boundary per route and per dashboard card | one bad card no longer blanks the app |
-| E | Full backup/restore + rolling sqlite copies | passkeys, VAPID keypair, stats; sessions excluded |
-| F | JSON logs with request ids | id echoed in the header, the 502 body and the toast |
-| G | Blocklist management | view, unblock, clear per app |
-| H | Import lists | toggle and sync (none configured yet, so the card hides) |
-| I | Arr log viewer | Radarr/Sonarr/Prowlarr with level filtering |
-| J | Split the fat modules | route surface verified identical at 115 |
+The 400-line split was mechanical, and the script exported everything it moved.
+`Sparkline`, `SheetButton`, `EventToggles`, `TorrentDetailsSection`,
+`NotificationRules` and a dozen more are `export`ed but used only inside their own
+file — so nothing stops a future import reaching past a module's front door.
 
-## Nothing outstanding
+- Drop `export` from anything with no external consumer.
+- Delete what is genuinely dead: `STATE_COLORS`, `MediaHead`, `SortBar`, and the
+  unused type aliases in `api/types.ts`.
+- Add a test in the shape of the existing a11y guards that fails on an export
+  nothing imports, so the next split can't reintroduce this.
 
-Every lettered phase across both rounds is shipped and every module is under 400
-lines. Emby/Jellyfin (M) was dropped for good — Plex covers now-playing and
-watched state, and those two would only duplicate it.
+**Verification**: build and tests unchanged; the new guard fails if an export is
+added without a consumer. **Size: S.**
 
-Ideas that came up and were deliberately left, should they ever matter:
+## B. Bound the cache
 
-- **Notification actions** — buttons on the banner itself (blocklist & retry a
-  failed download, approve a request) via `showNotification`'s `actions`. iOS
-  support is limited; check before building.
-- **Popular beyond 24h** — needs arrdeck to accumulate releases itself, because
-  Prowlarr caps every search at 100 with no paging.
-- **Manual-import target picker for episodes** — the picker asks for a season
-  number by hand rather than listing seasons, since nothing cheap enumerates them.
-- **Uptime Kuma** — no clean REST API; would mostly duplicate the existing probes.
+`TTLCache` retains every value forever — deliberately, so an offline service can
+render stale data. But the key space is unbounded: `calendar:radarr:{start}:{end}`
+gains a permanent entry for every month *and now every week* browsed, since the
+calendar gained week stepping. `requests:{filter}:{take}` and `popular:{h}:{limit}`
+are the same shape.
 
-| Phase | What | Shipped |
-|-------|------|---------|
-| K | Accessible names, focus rings, non-colour signals + static guards | 2026-08-20 |
-| L | Calendar week strip and day-grouped agenda | 2026-08-20 |
-| N | Unpackerr extraction state via Prometheus, download-client checks | 2026-08-20 |
+- LRU cap on entry count, with the stale-fallback behaviour preserved for the
+  fixed-key blocks that rely on it (`diskspace`, `health`, `vpn`, `watched`).
+- Log what was evicted, matching the poster-cache prune.
+- Consider bucketing calendar keys by month so week stepping reuses them.
 
-### Modules over ~400 lines — done
+**Verification**: browse a year of weeks, confirm the entry count settles and an
+offline service still shows stale data with its age. **Size: S.**
 
-Every file is now under 400 lines. What moved:
+## C. Wire up the linters
 
-| Was | Lines | Became |
-|-----|-------|--------|
-| `ServicesTab.tsx` | 841 | `settings/{connections,security,notifications,transfer}` + a 98-line composer |
-| `schemas.py` | 795 | `schemas/{common,torrents,library,system}` behind a re-exporting barrel |
-| `manage.py` | 731 | `{indexers,library,wanted,arrmeta}` routers; the shell was deleted |
-| `Libraries.tsx` | 630 | `library/{shared,movies,series}` + a 3-line barrel |
-| `downloads.py` | 581 | `{torrentactions,importing,arrqueue}` routers; the shell was deleted |
-| `push.py` | 552 | `push/{events,delivery,pipeline,sources}` package |
-| `media.py` | 544 | `{posters,discover,releases,requests}` routers; the shell was deleted |
-| `useLibrary.ts` | 516 | split, plus hooks relocated to `useMedia.ts` and `useSystem.ts` |
-| `useDownloads.ts` | 416 | split out `useArrQueue.ts` |
+19 files carry `# noqa: BLE001` comments written for ruff, which was never
+installed. The frontend has no linter at all — the over-exporting in phase A and
+the unused imports found during the splits are both things a linter catches for
+free.
 
-Verified after every move: 120 routes and 124 schema components unchanged, pyflakes
-clean of undefined names, 162 backend + 54 frontend tests green, and every
-ServiceBlock endpoint reporting `ok` rather than merely returning 200.
+- `ruff` for the backend with the rules those `noqa`s already assume.
+- `eslint` (or `biome`, one tool for lint+format) for the frontend, including
+  `react-hooks` — several `useEffect` dependency arrays were hand-waved during
+  the splits.
+- Both in CI, alongside the existing pytest/build/vitest jobs.
 
-Three traps this hit, all the same shape — a declaration sitting *between*
-functions gets swept into the wrong module:
+**Verification**: CI red on a deliberate violation; the existing `noqa` comments
+suppress exactly what they claim to. **Size: M.**
 
-- `urlBase64ToUint8Array` (lowercase, so excluded from the component grouping)
-- `MOVIE_SORT_KEYS` / `SERIES_SORT_KEYS`, and `TorrentQuery`
-- `proxy_poster`, needed by two modules after moving to a third
+## D. Measure coverage
 
-pyflakes and `tsc` caught all of them. The earlier `_speed_samples` incident is
-the same bug reaching production because nothing checked for it.
+216 tests and no idea what they cover. The bugs that reached production this
+month — `_speed_samples`, the unpackerr counter, the hidden queue items — were all
+in untested paths.
 
-Splitting `push.py` also broke monkeypatching: tests patched `push._send_all`,
-but `pipeline` now holds its own reference, so patches have to target the module
-that uses the name. `import *` also skips underscore names, so the tested
-private surface is re-exported explicitly from the barrel.
+- `pytest-cov` and `vitest --coverage`, reported in CI, no gate at first.
+- Look specifically at the endpoint bodies: the helpers are well tested, the
+  route functions themselves mostly are not.
+
+**Verification**: a coverage report in CI output; the arrqueue/importing routers
+should show the gap most clearly. **Size: S.**
+
+## E. Retry upstream calls
+
+No client retries anything. A single dropped connection turns into an offline
+card, and the arrs drop connections routinely — which is exactly how the
+unpackerr "1 error" that started a whole investigation came about.
+
+- One retry with a short backoff on idempotent GETs, in `BaseClient._request`.
+- Never retry POST/PUT/DELETE: a re-sent grab or delete is worse than an error.
+- Count retries so the health card can say "flaky" rather than flapping.
+
+**Verification**: block a service mid-request and confirm one retry, and that a
+grab is *not* retried. **Size: S.**
+
+## F. Collapse the library lists
+
+`movies.tsx` and `series.tsx` are 76% identical: same select mode, same tag
+chips, same bulk bar, same sort, differing only in fields and hooks.
+
+- One `LibraryList` taking a column/field descriptor, with the two pages as thin
+  configuration.
+- The bug risk today is real: a fix applied to one and not the other looks
+  correct in review.
+
+**Verification**: both lists behave identically to now, including tag filtering,
+select mode and bulk actions. **Size: M.**
+
+## G. Light theme
+
+`index.css` defines one dark palette and nothing responds to
+`prefers-color-scheme`. On a phone that follows system appearance, arrdeck is the
+odd app out in daylight.
+
+- A light palette against the same CSS variables, switched by media query, with
+  an explicit override in Manage for people who want to pin it.
+- The colour-coded state badges and the watched dot need checking for contrast in
+  light mode — phase K gave them text alternatives but the colours were only ever
+  tuned against a dark background.
+
+**Verification**: toggle system appearance and read every page; contrast checked
+on the badges and dots. **Size: M.**
+
+## H. Calm the polling
+
+Queue, torrent summary and Plex sessions each refetch every 5 seconds. That was
+tuned for progress bars on a desktop; on a phone it is three requests a second
+apiece across a session. Background refetch is already disabled, so this is
+foreground cost only — but the foreground is where the battery is.
+
+- Back off when nothing is moving: no active transfer means the 5s cadence buys
+  nothing.
+- Consider one merged "activity" endpoint instead of three parallel polls, which
+  would also cut the request count threefold.
+
+**Verification**: with an idle stack, requests per minute drop measurably; with an
+active download, progress still updates smoothly. **Size: M.**
+
+## I. Surface the arrs' scheduled tasks
+
+`/api/v3/system/task` is unused and answers with real data — RSS Sync, Check
+Health, Housekeeping, Backup, each with a last and next run. "Why hasn't anything
+been grabbed?" is usually answered by "RSS sync last ran 6 hours ago", and
+arrdeck currently cannot say that.
+
+- A card showing the tasks that matter (RSS sync, refresh, health) with last/next
+  times, and a warning when a task is overdue.
+- Also `/api/v3/system/backup`: the arrs keep their own backups (4 exist right
+  now) and arrdeck could list and link them, next to its own backup feature.
+
+**Verification**: compare against each arr's System → Tasks page; force an
+overdue task and confirm the warning. **Size: S.**
+
+## J. Cast and crew on the Movie page
+
+`/api/v3/credit` holds 6,331 rows for the current library and is untouched. The
+Movie page shows overview, file and history but nothing about who is in it — the
+first thing most people want when deciding whether to keep something.
+
+- Top billed cast with photos through the existing poster proxy, and the director.
+- Tapping a person could search the library for them, which is a genuinely useful
+  way to browse a collection.
+
+**Verification**: a movie with a known cast renders it; a movie Radarr has no
+credits for degrades to nothing rather than an empty card. **Size: M.**
+
+## K. Quality profiles and custom formats
+
+`qualityprofile/schema`, `customformat` and `delayprofile` are all reachable and
+unused. Today changing what quality you want means opening Radarr, then Sonarr.
+
+- Read-only first: show each profile's cutoff and allowed qualities, and any
+  custom formats with their scores.
+- Editing is a bigger job and arguably belongs in the arr UI; decide after seeing
+  the read-only view in use.
+
+**Verification**: profiles match the arr UI exactly, including score ordering.
+**Size: M.**
+
+---
+
+## Order & sizing
+
+| Phase | Size | Why here |
+|-------|------|----------|
+| A tighten module boundaries | S | cleans up after the last round before building on it |
+| C wire up the linters | M | would have caught A, and everything after benefits |
+| D measure coverage | S | tells the next phases where the risk is |
+| B bound the cache | S | the only unbounded growth left in the process |
+| E retry upstream calls | S | removes a whole class of spurious offline cards |
+| I scheduled tasks | S | small, and answers a question the app currently can't |
+| H calm the polling | M | battery, and a threefold request cut |
+| F collapse the library lists | M | do before either list gains a feature |
+| G light theme | M | overdue on a phone that follows system appearance |
+| J cast and crew | M | the first genuinely new *feature* in this round |
+| K quality profiles | M | least certain value; decide after the read-only view |
+
+Suggested sequence: **A → C → D → B → E → I → H → F → G → J → K**.
+Tooling and cleanup first, so the later phases land on a codebase that checks
+itself, then the two user-facing features last.
 
 ## Notes carried forward
 
 - Adding a service means eight places (`db.SERVICES`, `config`, `.env.example`,
-  `registry` incl. `NEEDS_API_KEY` and `probe_version`, a client, `SERVICE_LABELS`,
-  `SERVICE_FIELDS`, both locales). `tests/test_services.py` fails the build if the
-  `ServiceName` literal, registry branch or version probe is missed.
-- Schema changes go through `_migrate_columns` in `db.py`, not the CREATE TABLE.
+  `registry` incl. `NEEDS_API_KEY` and `probe_version`, a client,
+  `SERVICE_LABELS`, `SERVICE_FIELDS`, both locales).
+  `tests/test_services.py` fails the build if any is missed.
+- Schema changes go through `_migrate_columns` in `db.py`, never the CREATE TABLE.
 - `starlette` is pinned deliberately: it arrives via fastapi, whose range let a
   fresh build jump to 1.6 while local venvs sat on 0.46.
-- jsdom 29 ships no `Storage`; `src/test-setup.ts` supplies one.
+- jsdom 29 ships no `Storage`; `src/test-setup.ts` supplies one and registers
+  Testing Library's cleanup, which does not auto-register without vitest globals.
 - gluetun's control server is authenticated — the role lives in
   `glue_torrent/gluetun/data/auth/config.toml` (gitignored) and grants only
   `GET /v1/publicip/ip`, `/v1/portforward`, `/v1/vpn/status`.
-- Not running, so not proposed: Readarr, Jackett, Uptime Kuma, FileBrowser, Pi-hole.
+- Unpackerr is read through Prometheus (:9090), which already scrapes it;
+  unpackerr itself publishes no reachable port. Its counters are lifetime totals,
+  so they must be read via `increase(...[1h])`.
+- Prowlarr caps every search at 100 results and ignores `offset`. The Popular
+  page works only because it queries each sub-category separately.
+- Splitting a module breaks monkeypatching: patch the module that *uses* a name,
+  not the barrel that re-exports it. `import *` also skips underscore names.
+- A declaration sitting *between* two functions is the recurring split hazard —
+  it gets swept into the wrong module. pyflakes and `tsc` catch it; nothing else does.
+- After any refactor, check ServiceBlock endpoints for `ok: true`, not HTTP 200 —
+  `guarded()` turns exceptions into healthy-looking 200s.
