@@ -21,6 +21,9 @@ def test_no_module_has_an_undefined_name():
     undefined = [
         line
         for line in (result.stdout + result.stderr).splitlines()
-        if "undefined name" in line
+        # "undefined name 'x'" is the real finding; pyflakes also emits
+        # "unable to detect undefined names" for a star-import, which is just a
+        # notice that it cannot analyse the barrel
+        if "undefined name '" in line
     ]
     assert not undefined, "undefined names:\n" + "\n".join(undefined)
