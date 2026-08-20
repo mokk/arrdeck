@@ -26,6 +26,9 @@ class ServiceStatus(BaseModel):
     ok: bool
     version: str | None = None
     error: str | None = None
+    # Retries this service needed recently. Non-zero while ok=True is the
+    # interesting case: reachable, but not reliably so.
+    retries: int = 0
 
 
 class ServiceInfoOut(BaseModel):

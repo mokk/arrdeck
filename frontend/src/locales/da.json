@@ -235,6 +235,9 @@
     "savedOk": "ok: gemt",
     "savedDisabled": "gemt (deaktiveret)",
     "offlineShort": "offline",
+    "flaky": "ustabil",
+    "flakyHint_one": "Kan nås, men krævede {{count}} genforsøg nyligt",
+    "flakyHint_other": "Kan nås, men krævede {{count}} genforsøg nyligt",
     "sort": {
       "title": "Titel",
       "year": "År",

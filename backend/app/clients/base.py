@@ -1,6 +1,58 @@
+"""HTTP plumbing shared by every upstream client."""
+
+import asyncio
+import logging
+import time
+from collections import defaultdict, deque
 from typing import Any
 
 import httpx
+
+logger = logging.getLogger("arrdeck.clients")
+
+# One retry, not a loop: these services sit on the same LAN, so a request that
+# fails twice in a row is a real outage rather than a blip, and a longer chain
+# just delays the "offline" card the user needs to see.
+RETRY_BACKOFF_SECONDS = 0.25
+
+# Errors where the request demonstrably never landed, so re-sending it cannot
+# duplicate work. ReadTimeout is deliberately absent: the server did receive the
+# request and is merely slow, so retrying doubles the wait (releases() allows 90s)
+# and piles a second fan-out onto an already-struggling indexer.
+RETRYABLE_ERRORS = (
+    httpx.ConnectError,
+    httpx.ConnectTimeout,
+    httpx.ReadError,
+    httpx.RemoteProtocolError,
+)
+
+# How long a retry keeps counting towards "flaky". Long enough that a service
+# blipping a few times an hour is still visible, short enough that yesterday's
+# reboot doesn't brand it flaky forever.
+RETRY_WINDOW_SECONDS = 900
+
+_retries: dict[str, deque[float]] = defaultdict(deque)
+
+
+def record_retry(service: str) -> None:
+    now = time.monotonic()
+    stamps = _retries[service]
+    stamps.append(now)
+    while stamps and now - stamps[0] > RETRY_WINDOW_SECONDS:
+        stamps.popleft()
+
+
+def retry_count(service: str) -> int:
+    """Retries for this service inside the window (prunes as it reads)."""
+    now = time.monotonic()
+    stamps = _retries[service]
+    while stamps and now - stamps[0] > RETRY_WINDOW_SECONDS:
+        stamps.popleft()
+    return len(stamps)
+
+
+def reset_retries() -> None:
+    _retries.clear()
 
 
 class ServiceUnavailable(Exception):
@@ -17,13 +69,38 @@ class BaseClient:
         self.http = http
 
     async def _request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
+        # Only GET is retried. A re-sent grab, delete or blocklist write is worse
+        # than an error: the caller sees one failure and can decide, whereas a
+        # duplicated POST leaves the arr with two of something and no way back.
+        retryable = method.upper() == "GET"
+        try:
+            return await self._attempt(method, url, **kwargs)
+        except ServiceUnavailable as exc:
+            if not retryable or not getattr(exc, "transient", False):
+                raise
+            record_retry(self.name)
+            logger.info("%s %s failed (%s), retrying once", method, url, exc.message)
+        await asyncio.sleep(RETRY_BACKOFF_SECONDS)
+        return await self._attempt(method, url, **kwargs)
+
+    async def _attempt(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
         try:
             resp = await self.http.request(method, url, **kwargs)
+        except RETRYABLE_ERRORS as exc:
+            raise _transient(self.name, str(exc) or type(exc).__name__) from exc
         except httpx.HTTPError as exc:
             raise ServiceUnavailable(self.name, str(exc) or type(exc).__name__) from exc
         if resp.status_code >= 500:
-            raise ServiceUnavailable(self.name, f"upstream HTTP {resp.status_code}")
+            # 5xx on a GET is worth one more try — the arrs return them while a
+            # task holds their database lock, which clears in well under a second.
+            raise _transient(self.name, f"upstream HTTP {resp.status_code}")
         return resp
+
+
+def _transient(service: str, message: str) -> ServiceUnavailable:
+    exc = ServiceUnavailable(service, message)
+    exc.transient = True  # type: ignore[attr-defined]
+    return exc
 
 
 class ArrClient(BaseClient):

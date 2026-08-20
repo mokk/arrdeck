@@ -235,6 +235,9 @@
     "savedOk": "ok: saved",
     "savedDisabled": "saved (disabled)",
     "offlineShort": "offline",
+    "flaky": "flaky",
+    "flakyHint_one": "Reachable, but needed {{count}} retry recently",
+    "flakyHint_other": "Reachable, but needed {{count}} retries recently",
     "sort": {
       "title": "Title",
       "year": "Year",

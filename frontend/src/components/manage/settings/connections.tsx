@@ -142,21 +142,32 @@ export function StatusStrip() {
   if (!data?.length) return null;
   return (
     <div className="mb-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
-      {data.map((s) => (
-        <div
-          key={s.service}
-          className={cn(
-            "flex shrink-0 items-center gap-2 rounded-full bg-card px-3.5 py-2 text-xs font-semibold",
-            !s.ok && "text-destructive",
-          )}
-        >
-          <span className={cn("size-2 rounded-full", s.ok ? "bg-success" : "bg-destructive")} />
-          {SERVICE_LABELS[s.service] ?? s.service}
-          <span className="font-normal text-muted-foreground">
-            {s.ok ? s.version : t("manage.offlineShort")}
-          </span>
-        </div>
-      ))}
+      {data.map((s) => {
+        // Reachable but retrying is its own state: a green dot hides the problem
+        // and a red one implies it's down, so amber sits between the two.
+        const flaky = s.ok && (s.retries ?? 0) > 0;
+        return (
+          <div
+            key={s.service}
+            title={flaky ? t("manage.flakyHint", { count: s.retries ?? 0 }) : undefined}
+            className={cn(
+              "flex shrink-0 items-center gap-2 rounded-full bg-card px-3.5 py-2 text-xs font-semibold",
+              !s.ok && "text-destructive",
+            )}
+          >
+            <span
+              className={cn(
+                "size-2 rounded-full",
+                !s.ok ? "bg-destructive" : flaky ? "bg-warning" : "bg-success",
+              )}
+            />
+            {SERVICE_LABELS[s.service] ?? s.service}
+            <span className="font-normal text-muted-foreground">
+              {!s.ok ? t("manage.offlineShort") : flaky ? t("manage.flaky") : s.version}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import asyncio
 from fastapi import APIRouter, Depends, Request
 
 from ...cache import cached, guarded
-from ...clients.base import ServiceUnavailable
+from ...clients.base import ServiceUnavailable, retry_count
 from ...clients.gluetun import GluetunClient
 from ...clients.prometheus import PrometheusClient
 from ...clients.qbittorrent import QbittorrentClient
@@ -29,8 +29,6 @@ from ...schemas import (
 
 router = APIRouter(tags=["system"])
 
-router = APIRouter(tags=["dashboard"])
-
 
 @router.get("/status", response_model=list[ServiceStatus])
 async def status(request: Request) -> list[ServiceStatus]:
@@ -40,11 +38,15 @@ async def status(request: Request) -> list[ServiceStatus]:
     async def probe(name: str) -> ServiceStatus:
         try:
             version = await probe_version(name, registry.get(name))
-            return ServiceStatus(service=name, ok=True, version=version)
+            return ServiceStatus(service=name, ok=True, version=version, retries=retry_count(name))
         except ServiceUnavailable as exc:
-            return ServiceStatus(service=name, ok=False, error=exc.message)
+            return ServiceStatus(
+                service=name, ok=False, error=exc.message, retries=retry_count(name)
+            )
         except Exception as exc:  # noqa: BLE001
-            return ServiceStatus(service=name, ok=False, error=str(exc))
+            return ServiceStatus(
+                service=name, ok=False, error=str(exc), retries=retry_count(name)
+            )
 
     return list(await asyncio.gather(*(probe(n) for n in names)))
 

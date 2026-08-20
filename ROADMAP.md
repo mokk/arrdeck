@@ -47,7 +47,25 @@ file — so nothing stops a future import reaching past a module's front door.
 **Verification**: build and tests unchanged; the new guard fails if an export is
 added without a consumer. **Size: S.**
 
-## B. Bound the cache
+## B. Bound the cache — done
+
+Shipped: `TTLCache` is an `OrderedDict` with an LRU cap of 512 entries. Both
+`get()` and `get_stale()` move a key to the end, so the fixed-key dashboard
+blocks (`diskspace`, `health`, `vpn`, `watched`) stay resident while one-off
+date-range keys churn past them. Evictions are logged and counted, and `stats()`
+exposes entries/cap/evictions.
+
+The "bucket calendar keys by month" idea was dropped: with an LRU cap the
+unbounded-growth problem it solved no longer exists, and bucketing would make a
+week view re-fetch a whole month.
+
+**Verified**: 104 distinct calendar keys (a year of weeks x 2 arrs) left the cache
+well inside the cap, and with bazarr stopped past its 300s TTL `/subtitles`
+returned `ok=false` with `stale_age_seconds=470` and the last good payload intact
+— the stale path the cap could have broken still works. 9 unit tests cover the
+eviction order, including that reads protect an entry from eviction.
+
+## B-original. Bound the cache
 
 `TTLCache` retains every value forever — deliberately, so an offline service can
 render stale data. But the key space is unbounded: `calendar:radarr:{start}:{end}`
@@ -124,7 +142,27 @@ in untested paths.
 **Verification**: a coverage report in CI output; the arrqueue/importing routers
 should show the gap most clearly. **Size: S.**
 
-## E. Retry upstream calls
+## E. Retry upstream calls — done
+
+Shipped: `BaseClient._request` splits into a policy wrapper and `_attempt`. GETs
+get exactly one more attempt after a 250ms backoff; POST/PUT/DELETE get none.
+
+Only failures that prove the request never landed are retried — `ConnectError`,
+`ConnectTimeout`, `ReadError`, `RemoteProtocolError` and 5xx. `ReadTimeout` is
+deliberately excluded: the server did receive the request, so a second one only
+doubles the wait (`releases()` allows 90s) and doubles the load on an indexer
+that is already struggling. 4xx is an answer, not a failure, so it passes
+straight through.
+
+Retries are counted per service in a 15-minute rolling window and surfaced as
+`retries` on `/status`. The settings status strip now has three states rather
+than two: green, amber "flaky" (reachable but retrying), red offline.
+
+**Verified**: 10 tests in `test_client_retry.py` assert exactly two attempts on a
+flaky GET, exactly one on POST/PUT/DELETE, no retry on `ReadTimeout` or 404, a
+retry on 503, per-service counting, and that counts fall out of the window.
+
+## E-original. Retry upstream calls
 
 No client retries anything. A single dropped connection turns into an offline
 card, and the arrs drop connections routinely — which is exactly how the
