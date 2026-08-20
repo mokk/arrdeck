@@ -66,6 +66,10 @@ export function useRegisterSubnav(
   // re-render -> effect). Same for the onReset closure.
   const optionsKey = options.map((o) => `${o.value}:${o.label}`).join("|");
 
+  // optionsKey and Boolean(onReset) stand in for values that change identity
+  // every render. Listing the real ones re-runs the effect forever: setSubnav
+  // re-renders, which builds a fresh options array, which re-runs the effect.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: real deps loop
   useEffect(() => {
     if (options.length < 2) {
       setSubnav(null);
@@ -77,9 +81,6 @@ export function useRegisterSubnav(
       onChange: (v) => refs.current.onChange(v),
       onReset: onReset ? () => refs.current.onReset?.() : undefined,
     });
-    // biome-ignore lint/correctness/useExhaustiveDependencies: optionsKey and
-    // Boolean(onReset) are stable stand-ins for values that change identity
-    // every render; listing the real ones causes an infinite update loop.
   }, [optionsKey, value, Boolean(onReset), setSubnav]);
 
   useEffect(() => () => setSubnav(null), [setSubnav]);
@@ -97,6 +98,9 @@ export function useRegisterSearchbar(
   const refs = useRef({ onChange, onSubmit, onClear });
   refs.current = { onChange, onSubmit, onClear };
 
+  // onSubmit is a new closure each render; Boolean() keeps the dep stable and
+  // the call itself goes through refs, so the latest closure is always used.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: closure via ref
   useEffect(() => {
     setSearchbar({
       placeholder,
@@ -105,8 +109,6 @@ export function useRegisterSearchbar(
       onSubmit: onSubmit ? () => refs.current.onSubmit?.() : undefined,
       onClear: () => (refs.current.onClear ?? (() => refs.current.onChange("")))(),
     });
-    // biome-ignore lint/correctness/useExhaustiveDependencies: onSubmit is a new
-    // closure each render; Boolean() keeps the dependency stable.
   }, [placeholder, value, Boolean(onSubmit), setSearchbar]);
 
   useEffect(() => () => setSearchbar(null), [setSearchbar]);

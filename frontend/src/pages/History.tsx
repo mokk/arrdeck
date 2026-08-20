@@ -88,13 +88,14 @@ export default function HistoryPage() {
     (v) => setTab(v as "history" | "blocklist"),
   );
 
+  // Only `data` belongs here: firing on a `page` change as well would append
+  // the page that is already in the list and duplicate every row.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: page dup rows
   useEffect(() => {
     if (data) {
       setItems((prev) => (page === 1 ? data.items : [...prev, ...data.items]));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // biome-ignore lint/correctness/useExhaustiveDependencies: appending on a
-    // `page` change too would re-append the same data and duplicate rows.
   }, [data]);
 
   const shown = items.filter(

@@ -30,18 +30,20 @@ function WantedList({ app, kind }: { app: "radarr" | "sonarr"; kind: Kind }) {
   const searchAll = useWantedSearchAll();
   const [releaseTarget, setReleaseTarget] = useState<WantedItem | null>(null);
 
+  // Resetting is the point: the list must clear when the app or kind filter
+  // changes, and must not clear when anything else does.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset on filter
   useEffect(() => {
     setPage(1);
     setItems([]);
-    // biome-ignore lint/correctness/useExhaustiveDependencies: resetting is the
-    // point — the list must clear when the app or kind filter changes.
   }, [app, kind]);
 
+  // Only `data` belongs here: firing on a `page` change as well would append
+  // the page that is already in the list and duplicate every row.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: page dup rows
   useEffect(() => {
     if (data) setItems((prev) => (page === 1 ? data.items : [...prev, ...data.items]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // biome-ignore lint/correctness/useExhaustiveDependencies: appending on a
-    // `page` change too would re-append the same data and duplicate rows.
   }, [data]);
 
   return (
