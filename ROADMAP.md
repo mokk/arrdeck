@@ -44,13 +44,14 @@ from a wishlist. Measurements are from the live stack.
 
 ## Remaining
 
+(Emby/Jellyfin dropped for good — Plex covers now-playing and watched state,
+and those two would only duplicate it.)
+
 - **K. Accessibility pass** — 4 `aria-*` attributes across the app, 20 raw
   `<button>`s, colour-only signals (the watched dot, state badges), no
   focus-visible styles. **Size: M.**
 - **L. Calendar week and agenda views** — the month grid is the only shape, and
   Upcoming now leads the dashboard. **Size: M.**
-- **M. Emby and Jellyfin** — both running; they share an API, so one client
-  covers both and can feed the existing `/sessions` and `/watched`. **Size: M.**
 - **N. Unpackerr and download-client health** — extraction failures are a common
   cause of a download that completes and never imports. **Size: S.**
 

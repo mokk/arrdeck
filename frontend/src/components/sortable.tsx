@@ -70,7 +70,8 @@ export function SortBar({
       <Button
         variant="ghost"
         size="icon-sm"
-        title={sort.sortDir === "asc" ? "Ascending" : "Descending"}
+        aria-label={sort.sortDir === "asc" ? t("common.ascending") : t("common.descending")}
+        title={sort.sortDir === "asc" ? t("common.ascending") : t("common.descending")}
         onClick={() => sort.setSortDir(sort.sortDir === "asc" ? "desc" : "asc")}
       >
         {sort.sortDir === "asc" ? <ArrowUp /> : <ArrowDown />}

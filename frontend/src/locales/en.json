@@ -316,7 +316,9 @@
     "title": "Calendar",
     "cinema": "Cinema",
     "digital": "Digital",
-    "physical": "Physical"
+    "physical": "Physical",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month"
   },
   "movie": {
     "file": "File",
@@ -397,7 +399,9 @@
     "signOutOthers": "Sign out others",
     "sessionsRevoked": "Signed out {{count}} device(s)",
     "sessionSeen": "Last used {{when}}",
-    "thisDevice": "this device"
+    "thisDevice": "this device",
+    "deletePasskey": "Delete passkey {{name}}",
+    "revokeSession": "Sign out this device"
   },
   "popular": {
     "all": "All",

@@ -84,7 +84,7 @@ export default function StatsPage() {
   return (
     <>
       <div className="mb-4 mt-1 flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <Button variant="ghost" size="icon" aria-label={t("common.back")} onClick={() => navigate(-1)}>
           <ChevronLeft className="size-6" />
         </Button>
         <h1 className="text-2xl font-extrabold tracking-tight">{t("stats.title")}</h1>

@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { cn, focusRing } from "@/lib/utils";
 import { api } from "../../api/client";
 import { passkeysSupported, registerPasskey } from "../../lib/passkey";
 import { SERVICE_LABELS } from "../../api/format";
@@ -275,6 +275,7 @@ function SecurityCard() {
               variant="ghost"
               className="text-destructive"
               disabled={deletePasskey.isPending}
+              aria-label={t("auth.deletePasskey", { name: pk.name })}
               onClick={() => deletePasskey.mutate(pk.id)}
             >
               ✕
@@ -317,6 +318,7 @@ function SecurityCard() {
                     variant="ghost"
                     className="text-destructive"
                     disabled={revoke.isPending}
+                    aria-label={t("auth.revokeSession")}
                     onClick={() => revoke.mutate(s.id)}
                   >
                     ✕
@@ -359,6 +361,7 @@ function EventToggles({ endpoint }: { endpoint: string }) {
             <button
               key={event.key}
               className={cn(
+                focusRing,
                 "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
                 on ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
               )}
@@ -467,6 +470,7 @@ function NotificationRules() {
               <button
                 key={tag.id}
                 className={cn(
+                focusRing,
                   "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
                   on ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
                 )}

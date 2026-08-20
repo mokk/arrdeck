@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn, focusRing } from "@/lib/utils";
 import { SERVICE_LABELS, formatBytes, formatEpoch } from "../../api/format";
 import type { Torrent } from "../../api/types";
 
@@ -192,6 +192,7 @@ export function TorrentDetailsSection({ torrent }: { torrent: Torrent }) {
                 key={tag}
                 disabled={tags.isPending}
                 className={cn(
+                focusRing,
                   "rounded-full px-2.5 py-1 text-xs font-semibold active:opacity-60",
                   on ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
                 )}
@@ -214,6 +215,7 @@ export function TorrentDetailsSection({ torrent }: { torrent: Torrent }) {
           >
             <button
               className={cn(
+                focusRing,
                 "flex size-4 shrink-0 items-center justify-center rounded border text-[9px] text-white",
                 f.wanted ? "border-primary bg-primary" : "border-muted-foreground/50",
               )}

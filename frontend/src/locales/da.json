@@ -316,7 +316,9 @@
     "title": "Kalender",
     "cinema": "Biograf",
     "digital": "Digital",
-    "physical": "Fysisk"
+    "physical": "Fysisk",
+    "previousMonth": "Forrige måned",
+    "nextMonth": "Næste måned"
   },
   "movie": {
     "file": "Fil",
@@ -397,7 +399,9 @@
     "signOutOthers": "Log andre ud",
     "sessionsRevoked": "Loggede {{count}} enhed(er) ud",
     "sessionSeen": "Sidst brugt {{when}}",
-    "thisDevice": "denne enhed"
+    "thisDevice": "denne enhed",
+    "deletePasskey": "Slet adgangsnøgle {{name}}",
+    "revokeSession": "Log denne enhed ud"
   },
   "popular": {
     "all": "Alle",

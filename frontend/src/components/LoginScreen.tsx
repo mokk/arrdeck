@@ -75,7 +75,7 @@ export function LoginScreen({ onDone }: { onDone: () => void }) {
           ) : (
             <button
               type="button"
-              className="text-center text-sm text-muted-foreground underline-offset-4 hover:underline"
+              className="rounded text-center text-sm text-muted-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
               onClick={() => setShowSetup(true)}
             >
               {t("auth.useSetupCode")}

@@ -27,7 +27,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="text-sm font-semibold text-destructive">Something broke rendering this</div>
         <div className="mt-1 break-words text-xs text-muted-foreground">{error.message}</div>
         <button
-          className="mt-3 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold active:opacity-60"
+          className="mt-3 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
           onClick={this.reset}
         >
           Try again

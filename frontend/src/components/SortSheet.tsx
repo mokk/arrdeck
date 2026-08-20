@@ -40,7 +40,7 @@ export function SortSheet({
         {options.map((o) => (
           <button
             key={o.key}
-            className="flex w-full items-center justify-between border-t border-border px-4 py-2.5 text-sm first:border-t-0 active:opacity-60"
+            className="flex w-full items-center justify-between border-t border-border px-4 py-2.5 text-sm first:border-t-0 active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
             onClick={() => sort.setSortKey(o.key)}
           >
             {o.label}

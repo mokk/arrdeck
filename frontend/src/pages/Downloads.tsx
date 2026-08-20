@@ -243,7 +243,7 @@ export default function Downloads() {
             actions={(close) => (
               <>
                 <button
-                  className="flex-1 bg-primary text-xs font-semibold text-white"
+                  className="flex-1 bg-primary text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                   onClick={() => {
                     action.mutate({
                       client: torrent.client,
@@ -256,7 +256,7 @@ export default function Downloads() {
                   {isPaused(torrent) ? t("common.resume") : t("common.pause")}
                 </button>
                 <button
-                  className="flex-1 bg-destructive text-xs font-semibold text-white"
+                  className="flex-1 bg-destructive text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                   onClick={() => {
                     setSelected({ torrent, del: true });
                     close();

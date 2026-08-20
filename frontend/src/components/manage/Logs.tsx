@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { cn, focusRing } from "@/lib/utils";
 import { SERVICE_LABELS } from "../../api/format";
 import { Card, EmptyNote } from "../Blocks";
 import { useLogs, useServices } from "../../hooks/queries";
@@ -28,6 +28,7 @@ export function Logs() {
       key={key}
       onClick={onClick}
       className={cn(
+                focusRing,
         "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
         active ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
       )}

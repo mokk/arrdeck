@@ -41,7 +41,7 @@ export function TargetPicker({
           {shown.map((m) => (
             <button
               key={m.id}
-              className="block w-full border-t border-border py-2 text-left text-sm first:border-t-0 active:opacity-60"
+              className="block w-full border-t border-border py-2 text-left text-sm first:border-t-0 active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
               onClick={() => onPick({ movie_id: m.id, label: `${m.title} (${m.year ?? "?"})` })}
             >
               {m.title} <span className="text-muted-foreground">{m.year ?? ""}</span>
@@ -62,7 +62,7 @@ export function TargetPicker({
           {shown.map((s) => (
             <button
               key={s.id}
-              className="block w-full border-t border-border py-2 text-left text-sm first:border-t-0 active:opacity-60"
+              className="block w-full border-t border-border py-2 text-left text-sm first:border-t-0 active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
               onClick={() => setSeries({ id: s.id, title: s.title ?? "" })}
             >
               {s.title} <span className="text-muted-foreground">{s.year ?? ""}</span>
@@ -96,7 +96,7 @@ export function TargetPicker({
         {(episodes.data ?? []).map((e) => (
           <button
             key={e.id}
-            className="block w-full border-t border-border py-2 text-left text-sm first:border-t-0 active:opacity-60"
+            className="block w-full border-t border-border py-2 text-left text-sm first:border-t-0 active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
             onClick={() =>
               onPick({
                 series_id: series.id,

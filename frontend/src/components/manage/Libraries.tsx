@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { cn, focusRing } from "@/lib/utils";
 import { WatchedDot } from "../WatchedDot";
 import { formatBytes, watchedFor } from "../../api/format";
 import type { LibraryMovie, LibrarySeries, Options } from "../../api/types";
@@ -101,7 +101,12 @@ function DeleteButtons({
       >
         {t("manage.entryOnly")}
       </Button>
-      <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+      <Button
+        variant="ghost"
+        size="sm"
+        aria-label={t("common.cancel")}
+        onClick={() => setConfirming(false)}
+      >
         ✕
       </Button>
     </div>
@@ -153,7 +158,7 @@ function LibraryBulkBar({
           >
             {t("manage.entryOnly")}
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => setConfirmingDelete(false)}>
+          <Button size="sm" variant="ghost" aria-label={t("common.cancel")} onClick={() => setConfirmingDelete(false)}>
             ✕
           </Button>
         </>
@@ -290,6 +295,7 @@ export function MovieLibrary() {
         <div className="mb-3 flex flex-wrap gap-1.5">
           <button
             className={cn(
+                focusRing,
               "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
               tagFilter == null ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
             )}
@@ -301,6 +307,7 @@ export function MovieLibrary() {
             <button
               key={tag.id}
               className={cn(
+                focusRing,
                 "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
                 tagFilter === tag.id
                   ? "bg-primary/15 text-primary"
@@ -361,7 +368,7 @@ export function MovieLibrary() {
                   onClick={selectMode ? undefined : () => navigate(`/movie/${m.id}`)}
                 >
                   {m.title} <span className="text-muted-foreground">{m.year ?? ""}</span>{" "}
-                  {!selectMode && <span className="text-primary">›</span>}
+                  {!selectMode && <span aria-hidden="true" className="text-primary">›</span>}
                 </div>
                 <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <StateBadge state={m.status} />
@@ -477,6 +484,7 @@ export function SeriesLibrary() {
         <div className="mb-3 flex flex-wrap gap-1.5">
           <button
             className={cn(
+                focusRing,
               "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
               tagFilter == null ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
             )}
@@ -488,6 +496,7 @@ export function SeriesLibrary() {
             <button
               key={tag.id}
               className={cn(
+                focusRing,
                 "rounded-full px-3 py-1.5 text-xs font-semibold active:opacity-60",
                 tagFilter === tag.id
                   ? "bg-primary/15 text-primary"
@@ -551,7 +560,7 @@ export function SeriesLibrary() {
                   onClick={selectMode ? undefined : () => navigate(`/series/${se.id}`)}
                 >
                   {se.title} <span className="text-muted-foreground">{se.year ?? ""}</span>{" "}
-                  {!selectMode && <span className="text-primary">›</span>}
+                  {!selectMode && <span aria-hidden="true" className="text-primary">›</span>}
                 </div>
                 <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <StateBadge state={se.monitored ? "ok" : "paused"} />

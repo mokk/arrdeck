@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, focusRing } from "@/lib/utils";
 import { formatDate } from "../api/format";
 import type { CalendarItem } from "../api/types";
 import { Card, EmptyNote, Row, StateBadge } from "../components/Blocks";
@@ -61,7 +61,7 @@ export default function CalendarPage() {
   return (
     <>
       <div className="mb-4 mt-1 flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <Button variant="ghost" size="icon" aria-label={t("common.back")} onClick={() => navigate(-1)}>
           <ChevronLeft className="size-6" />
         </Button>
         <h1 className="text-2xl font-extrabold capitalize tracking-tight">{monthLabel}</h1>
@@ -69,6 +69,7 @@ export default function CalendarPage() {
           <Button
             variant="secondary"
             size="icon-sm"
+            aria-label={t("cal.previousMonth")}
             onClick={() => {
               setOffset(offset - 1);
               setSelectedDay(null);
@@ -79,6 +80,7 @@ export default function CalendarPage() {
           <Button
             variant="secondary"
             size="icon-sm"
+            aria-label={t("cal.nextMonth")}
             onClick={() => {
               setOffset(offset + 1);
               setSelectedDay(null);
@@ -97,6 +99,7 @@ export default function CalendarPage() {
             <button
               key={iso}
               className={cn(
+                focusRing,
                 "flex min-h-16 flex-col items-center gap-1 rounded-xl bg-card p-1.5 text-xs active:opacity-70",
                 selectedDay === iso && "ring-2 ring-primary",
                 iso === todayIso && "font-bold text-primary",

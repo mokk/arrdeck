@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, focusRing } from "@/lib/utils";
 import { formatBytes } from "../api/format";
 import { EmptyNote } from "./Blocks";
 import { Sheet } from "./Sheet";
@@ -53,6 +53,7 @@ export function ImportSheet({
             c.importable || targets[c.path] ? toggle(c.path) : setChoosingFor(c.path)
           }
           className={cn(
+                focusRing,
             "flex w-full items-start gap-2.5 border-t border-border py-2 text-left first:border-t-0",
             !c.importable && !targets[c.path] && "opacity-60",
           )}

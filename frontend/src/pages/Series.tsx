@@ -84,7 +84,8 @@ function EpisodeList({
             <Button
               variant="ghost"
               size="icon-sm"
-              title={t("releases.interactive")}
+              aria-label={t("releases.interactive")}
+            title={t("releases.interactive")}
               onClick={() =>
                 onReleases({
                   episodeId: e.id,
@@ -156,6 +157,7 @@ function SeasonCard({
           <Button
             variant="secondary"
             size="icon-sm"
+            aria-label={t("releases.interactive")}
             title={t("releases.interactive")}
             onClick={() => onReleases({ season: season.number, title: label })}
           >
@@ -181,7 +183,7 @@ export default function SeriesPage() {
   return (
     <>
       <div className="mb-4 mt-2 flex items-center gap-2.5">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <Button variant="ghost" size="icon" aria-label={t("common.back")} onClick={() => navigate(-1)}>
           <ChevronLeft className="size-6" />
         </Button>
         {data?.poster && (

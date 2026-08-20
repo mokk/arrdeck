@@ -12,7 +12,7 @@ import { Suspense, lazy, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
-import { cn } from "@/lib/utils";
+import { cn, focusRing } from "@/lib/utils";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { LoginScreen } from "./components/LoginScreen";
 import { PullToRefresh } from "./components/PullToRefresh";
@@ -155,7 +155,7 @@ function Shell() {
                   {searchbar.value && (
                     <button
                       type="button"
-                      className="shrink-0 text-muted-foreground active:opacity-60"
+                      className="shrink-0 text-muted-foreground active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                       onClick={() => searchbar.onClear?.()}
                     >
                       <X className="size-4" />
@@ -165,7 +165,7 @@ function Shell() {
               )}
               {sortButton && (
                 <button
-                  className="pointer-events-auto flex size-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-card/90 text-muted-foreground shadow-2xl shadow-black/50 backdrop-blur-xl active:opacity-60"
+                  className="pointer-events-auto flex size-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-card/90 text-muted-foreground shadow-2xl shadow-black/50 backdrop-blur-xl active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                   onClick={sortButton.open}
                   title={t("common.sortBy")}
                 >
@@ -182,6 +182,7 @@ function Shell() {
                 <button
                   key={o.value}
                   className={cn(
+                focusRing,
                     "flex-1 rounded-full px-2 py-1.5 text-xs font-semibold text-muted-foreground active:opacity-60",
                     o.value === subnav.value && "bg-primary/15 text-primary",
                   )}

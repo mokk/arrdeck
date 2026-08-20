@@ -48,7 +48,7 @@ export function BulkBar({
           <Button size="sm" variant="secondary" className="text-destructive" onClick={() => run("delete", false)}>
             {t("manage.entryOnly")}
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => setConfirmingDelete(false)}>
+          <Button size="sm" variant="ghost" aria-label={t("common.cancel")} onClick={() => setConfirmingDelete(false)}>
             ✕
           </Button>
         </>
