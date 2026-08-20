@@ -147,7 +147,7 @@ function Shell() {
                   <input
                     type="search"
                     enterKeyHint="search"
-                    className="h-11 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
+                    className="h-11 w-full bg-transparent text-base outline-none placeholder:text-muted-foreground md:text-sm [&::-webkit-search-cancel-button]:hidden"
                     placeholder={searchbar.placeholder}
                     value={searchbar.value}
                     onChange={(e) => searchbar.onChange(e.target.value)}

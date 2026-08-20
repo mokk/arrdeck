@@ -69,3 +69,16 @@ button:not(:disabled),
 [role="button"]:not(:disabled) {
   cursor: pointer;
 }
+
+/* iOS Safari zooms the page when a focused input's font-size is below 16px.
+   Every control is >=16px on touch devices for that reason; the desktop
+   breakpoints in the components shrink them back where there's a pointer.
+   Deliberately not solved with maximum-scale=1 on the viewport, which would
+   also disable pinch-to-zoom. */
+@media (hover: none) and (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
