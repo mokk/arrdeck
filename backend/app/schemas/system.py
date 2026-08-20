@@ -193,3 +193,29 @@ class RestoreOut(BaseModel):
     credentials: int = 0
     push_subscriptions: int = 0
     stats: int = 0
+
+
+class ScheduledTaskOut(BaseModel):
+    app: str
+    name: str  # taskName, e.g. RssSync — stable across versions, unlike name
+    label: str  # the arr's own display name
+    interval_minutes: int = 0
+    last_execution: str | None = None
+    next_execution: str | None = None
+    last_duration_seconds: float | None = None
+    # Late by more than the grace period for its interval. A task that runs every
+    # minute being seconds late is normal; one that runs hourly being an hour late
+    # means the arr's scheduler is wedged.
+    overdue: bool = False
+    overdue_by_seconds: float | None = None
+    # Whether this is one of the tasks worth showing without expanding the card.
+    notable: bool = False
+
+
+class ArrBackupOut(BaseModel):
+    app: str
+    name: str
+    kind: str = ""  # the arr's "type": scheduled | manual | update
+    size_bytes: int = 0
+    time: str | None = None
+    url: str | None = None

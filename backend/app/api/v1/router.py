@@ -18,6 +18,7 @@ from . import (
     settings,
     subtitles,
     system,
+    tasks,
     torrentactions,
     torrents,
     wanted,
@@ -26,6 +27,7 @@ from . import (
 router = APIRouter(prefix="/api/v1")
 router.include_router(dashboard.router)
 router.include_router(system.router)
+router.include_router(tasks.router)
 router.include_router(plex.router)
 router.include_router(popular.router)
 router.include_router(subtitles.router)

@@ -218,7 +218,34 @@ foreground cost only — but the foreground is where the battery is.
 **Verification**: with an idle stack, requests per minute drop measurably; with an
 active download, progress still updates smoothly. **Size: M.**
 
-## I. Surface the arrs' scheduled tasks
+## I. Surface the arrs' scheduled tasks — done
+
+Shipped: `GET /tasks` and `GET /arr-backups`, aggregating Radarr, Sonarr and
+Prowlarr. Tasks are sorted overdue-first then soonest-due, since the reason to
+open the card is always something being late. One arr being down omits its rows
+rather than blanking the other two.
+
+Overdue is not "next run is in the past": the arrs queue tasks behind each
+other, so grace scales with the interval (half of it, clamped to 2-30 min).
+Without that, RefreshMonitoredDownloads — every minute — would be permanently
+flagged, and a weekly Backup would get 3.5 days of slack. An interval of 0 means
+the user disabled the task, which is a choice rather than a failure.
+
+These landed in a new **System** tab, which also un-orphans `Logs`: it was a
+complete component with a working endpoint and no subnav entry, so nothing in the
+app could reach it. Backups link straight to the arr's own download URL, which is
+served unauthenticated off its root.
+
+**Verified**: all 30 tasks diffed field-by-field against the three arrs' own
+`/system/task` — the only two differences were on the 1-minute task and were
+exactly one 60s cache generation apart. Driven in a browser: Key shows 13 rows,
+All shows 30, backups list 12, Logs renders. The overdue *state* could not be
+observed live, because the only way to make an arr's scheduler fall behind
+(pausing the container) also makes its API unreachable, and its scheduler
+recomputes within a second of resuming — so it is covered by 11 unit tests
+pinning the grace boundaries instead.
+
+## I-original. Surface the arrs' scheduled tasks
 
 `/api/v3/system/task` is unused and answers with real data — RSS Sync, Check
 Health, Housekeeping, Backup, each with a last and next run. "Why hasn't anything

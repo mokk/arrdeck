@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { formatBytes, formatEta, formatSpeed, watchedFor } from "./format";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { formatBytes, formatEta, formatRelative, formatSpeed, watchedFor } from "./format";
 import type { WatchedItem } from "./types";
 
 describe("formatBytes", () => {
@@ -78,5 +78,33 @@ describe("watchedFor", () => {
   it("tolerates a missing map, which is what an unconfigured plex looks like", () => {
     expect(watchedFor(undefined, { tmdb_id: 170 })).toBeUndefined();
     expect(watchedFor(null, { tmdb_id: 170 })).toBeUndefined();
+  });
+});
+
+describe("formatRelative", () => {
+  // The tasks card reads "last ran" and "next run" off this, so a wrong sign
+  // would say a task is due when it is actually late.
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-20T12:00:00Z"));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it("distinguishes past from future", () => {
+    expect(formatRelative("2026-08-20T06:00:00Z")).toBe("6 hours ago");
+    expect(formatRelative("2026-08-20T18:00:00Z")).toBe("in 6 hours");
+  });
+
+  it("picks the largest unit that fits", () => {
+    expect(formatRelative("2026-08-18T12:00:00Z")).toBe("2 days ago");
+    expect(formatRelative("2026-08-20T11:30:00Z")).toBe("30 minutes ago");
+    expect(formatRelative("2026-08-20T11:59:50Z")).toBe("10 seconds ago");
+  });
+
+  it("reads a missing or unparseable time as unknown", () => {
+    expect(formatRelative(null)).toBe("—");
+    expect(formatRelative(undefined)).toBe("—");
+    expect(formatRelative("")).toBe("—");
+    expect(formatRelative("not a date")).toBe("—");
   });
 });

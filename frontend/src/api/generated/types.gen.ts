@@ -107,6 +107,36 @@ export type AddTorrentIn = {
 };
 
 /**
+ * ArrBackupOut
+ */
+export type ArrBackupOut = {
+  /**
+   * App
+   */
+  app: string;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Kind
+   */
+  kind?: string;
+  /**
+   * Size Bytes
+   */
+  size_bytes?: number;
+  /**
+   * Time
+   */
+  time?: string | null;
+  /**
+   * Url
+   */
+  url?: string | null;
+};
+
+/**
  * ArrReleaseOut
  */
 export type ArrReleaseOut = {
@@ -1676,6 +1706,52 @@ export type RootFolderOut = {
 };
 
 /**
+ * ScheduledTaskOut
+ */
+export type ScheduledTaskOut = {
+  /**
+   * App
+   */
+  app: string;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Label
+   */
+  label: string;
+  /**
+   * Interval Minutes
+   */
+  interval_minutes?: number;
+  /**
+   * Last Execution
+   */
+  last_execution?: string | null;
+  /**
+   * Next Execution
+   */
+  next_execution?: string | null;
+  /**
+   * Last Duration Seconds
+   */
+  last_duration_seconds?: number | null;
+  /**
+   * Overdue
+   */
+  overdue?: boolean;
+  /**
+   * Overdue By Seconds
+   */
+  overdue_by_seconds?: number | null;
+  /**
+   * Notable
+   */
+  notable?: boolean;
+};
+
+/**
  * SearchResultOut
  */
 export type SearchResultOut = {
@@ -1920,6 +1996,28 @@ export type ServiceBlockDictStrWatchedItemOut = {
 };
 
 /**
+ * ServiceBlock[list[ArrBackupOut]]
+ */
+export type ServiceBlockListArrBackupOut = {
+  /**
+   * Ok
+   */
+  ok: boolean;
+  /**
+   * Data
+   */
+  data?: Array<ArrBackupOut> | null;
+  /**
+   * Error
+   */
+  error?: string | null;
+  /**
+   * Stale Age Seconds
+   */
+  stale_age_seconds?: number | null;
+};
+
+/**
  * ServiceBlock[list[CalendarItemOut]]
  */
 export type ServiceBlockListCalendarItemOut = {
@@ -2063,6 +2161,28 @@ export type ServiceBlockListQueueItemOut = {
    * Data
    */
   data?: Array<QueueItemOut> | null;
+  /**
+   * Error
+   */
+  error?: string | null;
+  /**
+   * Stale Age Seconds
+   */
+  stale_age_seconds?: number | null;
+};
+
+/**
+ * ServiceBlock[list[ScheduledTaskOut]]
+ */
+export type ServiceBlockListScheduledTaskOut = {
+  /**
+   * Ok
+   */
+  ok: boolean;
+  /**
+   * Data
+   */
+  data?: Array<ScheduledTaskOut> | null;
   /**
    * Error
    */
@@ -3102,6 +3222,40 @@ export type HealthApiV1HealthGetResponses = {
 
 export type HealthApiV1HealthGetResponse =
   HealthApiV1HealthGetResponses[keyof HealthApiV1HealthGetResponses];
+
+export type TasksApiV1TasksGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/tasks";
+};
+
+export type TasksApiV1TasksGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ServiceBlockListScheduledTaskOut;
+};
+
+export type TasksApiV1TasksGetResponse =
+  TasksApiV1TasksGetResponses[keyof TasksApiV1TasksGetResponses];
+
+export type ArrBackupsApiV1ArrBackupsGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/arr-backups";
+};
+
+export type ArrBackupsApiV1ArrBackupsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ServiceBlockListArrBackupOut;
+};
+
+export type ArrBackupsApiV1ArrBackupsGetResponse =
+  ArrBackupsApiV1ArrBackupsGetResponses[keyof ArrBackupsApiV1ArrBackupsGetResponses];
 
 export type WatchedApiV1WatchedGetData = {
   body?: never;

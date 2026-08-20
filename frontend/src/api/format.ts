@@ -33,6 +33,23 @@ export function formatEta(seconds: number | null | undefined): string {
   return `${Math.floor(seconds / 86400)}d`;
 }
 
+/** "6h ago" / "in 12m". Intl handles the wording, so Danish needs no strings. */
+export function formatRelative(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const ms = new Date(iso).getTime() - Date.now();
+  if (Number.isNaN(ms)) return "—";
+  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+  const units: [Intl.RelativeTimeFormatUnit, number][] = [
+    ["day", 86400_000],
+    ["hour", 3600_000],
+    ["minute", 60_000],
+  ];
+  for (const [unit, size] of units) {
+    if (Math.abs(ms) >= size) return rtf.format(Math.round(ms / size), unit);
+  }
+  return rtf.format(Math.round(ms / 1000), "second");
+}
+
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString(undefined, {

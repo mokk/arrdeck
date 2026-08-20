@@ -1,15 +1,15 @@
 import { useTranslation } from "react-i18next";
 import { Indexers } from "../components/manage/Indexers";
 import { MovieLibrary, SeriesLibrary } from "../components/manage/Libraries";
-import { Logs } from "../components/manage/Logs";
 import { ServiceSettingsTab } from "../components/manage/ServicesTab";
+import { SystemTab } from "../components/manage/System";
 import { useRegisterSubnav } from "../components/subnav";
 import { useServices } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 
 /* ---------------- page ---------------- */
 
-type Tab = "movies" | "series" | "indexers" | "logs" | "services";
+type Tab = "movies" | "series" | "indexers" | "system" | "services";
 
 export default function Manage() {
   const { t } = useTranslation();
@@ -27,6 +27,11 @@ export default function Manage() {
     ...(configured.has("prowlarr")
       ? [{ value: "indexers" as Tab, label: t("manage.indexers") }]
       : []),
+    // The arrs' schedulers, their backups and their logs. Only useful with an
+    // arr configured, which the tab itself re-checks.
+    ...(configured.has("radarr") || configured.has("sonarr") || configured.has("prowlarr")
+      ? [{ value: "system" as Tab, label: t("manage.system") }]
+      : []),
     // services (connection settings) deliberately last
     { value: "services" as Tab, label: t("manage.services") },
   ];
@@ -40,7 +45,7 @@ export default function Manage() {
       {tab === "movies" && <MovieLibrary />}
       {tab === "series" && <SeriesLibrary />}
       {tab === "indexers" && <Indexers />}
-      {tab === "logs" && <Logs />}
+      {tab === "system" && <SystemTab />}
       {tab === "services" && <ServiceSettingsTab />}
     </>
   );

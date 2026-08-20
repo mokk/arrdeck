@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { api } from "../api/client";
 import type {
+  ArrBackup,
   DiskSpace,
   HealthWarning,
   ImportList,
@@ -16,6 +17,7 @@ import type {
   PlaySession,
   PushEvents,
   PushRules,
+  ScheduledTask,
   ServiceBlock,
   ServiceInfo,
   ServiceSettings,
@@ -269,6 +271,22 @@ export function useSyncImportLists() {
     mutationFn: (app: string) => api.post<void>(`/import-lists/${app}/sync`),
   });
 }
+
+export const useTasks = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["tasks"],
+    queryFn: () => api.get<ServiceBlock<ScheduledTask[]>>("/tasks"),
+    enabled,
+    refetchInterval: SLOW,
+  });
+
+export const useArrBackups = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["arr-backups"],
+    queryFn: () => api.get<ServiceBlock<ArrBackup[]>>("/arr-backups"),
+    enabled,
+    refetchInterval: SLOW,
+  });
 
 export const useLogs = (app: string, level: string, enabled: boolean) =>
   useQuery({

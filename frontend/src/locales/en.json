@@ -203,6 +203,7 @@
     "series": "Series",
     "indexers": "Indexers",
     "services": "Services",
+    "system": "System",
     "filterMovies": "Filter movies…",
     "filterSeries": "Filter series…",
     "showingFirst": "Showing first {{shown}} of {{total}}",
@@ -265,6 +266,19 @@
     "importLists": "Import lists",
     "syncApp": "Sync {{app}}",
     "syncStarted": "Sync started"
+  },
+  "system": {
+    "tasks": "Scheduled tasks",
+    "key": "Key",
+    "all": "All",
+    "lastRan": "Last ran {{when}}",
+    "overdueBy": "{{duration}} overdue",
+    "overdueCount_one": "{{count}} task overdue",
+    "overdueCount_other": "{{count}} tasks overdue",
+    "allOnSchedule": "{{count}} tasks, all on schedule",
+    "noTasks": "No tasks",
+    "arrBackups": "Service backups",
+    "noBackups": "No backups yet"
   },
   "toast": {
     "added": "Added to library",

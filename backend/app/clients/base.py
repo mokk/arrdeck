@@ -194,6 +194,14 @@ class ArrClient(BaseClient):
         # Radarr: movieId=; Sonarr: seriesId= (+ optional seasonNumber=)
         return await self.get("/rename", params=params)
 
+    async def tasks(self) -> list:
+        """Scheduled tasks with their last and next run (System -> Tasks)."""
+        return await self.get("/system/task")
+
+    async def backups(self) -> list:
+        """The arr's own backups — separate from arrdeck's /backup."""
+        return await self.get("/system/backup")
+
     async def tags(self) -> list:
         return await self.get("/tag")
 

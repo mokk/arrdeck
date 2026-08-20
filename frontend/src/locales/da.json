@@ -203,6 +203,7 @@
     "series": "Serier",
     "indexers": "Indexere",
     "services": "Tjenester",
+    "system": "System",
     "filterMovies": "Filtrér film…",
     "filterSeries": "Filtrér serier…",
     "showingFirst": "Viser de første {{shown}} af {{total}}",
@@ -265,6 +266,19 @@
     "importLists": "Importlister",
     "syncApp": "Synkronisér {{app}}",
     "syncStarted": "Synkronisering startet"
+  },
+  "system": {
+    "tasks": "Planlagte opgaver",
+    "key": "Vigtige",
+    "all": "Alle",
+    "lastRan": "Kørte {{when}}",
+    "overdueBy": "{{duration}} forsinket",
+    "overdueCount_one": "{{count}} opgave er forsinket",
+    "overdueCount_other": "{{count}} opgaver er forsinket",
+    "allOnSchedule": "{{count}} opgaver, alle efter planen",
+    "noTasks": "Ingen opgaver",
+    "arrBackups": "Backups af tjenester",
+    "noBackups": "Ingen backups endnu"
   },
   "toast": {
     "added": "Tilføjet til biblioteket",
