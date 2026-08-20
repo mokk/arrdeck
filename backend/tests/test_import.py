@@ -1,7 +1,7 @@
 import pytest
 from fastapi import HTTPException
 
-from app.api.v1.downloads import _describe_candidate, _import_file
+from app.api.v1.importing import _describe_candidate, _import_file
 
 
 def test_a_matched_movie_becomes_an_import_payload():
@@ -105,7 +105,7 @@ CANDIDATE = {
 def _assign(app, files, candidates=None):
     import asyncio
 
-    from app.api.v1.downloads import manual_import_assign
+    from app.api.v1.importing import manual_import_assign
     from app.schemas import ManualImportAssignIn
 
     client = FakeArr(candidates if candidates is not None else [CANDIDATE])

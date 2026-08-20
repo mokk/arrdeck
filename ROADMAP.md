@@ -53,25 +53,40 @@ covers now-playing and watched state, and those two would only duplicate it.
 | L | Calendar week strip and day-grouped agenda | 2026-08-20 |
 | N | Unpackerr extraction state via Prometheus, download-client checks | 2026-08-20 |
 
-### Outstanding: modules over ~400 lines
+### Modules over ~400 lines — done
 
-The list has grown since it was first recorded — partly from the features added
-since, partly because a few files are natural magnets. Current state:
+Every file is now under 400 lines. What moved:
 
-| File | Lines | Shape |
-|------|-------|-------|
-| `components/manage/ServicesTab.tsx` | 841 | six unrelated settings cards in one file |
-| `schemas.py` | 795 | every response model in the app |
-| `api/v1/manage.py` | 731 | library, indexers, wanted, tags, blocklist, lists, logs |
-| `components/manage/Libraries.tsx` | 630 | movie and series lists, near-duplicates |
-| `api/v1/downloads.py` | 581 | torrent actions, arr queue, manual import, rename |
-| `push.py` | 552 | events, coalescing, webhooks, poller, rules |
-| `api/v1/media.py` | 544 | posters, discover, search, requests, releases |
-| `hooks/useLibrary.ts` | 516 | the largest domain, could split media vs library |
+| Was | Lines | Became |
+|-----|-------|--------|
+| `ServicesTab.tsx` | 841 | `settings/{connections,security,notifications,transfer}` + a 98-line composer |
+| `schemas.py` | 795 | `schemas/{common,torrents,library,system}` behind a re-exporting barrel |
+| `manage.py` | 731 | `{indexers,library,wanted,arrmeta}` routers; the shell was deleted |
+| `Libraries.tsx` | 630 | `library/{shared,movies,series}` + a 3-line barrel |
+| `downloads.py` | 581 | `{torrentactions,importing,arrqueue}` routers; the shell was deleted |
+| `push.py` | 552 | `push/{events,delivery,pipeline,sources}` package |
+| `media.py` | 544 | `{posters,discover,releases,requests}` routers; the shell was deleted |
+| `useLibrary.ts` | 516 | split, plus hooks relocated to `useMedia.ts` and `useSystem.ts` |
+| `useDownloads.ts` | 416 | split out `useArrQueue.ts` |
 
-The proven approach from the earlier split: move whole declarations with `ast`
-(python) or by top-level `function` boundary (tsx), keep a barrel re-export so no
-import site changes, then diff the OpenAPI route surface to prove nothing moved.
+Verified after every move: 120 routes and 124 schema components unchanged, pyflakes
+clean of undefined names, 162 backend + 54 frontend tests green, and every
+ServiceBlock endpoint reporting `ok` rather than merely returning 200.
+
+Three traps this hit, all the same shape — a declaration sitting *between*
+functions gets swept into the wrong module:
+
+- `urlBase64ToUint8Array` (lowercase, so excluded from the component grouping)
+- `MOVIE_SORT_KEYS` / `SERIES_SORT_KEYS`, and `TorrentQuery`
+- `proxy_poster`, needed by two modules after moving to a third
+
+pyflakes and `tsc` caught all of them. The earlier `_speed_samples` incident is
+the same bug reaching production because nothing checked for it.
+
+Splitting `push.py` also broke monkeypatching: tests patched `push._send_all`,
+but `pipeline` now holds its own reference, so patches have to target the module
+that uses the name. `import *` also skips underscore names, so the tested
+private surface is re-exported explicitly from the barrel.
 
 ## Notes carried forward
 

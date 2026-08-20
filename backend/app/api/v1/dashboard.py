@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from ...cache import cache, cached, guarded
 from ...clients.base import ServiceUnavailable
 from ...registry import probe_version
-from .media import _poster
+from .discover import _poster
 from ...clients.bazarr import BazarrClient
 from ...clients.gluetun import GluetunClient
 from ...clients.plex import PlexClient

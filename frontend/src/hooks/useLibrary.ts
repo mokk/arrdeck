@@ -1,51 +1,23 @@
+// Movies, series, episodes, seasons, collections, tags and bulk actions.
 // Movies, series, episodes, discovery, calendar and history.
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { api } from "../api/client";
 import type {
-  PopularSnapshot,
   ArrRelease,
   MovieDetail,
-  CalendarItem,
   Collection,
   CollectionDetail,
   Episode,
-  HistoryItem,
-  HistoryPage,
-  RecentItem,
   SeriesDetail,
-  MediaRequest,
   Tag,
-  StatsSample,
   WantedPage,
-  Indexer,
-  IndexerSchema,
-  IndexerStats,
   LibraryMovie,
   LibrarySeries,
   Options,
-  Release,
-  SearchResult,
-  ServiceBlock,
-  TorrentGroup,
 } from "../api/types";
-import { MEDIUM, SLOW } from "./shared";
-
-export function useDeletePasskey() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (id: number) => api.delete<void>(`/auth/credentials/${id}`),
-    onSettled: () => qc.invalidateQueries({ queryKey: ["passkeys"] }),
-  });
-}
-
-export const useRecent = () =>
-  useQuery({
-    queryKey: ["recent"],
-    queryFn: () => api.get<RecentItem[]>("/dashboard/recent"),
-    refetchInterval: 60_000,
-  });
+import { SLOW } from "./shared";
 
 export const useWanted = (app: "radarr" | "sonarr", kind: "missing" | "cutoff", page: number) =>
   useQuery({
@@ -144,50 +116,11 @@ export function useBulkSearchLibrary(kind: "movies" | "series") {
   });
 }
 
-export const useCalendarRange = (startDate: string, days: number) =>
-  useQuery({
-    queryKey: ["calendarRange", startDate, days],
-    queryFn: () =>
-      api.get<{ radarr: ServiceBlock<CalendarItem[]>; sonarr: ServiceBlock<CalendarItem[]> }>(
-        `/calendar?days=${days}&start_date=${startDate}`,
-      ),
-    staleTime: 300_000,
-  });
-
 export const useMovieDetail = (id: number) =>
   useQuery({
     queryKey: ["movieDetail", id],
     queryFn: () => api.get<MovieDetail>(`/library/movies/${id}/detail`),
   });
-
-export function useSubtitleSearch() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (input: { kind: "movie" | "episode"; id: number; series_id?: number | null }) =>
-      api.post<void>("/subtitles/search", input),
-    onSettled: () => qc.invalidateQueries({ queryKey: ["subtitles"] }),
-  });
-}
-
-export const useMediaRequests = (enabled: boolean) =>
-  useQuery({
-    queryKey: ["requests"],
-    queryFn: () => api.get<ServiceBlock<MediaRequest[]>>("/requests?filter=pending"),
-    enabled,
-    refetchInterval: MEDIUM,
-  });
-
-export function useRequestAction() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, action }: { id: number; action: "approve" | "decline" }) =>
-      api.post<void>(`/requests/${id}/${action}`),
-    onSettled: () => {
-      qc.invalidateQueries({ queryKey: ["requests"] });
-      qc.invalidateQueries({ queryKey: ["queue"] });
-    },
-  });
-}
 
 export const useSeriesDetail = (id: number) =>
   useQuery({
@@ -263,166 +196,12 @@ export function useGrabArrRelease(app: "radarr" | "sonarr") {
   });
 }
 
-export const useHistoryPage = (page: number) =>
-  useQuery({
-    queryKey: ["historyAll", page],
-    queryFn: () => api.get<HistoryPage>(`/history/all?page=${page}`),
-    staleTime: 60_000,
-  });
-
-export const useStatsHistory = (days = 30) =>
-  useQuery({
-    queryKey: ["statsHistory", days],
-    queryFn: () => api.get<StatsSample[]>(`/stats/history?days=${days}`),
-    staleTime: 600_000,
-  });
-
-export const useCalendar = () =>
-  useQuery({
-    queryKey: ["calendar"],
-    queryFn: () =>
-      api.get<{ radarr: ServiceBlock<CalendarItem[]>; sonarr: ServiceBlock<CalendarItem[]> }>(
-        "/calendar",
-      ),
-    refetchInterval: SLOW,
-  });
-
-export const useHistory = () =>
-  useQuery({
-    queryKey: ["history"],
-    queryFn: () =>
-      api.get<{ radarr: ServiceBlock<HistoryItem[]>; sonarr: ServiceBlock<HistoryItem[]> }>(
-        "/history",
-      ),
-    refetchInterval: MEDIUM,
-  });
-
-export const useIndexerStats = () =>
-  useQuery({
-    queryKey: ["indexerStats"],
-    queryFn: () => api.get<ServiceBlock<IndexerStats>>("/indexers/stats"),
-    refetchInterval: SLOW,
-  });
-
-export const useDiscover = (kind: "movies" | "series", enabled: boolean) =>
-  useQuery({
-    queryKey: ["discover", kind],
-    queryFn: () => api.get<SearchResult[]>(`/discover/${kind}`),
-    enabled,
-    staleTime: 600_000,
-  });
-
-export const useSearch = (kind: "movies" | "series" | "releases", q: string) =>
-  useQuery<Release[] | SearchResult[]>({
-    queryKey: ["search", kind, q],
-    queryFn: () =>
-      kind === "releases"
-        ? api.get<Release[]>(`/search/releases?q=${encodeURIComponent(q)}`)
-        : api.get<SearchResult[]>(`/search/${kind}?q=${encodeURIComponent(q)}`),
-    enabled: q.trim().length > 1,
-    staleTime: 60_000,
-  });
-
 export const useOptions = (app: "radarr" | "sonarr") =>
   useQuery({
     queryKey: ["options", app],
     queryFn: () => api.get<Options>(`/options/${app}`),
     staleTime: SLOW,
   });
-
-export function useAddMedia() {
-  const qc = useQueryClient();
-  const { t } = useTranslation();
-  return useMutation({
-    onSuccess: () => toast.success(t("toast.added")),
-    mutationFn: (input: {
-      kind: "movie" | "series";
-      remote_id: number;
-      title: string;
-      quality_profile_id: number;
-      root_folder_path: string;
-    }) =>
-      input.kind === "movie"
-        ? api.post("/movies", {
-            tmdb_id: input.remote_id,
-            title: input.title,
-            quality_profile_id: input.quality_profile_id,
-            root_folder_path: input.root_folder_path,
-          })
-        : api.post("/series", {
-            tvdb_id: input.remote_id,
-            title: input.title,
-            quality_profile_id: input.quality_profile_id,
-            root_folder_path: input.root_folder_path,
-          }),
-    onSettled: () => {
-      qc.invalidateQueries({ queryKey: ["search"] });
-      qc.invalidateQueries({ queryKey: ["discover"] });
-      qc.invalidateQueries({ queryKey: ["library"] });
-      qc.invalidateQueries({ queryKey: ["collections"] });
-      qc.invalidateQueries({ queryKey: ["collectionDetail"] });
-    },
-  });
-}
-
-export function useGrabRelease() {
-  const { t } = useTranslation();
-  return useMutation({
-    mutationFn: (input: { guid: string; indexer_id: number }) =>
-      api.post<void>("/releases/grab", input),
-    onSuccess: () => toast.success(t("toast.grabbed")),
-  });
-}
-
-export const useIndexers = () =>
-  useQuery({ queryKey: ["indexers"], queryFn: () => api.get<Indexer[]>("/indexers") });
-
-export const useIndexerSchemas = (enabled: boolean) =>
-  useQuery({
-    queryKey: ["indexerSchemas"],
-    queryFn: () => api.get<IndexerSchema[]>("/indexers/schemas"),
-    enabled,
-    staleTime: 3_600_000,
-  });
-
-export function useAddIndexer() {
-  const qc = useQueryClient();
-  const { t } = useTranslation();
-  return useMutation({
-    mutationFn: (input: {
-      schema_name: string;
-      display_name: string;
-      field_values: Record<string, unknown>;
-    }) => api.post<{ id: number; name: string }>("/indexers", input),
-    onSuccess: () => toast.success(t("toast.indexerAdded")),
-    onSettled: () => qc.invalidateQueries({ queryKey: ["indexers"] }),
-  });
-}
-
-export function useTestNewIndexer() {
-  return useMutation({
-    mutationFn: (input: {
-      schema_name: string;
-      display_name: string;
-      field_values: Record<string, unknown>;
-    }) => api.post<void>("/indexers/test-new", input),
-  });
-}
-
-export function useToggleIndexer() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, enable }: { id: number; enable: boolean }) =>
-      api.patch(`/indexers/${id}?enable=${enable}`),
-    onSettled: () => qc.invalidateQueries({ queryKey: ["indexers"] }),
-  });
-}
-
-export function useTestIndexer() {
-  return useMutation({
-    mutationFn: (id: number) => api.post<void>(`/indexers/${id}/test`),
-  });
-}
 
 export const useLibraryMovies = () =>
   useQuery({
@@ -505,12 +284,3 @@ export function useSeasonMonitor(seriesId: number) {
     onSettled: () => qc.invalidateQueries({ queryKey: ["seriesDetail", seriesId] }),
   });
 }
-
-
-export const usePopular = (hours: number) =>
-  useQuery({
-    queryKey: ["popular", hours],
-    queryFn: () => api.get<ServiceBlock<PopularSnapshot>>(`/popular?hours=${hours}&limit=10`),
-    // served from an hourly snapshot, so polling more often gains nothing
-    refetchInterval: 600_000,
-  });

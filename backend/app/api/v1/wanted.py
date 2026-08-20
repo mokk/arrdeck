@@ -28,7 +28,7 @@ from ...schemas import (
     WantedItemOut,
     WantedPageOut,
 )
-from .media import _poster
+from .discover import _poster
 
 router = APIRouter(tags=["wanted"])
 

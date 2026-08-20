@@ -86,7 +86,7 @@ def test_touch_refreshes_only_stale_entries(cache):
 
 
 def test_tmdb_originals_are_downsized():
-    from app.api.v1.media import normalise_poster_url
+    from app.api.v1.posters import normalise_poster_url
 
     # the arrs hand out /original: 2000x3000 and over 1 MB for a 40px thumbnail
     assert (
@@ -96,7 +96,7 @@ def test_tmdb_originals_are_downsized():
 
 
 def test_any_tmdb_size_is_normalised_to_one_variant():
-    from app.api.v1.media import normalise_poster_url
+    from app.api.v1.posters import normalise_poster_url
 
     # one variant means one cache entry per poster, not one per source size
     for size in ("w92", "w342", "w780", "original"):
@@ -107,7 +107,7 @@ def test_any_tmdb_size_is_normalised_to_one_variant():
 
 
 def test_other_artwork_hosts_are_untouched():
-    from app.api.v1.media import normalise_poster_url
+    from app.api.v1.posters import normalise_poster_url
 
     for url in (
         "https://artworks.thetvdb.com/banners/posters/x.jpg",

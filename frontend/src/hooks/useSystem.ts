@@ -1,7 +1,14 @@
 // Services, auth, push, backups and the media-server integrations.
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import type {
+  MediaRequest,
+  StatsSample,
+  IndexerStats,
+  Indexer,
+  IndexerSchema,
   ImportList,
   LogEntry,
   DiskSpace,
@@ -266,3 +273,104 @@ export const useLogs = (app: string, level: string, enabled: boolean) =>
     enabled,
     refetchInterval: MEDIUM,
   });
+
+export function useDeletePasskey() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete<void>(`/auth/credentials/${id}`),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["passkeys"] }),
+  });
+}
+
+export function useSubtitleSearch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { kind: "movie" | "episode"; id: number; series_id?: number | null }) =>
+      api.post<void>("/subtitles/search", input),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["subtitles"] }),
+  });
+}
+
+export const useMediaRequests = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["requests"],
+    queryFn: () => api.get<ServiceBlock<MediaRequest[]>>("/requests?filter=pending"),
+    enabled,
+    refetchInterval: MEDIUM,
+  });
+
+export function useRequestAction() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, action }: { id: number; action: "approve" | "decline" }) =>
+      api.post<void>(`/requests/${id}/${action}`),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["requests"] });
+      qc.invalidateQueries({ queryKey: ["queue"] });
+    },
+  });
+}
+
+export const useStatsHistory = (days = 30) =>
+  useQuery({
+    queryKey: ["statsHistory", days],
+    queryFn: () => api.get<StatsSample[]>(`/stats/history?days=${days}`),
+    staleTime: 600_000,
+  });
+
+export const useIndexerStats = () =>
+  useQuery({
+    queryKey: ["indexerStats"],
+    queryFn: () => api.get<ServiceBlock<IndexerStats>>("/indexers/stats"),
+    refetchInterval: SLOW,
+  });
+
+export const useIndexers = () =>
+  useQuery({ queryKey: ["indexers"], queryFn: () => api.get<Indexer[]>("/indexers") });
+
+export const useIndexerSchemas = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["indexerSchemas"],
+    queryFn: () => api.get<IndexerSchema[]>("/indexers/schemas"),
+    enabled,
+    staleTime: 3_600_000,
+  });
+
+export function useAddIndexer() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (input: {
+      schema_name: string;
+      display_name: string;
+      field_values: Record<string, unknown>;
+    }) => api.post<{ id: number; name: string }>("/indexers", input),
+    onSuccess: () => toast.success(t("toast.indexerAdded")),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["indexers"] }),
+  });
+}
+
+export function useTestNewIndexer() {
+  return useMutation({
+    mutationFn: (input: {
+      schema_name: string;
+      display_name: string;
+      field_values: Record<string, unknown>;
+    }) => api.post<void>("/indexers/test-new", input),
+  });
+}
+
+export function useToggleIndexer() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, enable }: { id: number; enable: boolean }) =>
+      api.patch(`/indexers/${id}?enable=${enable}`),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["indexers"] }),
+  });
+}
+
+export function useTestIndexer() {
+  return useMutation({
+    mutationFn: (id: number) => api.post<void>(`/indexers/${id}/test`),
+  });
+}

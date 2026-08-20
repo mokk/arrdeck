@@ -3,13 +3,18 @@ from fastapi import APIRouter
 from . import (
     auth,
     dashboard,
-    downloads,
+    arrqueue,
+    importing,
+    torrentactions,
     hooks,
     arrmeta,
     indexers,
     library,
     wanted,
-    media,
+    discover,
+    posters,
+    releases,
+    requests,
     plex,
     popular,
     settings,
@@ -25,8 +30,13 @@ router.include_router(plex.router)
 router.include_router(popular.router)
 router.include_router(subtitles.router)
 router.include_router(torrents.router)
-router.include_router(downloads.router)
-router.include_router(media.router)
+router.include_router(torrentactions.router)
+router.include_router(importing.router)
+router.include_router(arrqueue.router)
+router.include_router(posters.router)
+router.include_router(discover.router)
+router.include_router(releases.router)
+router.include_router(requests.router)
 router.include_router(indexers.router)
 router.include_router(library.router)
 router.include_router(wanted.router)

@@ -1,20 +1,13 @@
+"""Finding and adding titles: discovery, search, collections, quality options."""
+
 import asyncio
-import hashlib
-import re
-from pathlib import Path
-from urllib.parse import quote, urlparse
-
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import FileResponse
-
-from ...config import get_settings
-
 from ...cache import cache, cached, guarded
 from ...clients.overseerr import OverseerrClient
-from ...clients.prowlarr import ProwlarrClient
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
 from ...deps import get_overseerr, get_prowlarr, get_radarr, get_sonarr
+from .posters import proxy_poster
 from ...schemas import (
     AddMovieIn,
     AddSeriesIn,
@@ -29,133 +22,12 @@ from ...schemas import (
     ServiceBlock,
 )
 
-router = APIRouter(tags=["media"])
+router = APIRouter(tags=["discover"])
 
 TMDB_IMG = "https://image.tmdb.org/t/p/w342"
-
-# hosts we proxy-and-cache poster images from
-POSTER_HOSTS = {
-    "image.tmdb.org",
-    "artworks.thetvdb.com",
-    "assets.fanart.tv",
-    "images.fanart.tv",
-    "fanart.tv",
-}
-from ...posters import POSTER_DIR, touch as _touch_poster
-
-
-# Radarr/Sonarr hand out TMDB's /original artwork — 2000x3000 and over 1 MB —
-# which arrdeck was caching and serving to render a 40px thumbnail. TMDB exposes
-# sized variants at the same path, so normalise to one that suits the UI.
-TMDB_SIZE_RE = re.compile(r"(https://image\.tmdb\.org/t/p/)([^/]+)(/)")
-TMDB_POSTER_SIZE = "w500"
-
-
-def normalise_poster_url(url: str) -> str:
-    return TMDB_SIZE_RE.sub(rf"\1{TMDB_POSTER_SIZE}\3", url)
-
-
-def proxy_poster(url: str | None) -> str | None:
-    """Rewrite known poster URLs through the caching proxy endpoint."""
-    if not url:
-        return None
-    host = urlparse(url).hostname
-    if host not in POSTER_HOSTS:
-        return url
-    return f"/api/v1/poster?u={quote(normalise_poster_url(url), safe='')}"
-
-
-@router.get("/poster", include_in_schema=False)
-async def poster(u: str, request: Request):
-    host = urlparse(u).hostname
-    if host not in POSTER_HOSTS:
-        raise HTTPException(400, "host not allowed")
-    u = normalise_poster_url(u)
-    POSTER_DIR.mkdir(parents=True, exist_ok=True)
-    cached_file = POSTER_DIR / (hashlib.sha1(u.encode()).hexdigest() + ".img")
-    if cached_file.exists():
-        _touch_poster(cached_file)  # keeps popular posters out of the eviction list
-    else:
-        try:
-            resp = await request.app.state.http.get(u, timeout=15, follow_redirects=True)
-            resp.raise_for_status()
-        except Exception as exc:  # noqa: BLE001
-            raise HTTPException(502, "poster fetch failed") from exc
-        cached_file.write_bytes(resp.content)
-    return FileResponse(
-        cached_file,
-        media_type="image/jpeg",
-        headers={"Cache-Control": "public, max-age=604800, immutable"},
-    )
-
-# Original languages allowed in the popular lists: English + Nordic
 WESTERN_LANGUAGES = {"en", "da", "sv", "no", "nb", "nn", "fi", "is"}
 DISCOVER_TARGET = 48  # items to aim for after filtering
 DISCOVER_MAX_PAGES = 8
-
-
-REQUEST_PENDING = 1
-
-
-async def _describe_request(overseerr: OverseerrClient, req: dict) -> dict:
-    """Overseerr's request list carries only a tmdbId, so the title comes from
-    a second lookup — cheap enough since Overseerr caches TMDB itself."""
-    media = req.get("media") or {}
-    kind = req.get("type") or media.get("mediaType") or "movie"
-    tmdb = media.get("tmdbId")
-    title, year, poster = "", None, None
-    if tmdb:
-        try:
-            details = await (
-                overseerr.movie_details(tmdb) if kind == "movie" else overseerr.tv_details(tmdb)
-            )
-        except Exception:  # noqa: BLE001 — a missing title must not drop the request
-            details = {}
-        title = details.get("title") or details.get("name") or ""
-        date = details.get("releaseDate") or details.get("firstAirDate") or ""
-        year = date[:4] or None
-        if details.get("posterPath"):
-            poster = proxy_poster(TMDB_IMG + details["posterPath"])
-    return {
-        "id": req.get("id", 0),
-        "type": kind,
-        "status": req.get("status", 0),
-        "title": title,
-        "year": year,
-        "poster": poster,
-        "requested_by": (req.get("requestedBy") or {}).get("displayName") or "",
-        "created_at": req.get("createdAt"),
-        "seasons": [s.get("seasonNumber") for s in (req.get("seasons") or []) if s.get("seasonNumber")],
-    }
-
-
-@router.get("/requests", response_model=ServiceBlock[list[MediaRequestOut]])
-async def media_requests(
-    filter: str = "pending",
-    take: int = 20,
-    overseerr: OverseerrClient = Depends(get_overseerr),
-):
-    async def fetch() -> list[dict]:
-        async def call() -> list[dict]:
-            payload = await overseerr.requests(filter, take)
-            results = payload.get("results") or []
-            return list(
-                await asyncio.gather(*(_describe_request(overseerr, r) for r in results))
-            )
-
-        return await cached(f"requests:{filter}:{take}", 60, call)
-
-    return await guarded(fetch(), f"requests:{filter}")
-
-
-@router.post("/requests/{request_id}/{action}", status_code=204)
-async def request_action(
-    request_id: int, action: str, overseerr: OverseerrClient = Depends(get_overseerr)
-) -> None:
-    if action not in ("approve", "decline"):
-        raise HTTPException(404, f"unknown action {action!r}")
-    await overseerr.request_action(request_id, action)
-    cache.clear()  # the pending list and the arrs' queues both just changed
 
 
 async def _fetch_discover(overseerr: OverseerrClient, kind: str) -> list:
@@ -339,89 +211,6 @@ async def search_series(q: str, sonarr: SonarrClient = Depends(get_sonarr)) -> l
         )
         for s in results[:30]
     ]
-
-
-@router.get("/search/releases", response_model=list[ReleaseOut])
-async def search_releases(q: str, prowlarr: ProwlarrClient = Depends(get_prowlarr)) -> list[ReleaseOut]:
-    results = await prowlarr.search(q)
-    return [
-        ReleaseOut(
-            guid=r.get("guid", ""),
-            indexer_id=r.get("indexerId", 0),
-            indexer=r.get("indexer"),
-            title=r.get("title", ""),
-            size=r.get("size"),
-            seeders=r.get("seeders"),
-            leechers=r.get("leechers"),
-            age_days=r.get("ageMinutes", 0) / 1440 if r.get("ageMinutes") is not None else None,
-            download_url=r.get("downloadUrl"),
-        )
-        for r in results[:100]
-    ]
-
-
-@router.post("/releases/grab", status_code=204)
-async def grab_release(body: GrabIn, prowlarr: ProwlarrClient = Depends(get_prowlarr)) -> None:
-    await prowlarr.grab(body.guid, body.indexer_id)
-
-
-def _arr_release(r: dict) -> ArrReleaseOut:
-    return ArrReleaseOut(
-        guid=r.get("guid", ""),
-        indexer_id=r.get("indexerId", 0),
-        indexer=r.get("indexer"),
-        title=r.get("title", ""),
-        quality=((r.get("quality") or {}).get("quality") or {}).get("name"),
-        size=r.get("size"),
-        seeders=r.get("seeders"),
-        leechers=r.get("leechers"),
-        age_days=r.get("ageHours", 0) / 24 if r.get("ageHours") is not None else None,
-        approved=not r.get("rejected", False),
-        rejections=r.get("rejections", []),
-    )
-
-
-def _sort_releases(rows: list[ArrReleaseOut]) -> list[ArrReleaseOut]:
-    return sorted(rows, key=lambda r: (not r.approved, -(r.seeders or 0)))
-
-
-@router.get("/releases/movie/{movie_id}", response_model=list[ArrReleaseOut])
-async def movie_releases(
-    movie_id: int, radarr: RadarrClient = Depends(get_radarr)
-) -> list[ArrReleaseOut]:
-    rows = await radarr.releases(movieId=movie_id)
-    return _sort_releases([_arr_release(r) for r in rows])
-
-
-@router.get("/releases/series/{series_id}", response_model=list[ArrReleaseOut])
-async def series_releases(
-    series_id: int,
-    season: int | None = None,
-    episode_id: int | None = None,
-    sonarr: SonarrClient = Depends(get_sonarr),
-) -> list[ArrReleaseOut]:
-    if episode_id is not None:
-        rows = await sonarr.releases(episodeId=episode_id)
-    elif season is not None:
-        rows = await sonarr.releases(seriesId=series_id, seasonNumber=season)
-    else:
-        raise HTTPException(422, "season or episode_id required")
-    return _sort_releases([_arr_release(r) for r in rows])
-
-
-@router.post("/releases/{app}/grab", status_code=204)
-async def grab_arr_release(
-    app: str,
-    body: GrabIn,
-    radarr: RadarrClient = Depends(get_radarr),
-    sonarr: SonarrClient = Depends(get_sonarr),
-) -> None:
-    if app == "radarr":
-        await radarr.grab_release(body.guid, body.indexer_id)
-    elif app == "sonarr":
-        await sonarr.grab_release(body.guid, body.indexer_id)
-    else:
-        raise HTTPException(404, f"unknown app {app!r}")
 
 
 @router.get("/collections", response_model=list[CollectionOut])

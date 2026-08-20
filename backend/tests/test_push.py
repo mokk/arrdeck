@@ -264,20 +264,22 @@ def _drive(db, payloads, monkeypatch):
     from app import push
 
     sent = []
+    # patch where it is used: pipeline imported the name, so patching the
+    # barrel would leave pipeline's own reference untouched
     monkeypatch.setattr(
-        push,
+        push.pipeline,
         "_send_all",
         lambda _db, title, body, url, tag, *rest: sent.append((title, body, url, tag)),
     )
-    monkeypatch.setattr(push, "COALESCER", push.Coalescer())
+    monkeypatch.setattr(push.pipeline, "COALESCER", push.Coalescer())
 
     async def run():
         for app_name, payload in payloads:
             await push.handle_webhook(db, app_name, payload)
         # jump past the coalescing window instead of waiting it out
-        for slot in await push.COALESCER.due(time.monotonic() + push.COALESCE_WINDOW + 1):
+        for slot in await push.pipeline.COALESCER.due(time.monotonic() + push.COALESCE_WINDOW + 1):
             title, body = push.render(slot)
-            push._send_all(db, title, body, slot.event.url, slot.event.tag, slot.event.key)
+            push.pipeline._send_all(db, title, body, slot.event.url, slot.event.tag, slot.event.key)
 
     asyncio.run(run())
     return sent
@@ -396,6 +398,8 @@ def test_clearing_a_device_choice_returns_it_to_the_default(tmp_path):
 
 def test_delivery_respects_each_device_separately(tmp_path, monkeypatch):
     import app.push as push
+    import app.push.delivery
+    import app.push.pipeline
 
     db = _two_devices(tmp_path)
     push.set_enabled_events(db, ["imported"])
@@ -403,15 +407,15 @@ def test_delivery_respects_each_device_separately(tmp_path, monkeypatch):
 
     delivered = []
     monkeypatch.setattr(
-        push, "webpush", lambda sub, *a, **kw: delivered.append(sub["endpoint"])
+        push.delivery, "webpush", lambda sub, *a, **kw: delivered.append(sub["endpoint"])
     )
     push.ensure_vapid(db)
 
-    push._send_all(db, "t", "b", "/", "tag", "imported")
+    push.delivery._send_all(db, "t", "b", "/", "tag", "imported")
     assert delivered == ["https://example.test/phone"]  # ipad opted out
 
     delivered.clear()
-    push._send_all(db, "t", "b", "/", "tag", "grabbed")
+    push.delivery._send_all(db, "t", "b", "/", "tag", "grabbed")
     assert delivered == ["https://example.test/ipad"]
 
 
@@ -419,11 +423,13 @@ def test_a_test_banner_ignores_every_preference(tmp_path, monkeypatch):
     import asyncio
 
     import app.push as push
+    import app.push.delivery
+    import app.push.pipeline
 
     db = _two_devices(tmp_path)
     push.set_enabled_events(db, [])  # nothing enabled anywhere
     delivered = []
-    monkeypatch.setattr(push, "webpush", lambda sub, *a, **kw: delivered.append(sub["endpoint"]))
+    monkeypatch.setattr(push.delivery, "webpush", lambda sub, *a, **kw: delivered.append(sub["endpoint"]))
     push.ensure_vapid(db)
 
     assert asyncio.run(push.send_test(db)) == 2

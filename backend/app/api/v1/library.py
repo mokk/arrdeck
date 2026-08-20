@@ -30,7 +30,7 @@ from ...schemas import (
     WantedPageOut,
 )
 from .dashboard import EVENT_LABELS
-from .media import _poster
+from .discover import _poster
 
 router = APIRouter(tags=["library"])
 

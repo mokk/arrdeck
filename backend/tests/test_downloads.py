@@ -3,7 +3,7 @@ import asyncio
 import pytest
 from fastapi import HTTPException
 
-from app.api.v1.downloads import QBIT_PRIORITY, set_speed_limit
+from app.api.v1.torrentactions import QBIT_PRIORITY, set_speed_limit
 from app.schemas import SpeedLimitIn
 
 
