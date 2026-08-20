@@ -5,7 +5,10 @@ from . import (
     dashboard,
     downloads,
     hooks,
-    manage,
+    arrmeta,
+    indexers,
+    library,
+    wanted,
     media,
     plex,
     popular,
@@ -24,7 +27,10 @@ router.include_router(subtitles.router)
 router.include_router(torrents.router)
 router.include_router(downloads.router)
 router.include_router(media.router)
-router.include_router(manage.router)
+router.include_router(indexers.router)
+router.include_router(library.router)
+router.include_router(wanted.router)
+router.include_router(arrmeta.router)
 router.include_router(settings.router)
 router.include_router(auth.router)
 router.include_router(hooks.router)
