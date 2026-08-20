@@ -7,7 +7,15 @@ class SonarrClient(ArrClient):
     name = "sonarr"
 
     async def queue(self) -> dict:
-        return await self.get("/queue", params={"pageSize": 50, "includeSeries": "true"})
+        # includeUnknownSeriesItems: see the note in RadarrClient.queue
+        return await self.get(
+            "/queue",
+            params={
+                "pageSize": 50,
+                "includeSeries": "true",
+                "includeUnknownSeriesItems": "true",
+            },
+        )
 
     async def calendar(self, start: str, end: str) -> list:
         return await self.get(

@@ -1,12 +1,13 @@
 // The Radarr/Sonarr download queue shown above the torrent list.
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 
 import { Card, Row, SectionTitle, StateBadge } from "../../components/Blocks";
+import { ImportSheet } from "../ImportSheet";
 
 import { useBlocklistRetry, useForceImport, useQueue, useQueueRemove } from "../../hooks/queries";
 
-// how many rows each client returns per request; raised by "load more"
 
 export function ArrQueue() {
   const { t } = useTranslation();
@@ -14,6 +15,7 @@ export function ArrQueue() {
   const remove = useQueueRemove();
   const retry = useBlocklistRetry();
   const forceImport = useForceImport();
+  const [importing, setImporting] = useState<{ app: string; id: number } | null>(null);
   const items = [...(data?.radarr?.data ?? []), ...(data?.sonarr?.data ?? [])];
   if (items.length === 0) return null;
   return (
@@ -62,10 +64,28 @@ export function ArrQueue() {
               >
                 {t("common.remove")}
               </Button>
+              {/* the arr couldn't place the files itself — same entry point as
+                  the dashboard queue card */}
+              {(q.tracked_status === "warning" || q.tracked_status === "error") && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setImporting({ app: q.app, id: q.id })}
+                >
+                  {t("dl.manualImport")}
+                </Button>
+              )}
             </div>
           </Row>
         ))}
       </Card>
+      {importing && (
+        <ImportSheet
+          app={importing.app}
+          itemId={importing.id}
+          onClose={() => setImporting(null)}
+        />
+      )}
     </div>
   );
 }
