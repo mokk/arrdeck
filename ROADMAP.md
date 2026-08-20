@@ -93,7 +93,25 @@ free.
 **Verification**: CI red on a deliberate violation; the existing `noqa` comments
 suppress exactly what they claim to. **Size: M.**
 
-## D. Measure coverage
+## D. Measure coverage — done
+
+Baseline recorded: **backend 63%**, **frontend 5%**. The prediction held — the
+helpers are well covered (schemas 100%, push pipeline 98%, events 92%) and the
+route bodies are not (26–50%). The least-covered module is `webhooks.py` at
+**22%**, which is also the one that writes Connect entries into Radarr and Sonarr.
+
+Frontend pages are at **0%**: the a11y and module-boundary tests are static
+analysis, so they read files rather than execute components.
+
+CI now runs both. The backend has a `--cov-fail-under=60` floor — verified to
+fail at 95 and pass at 60 — so coverage can't slide while the route bodies get
+tests. The frontend number is reported but not gated; gating 5% would be theatre.
+
+Where to aim first, by risk rather than by percentage:
+`webhooks.py` (22%, writes to the arrs), `arrqueue.py` (31%, deletes queue
+items), `discover.py` (26%, adds media), `library.py` (35%, bulk-deletes).
+
+## D-original. Measure coverage
 
 216 tests and no idea what they cover. The bugs that reached production this
 month — `_speed_samples`, the unpackerr counter, the hidden queue items — were all

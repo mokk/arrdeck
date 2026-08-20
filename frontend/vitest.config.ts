@@ -14,5 +14,13 @@ export default defineConfig({
     // jsdom 29 has no Storage implementation; the setup file supplies one
     setupFiles: ["src/test-setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text-summary", "text"],
+      include: ["src/**/*.{ts,tsx}"],
+      // generated types, the entry module and the service worker are not
+      // exercised by unit tests
+      exclude: ["src/api/generated/**", "src/main.tsx", "src/sw.ts", "src/**/*.test.*"],
+    },
   },
 });

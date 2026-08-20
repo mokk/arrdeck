@@ -11,7 +11,8 @@
     "gen:icons": "node scripts/gen-icons.mjs",
     "test": "vitest run",
     "lint": "biome check src",
-    "lint:fix": "biome check src --write"
+    "lint:fix": "biome check src --write",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^13.3.0",
@@ -44,6 +45,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.0.5",
+    "@vitest/coverage-v8": "^3.2.7",
     "jsdom": "^29.1.1",
     "sharp": "^0.35.3",
     "typescript": "^7.0.2",

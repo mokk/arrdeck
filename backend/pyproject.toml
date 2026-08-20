@@ -35,3 +35,17 @@ ignore = [
 "app/schemas/common.py" = ["UP046"]
 # tests import inside functions deliberately, to keep the split modules honest
 "tests/*" = ["E402", "F401"]
+
+[tool.coverage.run]
+source = ["app"]
+# the entry module is exercised by running the app, not by the test suite
+omit = ["app/main.py"]
+
+[tool.coverage.report]
+skip_covered = false
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    # background loops run forever; their bodies are tested directly
+    "while True:",
+]

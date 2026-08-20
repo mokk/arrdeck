@@ -8,3 +8,4 @@ httpx2==2.*
 pyflakes==3.*
 # lint + format; the 27 `# noqa: BLE001` comments assume it
 ruff==0.16.*
+pytest-cov==7.*

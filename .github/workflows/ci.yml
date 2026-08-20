@@ -19,7 +19,9 @@ jobs:
         working-directory: backend
       - run: ruff check .
         working-directory: backend
-      - run: python -m pytest tests -q
+      # A floor, not a target: it stops coverage sliding while the route
+      # bodies (26-50%) get tests of their own.
+      - run: python -m pytest tests -q --cov --cov-report=term-missing --cov-fail-under=60
         working-directory: backend
 
   frontend:
@@ -38,7 +40,8 @@ jobs:
         working-directory: frontend
       - run: npm run lint
         working-directory: frontend
-      - run: npm test
+      # Reported, not gated: 5% today, and gating that would be theatre.
+      - run: npm run test:coverage
         working-directory: frontend
 
   image:
