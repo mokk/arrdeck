@@ -13,6 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  readPreference,
+  setPreference as setThemePreference,
+  type ThemePreference,
+} from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 import { SERVICE_LABELS } from "../../../api/format";
@@ -169,6 +174,40 @@ export function StatusStrip() {
         );
       })}
     </div>
+  );
+}
+
+export function ThemePicker() {
+  const { t } = useTranslation();
+  // Read once on mount: the value only ever changes through this control, and
+  // the resolved theme lives on <html> rather than in React state.
+  const [preference, setPreference] = useState<ThemePreference>(readPreference);
+  const options: ThemePreference[] = ["system", "dark", "light"];
+  return (
+    <Card>
+      <div className="flex items-center justify-between p-4">
+        <span className="font-semibold">{t("manage.theme")}</span>
+        <Select
+          value={preference}
+          onValueChange={(value) => {
+            const next = value as ThemePreference;
+            setPreference(next);
+            setThemePreference(next);
+          }}
+        >
+          <SelectTrigger size="sm" className="w-auto bg-secondary">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((option) => (
+              <SelectItem key={option} value={option}>
+                {t(`manage.theme_${option}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </Card>
   );
 }
 

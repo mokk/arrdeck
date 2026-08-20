@@ -37,7 +37,7 @@ export function BulkBar({
   };
 
   return (
-    <div className="fixed bottom-[calc(4.2rem+env(safe-area-inset-bottom))] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-2xl border border-white/10 bg-card/90 px-3 py-2 shadow-2xl shadow-black/60 backdrop-blur-xl">
+    <div className="fixed bottom-[calc(4.2rem+env(safe-area-inset-bottom))] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-2xl border border-border bg-card/90 px-3 py-2 shadow-2xl shadow-[color:var(--shadow-color)] backdrop-blur-xl">
       <span className="px-1 text-xs text-muted-foreground">
         {t("dl.selected", { count: selected.size })}
       </span>

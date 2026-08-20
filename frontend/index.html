@@ -14,6 +14,22 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Before first paint: a stored preference wins, otherwise follow the OS.
+      // Duplicating the two-line rule from src/lib/theme.ts is deliberate — the
+      // module cannot load this early, and a flash of the wrong palette on every
+      // cold start is worse than the duplication. Keep them in step.
+      (() => {
+        const stored = localStorage.getItem("arrdeck.theme");
+        const light =
+          stored === "light" ||
+          (stored !== "dark" && window.matchMedia?.("(prefers-color-scheme: light)").matches);
+        document.documentElement.dataset.theme = light ? "light" : "dark";
+        if (light) {
+          document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#f4f6fa");
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

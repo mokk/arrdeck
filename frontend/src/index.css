@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* The shadcn primitives carry `dark:` tweaks (input backgrounds, destructive
+   opacity, tab states). By default that variant follows prefers-color-scheme,
+   which would desync the moment someone pins a theme against their OS — light
+   palette with dark-mode input styling, or vice versa. Point it at the same
+   attribute the palettes use, which the boot script always sets. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* arrdeck theme — matched to the favicon palette:
    navy bg #0f1219 / card #181d29, border #2a3145, muted #8b94ab, accent #5b8cff */
 :root {
@@ -26,6 +33,44 @@
   --radius: 0.85rem;
   --success: #3fb96f;
   --warning: #d9a53f;
+  /* Floating bars (dock, bulk bars) sit above content on a blur. Their shadow
+     has to be a token: an opaque black at 50% reads as grime in light mode. */
+  --shadow-color: rgb(0 0 0 / 0.5);
+  color-scheme: dark;
+}
+
+/* Light theme. Every value here was picked against WCAG AA rather than by eye:
+   the badge colours are read as *text* on --secondary, and #5b8cff-class blues
+   land near 3:1 on a light background, which is why primary/success/warning are
+   noticeably darker than their dark-mode counterparts rather than the same hue
+   lightened. See theme.test.ts, which fails if any of them regresses.
+
+   Applied by [data-theme], set before first paint by the boot script in
+   index.html, so there is no flash and "system" is resolved in one place. */
+:root[data-theme="light"] {
+  --background: #f4f6fa;
+  --foreground: #111520;
+  --card: #ffffff;
+  --card-foreground: #111520;
+  --popover: #ffffff;
+  --popover-foreground: #111520;
+  --primary: #2560db;
+  --primary-foreground: #ffffff;
+  --secondary: #e6eaf3;
+  --secondary-foreground: #111520;
+  --muted: #e6eaf3;
+  --muted-foreground: #535d72;
+  --accent: #dde3ef;
+  --accent-foreground: #111520;
+  --destructive: #b92626;
+  --destructive-foreground: #ffffff;
+  --border: #cfd7e6;
+  --input: #cfd7e6;
+  --ring: #2560db;
+  --success: #17753f;
+  --warning: #845400;
+  --shadow-color: rgb(17 21 32 / 0.14);
+  color-scheme: light;
 }
 
 @theme inline {

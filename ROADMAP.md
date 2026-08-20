@@ -216,7 +216,51 @@ chips, same bulk bar, same sort, differing only in fields and hooks.
 **Verification**: both lists behave identically to now, including tag filtering,
 select mode and bulk actions. **Size: M.**
 
-## G. Light theme
+## G. Light theme — done
+
+Shipped: a light palette on the same CSS variables, plus an Appearance setting
+(System / Dark / Light) in Manage -> Services.
+
+Switched by `[data-theme]` on `<html>` rather than by media query, because the
+roadmap also asked for a pin — an override cannot beat a media query without
+duplicating the whole palette. A boot script in `index.html` resolves the
+preference before first paint, so there is no flash, and `theme.ts` keeps
+"system" live when the OS flips appearance while the app is open. `theme-color`
+moves with it, so the iOS status bar and Android address bar follow.
+
+Colours were derived against WCAG AA, not chosen by eye: the state badges are
+read as *text* on `--secondary`, where the dark theme's blue lands at 3.96:1.
+So primary, success and warning are meaningfully darker in light mode
+(#2560db / #17753f / #845400) rather than the same hues lightened. Every text
+token clears 4.5:1 and every status dot clears 3:1.
+
+Two things the palette alone would not have fixed:
+- The shadcn primitives carry `dark:` tweaks, and Tailwind v4 keys that variant
+  off `prefers-color-scheme`. Pinning a theme against the OS would have given
+  light colours with dark-mode input styling. `@custom-variant dark` retargets
+  it at the same attribute; the built CSS has 42 attribute selectors and zero
+  `prefers-color-scheme` rules.
+- `border-white/10` is invisible on a light card and `shadow-black/50` reads as
+  grime, so the floating bars (dock, both bulk bars, pull-to-refresh) now use
+  `border-border` and a `--shadow-color` token.
+
+**Verified**: 28 tests — 16 parsing the real stylesheet and asserting contrast
+per token pair, 12 driving the switching logic (pin against OS in both
+directions, junk stored value, missing `matchMedia`, live OS flip, listener
+teardown, `theme-color`, and that the boot script agrees with the module on the
+storage key). Compiled CSS inspected directly for the palette block and the
+retargeted variant.
+
+**Not verified**: reading every page with system appearance toggled. The
+automation browser lost LAN access before this phase started and never
+recovered — it can reach the internet but not the app, while curl gets 200
+throughout. This one deserves a human eye, particularly the poster grids and
+the Stats charts, which the token audit cannot speak for.
+
+Left alone: the PWA manifest's `theme_color` stays dark. A manifest cannot
+respond to appearance, and arrdeck's installed identity is the dark one.
+
+## G-original. Light theme
 
 `index.css` defines one dark palette and nothing responds to
 `prefers-color-scheme`. On a phone that follows system appearance, arrdeck is the

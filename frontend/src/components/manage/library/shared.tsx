@@ -121,7 +121,7 @@ export function LibraryBulkBar({
   const pending = bulk.isPending || bulkDelete.isPending || bulkSearch.isPending;
 
   return (
-    <div className="fixed bottom-[calc(7.4rem+env(safe-area-inset-bottom))] left-1/2 z-40 flex max-w-[95vw] -translate-x-1/2 flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/10 bg-card/90 px-3 py-2 shadow-2xl shadow-black/60 backdrop-blur-xl">
+    <div className="fixed bottom-[calc(7.4rem+env(safe-area-inset-bottom))] left-1/2 z-40 flex max-w-[95vw] -translate-x-1/2 flex-wrap items-center justify-center gap-2 rounded-2xl border border-border bg-card/90 px-3 py-2 shadow-2xl shadow-[color:var(--shadow-color)] backdrop-blur-xl">
       <span className="px-1 text-xs text-muted-foreground">
         {t("dl.selected", { count: ids.length })}
       </span>

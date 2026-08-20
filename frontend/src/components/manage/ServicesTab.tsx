@@ -1,7 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { useServiceSettings } from "../../hooks/queries";
 import { EmptyNote, ErrorNote } from "../Blocks";
-import { LanguagePicker, ServiceSettingsCard, StatusStrip } from "./settings/connections";
+import {
+  LanguagePicker,
+  ServiceSettingsCard,
+  StatusStrip,
+  ThemePicker,
+} from "./settings/connections";
 import { NotificationsCard } from "./settings/notifications";
 import { SecurityCard } from "./settings/security";
 import { ImportLists, SettingsTransfer } from "./settings/transfer";
@@ -36,6 +41,7 @@ export function ServiceSettingsTab() {
   return (
     <>
       <StatusStrip />
+      <ThemePicker />
       <LanguagePicker />
       <SecurityCard />
       <NotificationsCard />

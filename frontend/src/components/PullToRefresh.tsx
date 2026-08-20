@@ -53,7 +53,7 @@ export function PullToRefresh() {
       className="fixed left-1/2 top-0 z-40"
       style={{ transform: `translate(-50%, ${offset - 36}px)` }}
     >
-      <div className="rounded-full bg-card p-2 shadow-lg shadow-black/40">
+      <div className="rounded-full bg-card p-2 shadow-lg shadow-[color:var(--shadow-color)]">
         <Loader2
           className={cn("size-5 text-primary", (busy || offset > 55) && "animate-spin")}
         />

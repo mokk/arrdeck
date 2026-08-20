@@ -142,7 +142,7 @@ function Shell() {
             >
               {searchbar && (
                 <form
-                  className="pointer-events-auto flex min-w-0 flex-1 items-center gap-2 rounded-full border border-white/10 bg-card/90 px-4 shadow-2xl shadow-black/50 backdrop-blur-xl"
+                  className="pointer-events-auto flex min-w-0 flex-1 items-center gap-2 rounded-full border border-border bg-card/90 px-4 shadow-2xl shadow-[color:var(--shadow-color)] backdrop-blur-xl"
                   onSubmit={(e) => {
                     e.preventDefault();
                     searchbar.onSubmit?.();
@@ -172,7 +172,7 @@ function Shell() {
               {sortButton && (
                 <button
                   type="button"
-                  className="pointer-events-auto flex size-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-card/90 text-muted-foreground shadow-2xl shadow-black/50 backdrop-blur-xl active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                  className="pointer-events-auto flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-card/90 text-muted-foreground shadow-2xl shadow-[color:var(--shadow-color)] backdrop-blur-xl active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                   onClick={sortButton.open}
                   title={t("common.sortBy")}
                 >
