@@ -42,10 +42,22 @@ from a wishlist. Measurements are from the live stack.
 | I | Arr log viewer | Radarr/Sonarr/Prowlarr with level filtering |
 | J | Split the fat modules | route surface verified identical at 115 |
 
-## Remaining
+## Nothing outstanding
 
-All lettered phases are shipped. Emby/Jellyfin (M) was dropped for good — Plex
-covers now-playing and watched state, and those two would only duplicate it.
+Every lettered phase across both rounds is shipped and every module is under 400
+lines. Emby/Jellyfin (M) was dropped for good — Plex covers now-playing and
+watched state, and those two would only duplicate it.
+
+Ideas that came up and were deliberately left, should they ever matter:
+
+- **Notification actions** — buttons on the banner itself (blocklist & retry a
+  failed download, approve a request) via `showNotification`'s `actions`. iOS
+  support is limited; check before building.
+- **Popular beyond 24h** — needs arrdeck to accumulate releases itself, because
+  Prowlarr caps every search at 100 with no paging.
+- **Manual-import target picker for episodes** — the picker asks for a season
+  number by hand rather than listing seasons, since nothing cheap enumerates them.
+- **Uptime Kuma** — no clean REST API; would mostly duplicate the existing probes.
 
 | Phase | What | Shipped |
 |-------|------|---------|
