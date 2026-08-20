@@ -44,19 +44,34 @@ from a wishlist. Measurements are from the live stack.
 
 ## Remaining
 
-(Emby/Jellyfin dropped for good — Plex covers now-playing and watched state,
-and those two would only duplicate it.)
+All lettered phases are shipped. Emby/Jellyfin (M) was dropped for good — Plex
+covers now-playing and watched state, and those two would only duplicate it.
 
-- **K. Accessibility pass** — 4 `aria-*` attributes across the app, 20 raw
-  `<button>`s, colour-only signals (the watched dot, state badges), no
-  focus-visible styles. **Size: M.**
-- **L. Calendar week and agenda views** — the month grid is the only shape, and
-  Upcoming now leads the dashboard. **Size: M.**
-- **N. Unpackerr and download-client health** — extraction failures are a common
-  cause of a download that completes and never imports. **Size: S.**
+| Phase | What | Shipped |
+|-------|------|---------|
+| K | Accessible names, focus rings, non-colour signals + static guards | 2026-08-20 |
+| L | Calendar week strip and day-grouped agenda | 2026-08-20 |
+| N | Unpackerr extraction state via Prometheus, download-client checks | 2026-08-20 |
 
-Files still over ~400 lines, deliberately left rather than churned in one pass:
-`ServicesTab.tsx` (777), `schemas.py` (747), `manage.py` (632), `Libraries.tsx` (621).
+### Outstanding: modules over ~400 lines
+
+The list has grown since it was first recorded — partly from the features added
+since, partly because a few files are natural magnets. Current state:
+
+| File | Lines | Shape |
+|------|-------|-------|
+| `components/manage/ServicesTab.tsx` | 841 | six unrelated settings cards in one file |
+| `schemas.py` | 795 | every response model in the app |
+| `api/v1/manage.py` | 731 | library, indexers, wanted, tags, blocklist, lists, logs |
+| `components/manage/Libraries.tsx` | 630 | movie and series lists, near-duplicates |
+| `api/v1/downloads.py` | 581 | torrent actions, arr queue, manual import, rename |
+| `push.py` | 552 | events, coalescing, webhooks, poller, rules |
+| `api/v1/media.py` | 544 | posters, discover, search, requests, releases |
+| `hooks/useLibrary.ts` | 516 | the largest domain, could split media vs library |
+
+The proven approach from the earlier split: move whole declarations with `ast`
+(python) or by top-level `function` boundary (tsx), keep a barrel re-export so no
+import site changes, then diff the OpenAPI route surface to prove nothing moved.
 
 ## Notes carried forward
 
