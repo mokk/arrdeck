@@ -1,22 +1,43 @@
+import logging
 import time
+from collections import OrderedDict
 from collections.abc import Callable, Coroutine
 from typing import Any
 
 from .clients.base import ServiceUnavailable
 from .schemas import ServiceBlock
 
+logger = logging.getLogger("arrdeck.cache")
+
+# Entries are kept past their TTL on purpose, so a dead upstream can still
+# render its last good value. That makes the key space the thing to bound: keys
+# like calendar:radarr:{start}:{end} gain a permanent entry for every month —
+# and, since the calendar grew a week view, every week — that anyone browses.
+MAX_ENTRIES = 512
+
 
 class TTLCache:
-    """In-memory TTL cache that also retains the last good value forever,
-    so offline services can render stale data with a timestamp."""
+    """In-memory TTL cache that retains the last good value past its TTL, so an
+    offline service can render stale data with a timestamp.
 
-    def __init__(self) -> None:
-        self._store: dict[str, tuple[float, Any]] = {}
+    Least-recently-used beyond MAX_ENTRIES. The blocks that rely on the stale
+    fallback (diskspace, health, vpn, watched) are re-read on every dashboard
+    poll, so they stay resident; it is the one-off date-range keys that fall out.
+    """
+
+    def __init__(self, max_entries: int = MAX_ENTRIES) -> None:
+        self._store: OrderedDict[str, tuple[float, Any]] = OrderedDict()
+        self._max_entries = max_entries
+        self.evictions = 0
+
+    def _touch(self, key: str) -> None:
+        self._store.move_to_end(key)
 
     def get(self, key: str, ttl: float) -> Any | None:
         entry = self._store.get(key)
         if entry is None:
             return None
+        self._touch(key)
         stored_at, value = entry
         if time.monotonic() - stored_at > ttl:
             return None
@@ -27,14 +48,27 @@ class TTLCache:
         entry = self._store.get(key)
         if entry is None:
             return None
+        self._touch(key)
         stored_at, value = entry
         return time.monotonic() - stored_at, value
 
     def set(self, key: str, value: Any) -> None:
         self._store[key] = (time.monotonic(), value)
+        self._touch(key)
+        while len(self._store) > self._max_entries:
+            evicted, _ = self._store.popitem(last=False)
+            self.evictions += 1
+            logger.info("cache evicted %s (%d entries)", evicted, len(self._store))
 
     def clear(self) -> None:
         self._store.clear()
+
+    def stats(self) -> dict:
+        return {
+            "entries": len(self._store),
+            "max_entries": self._max_entries,
+            "evictions": self.evictions,
+        }
 
 
 cache = TTLCache()
