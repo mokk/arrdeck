@@ -31,7 +31,20 @@ moving fast, plus capability the arrs expose that arrdeck still ignores.
 
 ---
 
-## A. Tighten module boundaries
+## A. Tighten module boundaries — done
+
+Shipped in 47fbaa4, though the heading was never marked. `export` dropped from
+every helper with no consumer outside its own file, eight genuinely dead
+declarations deleted, and `module-boundaries.test.ts` added as the guard.
+
+Two of the deletions the phase called for turned out to be wrong: `STATE_COLORS`
+and `MediaHead` are both live *inside* their own file, so un-exporting was the
+correct outcome rather than removal. `SortBar` was dead and is gone.
+
+The guard has since earned its place twice, catching an exported type in the
+library refactor (F) and three internal theme helpers (G).
+
+## A-original. Tighten module boundaries
 
 The 400-line split was mechanical, and the script exported everything it moved.
 `Sparkline`, `SheetButton`, `EventToggles`, `TorrentDetailsSection`,
