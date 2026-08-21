@@ -1,500 +1,199 @@
-# arrdeck roadmap
+# arrdeck roadmap — fourth round
 
-Phases are lettered so a task can be started with just "do phase C".
-
-**Third lettering round.** The previous two rounds are shipped in full and live in
-git history (`git log -p -- ROADMAP.md`): the first built the app out (toasts,
-series management, interactive search, push/webhooks, stats), the second hardened
-it (payload size, bundle splitting, error boundaries, backup/restore, request ids,
-blocklist, import lists, arr logs, accessibility, calendar views, unpackerr) and
-finished by getting every module under 400 lines.
-
-Everything below came from a survey of the running system on 2026-08-20.
-Measurements are from the live stack, not estimates.
+Written from a fresh survey on 2026-08-21, after A–K shipped. Everything below
+is grounded in something measured against the running stack, not guessed at.
 
 ## Where things actually stand
 
-18,400 lines, 120 endpoints, 216 tests, a 231 MB image, 27 JS chunks, ten
-services integrated. Nothing is broken. What follows is mostly the debt left by
-moving fast, plus capability the arrs expose that arrdeck still ignores.
-
-| Finding | Measured |
-|---|---|
-| Internal helpers exported from every split module | **17 exports** no other file imports |
-| `TTLCache` never evicts, and keys embed date ranges | `calendar:radarr:{start}:{end}` — a new permanent key per week browsed |
-| Linter comments for a linter that was never wired up | **19 files** carry `# noqa`; no ruff, eslint or biome anywhere |
-| No coverage measurement | 216 tests, no idea what they miss |
-| No retry on upstream calls | one blip fails the request; no backoff in any client |
-| The two library lists are near-copies | `movies.tsx` / `series.tsx`, 225 lines each, **76% identical** |
-| Dark theme only | zero `prefers-color-scheme` handling |
-| Three hooks poll every 5s | queue, torrent summary, Plex sessions — battery cost on a phone |
-
----
-
-## A. Tighten module boundaries — done
-
-Shipped in 47fbaa4, though the heading was never marked. `export` dropped from
-every helper with no consumer outside its own file, eight genuinely dead
-declarations deleted, and `module-boundaries.test.ts` added as the guard.
-
-Two of the deletions the phase called for turned out to be wrong: `STATE_COLORS`
-and `MediaHead` are both live *inside* their own file, so un-exporting was the
-correct outcome rather than removal. `SortBar` was dead and is gone.
-
-The guard has since earned its place twice, catching an exported type in the
-library refactor (F) and three internal theme helpers (G).
-
-## A-original. Tighten module boundaries
-
-The 400-line split was mechanical, and the script exported everything it moved.
-`Sparkline`, `SheetButton`, `EventToggles`, `TorrentDetailsSection`,
-`NotificationRules` and a dozen more are `export`ed but used only inside their own
-file — so nothing stops a future import reaching past a module's front door.
-
-- Drop `export` from anything with no external consumer.
-- Delete what is genuinely dead: `STATE_COLORS`, `MediaHead`, `SortBar`, and the
-  unused type aliases in `api/types.ts`.
-- Add a test in the shape of the existing a11y guards that fails on an export
-  nothing imports, so the next split can't reintroduce this.
-
-**Verification**: build and tests unchanged; the new guard fails if an export is
-added without a consumer. **Size: S.**
-
-## B. Bound the cache — done
+- **8,309 lines** of backend Python in 58 files, **12,623** of frontend TS in 94.
+- **222 backend tests at 65% coverage**, floor of 60% enforced in CI.
+- **168 frontend tests at 27.6% coverage**, and **no threshold at all** in CI.
+- 124 routes, 41 route groups. All endpoints answer in under half a second warm.
+- Zero health warnings, zero TODO/FIXME markers, lint clean on both sides.
 
-Shipped: `TTLCache` is an `OrderedDict` with an LRU cap of 512 entries. Both
-`get()` and `get_stale()` move a key to the end, so the fixed-key dashboard
-blocks (`diskspace`, `health`, `vpn`, `watched`) stay resident while one-off
-date-range keys churn past them. Evictions are logged and counted, and `stats()`
-exposes entries/cap/evictions.
-
-The "bucket calendar keys by month" idea was dropped: with an LRU cap the
-unbounded-growth problem it solved no longer exists, and bucketing would make a
-week view re-fetch a whole month.
-
-**Verified**: 104 distinct calendar keys (a year of weeks x 2 arrs) left the cache
-well inside the cap, and with bazarr stopped past its 300s TTL `/subtitles`
-returned `ok=false` with `stale_age_seconds=470` and the last good payload intact
-— the stale path the cap could have broken still works. 9 unit tests cover the
-eviction order, including that reads protect an entry from eviction.
+The previous round closed the structural debt: modules are split, linters and
+coverage run in CI, the cache is bounded, upstream calls retry, both detail pages
+share a shell. What the survey turns up now is mostly **untested surface**,
+**one duplicated endpoint I added last round**, and a handful of arr APIs that
+are still dark.
 
-## B-original. Bound the cache
-
-`TTLCache` retains every value forever — deliberately, so an offline service can
-render stale data. But the key space is unbounded: `calendar:radarr:{start}:{end}`
-gains a permanent entry for every month *and now every week* browsed, since the
-calendar gained week stepping. `requests:{filter}:{take}` and `popular:{h}:{limit}`
-are the same shape.
+## A. Delete the endpoint phase K duplicated
 
-- LRU cap on entry count, with the stale-fallback behaviour preserved for the
-  fixed-key blocks that rely on it (`diskspace`, `health`, `vpn`, `watched`).
-- Log what was evicted, matching the poster-cache prune.
-- Consider bucketing calendar keys by month so week stepping reuses them.
+`/profiles` in `arrmeta.py` already returned per-app quality profiles — id, name,
+`upgrade_allowed`, and the raw `cutoff` id. Phase K added
+`/quality-profiles/{app}`, a strict superset, without noticing it. `/profiles`
+has **no frontend caller**.
 
-**Verification**: browse a year of weeks, confirm the entry count settles and an
-offline service still shows stale data with its age. **Size: S.**
+- Delete `/profiles` and its schema; `/quality-profiles/{app}` covers it.
+- Check the same way before the next endpoint: 11 of 124 routes have no literal
+  match in the frontend, and most are dynamic-path false positives — but this one
+  was real and a grep would have found it.
 
-## C. Wire up the linters — done
+**Verification**: route count drops by one, frontend build unaffected.
+**Size: S.**
 
-Shipped: **ruff** for the backend (the rules the 27 `# noqa` comments already
-assumed) and **Biome** for the frontend. Biome does *not* support Python — it is a
-JS/TS toolchain — so one tool for both isn't available; ruff is its analogue in
-that ecosystem.
+## B. Put a floor under frontend coverage
 
-What they found: **308 unused Python imports** and **43 unused TS imports** left
-by the module splits, 4 duplicated docstrings and a `ServiceName` literal
-duplicated into every schemas module, **22 buttons with no `type`** (inside a form
-those default to submit), and **6 clickable `<div>`s with no keyboard path** —
-an accessibility gap phase K missed because it only audited `<button>` elements.
-Both linters now run in CI.
-
-## C-original. Wire up the linters
-
-19 files carry `# noqa: BLE001` comments written for ruff, which was never
-installed. The frontend has no linter at all — the over-exporting in phase A and
-the unused imports found during the splits are both things a linter catches for
-free.
-
-- `ruff` for the backend with the rules those `noqa`s already assume.
-- `eslint` (or `biome`, one tool for lint+format) for the frontend, including
-  `react-hooks` — several `useEffect` dependency arrays were hand-waved during
-  the splits.
-- Both in CI, alongside the existing pytest/build/vitest jobs.
+The backend has a 60% floor in CI. The frontend runs coverage and **enforces
+nothing**, so 27.6% can slide to 20% unnoticed. The gaps are not obscure:
 
-**Verification**: CI red on a deliberate violation; the existing `noqa` comments
-suppress exactly what they claim to. **Size: M.**
+| area | coverage |
+|------|----------|
+| `src/components/dashboard` | **0%** |
+| `src/pages/Downloads.tsx` | **0%** |
+| `src/pages` overall | 15.6% |
+| `src/hooks` | 21.4% |
 
-## D. Measure coverage — done
+The dashboard is the home screen and Downloads is the second-most-used page.
 
-Baseline recorded: **backend 63%**, **frontend 5%**. The prediction held — the
-helpers are well covered (schemas 100%, push pipeline 98%, events 92%) and the
-route bodies are not (26–50%). The least-covered module is `webhooks.py` at
-**22%**, which is also the one that writes Connect entries into Radarr and Sonarr.
+- Cover the dashboard cards and the Downloads page the way the library lists and
+  detail pages now are — render with mocked hooks, assert what the user sees.
+- Then set a threshold just under wherever that lands, as a floor not a target.
 
-Frontend pages are at **0%**: the a11y and module-boundary tests are static
-analysis, so they read files rather than execute components.
+**Verification**: CI fails on a deliberate coverage drop. **Size: M.**
 
-CI now runs both. The backend has a `--cov-fail-under=60` floor — verified to
-fail at 95 and pass at 60 — so coverage can't slide while the route bodies get
-tests. The frontend number is reported but not gated; gating 5% would be theatre.
+## C. Test the webhook installer
 
-Where to aim first, by risk rather than by percentage:
-`webhooks.py` (22%, writes to the arrs), `arrqueue.py` (31%, deletes queue
-items), `discover.py` (26%, adds media), `library.py` (35%, bulk-deletes).
+`webhooks.py` is **127 statements at 22% coverage** — the least-tested code in
+the backend, and it writes to three arrs: it creates, updates and deletes
+notification entries in Radarr, Sonarr and Prowlarr to wire up arrdeck's push.
 
-## D-original. Measure coverage
+A silent failure here means notifications stop and nothing says so. It is also
+the code most likely to break when an arr changes its notification schema.
 
-216 tests and no idea what they cover. The bugs that reached production this
-month — `_speed_samples`, the unpackerr counter, the hidden queue items — were all
-in untested paths.
+- Cover install, re-install over an existing entry, the schema lookup, and the
+  failure paths, against a fake arr.
 
-- `pytest-cov` and `vitest --coverage`, reported in CI, no gate at first.
-- Look specifically at the endpoint bodies: the helpers are well tested, the
-  route functions themselves mostly are not.
+**Verification**: the module clears 70%, and a schema change surfaces as a test
+failure rather than a missing notification. **Size: S.**
 
-**Verification**: a coverage report in CI output; the arrqueue/importing routers
-should show the gap most clearly. **Size: S.**
+## D. An unknown URL renders a blank page
 
-## E. Retry upstream calls — done
-
-Shipped: `BaseClient._request` splits into a policy wrapper and `_attempt`. GETs
-get exactly one more attempt after a 250ms backoff; POST/PUT/DELETE get none.
-
-Only failures that prove the request never landed are retried — `ConnectError`,
-`ConnectTimeout`, `ReadError`, `RemoteProtocolError` and 5xx. `ReadTimeout` is
-deliberately excluded: the server did receive the request, so a second one only
-doubles the wait (`releases()` allows 90s) and doubles the load on an indexer
-that is already struggling. 4xx is an answer, not a failure, so it passes
-straight through.
-
-Retries are counted per service in a 15-minute rolling window and surfaced as
-`retries` on `/status`. The settings status strip now has three states rather
-than two: green, amber "flaky" (reachable but retrying), red offline.
-
-**Verified**: 10 tests in `test_client_retry.py` assert exactly two attempts on a
-flaky GET, exactly one on POST/PUT/DELETE, no retry on `ReadTimeout` or 404, a
-retry on 503, per-service counting, and that counts fall out of the window.
-
-## E-original. Retry upstream calls
-
-No client retries anything. A single dropped connection turns into an offline
-card, and the arrs drop connections routinely — which is exactly how the
-unpackerr "1 error" that started a whole investigation came about.
-
-- One retry with a short backoff on idempotent GETs, in `BaseClient._request`.
-- Never retry POST/PUT/DELETE: a re-sent grab or delete is worse than an error.
-- Count retries so the health card can say "flaky" rather than flapping.
-
-**Verification**: block a service mid-request and confirm one retry, and that a
-grab is *not* retried. **Size: S.**
-
-## F. Collapse the library lists — done
-
-Shipped: one `LibraryList` in `library/list.tsx` holding the tag chips, select
-mode, virtual list, bulk bar and sort sheet. `movies.tsx` went 236 -> 30 lines
-and `series.tsx` 235 -> 30, both now pure configuration.
-
-Only the genuinely different parts stay parameterised: `renderBadge` (movies
-derive a download status Radarr doesn't return; series show monitored state),
-`renderStats` (size vs episode counts plus size), `showSearch` (movies hide it
-once the file is on disk), `prepare` (the derived movie status has to exist on
-the row before sorting) and `posterOpens`.
-
-That last one is an existing inconsistency, not a feature: only the series
-poster opens its detail page. It is preserved behind a flag rather than
-unified, since this phase was meant to change nothing — worth deciding on
-separately.
-
-**Verified**: 17 component tests in `list.test.tsx` covering both lists — tag
-filtering including the All chip, select mode swapping row actions for the bulk
-bar, per-kind sort keys, the badge and stats differences, navigation targets,
-the search-button rule and the error path. Suite is 89 tests, and
-`module-boundaries` caught an exported type with no consumer along the way.
-
-Note: the browser check could not run this round — the automation browser lost
-LAN access mid-phase, though the app served 200 throughout. The component tests
-carry the verification instead, which for a behaviour-preserving refactor is
-the stronger check anyway.
-
-## F-original. Collapse the library lists
-
-`movies.tsx` and `series.tsx` are 76% identical: same select mode, same tag
-chips, same bulk bar, same sort, differing only in fields and hooks.
-
-- One `LibraryList` taking a column/field descriptor, with the two pages as thin
-  configuration.
-- The bug risk today is real: a fix applied to one and not the other looks
-  correct in review.
-
-**Verification**: both lists behave identically to now, including tag filtering,
-select mode and bulk actions. **Size: M.**
-
-## G. Light theme — done
-
-Shipped: a light palette on the same CSS variables, plus an Appearance setting
-(System / Dark / Light) in Manage -> Services.
-
-Switched by `[data-theme]` on `<html>` rather than by media query, because the
-roadmap also asked for a pin — an override cannot beat a media query without
-duplicating the whole palette. A boot script in `index.html` resolves the
-preference before first paint, so there is no flash, and `theme.ts` keeps
-"system" live when the OS flips appearance while the app is open. `theme-color`
-moves with it, so the iOS status bar and Android address bar follow.
-
-Colours were derived against WCAG AA, not chosen by eye: the state badges are
-read as *text* on `--secondary`, where the dark theme's blue lands at 3.96:1.
-So primary, success and warning are meaningfully darker in light mode
-(#2560db / #17753f / #845400) rather than the same hues lightened. Every text
-token clears 4.5:1 and every status dot clears 3:1.
-
-Two things the palette alone would not have fixed:
-- The shadcn primitives carry `dark:` tweaks, and Tailwind v4 keys that variant
-  off `prefers-color-scheme`. Pinning a theme against the OS would have given
-  light colours with dark-mode input styling. `@custom-variant dark` retargets
-  it at the same attribute; the built CSS has 42 attribute selectors and zero
-  `prefers-color-scheme` rules.
-- `border-white/10` is invisible on a light card and `shadow-black/50` reads as
-  grime, so the floating bars (dock, both bulk bars, pull-to-refresh) now use
-  `border-border` and a `--shadow-color` token.
-
-**Verified**: 28 tests — 16 parsing the real stylesheet and asserting contrast
-per token pair, 12 driving the switching logic (pin against OS in both
-directions, junk stored value, missing `matchMedia`, live OS flip, listener
-teardown, `theme-color`, and that the boot script agrees with the module on the
-storage key). Compiled CSS inspected directly for the palette block and the
-retargeted variant.
-
-**Not verified**: reading every page with system appearance toggled. The
-automation browser lost LAN access before this phase started and never
-recovered — it can reach the internet but not the app, while curl gets 200
-throughout. This one deserves a human eye, particularly the poster grids and
-the Stats charts, which the token audit cannot speak for.
-
-Left alone: the PWA manifest's `theme_color` stays dark. A manifest cannot
-respond to appearance, and arrdeck's installed identity is the dark one.
-
-## G-original. Light theme
-
-`index.css` defines one dark palette and nothing responds to
-`prefers-color-scheme`. On a phone that follows system appearance, arrdeck is the
-odd app out in daylight.
-
-- A light palette against the same CSS variables, switched by media query, with
-  an explicit override in Manage for people who want to pin it.
-- The colour-coded state badges and the watched dot need checking for contrast in
-  light mode — phase K gave them text alternatives but the colours were only ever
-  tuned against a dark background.
-
-**Verification**: toggle system appearance and read every page; contrast checked
-on the badges and dots. **Size: M.**
-
-## H. Calm the polling — done
-
-Shipped: the four 5s pollers (torrent list, torrent summary, arr queue, Plex
-sessions) now pick their cadence from their own payload — FAST while something
-is moving, IDLE (20s) otherwise. Each has a small predicate in `hooks/shared.ts`
-with its own tests.
-
-"Moving" deliberately means *downloading or checking*, not "active". This stack
-holds ~384 torrents seeding permanently, so an activity check that counted
-seeding would never back off and the phase would buy nothing. A steady upload
-rate is a number that wiggles; 20s reads fine for it, and any user action still
-refetches immediately through the existing `invalidateQueries`. `stalled` counts
-as not moving, which is the point — a stuck download has nothing to animate.
-
-Also found: global search reuses the torrent-list endpoint for a one-shot lookup
-and was re-running the search every 5 seconds while the user read the results.
-It now passes `poll: false`.
-
-The merged "activity" endpoint was not built. It would cut three requests to one,
-but the three have genuinely different natural cadences now, and merging them
-would force the slowest to the fastest — the opposite of this phase.
-
-**Verified**: same tab, same Dashboard, `window.fetch` counted before and after.
-Requests fell from **61 in 107s to 25 in 105s** — a 59% drop — with `sessions`,
-`queue` and `torrents/summary` each going from 17 samples to 5. (The tab was
-hidden, so timers were throttled below the nominal 12/min in *both* runs; the
-ratio is what matters.)
-
-The FAST side is not live-verified: forcing it means starting a real download on
-the user's stack. It rests on the predicate tests instead. Worth knowing: a
-download started outside arrdeck is noticed on the next idle poll, so the switch
-back to 5s can lag by up to 20s.
-
-## H-original. Calm the polling
-
-Queue, torrent summary and Plex sessions each refetch every 5 seconds. That was
-tuned for progress bars on a desktop; on a phone it is three requests a second
-apiece across a session. Background refetch is already disabled, so this is
-foreground cost only — but the foreground is where the battery is.
-
-- Back off when nothing is moving: no active transfer means the 5s cadence buys
-  nothing.
-- Consider one merged "activity" endpoint instead of three parallel polls, which
-  would also cut the request count threefold.
-
-**Verification**: with an idle stack, requests per minute drop measurably; with an
-active download, progress still updates smoothly. **Size: M.**
-
-## I. Surface the arrs' scheduled tasks — done
-
-Shipped: `GET /tasks` and `GET /arr-backups`, aggregating Radarr, Sonarr and
-Prowlarr. Tasks are sorted overdue-first then soonest-due, since the reason to
-open the card is always something being late. One arr being down omits its rows
-rather than blanking the other two.
-
-Overdue is not "next run is in the past": the arrs queue tasks behind each
-other, so grace scales with the interval (half of it, clamped to 2-30 min).
-Without that, RefreshMonitoredDownloads — every minute — would be permanently
-flagged, and a weekly Backup would get 3.5 days of slack. An interval of 0 means
-the user disabled the task, which is a choice rather than a failure.
-
-These landed in a new **System** tab, which also un-orphans `Logs`: it was a
-complete component with a working endpoint and no subnav entry, so nothing in the
-app could reach it. Backups link straight to the arr's own download URL, which is
-served unauthenticated off its root.
-
-**Verified**: all 30 tasks diffed field-by-field against the three arrs' own
-`/system/task` — the only two differences were on the 1-minute task and were
-exactly one 60s cache generation apart. Driven in a browser: Key shows 13 rows,
-All shows 30, backups list 12, Logs renders. The overdue *state* could not be
-observed live, because the only way to make an arr's scheduler fall behind
-(pausing the container) also makes its API unreachable, and its scheduler
-recomputes within a second of resuming — so it is covered by 11 unit tests
-pinning the grace boundaries instead.
-
-## I-original. Surface the arrs' scheduled tasks
-
-`/api/v3/system/task` is unused and answers with real data — RSS Sync, Check
-Health, Housekeeping, Backup, each with a last and next run. "Why hasn't anything
-been grabbed?" is usually answered by "RSS sync last ran 6 hours ago", and
-arrdeck currently cannot say that.
-
-- A card showing the tasks that matter (RSS sync, refresh, health) with last/next
-  times, and a warning when a task is overdue.
-- Also `/api/v3/system/backup`: the arrs keep their own backups (4 exist right
-  now) and arrdeck could list and link them, next to its own backup feature.
-
-**Verification**: compare against each arr's System → Tasks page; force an
-overdue task and confirm the warning. **Size: S.**
-
-## J. Cast and crew on the Movie page — done
-
-Shipped: `GET /library/movies/{id}/credits` and a cast strip on the Movie page.
-Radarr holds 6,346 credit rows, ~60 per film; **Sonarr has no equivalent** —
-`/api/v3/credit` is a 404 there — so this stays movie-only, as the phase title
-already assumed.
-
-Three things the raw data needed before it was presentable:
-- Cast comes back **unsorted**. `order` is TMDB's billing order, so sorting by
-  it is what makes "top billed" mean anything. Capped at 12.
-- Crew is 30 rows deep including Thanks, Painter, Stunt Double and Stunts.
-  Whitelisted to Director, Screenplay, Writer, Story and Composer.
-- Even whitelisted, a blockbuster fills the list with writers: The Fantastic 4
-  has four Screenplay credits plus a Story credit, and Eric Pearson held two of
-  them, so he appeared twice and the director fell off the end. Now deduplicated
-  by person, max two per job — the list reads Director, two writers, composer.
-
-Headshots go through the existing poster proxy at **w185 rather than w500**:
-14 KB a face against 81 KB, and there are a dozen. That needed the proxy to stop
-force-normalising every URL to poster width, so it now keeps a size it is handed
-and still clamps the `/original` the arrs hand out.
-
-**Deliberately not done**: tapping a person to find their other films in the
-library. Radarr's `/credit` rows key on `movieMetadataId`, which `/movie` does
-not expose and there is no `/moviemetadata` endpoint — so the mapping would take
-one request per film (115) to build an index. A person's name instead links to
-their TMDB page. Worth revisiting: 616 people appear in more than one of these
-films, though the top of that list is stunt crew rather than stars.
-
-**Verified**: 16 backend tests over the shaping, 6 frontend tests over the card
-including the missing-headshot fallback and rendering nothing at all when a film
-has no credits. Live: cast and crew correct for two films, a proxied headshot
-measured at 14 KB, and 30 sampled films all returned full credits — so the
-no-credits path is covered by test rather than by anything in this library.
-
-## J-original. Cast and crew on the Movie page
-
-`/api/v3/credit` holds 6,331 rows for the current library and is untouched. The
-Movie page shows overview, file and history but nothing about who is in it — the
-first thing most people want when deciding whether to keep something.
-
-- Top billed cast with photos through the existing poster proxy, and the director.
-- Tapping a person could search the library for them, which is a genuinely useful
-  way to browse a collection.
-
-**Verification**: a movie with a known cast renders it; a movie Radarr has no
-credits for degrades to nothing rather than an empty card. **Size: M.**
-
-## K. Quality profiles and custom formats — done
-
-Shipped read-only, as the phase specified: `GET /quality-profiles/{app}` and a
-card per arr in Manage -> System, showing each profile's accepted qualities
-best-first, where upgrading stops, and any custom-format scores.
-
-Three things the raw data needed:
-- The API returns qualities **worst first**; the arr's own UI shows them best
-  first, and this view sits beside that UI, so the list is reversed.
-- The cutoff is an **id**, and groups and qualities share the field but not the
-  id space (groups start at 1000). Resolved against the profile's own items,
-  checking groups as groups rather than trusting the number.
-- Every custom format scores **zero** by default, so only non-zero scores are
-  listed — otherwise the handful that matter would be buried.
-
-Grouped qualities ("WEB 1080p" holding WEBDL and WEBRip) are marked and name
-their members. Rejected qualities are returned but collapsed behind a count, so
-a profile reads as what it accepts rather than 26 rows of mostly-unchecked.
-
-**Worth knowing about this setup**: all 12 profiles are stock, every one has
-`upgradeAllowed` **off**, and **neither arr has a single custom format defined**.
-So the custom-format half of this phase has nothing to show here — the card says
-so plainly rather than rendering an empty section. That is the read-only view the
-phase wanted to see before deciding on editing, and the answer it gives is that
-there is nothing here worth an editor yet.
-
-Also fixed a collision this surfaced: `QualityProfileOut` existed in both
-`schemas/library.py` and `schemas/system.py`, so the generator emitted
-`AppSchemasSystemQualityProfileOut`. Renamed to `QualityProfileDetailOut`.
-
-**Verified**: all 12 profiles diffed field-by-field against both arrs' own
-`/qualityprofile` — accepted set, ordering, upgrade flag and item count — zero
-mismatches. 14 backend tests and 9 frontend tests, including the group cutoff,
-an unresolvable cutoff, zero-score omission and the no-custom-formats path.
-
-## K-original. Quality profiles and custom formats
-
-`qualityprofile/schema`, `customformat` and `delayprofile` are all reachable and
-unused. Today changing what quality you want means opening Radarr, then Sonarr.
-
-- Read-only first: show each profile's cutoff and allowed qualities, and any
-  custom formats with their scores.
-- Editing is a bigger job and arguably belongs in the arr UI; decide after seeing
-  the read-only view in use.
-
-**Verification**: profiles match the arr UI exactly, including score ordering.
-**Size: M.**
-
----
+There is no catch-all route. `/nonsense` returns the SPA shell with HTTP 200 and
+then renders nothing — no message, no way back. Easy to hit from a stale
+notification deep-link or a mistyped bookmark.
+
+- A catch-all that says the page does not exist and offers the dashboard.
+- Worth checking the push deep-links land on routes that still exist, since that
+  is the likeliest source.
+
+**Verification**: an unknown path renders something. **Size: S.**
+
+## E. Say when the arrs are out of date
+
+`/update` is unused, and **all three arrs are behind right now**: Radarr
+6.2.1 → 6.3.0, Sonarr 4.0.18 → 4.0.19, Prowlarr 2.4.0 → 2.5.2. The status strip
+already shows installed versions; it just never says they are stale.
+
+- Amber on the version chip when a newer release exists, with the target version.
+- These run in Docker so arrdeck cannot apply an update, and should not pretend
+  to — this is information, not an action.
+
+**Verification**: the strip flags all three today, and stops flagging one after
+its image is pulled. **Size: S.**
+
+## F. "Why hasn't this arrived?"
+
+The headline feature of this round. arrdeck already holds every piece of the
+answer and makes the user assemble it: the queue, the blocklist, indexer
+stats, scheduled tasks, health warnings, and — still unused — `/delayprofile`,
+which explains a grab that is deliberately waiting.
+
+For a wanted title, one view that answers in order:
+- Is it in the queue, and what state? Is it stalled or waiting on an import?
+- Was a release grabbed and blocklisted? (`/blocklist` is exposed but unread by
+  the frontend.)
+- When did RSS sync last run, and is it overdue? (Phase I already has this.)
+- Is a delay profile holding it — `usenetDelay`/`torrentDelay`, bypass rules?
+- Did the indexers return anything at all? (`indexers/stats` has the failure
+  counts.)
+
+This is synthesis, not new API surface, which is why it is worth doing: every
+input already exists and is already cached.
+
+**Verification**: a wanted title with no releases, one with a blocklisted grab,
+and one waiting on a delay each produce a different, correct explanation.
+**Size: L.**
+
+## G. Quality definitions beside the profiles card
+
+`/qualitydefinition` is 30 rows of min / preferred / max size per quality, and
+sits naturally next to the profiles card phase K shipped — it answers "why was
+this release rejected for size" which the profile alone cannot.
+
+- Show the size band per quality, on the same System tab.
+- Only worth doing if the profiles card proves useful in practice. It has not
+  been in use long enough to say.
+
+**Verification**: bands match Radarr's Quality settings page. **Size: S.**
+
+## H. Slim the watched map
+
+`/watched` is **99 KB across 590 entries** and loads on every dashboard visit. It
+carries a Plex URL per entry, most of which are never used — only the handful of
+titles actually on screen need one.
+
+- Drop the URL from the map and resolve it on demand, or key the map more
+  cheaply.
+- Client-side it is cached for ten minutes, so this is a first-load cost rather
+  than a recurring one. Measure before assuming it matters.
+
+**Verification**: payload drops materially with the watched dots unchanged.
+**Size: S.**
+
+## I. Files creeping back over 400 lines
+
+The previous round's standard was 400. Five files have drifted back to the edge:
+`schemas/library.py` 414, `api/v1/library.py` 410, `hooks/useSystem.ts` 407,
+`dashboard/activity.tsx` 403, `settings/notifications.tsx` 399.
+
+`library.py` is the one that matters — it now holds movies, series, episodes,
+credits and bulk actions in one module.
+
+- Split `library.py` along movies / series / credits.
+- Remember the recurring hazard: a declaration sitting *between* two functions
+  gets swept into the wrong module.
+
+**Verification**: route surface and schema count unchanged. **Size: S.**
+
+## J. Look at it, then fix what looking reveals
+
+Everything from phase G onward — the light theme, the series detail page, the
+cast strip, the profiles card — is verified by tests, API diffs and compiled-CSS
+inspection, and **has never been seen by a human**. The automation browser lost
+LAN access mid-round and never recovered.
+
+Known-unverified specifically: light-mode poster grids and Stats charts, the cast
+strip on a narrow screen, and the profile quality chips, which are the densest
+layout in the app.
+
+Also outstanding and deliberately parked: **`posterOpens`** — only the series
+poster opens its detail page, not the movie one. Preserved through phase F's
+refactor because that phase was meant to change nothing.
+
+**Verification**: a pass over every page in both themes on a phone. Needs either
+the user's eyes or working browser automation. **Size: S**, but blocking for
+anything visual.
 
 ## Order & sizing
 
 | Phase | Size | Why here |
 |-------|------|----------|
-| A tighten module boundaries | S | cleans up after the last round before building on it |
-| C wire up the linters | M | would have caught A, and everything after benefits |
-| D measure coverage | S | tells the next phases where the risk is |
-| B bound the cache | S | the only unbounded growth left in the process |
-| E retry upstream calls | S | removes a whole class of spurious offline cards |
-| I scheduled tasks | S | small, and answers a question the app currently can't |
-| H calm the polling | M | battery, and a threefold request cut |
-| F collapse the library lists | M | do before either list gains a feature |
-| G light theme | M | overdue on a phone that follows system appearance |
-| J cast and crew | M | the first genuinely new *feature* in this round |
-| K quality profiles | M | least certain value; decide after the read-only view |
+| A delete the duplicated endpoint | S | my own mess, and it is five minutes |
+| D catch-all route | S | a blank page is the worst failure mode in the app |
+| E flag stale arr versions | S | true today, and small |
+| C test the webhook installer | S | least-tested code that writes to three services |
+| B floor under frontend coverage | M | do before B's targets grow further |
+| J look at it | S | blocks judging anything visual; needs the user |
+| I re-split the drifting files | S | cheap, and keeps the last round's standard |
+| H slim the watched map | S | measure first; may not be worth it |
+| G quality definitions | S | only if the profiles card earns its place |
+| F "why hasn't this arrived?" | L | the round's real feature, once the rest is calm |
 
-Suggested sequence: **A → C → D → B → E → I → H → F → G → J → K**.
-Tooling and cleanup first, so the later phases land on a codebase that checks
-itself, then the two user-facing features last.
+Suggested sequence: **A → D → E → C → B → J → I → H → G → F**.
+
+Small corrections first, then the testing gap, then a human pass, then the one
+large feature — so F lands on a codebase that is both covered and seen.
 
 ## Notes carried forward
 
