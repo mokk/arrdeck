@@ -17,7 +17,13 @@ share a shell. What the survey turns up now is mostly **untested surface**,
 **one duplicated endpoint I added last round**, and a handful of arr APIs that
 are still dark.
 
-## A. Delete the endpoint phase K duplicated
+## A. Delete the endpoint phase K duplicated — done
+
+Removed. Route surface 124 -> 123. `QualityProfileOut` in `schemas/library.py`
+stays: it is still what `OptionsOut.quality_profiles` uses for the dropdowns —
+only the route was duplicated, not the schema.
+
+## A-original. Delete the endpoint phase K duplicated
 
 `/profiles` in `arrmeta.py` already returned per-app quality profiles — id, name,
 `upgrade_allowed`, and the raw `cutoff` id. Phase K added

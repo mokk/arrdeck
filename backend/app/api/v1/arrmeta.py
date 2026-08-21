@@ -185,24 +185,3 @@ async def tags(
         {"id": t["id"], "label": t.get("label", "")}
         for t in sorted(await client.tags(), key=lambda t: t.get("label", ""))
     ]
-
-
-@router.get("/profiles")
-async def quality_profiles(
-    radarr: RadarrClient = Depends(get_radarr),
-    sonarr: SonarrClient = Depends(get_sonarr),
-) -> dict:
-    r, s = await asyncio.gather(radarr.quality_profiles(), sonarr.quality_profiles())
-
-    def slim(profiles: list) -> list[dict]:
-        return [
-            {
-                "id": p["id"],
-                "name": p["name"],
-                "upgrade_allowed": p.get("upgradeAllowed", False),
-                "cutoff": p.get("cutoff"),
-            }
-            for p in profiles
-        ]
-
-    return {"radarr": slim(r), "sonarr": slim(s)}
