@@ -30,6 +30,34 @@ from ...schemas import (
 router = APIRouter(tags=["system"])
 
 
+# Only the arrs publish a release feed with installed/latest flags.
+UPDATE_APPS = ("radarr", "sonarr", "prowlarr")
+# Checked once an hour, not once per poll: the arrs run their own
+# ApplicationCheckUpdate task every six hours, so anything finer is wasted.
+UPDATE_TTL = 3600
+
+
+async def _pending_update(name: str, client) -> str | None:
+    """The newest release the service knows about, if it is not the one running.
+
+    The result is wrapped in a dict because `cached()` treats a bare None as a
+    miss — caching "up to date" as None would re-check on every status poll,
+    which is exactly the cost this cache exists to avoid.
+    """
+
+    async def call() -> dict:
+        try:
+            rows = await client.updates()
+        except Exception:  # noqa: BLE001 — a missing feed is not a status failure
+            return {"version": None}
+        latest = next((r for r in rows if r.get("latest")), None)
+        if not latest or latest.get("installed"):
+            return {"version": None}
+        return {"version": latest.get("version")}
+
+    return (await cached(f"update:{name}", UPDATE_TTL, call))["version"]
+
+
 @router.get("/status", response_model=list[ServiceStatus])
 async def status(request: Request) -> list[ServiceStatus]:
     registry = request.app.state.registry
@@ -38,7 +66,18 @@ async def status(request: Request) -> list[ServiceStatus]:
     async def probe(name: str) -> ServiceStatus:
         try:
             version = await probe_version(name, registry.get(name))
-            return ServiceStatus(service=name, ok=True, version=version, retries=retry_count(name))
+            pending = (
+                await _pending_update(name, registry.get(name))
+                if name in UPDATE_APPS
+                else None
+            )
+            return ServiceStatus(
+                service=name,
+                ok=True,
+                version=version,
+                retries=retry_count(name),
+                update_available=pending,
+            )
         except ServiceUnavailable as exc:
             return ServiceStatus(
                 service=name, ok=False, error=exc.message, retries=retry_count(name)

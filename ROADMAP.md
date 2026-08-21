@@ -100,7 +100,28 @@ notification deep-link or a mistyped bookmark.
 
 **Verification**: an unknown path renders something. **Size: S.**
 
-## E. Say when the arrs are out of date
+## E. Say when the arrs are out of date — done
+
+`/status` now carries `update_available`, and the status strip shows an amber
+version plus an arrow when a service knows about a newer release. Flagging all
+three today: Radarr 6.2.1 -> 6.3.0, Sonarr 4.0.18 -> 4.0.19, Prowlarr
+2.4.0 -> 2.5.2.
+
+Two decisions worth recording:
+- The version shown stays the **installed** one; the arrow is a hint rather than
+  a claim about what is running. arrdeck cannot apply an update — these are
+  Docker images — and should not imply it can.
+- **Flaky wins the dot.** Both states wanted amber, and a service dropping
+  connections matters more than its version being a point release behind.
+
+The check is cached for an hour rather than run per poll — the arrs run their own
+`ApplicationCheckUpdate` every six hours, so anything finer is waste. That needed
+care: `cached()` treats a bare `None` as a miss, so "up to date" is cached as
+`{"version": None}`; caching it as `None` would have re-checked three services on
+every status poll. Verified: repeat `/status` calls run in ~10ms with zero
+`/api/v3/update` requests logged.
+
+## E-original. Say when the arrs are out of date
 
 `/update` is unused, and **all three arrs are behind right now**: Radarr
 6.2.1 → 6.3.0, Sonarr 4.0.18 → 4.0.19, Prowlarr 2.4.0 → 2.5.2. The status strip

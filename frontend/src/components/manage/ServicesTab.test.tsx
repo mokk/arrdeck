@@ -15,9 +15,10 @@ vi.mock("react-i18next", () => ({
 const settings = vi.hoisted(() => ({
   current: { data: undefined as unknown, error: undefined as unknown },
 }));
+const status = vi.hoisted(() => ({ data: [] as unknown[] }));
 vi.mock("../../hooks/queries", () => ({
   useServiceSettings: () => settings.current,
-  useStatus: () => ({ data: [] }),
+  useStatus: () => status,
   useSaveServiceSettings: () => ({ mutate: vi.fn(), isPending: false }),
   useTestService: () => ({ mutate: vi.fn(), isPending: false }),
 }));
@@ -36,6 +37,7 @@ import { ServiceSettingsTab } from "./ServicesTab";
 beforeEach(() => {
   localStorage.clear();
   settings.current = { data: undefined, error: undefined };
+  status.data = [];
 });
 
 describe("appearance and language stay reachable", () => {
@@ -66,5 +68,53 @@ describe("appearance and language stay reachable", () => {
     render(<ServiceSettingsTab />);
     // The trigger shows the current preference; System is the default.
     expect(screen.getByText("manage.theme_system")).toBeTruthy();
+  });
+});
+
+describe("the status strip", () => {
+  // The strip renders only once the service settings have loaded, so these need
+  // the happy path rather than the default empty fixture.
+  beforeEach(() => {
+    settings.current = { data: {}, error: undefined };
+  });
+
+  const svc = (over: Record<string, unknown> = {}) => ({
+    service: "radarr",
+    ok: true,
+    version: "6.2.1",
+    retries: 0,
+    update_available: null,
+    ...over,
+  });
+
+  it("shows the running version when nothing is wrong", () => {
+    status.data = [svc()];
+    render(<ServiceSettingsTab />);
+    expect(screen.getByText("6.2.1")).toBeTruthy();
+    expect(screen.queryByText("↑")).toBeNull();
+  });
+
+  it("marks a service that has a newer release", () => {
+    status.data = [svc({ update_available: "6.3.0" })];
+    render(<ServiceSettingsTab />);
+    expect(screen.getByText("↑")).toBeTruthy();
+    // The version shown stays the installed one — the update is a hint, not a
+    // claim about what is running.
+    expect(screen.getByText("6.2.1")).toBeTruthy();
+  });
+
+  it("lets flaky win the dot over an available update", () => {
+    // A service that keeps dropping connections matters more than its version,
+    // and both would otherwise claim the same amber dot.
+    status.data = [svc({ retries: 3, update_available: "6.3.0" })];
+    render(<ServiceSettingsTab />);
+    expect(screen.getByText("manage.flaky")).toBeTruthy();
+  });
+
+  it("says nothing about updates for a service that is down", () => {
+    status.data = [svc({ ok: false, error: "refused", update_available: "6.3.0" })];
+    render(<ServiceSettingsTab />);
+    expect(screen.getByText("manage.offlineShort")).toBeTruthy();
+    expect(screen.queryByText("↑")).toBeNull();
   });
 });

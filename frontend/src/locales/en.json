@@ -271,7 +271,8 @@
     "noLogs": "Nothing logged",
     "importLists": "Import lists",
     "syncApp": "Sync {{app}}",
-    "syncStarted": "Sync started"
+    "syncStarted": "Sync started",
+    "updateHint": "Update available: {{version}}"
   },
   "system": {
     "tasks": "Scheduled tasks",

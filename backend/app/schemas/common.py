@@ -29,6 +29,9 @@ class ServiceStatus(BaseModel):
     # Retries this service needed recently. Non-zero while ok=True is the
     # interesting case: reachable, but not reliably so.
     retries: int = 0
+    # A newer release the service itself knows about. arrdeck cannot apply it —
+    # these run in Docker — so this is information, not an action.
+    update_available: str | None = None
 
 
 class ServiceInfoOut(BaseModel):

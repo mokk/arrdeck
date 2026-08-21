@@ -151,10 +151,18 @@ export function StatusStrip() {
         // Reachable but retrying is its own state: a green dot hides the problem
         // and a red one implies it's down, so amber sits between the two.
         const flaky = s.ok && (s.retries ?? 0) > 0;
+        // An available update is worth knowing but is not a fault: flaky wins the
+        // dot, since a service that keeps dropping matters more than a version.
+        const update = s.ok && s.update_available ? s.update_available : null;
+        const hint = flaky
+          ? t("manage.flakyHint", { count: s.retries ?? 0 })
+          : update
+            ? t("manage.updateHint", { version: update })
+            : undefined;
         return (
           <div
             key={s.service}
-            title={flaky ? t("manage.flakyHint", { count: s.retries ?? 0 }) : undefined}
+            title={hint}
             className={cn(
               "flex shrink-0 items-center gap-2 rounded-full bg-card px-3.5 py-2 text-xs font-semibold",
               !s.ok && "text-destructive",
@@ -167,9 +175,12 @@ export function StatusStrip() {
               )}
             />
             {SERVICE_LABELS[s.service] ?? s.service}
-            <span className="font-normal text-muted-foreground">
+            <span
+              className={cn("font-normal", update ? "text-warning" : "text-muted-foreground")}
+            >
               {!s.ok ? t("manage.offlineShort") : flaky ? t("manage.flaky") : s.version}
             </span>
+            {update && <span className="text-warning">↑</span>}
           </div>
         );
       })}

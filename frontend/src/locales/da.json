@@ -271,7 +271,8 @@
     "noLogs": "Intet logget",
     "importLists": "Importlister",
     "syncApp": "Synkronisér {{app}}",
-    "syncStarted": "Synkronisering startet"
+    "syncStarted": "Synkronisering startet",
+    "updateHint": "Opdatering tilgængelig: {{version}}"
   },
   "system": {
     "tasks": "Planlagte opgaver",

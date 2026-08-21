@@ -2494,6 +2494,10 @@ export type ServiceStatus = {
    * Retries
    */
   retries?: number;
+  /**
+   * Update Available
+   */
+  update_available?: string | null;
 };
 
 /**
@@ -6186,27 +6190,6 @@ export type TagsApiV1TagsAppGetResponses = {
 
 export type TagsApiV1TagsAppGetResponse =
   TagsApiV1TagsAppGetResponses[keyof TagsApiV1TagsAppGetResponses];
-
-export type QualityProfilesApiV1ProfilesGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/profiles";
-};
-
-export type QualityProfilesApiV1ProfilesGetResponses = {
-  /**
-   * Response Quality Profiles Api V1 Profiles Get
-   *
-   * Successful Response
-   */
-  200: {
-    [key: string]: unknown;
-  };
-};
-
-export type QualityProfilesApiV1ProfilesGetResponse =
-  QualityProfilesApiV1ProfilesGetResponses[keyof QualityProfilesApiV1ProfilesGetResponses];
 
 export type ServicesApiV1ServicesGetData = {
   body?: never;

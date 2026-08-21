@@ -194,6 +194,10 @@ class ArrClient(BaseClient):
         # Radarr: movieId=; Sonarr: seriesId= (+ optional seasonNumber=)
         return await self.get("/rename", params=params)
 
+    async def updates(self) -> list:
+        """Release history with `installed` and `latest` flags."""
+        return await self.get("/update")
+
     async def custom_formats(self) -> list:
         return await self.get("/customformat")
 
