@@ -40,6 +40,10 @@ class SettingsImportIn(BaseModel):
 
 class PushSubscribeIn(BaseModel):
     subscription: dict
+    # The device's language, so notification text can be rendered in it. A
+    # service worker cannot read the app's stored preference, so it has to come
+    # down in the payload — which means the server has to know it.
+    language: str | None = None
 
 
 class WatchedItemOut(BaseModel):

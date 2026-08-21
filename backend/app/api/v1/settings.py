@@ -97,7 +97,7 @@ def push_subscribe(body: PushSubscribeIn, request: Request) -> None:
     endpoint = body.subscription.get("endpoint", "")
     if not endpoint:
         raise HTTPException(422, "subscription missing endpoint")
-    request.app.state.db.push_add(endpoint, _json.dumps(body.subscription))
+    request.app.state.db.push_add(endpoint, _json.dumps(body.subscription), body.language)
 
 
 @router.post("/push/unsubscribe", status_code=204)

@@ -138,7 +138,12 @@ def test_single_event_renders_title_and_label():
     from app.push import Event, _Slot, render
 
     event = Event(key="imported", app="radarr", title="Inception (2010)")
-    assert render(_Slot(event=event, due=0.0)) == ("Inception (2010)", "Downloaded")
+    note = render(_Slot(event=event, due=0.0))
+    assert (note.title, note.body) == ("Inception (2010)", "Downloaded")
+    # The code and count are what a client localises from; the English text is
+    # only a fallback for a service worker that predates them.
+    assert (note.code, note.count, note.app) == ("imported", 1, "radarr")
+    assert note.heading == "Inception (2010)"
 
 
 def test_burst_of_episodes_collapses_under_the_series():
@@ -148,14 +153,23 @@ def test_burst_of_episodes_collapses_under_the_series():
         key="imported", app="sonarr", title="The Bear S03E01", group_title="The Bear"
     )
     slot = _Slot(event=event, due=0.0, count=8)
-    assert render(slot) == ("The Bear", "Downloaded · 8 episodes")
+    note = render(slot)
+    assert (note.title, note.body) == ("The Bear", "Downloaded · 8 episodes")
+    assert (note.code, note.count, note.app) == ("imported", 8, "sonarr")
+    # The series name is pass-through media text and must never be translated.
+    assert note.heading == "The Bear"
 
 
 def test_burst_without_a_group_title_counts_by_label():
     from app.push import Event, _Slot, render
 
     event = Event(key="imported", app="radarr", title="Inception (2010)")
-    assert render(_Slot(event=event, due=0.0, count=3)) == ("Downloaded", "3 movies")
+    note = render(_Slot(event=event, due=0.0, count=3))
+    assert (note.title, note.body) == ("Downloaded", "3 movies")
+    assert (note.code, note.count) == ("imported", 3)
+    # No group title, so there is no pass-through text and the client uses the
+    # translated label as the heading.
+    assert note.heading == ""
 
 
 def test_coalescer_merges_within_the_window():
@@ -269,7 +283,7 @@ def _drive(db, payloads, monkeypatch):
     monkeypatch.setattr(
         push.pipeline,
         "_send_all",
-        lambda _db, title, body, url, tag, *rest: sent.append((title, body, url, tag)),
+        lambda _db, note, url, tag, *rest: sent.append((note.title, note.body, url, tag)),
     )
     monkeypatch.setattr(push.pipeline, "COALESCER", push.Coalescer())
 
@@ -278,8 +292,8 @@ def _drive(db, payloads, monkeypatch):
             await push.handle_webhook(db, app_name, payload)
         # jump past the coalescing window instead of waiting it out
         for slot in await push.pipeline.COALESCER.due(time.monotonic() + push.COALESCE_WINDOW + 1):
-            title, body = push.render(slot)
-            push.pipeline._send_all(db, title, body, slot.event.url, slot.event.tag, slot.event.key)
+            note = push.render(slot)
+            push.pipeline._send_all(db, note, slot.event.url, slot.event.tag, slot.event.key)
 
     asyncio.run(run())
     return sent
@@ -396,6 +410,14 @@ def test_clearing_a_device_choice_returns_it_to_the_default(tmp_path):
     assert db.push_get_events("https://example.test/phone") is None
 
 
+def _note(code: str = "imported", app: str = "radarr"):
+    """A minimal notification for delivery tests, which care about which devices
+    were reached rather than what the banner said."""
+    import app.push as push
+
+    return push.Notification(code=code, count=1, app=app, heading="", title="t", body="b")
+
+
 def test_delivery_respects_each_device_separately(tmp_path, monkeypatch):
     import app.push as push
     import app.push.delivery
@@ -411,11 +433,11 @@ def test_delivery_respects_each_device_separately(tmp_path, monkeypatch):
     )
     push.ensure_vapid(db)
 
-    push.delivery._send_all(db, "t", "b", "/", "tag", "imported")
+    push.delivery._send_all(db, _note("imported"), "/", "tag", "imported")
     assert delivered == ["https://example.test/phone"]  # ipad opted out
 
     delivered.clear()
-    push.delivery._send_all(db, "t", "b", "/", "tag", "grabbed")
+    push.delivery._send_all(db, _note("grabbed"), "/", "tag", "grabbed")
     assert delivered == ["https://example.test/ipad"]
 
 

@@ -51,15 +51,58 @@ class Coalescer:
 COALESCER = Coalescer()
 
 
-def render(slot: _Slot) -> tuple[str, str]:
-    """Notification (title, body) for one flushed group."""
+@dataclass
+class Notification:
+    """What to show, described rather than written out.
+
+    The text used to be assembled here in English and shown verbatim, so a
+    Danish device got English notifications — and a native client would have no
+    way to localise a banner that arrives pre-rendered. `code` names what
+    happened, `count` and `app` are what the sentence needs, and `heading` is
+    pass-through media text that must not be translated.
+
+    `title`/`body` are kept as an English rendering so a service worker that
+    predates this still shows something instead of a blank banner.
+    """
+
+    code: str
+    count: int
+    app: str
+    heading: str
+    title: str
+    body: str
+
+
+def render(slot: _Slot) -> Notification:
     event = slot.event
+    label = event.label
     if slot.count == 1:
-        return event.title or event.label, event.label
+        return Notification(
+            code=event.key,
+            count=1,
+            app=event.app,
+            heading=event.title,
+            title=event.title or label,
+            body=label,
+        )
     noun = NOUNS.get(event.app, "items")
     if event.group_title:
-        return event.group_title, f"{event.label} · {slot.count} {noun}"
-    return event.label, f"{slot.count} {noun}"
+        return Notification(
+            code=event.key,
+            count=slot.count,
+            app=event.app,
+            heading=event.group_title,
+            title=event.group_title,
+            body=f"{label} · {slot.count} {noun}",
+        )
+    return Notification(
+        code=event.key,
+        count=slot.count,
+        app=event.app,
+        heading="",
+        title=label,
+        body=f"{slot.count} {noun}",
+    )
 
 
 async def notify(db: SettingsDB, event: Event) -> bool:
@@ -68,7 +111,19 @@ async def notify(db: SettingsDB, event: Event) -> bool:
         return False
     if event.key == "test":  # always delivered: it exists to prove the wiring
         await asyncio.to_thread(
-            _send_all, db, event.title, event.label, event.url, event.tag, "test"
+            _send_all,
+            db,
+            Notification(
+                code="test",
+                count=1,
+                app=event.app,
+                heading=event.title,
+                title=event.title,
+                body=event.label,
+            ),
+            event.url,
+            event.tag,
+            "test",
         )
         return True
     if not wants_event(db, event.key):
@@ -86,9 +141,9 @@ async def flush_loop(db: SettingsDB) -> None:
         await asyncio.sleep(FLUSH_INTERVAL)
         try:
             for slot in await COALESCER.due(time.monotonic()):
-                title, body = render(slot)
+                note = render(slot)
                 await asyncio.to_thread(
-                    _send_all, db, title, body, slot.event.url, slot.event.tag, slot.event.key
+                    _send_all, db, note, slot.event.url, slot.event.tag, slot.event.key
                 )
         except Exception:  # noqa: BLE001 — the notifier must never die
             logger.exception("push flush failed")

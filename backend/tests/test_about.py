@@ -41,7 +41,7 @@ class FakeApp:
         self._paths = paths
 
     def openapi(self) -> dict:
-        return {"paths": dict.fromkeys(self._paths, {})}
+        return {"paths": {path: {} for path in self._paths}}
 
 
 def test_a_backend_serving_nothing_claims_nothing():

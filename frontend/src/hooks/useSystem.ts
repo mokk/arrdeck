@@ -31,6 +31,7 @@ import type {
   WebhookApp,
   WebhookStatus,
 } from "../api/types";
+import i18n from "../i18n";
 import { FAST, IDLE, MEDIUM, SLOW, sessionsMoving } from "./shared";
 
 export const useAuthState = () =>
@@ -82,6 +83,9 @@ export function usePushSubscribe() {
     mutationFn: (input: { subscription: unknown; unsubscribe?: boolean }) =>
       api.post<void>(input.unsubscribe ? "/push/unsubscribe" : "/push/subscribe", {
         subscription: input.subscription,
+        // The service worker cannot read the stored language, so the server
+        // records it per device and sends it back down in the push payload.
+        language: i18n.language?.split("-")[0],
       }),
   });
 }

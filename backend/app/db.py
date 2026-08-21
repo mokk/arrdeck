@@ -80,6 +80,10 @@ class SettingsDB:
             )
             # NULL events = this device follows the global default
             self._migrate_columns("push_subscriptions", {"events": "TEXT"})
+            # NULL language = render in English. Notification text is built by
+            # the client from a code, but the payload has to say which language
+            # the device is in — a service worker cannot read localStorage.
+            self._migrate_columns("push_subscriptions", {"language": "TEXT"})
             self._conn.commit()
 
     def _migrate_columns(self, table: str, columns: dict[str, str]) -> None:
@@ -243,11 +247,24 @@ class SettingsDB:
                 counts["stats"] += 1
         return counts
 
-    def push_add(self, endpoint: str, data: str) -> None:
+    def push_add(self, endpoint: str, data: str, language: str | None = None) -> None:
+        """Upsert, not REPLACE.
+
+        INSERT OR REPLACE deletes the row and inserts a new one, so every column
+        not named here reverted to NULL — a device that had chosen its own event
+        set lost that choice whenever the browser rotated its subscription, which
+        it does on its own schedule.
+        """
         with self._lock:
             self._conn.execute(
-                "INSERT OR REPLACE INTO push_subscriptions (endpoint, data) VALUES (?, ?)",
-                (endpoint, data),
+                """INSERT INTO push_subscriptions (endpoint, data, language)
+                   VALUES (?, ?, ?)
+                   ON CONFLICT(endpoint) DO UPDATE SET
+                     data = excluded.data,
+                     -- Only overwrite the language when the client sent one, so
+                     -- a subscribe call that omits it does not blank it.
+                     language = COALESCE(excluded.language, push_subscriptions.language)""",
+                (endpoint, data, language),
             )
             self._conn.commit()
 
@@ -268,20 +285,23 @@ class SettingsDB:
             return cur.rowcount > 0
 
     def push_all(self) -> list[str]:
-        return [data for data, _ in self.push_targets()]
+        return [data for data, _, _ in self.push_targets()]
 
-    def push_targets(self) -> list[tuple[str, list[str] | None]]:
-        """(subscription json, event keys). None means the device hasn't chosen
-        its own set and should follow the global default."""
+    def push_targets(self) -> list[tuple[str, list[str] | None, str | None]]:
+        """(subscription json, event keys, language). None events means the device
+        hasn't chosen its own set and follows the global default; None language
+        means render in English."""
         with self._lock:
-            rows = self._conn.execute("SELECT data, events FROM push_subscriptions").fetchall()
-        out: list[tuple[str, list[str] | None]] = []
-        for data, events in rows:
+            rows = self._conn.execute(
+                "SELECT data, events, language FROM push_subscriptions"
+            ).fetchall()
+        out: list[tuple[str, list[str] | None, str | None]] = []
+        for data, events, language in rows:
             try:
                 parsed = json.loads(events) if events else None
             except ValueError:
                 parsed = None
-            out.append((data, parsed if isinstance(parsed, list) else None))
+            out.append((data, parsed if isinstance(parsed, list) else None, language))
         return out
 
     def push_get_events(self, endpoint: str) -> list[str] | None:

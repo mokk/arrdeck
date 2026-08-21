@@ -8,6 +8,7 @@ import {
 } from "workbox-precaching";
 import { NavigationRoute, registerRoute } from "workbox-routing";
 import { CacheFirst } from "workbox-strategies";
+import { localise } from "./push-text";
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -34,10 +35,11 @@ registerRoute(
 
 self.addEventListener("push", (event) => {
   const data = event.data?.json() ?? {};
+  const text = localise(data);
   // A tag makes the OS replace the banner it already shows for that group
   // instead of stacking a new one — the server reuses it per series/event.
   const options: NotificationOptions & { renotify?: boolean } = {
-    body: data.body ?? "",
+    body: text.body,
     icon: "/pwa-192.png",
     badge: "/pwa-192.png",
     data: { url: typeof data.url === "string" ? data.url : "/" },
@@ -46,9 +48,7 @@ self.addEventListener("push", (event) => {
     options.tag = data.tag;
     options.renotify = true;
   }
-  // the payload always carries a title; the fallback only exists because
-  // showNotification requires one
-  event.waitUntil(self.registration.showNotification(data.title ?? "", options));
+  event.waitUntil(self.registration.showNotification(text.title, options));
 });
 
 self.addEventListener("notificationclick", (event) => {
