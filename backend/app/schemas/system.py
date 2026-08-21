@@ -41,7 +41,15 @@ class PushSubscribeIn(BaseModel):
 class WatchedItemOut(BaseModel):
     watched: bool = False
     progress: float = 0.0  # shows: watched episodes / total
-    url: str | None = None
+    # Plex's rating key, not a full URL. Every entry shared the same
+    # app.plex.tv/#!/server/{id} prefix, which was two thirds of a ~98 KB payload
+    # across ~590 entries; the prefix now ships once as WatchedMapOut.base_url.
+    key: str | None = None
+
+
+class WatchedMapOut(BaseModel):
+    base_url: str | None = None
+    items: dict[str, WatchedItemOut] = {}
 
 
 class PlaySessionOut(BaseModel):

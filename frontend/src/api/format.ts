@@ -1,4 +1,4 @@
-import type { WatchedItem } from "./types";
+import type { WatchedItem, WatchedMap } from "./types";
 
 export const SERVICE_LABELS: Record<string, string> = {
   radarr: "Radarr",
@@ -122,15 +122,21 @@ export function formatDayTime(iso: string): string {
 /** Plex indexes watched state under every external id it knows; try each id the
  * arr holds until one hits. Undefined means Plex has never seen the title. */
 export function watchedFor(
-  map: Record<string, WatchedItem> | null | undefined,
+  map: WatchedMap | null | undefined,
   ids: { tmdb_id?: number | null; tvdb_id?: number | null; imdb_id?: string | null },
-): WatchedItem | undefined {
-  if (!map) return undefined;
+): (WatchedItem & { url?: string }) | undefined {
+  if (!map?.items) return undefined;
   const keys = [
     ids.tmdb_id != null ? `tmdb:${ids.tmdb_id}` : null,
     ids.tvdb_id != null ? `tvdb:${ids.tvdb_id}` : null,
     ids.imdb_id ? `imdb:${ids.imdb_id}` : null,
   ];
-  for (const key of keys) if (key && map[key]) return map[key];
+  for (const key of keys) {
+    const item = key ? map.items[key] : undefined;
+    if (!item) continue;
+    // The Plex link is composed here rather than shipped per entry: every one
+    // shared the same server prefix, which was two thirds of the payload.
+    return { ...item, url: map.base_url && item.key ? map.base_url + item.key : undefined };
+  }
   return undefined;
 }

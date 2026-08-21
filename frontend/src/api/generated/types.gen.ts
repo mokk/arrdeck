@@ -2177,19 +2177,14 @@ export type ServiceBlockVpnStatusOut = {
 };
 
 /**
- * ServiceBlock[dict[str, WatchedItemOut]]
+ * ServiceBlock[WatchedMapOut]
  */
-export type ServiceBlockDictStrWatchedItemOut = {
+export type ServiceBlockWatchedMapOut = {
   /**
    * Ok
    */
   ok: boolean;
-  /**
-   * Data
-   */
-  data?: {
-    [key: string]: WatchedItemOut;
-  } | null;
+  data?: WatchedMapOut | null;
   /**
    * Error
    */
@@ -3165,9 +3160,25 @@ export type WatchedItemOut = {
    */
   progress?: number;
   /**
-   * Url
+   * Key
    */
-  url?: string | null;
+  key?: string | null;
+};
+
+/**
+ * WatchedMapOut
+ */
+export type WatchedMapOut = {
+  /**
+   * Base Url
+   */
+  base_url?: string | null;
+  /**
+   * Items
+   */
+  items?: {
+    [key: string]: WatchedItemOut;
+  };
 };
 
 /**
@@ -3477,7 +3488,7 @@ export type WatchedApiV1WatchedGetResponses = {
   /**
    * Successful Response
    */
-  200: ServiceBlockDictStrWatchedItemOut;
+  200: ServiceBlockWatchedMapOut;
 };
 
 export type WatchedApiV1WatchedGetResponse =
@@ -5272,6 +5283,138 @@ export type TestIndexerApiV1IndexersIndexerIdTestPostResponses = {
 export type TestIndexerApiV1IndexersIndexerIdTestPostResponse =
   TestIndexerApiV1IndexersIndexerIdTestPostResponses[keyof TestIndexerApiV1IndexersIndexerIdTestPostResponses];
 
+export type TriggerSearchApiV1LibraryAppItemIdSearchPostData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+    /**
+     * Item Id
+     */
+    item_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/{app}/{item_id}/search";
+};
+
+export type TriggerSearchApiV1LibraryAppItemIdSearchPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TriggerSearchApiV1LibraryAppItemIdSearchPostError =
+  TriggerSearchApiV1LibraryAppItemIdSearchPostErrors[keyof TriggerSearchApiV1LibraryAppItemIdSearchPostErrors];
+
+export type TriggerSearchApiV1LibraryAppItemIdSearchPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type TriggerSearchApiV1LibraryAppItemIdSearchPostResponse =
+  TriggerSearchApiV1LibraryAppItemIdSearchPostResponses[keyof TriggerSearchApiV1LibraryAppItemIdSearchPostResponses];
+
+export type LibraryBulkEditApiV1LibraryKindBulkPostData = {
+  body: BulkEditIn;
+  path: {
+    /**
+     * Kind
+     */
+    kind: string;
+  };
+  query?: never;
+  url: "/api/v1/library/{kind}/bulk";
+};
+
+export type LibraryBulkEditApiV1LibraryKindBulkPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type LibraryBulkEditApiV1LibraryKindBulkPostError =
+  LibraryBulkEditApiV1LibraryKindBulkPostErrors[keyof LibraryBulkEditApiV1LibraryKindBulkPostErrors];
+
+export type LibraryBulkEditApiV1LibraryKindBulkPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type LibraryBulkEditApiV1LibraryKindBulkPostResponse =
+  LibraryBulkEditApiV1LibraryKindBulkPostResponses[keyof LibraryBulkEditApiV1LibraryKindBulkPostResponses];
+
+export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostData = {
+  body: BulkDeleteIn;
+  path: {
+    /**
+     * Kind
+     */
+    kind: string;
+  };
+  query?: never;
+  url: "/api/v1/library/{kind}/bulk-delete";
+};
+
+export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostError =
+  LibraryBulkDeleteApiV1LibraryKindBulkDeletePostErrors[keyof LibraryBulkDeleteApiV1LibraryKindBulkDeletePostErrors];
+
+export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponse =
+  LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponses[keyof LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponses];
+
+export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostData = {
+  body: BulkDeleteIn;
+  path: {
+    /**
+     * Kind
+     */
+    kind: string;
+  };
+  query?: never;
+  url: "/api/v1/library/{kind}/bulk-search";
+};
+
+export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostError =
+  LibraryBulkSearchApiV1LibraryKindBulkSearchPostErrors[keyof LibraryBulkSearchApiV1LibraryKindBulkSearchPostErrors];
+
+export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponse =
+  LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponses[keyof LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponses];
+
 export type LibraryMoviesApiV1LibraryMoviesGetData = {
   body?: never;
   path?: never;
@@ -5290,25 +5433,6 @@ export type LibraryMoviesApiV1LibraryMoviesGetResponses = {
 
 export type LibraryMoviesApiV1LibraryMoviesGetResponse =
   LibraryMoviesApiV1LibraryMoviesGetResponses[keyof LibraryMoviesApiV1LibraryMoviesGetResponses];
-
-export type LibrarySeriesApiV1LibrarySeriesGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/library/series";
-};
-
-export type LibrarySeriesApiV1LibrarySeriesGetResponses = {
-  /**
-   * Response Library Series Api V1 Library Series Get
-   *
-   * Successful Response
-   */
-  200: Array<LibrarySeriesOut>;
-};
-
-export type LibrarySeriesApiV1LibrarySeriesGetResponse =
-  LibrarySeriesApiV1LibrarySeriesGetResponses[keyof LibrarySeriesApiV1LibrarySeriesGetResponses];
 
 export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetData = {
   body?: never;
@@ -5341,38 +5465,6 @@ export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses = {
 
 export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponse =
   MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses[keyof MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses];
-
-export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetData = {
-  body?: never;
-  path: {
-    /**
-     * Movie Id
-     */
-    movie_id: number;
-  };
-  query?: never;
-  url: "/api/v1/library/movies/{movie_id}/credits";
-};
-
-export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetError =
-  MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetErrors[keyof MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetErrors];
-
-export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: CreditsOut;
-};
-
-export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponse =
-  MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponses[keyof MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponses];
 
 export type DeleteMovieApiV1LibraryMoviesMovieIdDeleteData = {
   body?: never;
@@ -5446,6 +5538,25 @@ export type UpdateMovieApiV1LibraryMoviesMovieIdPatchResponses = {
 
 export type UpdateMovieApiV1LibraryMoviesMovieIdPatchResponse =
   UpdateMovieApiV1LibraryMoviesMovieIdPatchResponses[keyof UpdateMovieApiV1LibraryMoviesMovieIdPatchResponses];
+
+export type LibrarySeriesApiV1LibrarySeriesGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/library/series";
+};
+
+export type LibrarySeriesApiV1LibrarySeriesGetResponses = {
+  /**
+   * Response Library Series Api V1 Library Series Get
+   *
+   * Successful Response
+   */
+  200: Array<LibrarySeriesOut>;
+};
+
+export type LibrarySeriesApiV1LibrarySeriesGetResponse =
+  LibrarySeriesApiV1LibrarySeriesGetResponses[keyof LibrarySeriesApiV1LibrarySeriesGetResponses];
 
 export type SeriesDetailApiV1LibrarySeriesSeriesIdDetailGetData = {
   body?: never;
@@ -5717,137 +5828,37 @@ export type UpdateSeriesApiV1LibrarySeriesSeriesIdPatchResponses = {
 export type UpdateSeriesApiV1LibrarySeriesSeriesIdPatchResponse =
   UpdateSeriesApiV1LibrarySeriesSeriesIdPatchResponses[keyof UpdateSeriesApiV1LibrarySeriesSeriesIdPatchResponses];
 
-export type TriggerSearchApiV1LibraryAppItemIdSearchPostData = {
+export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetData = {
   body?: never;
   path: {
     /**
-     * App
+     * Movie Id
      */
-    app: string;
-    /**
-     * Item Id
-     */
-    item_id: number;
+    movie_id: number;
   };
   query?: never;
-  url: "/api/v1/library/{app}/{item_id}/search";
+  url: "/api/v1/library/movies/{movie_id}/credits";
 };
 
-export type TriggerSearchApiV1LibraryAppItemIdSearchPostErrors = {
+export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError;
 };
 
-export type TriggerSearchApiV1LibraryAppItemIdSearchPostError =
-  TriggerSearchApiV1LibraryAppItemIdSearchPostErrors[keyof TriggerSearchApiV1LibraryAppItemIdSearchPostErrors];
+export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetError =
+  MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetErrors[keyof MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetErrors];
 
-export type TriggerSearchApiV1LibraryAppItemIdSearchPostResponses = {
+export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponses = {
   /**
    * Successful Response
    */
-  204: void;
+  200: CreditsOut;
 };
 
-export type TriggerSearchApiV1LibraryAppItemIdSearchPostResponse =
-  TriggerSearchApiV1LibraryAppItemIdSearchPostResponses[keyof TriggerSearchApiV1LibraryAppItemIdSearchPostResponses];
-
-export type LibraryBulkEditApiV1LibraryKindBulkPostData = {
-  body: BulkEditIn;
-  path: {
-    /**
-     * Kind
-     */
-    kind: string;
-  };
-  query?: never;
-  url: "/api/v1/library/{kind}/bulk";
-};
-
-export type LibraryBulkEditApiV1LibraryKindBulkPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type LibraryBulkEditApiV1LibraryKindBulkPostError =
-  LibraryBulkEditApiV1LibraryKindBulkPostErrors[keyof LibraryBulkEditApiV1LibraryKindBulkPostErrors];
-
-export type LibraryBulkEditApiV1LibraryKindBulkPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type LibraryBulkEditApiV1LibraryKindBulkPostResponse =
-  LibraryBulkEditApiV1LibraryKindBulkPostResponses[keyof LibraryBulkEditApiV1LibraryKindBulkPostResponses];
-
-export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostData = {
-  body: BulkDeleteIn;
-  path: {
-    /**
-     * Kind
-     */
-    kind: string;
-  };
-  query?: never;
-  url: "/api/v1/library/{kind}/bulk-delete";
-};
-
-export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostError =
-  LibraryBulkDeleteApiV1LibraryKindBulkDeletePostErrors[keyof LibraryBulkDeleteApiV1LibraryKindBulkDeletePostErrors];
-
-export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponse =
-  LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponses[keyof LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponses];
-
-export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostData = {
-  body: BulkDeleteIn;
-  path: {
-    /**
-     * Kind
-     */
-    kind: string;
-  };
-  query?: never;
-  url: "/api/v1/library/{kind}/bulk-search";
-};
-
-export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostError =
-  LibraryBulkSearchApiV1LibraryKindBulkSearchPostErrors[keyof LibraryBulkSearchApiV1LibraryKindBulkSearchPostErrors];
-
-export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponse =
-  LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponses[keyof LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponses];
+export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponse =
+  MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponses[keyof MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponses];
 
 export type WantedApiV1WantedAppGetData = {
   body?: never;

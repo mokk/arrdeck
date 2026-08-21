@@ -8,7 +8,7 @@ import {
   formatSpeed,
   watchedFor,
 } from "./format";
-import type { WatchedItem } from "./types";
+import type { WatchedItem, WatchedMap } from "./types";
 
 describe("formatBytes", () => {
   it("renders whole bytes without a decimal", () => {
@@ -57,21 +57,47 @@ describe("formatSpeed", () => {
 });
 
 describe("watchedFor", () => {
-  const seen: WatchedItem = { watched: true, progress: 1, url: "/plex" };
-  const map: Record<string, WatchedItem> = { "tmdb:170": seen, "tvdb:871": seen };
+  const seen: WatchedItem = { watched: true, progress: 1, key: "85" };
+  const map: WatchedMap = {
+    base_url: "https://app.plex.tv/desktop/#!/server/abc/details?key=/library/metadata/",
+    items: { "tmdb:170": seen, "tvdb:871": seen },
+  };
 
   it("matches a movie on its tmdb id", () => {
-    expect(watchedFor(map, { tmdb_id: 170 })).toBe(seen);
+    expect(watchedFor(map, { tmdb_id: 170 })?.watched).toBe(true);
   });
 
   it("matches a series on its tvdb id", () => {
-    expect(watchedFor(map, { tvdb_id: 871 })).toBe(seen);
+    expect(watchedFor(map, { tvdb_id: 871 })?.watched).toBe(true);
   });
 
   it("falls through the ids in order until one hits", () => {
     // radarr holds a tmdb id plex doesn't know, but the imdb id lines up
-    const withImdb = { ...map, "imdb:tt0289043": seen };
-    expect(watchedFor(withImdb, { tmdb_id: 999999, imdb_id: "tt0289043" })).toBe(seen);
+    const withImdb = { ...map, items: { ...map.items, "imdb:tt0289043": seen } };
+    expect(watchedFor(withImdb, { tmdb_id: 999999, imdb_id: "tt0289043" })?.watched).toBe(true);
+  });
+
+  it("composes the Plex link from the shared prefix and the entry key", () => {
+    // The prefix ships once rather than per entry — it was two thirds of a
+    // 98 KB payload — so the join has to happen here or the link breaks.
+    expect(watchedFor(map, { tmdb_id: 170 })?.url).toBe(
+      "https://app.plex.tv/desktop/#!/server/abc/details?key=/library/metadata/85",
+    );
+  });
+
+  it("leaves the link undefined when Plex gave no server id", () => {
+    const noServer: WatchedMap = { base_url: null, items: map.items };
+    const item = watchedFor(noServer, { tmdb_id: 170 });
+    expect(item?.watched).toBe(true);
+    expect(item?.url).toBeUndefined();
+  });
+
+  it("leaves the link undefined for an entry with no key", () => {
+    const noKey: WatchedMap = {
+      base_url: map.base_url,
+      items: { "tmdb:170": { watched: false, progress: 0 } },
+    };
+    expect(watchedFor(noKey, { tmdb_id: 170 })?.url).toBeUndefined();
   });
 
   it("is undefined when plex has never seen the title", () => {
@@ -80,7 +106,8 @@ describe("watchedFor", () => {
 
   it("ignores ids the arr doesn't have rather than matching a stray key", () => {
     // a null id must not become the string "tmdb:null" and collide
-    expect(watchedFor({ "tmdb:null": seen }, { tmdb_id: null })).toBeUndefined();
+    const stray: WatchedMap = { base_url: null, items: { "tmdb:null": seen } };
+    expect(watchedFor(stray, { tmdb_id: null })).toBeUndefined();
   });
 
   it("tolerates a missing map, which is what an unconfigured plex looks like", () => {

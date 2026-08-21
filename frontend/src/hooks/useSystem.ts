@@ -27,7 +27,7 @@ import type {
   StatsSample,
   Subtitles,
   VpnStatus,
-  WatchedItem,
+  WatchedMap,
   WebhookApp,
   WebhookStatus,
 } from "../api/types";
@@ -114,7 +114,7 @@ export const useDiskSpace = (enabled: boolean) =>
 export const useWatched = (enabled: boolean) =>
   useQuery({
     queryKey: ["watched"],
-    queryFn: () => api.get<ServiceBlock<Record<string, WatchedItem>>>("/watched"),
+    queryFn: () => api.get<ServiceBlock<WatchedMap>>("/watched"),
     enabled,
     staleTime: SLOW,
   });

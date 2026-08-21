@@ -45,6 +45,7 @@ export type CollectionDetail = G.CollectionDetailOut;
 export type MovieDetail = G.MovieDetailOut;
 export type HistoryEvent = G.HistoryEventOut;
 export type Credits = G.CreditsOut;
+export type WatchedMap = G.WatchedMapOut;
 export type QualityProfiles = G.QualityProfilesOut;
 export type QualityProfileDetail = G.QualityProfileDetailOut;
 export type QualityItem = G.QualityItemOut;

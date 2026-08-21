@@ -12,7 +12,7 @@ from ...deps import (
 from ...schemas import (
     PlaySessionOut,
     ServiceBlock,
-    WatchedItemOut,
+    WatchedMapOut,
 )
 
 router = APIRouter(tags=["plex"])
@@ -60,7 +60,7 @@ def _guid_keys(item: dict) -> list[str]:
     return keys
 
 
-@router.get("/watched", response_model=ServiceBlock[dict[str, WatchedItemOut]])
+@router.get("/watched", response_model=ServiceBlock[WatchedMapOut])
 async def watched(plex: PlexClient = Depends(get_plex)):
     """Watched state keyed by external id (tmdb:123, imdb:tt123, tvdb:123).
 
@@ -68,8 +68,8 @@ async def watched(plex: PlexClient = Depends(get_plex)):
     ids, so the join happens client-side for free.
     """
 
-    async def fetch() -> dict[str, dict]:
-        async def call() -> dict[str, dict]:
+    async def fetch() -> dict:
+        async def call() -> dict:
             identity, sections = await asyncio.gather(
                 plex.identity(), plex.sections(), return_exceptions=True
             )
@@ -99,16 +99,19 @@ async def watched(plex: PlexClient = Depends(get_plex)):
                     entry = {
                         "watched": is_watched,
                         "progress": progress,
-                        "url": (
-                            f"https://app.plex.tv/desktop/#!/server/{machine_id}"
-                            f"/details?key=/library/metadata/{rating_key}"
-                            if machine_id and rating_key
-                            else None
-                        ),
+                        "key": str(rating_key) if rating_key else None,
                     }
                     for key in _guid_keys(item):
                         out[key] = entry
-            return out
+            return {
+                "base_url": (
+                    f"https://app.plex.tv/desktop/#!/server/{machine_id}"
+                    "/details?key=/library/metadata/"
+                    if machine_id
+                    else None
+                ),
+                "items": out,
+            }
 
         return await cached("watched", 600, call)
 

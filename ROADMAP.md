@@ -195,7 +195,21 @@ this release rejected for size" which the profile alone cannot.
 
 **Verification**: bands match Radarr's Quality settings page. **Size: S.**
 
-## H. Slim the watched map
+## H. Slim the watched map — done
+
+Measured first, as the phase asked: **66% of the 98 KB was Plex URLs**, and every
+one carried the same `app.plex.tv/#!/server/{machineId}/details?key=...` prefix —
+only the trailing rating key varied.
+
+The prefix now ships once as `base_url` and each entry carries `key` instead of a
+full `url`. **98.1 KB -> 35.1 KB, a 64% cut** across 593 entries.
+
+No consumer changed: `watchedFor()` composes the link from the prefix and the
+key, so the three call sites still read `.url` off what it returns. The link goes
+undefined when Plex gave no machine id or an entry has no key, which is what an
+unconfigured or partial Plex looks like.
+
+## H-original. Slim the watched map
 
 `/watched` is **99 KB across 590 entries** and loads on every dashboard visit. It
 carries a Plex URL per entry, most of which are never used — only the handful of
