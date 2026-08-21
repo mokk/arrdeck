@@ -125,6 +125,17 @@ describe("movie library", () => {
     expect(screen.getByText("common.search")).toBeTruthy();
   });
 
+  it("opens the movie route from its poster too", () => {
+    // The series poster opened its detail page and the movie poster did not,
+    // which was an oversight rather than a distinction between the two lists.
+    hooks.movies = { data: [movie({ id: 42 })], error: undefined };
+    const { container } = render(<MovieLibrary />);
+    const poster = container.querySelector('img[src="/p.jpg"]');
+    expect(poster).toBeTruthy();
+    fireEvent.click(poster as Element);
+    expect(navigate).toHaveBeenCalledWith("/movie/42");
+  });
+
   it("opens the movie route from the title", () => {
     hooks.movies = { data: [movie({ id: 42 })], error: undefined };
     render(<MovieLibrary />);

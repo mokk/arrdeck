@@ -24,7 +24,6 @@ export function SeriesLibrary() {
           {formatBytes(s.size_on_disk)}
         </>
       )}
-      posterOpens
     />
   );
 }

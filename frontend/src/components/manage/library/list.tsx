@@ -90,7 +90,6 @@ export function LibraryList<T extends LibraryRow>({
   renderBadge,
   renderStats,
   showSearch,
-  posterOpens,
 }: {
   kind: Kind;
   items: T[] | undefined;
@@ -105,9 +104,6 @@ export function LibraryList<T extends LibraryRow>({
   renderStats: (item: T) => ReactNode;
   /** Movies hide Search once the file is on disk; series always offer it. */
   showSearch?: (item: T) => boolean;
-  /** Only the series poster opens the detail page today. Preserved rather than
-   * unified, because this refactor is meant to change nothing. */
-  posterOpens?: boolean;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -209,11 +205,13 @@ export function LibraryList<T extends LibraryRow>({
                   src={item.poster}
                   alt=""
                   loading="lazy"
+                  // Both lists open on the poster now. Only the series list
+                  // did, which was an oversight rather than a distinction.
                   className={cn(
                     "w-10 shrink-0 rounded-md bg-secondary object-cover [aspect-ratio:2/3]",
-                    posterOpens && "cursor-pointer",
+                    !selectMode && "cursor-pointer",
                   )}
-                  {...(posterOpens ? clickable(selectMode ? undefined : () => open(item)) : {})}
+                  {...clickable(selectMode ? undefined : () => open(item))}
                 />
               ) : (
                 <div className="w-10 shrink-0 rounded-md bg-secondary [aspect-ratio:2/3]" />

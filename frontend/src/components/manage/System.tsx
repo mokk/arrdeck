@@ -272,7 +272,9 @@ function SizeBands({ bands }: { bands: QualityDefinition[] }) {
         onClick={() => setOpen(!open)}
         className={cn(focusRing, "self-start text-xs font-semibold text-primary")}
       >
-        {open ? t("system.hideSizeLimits") : t("system.showSizeLimits", { count: bands.length })}
+        {open
+          ? t("system.hideSizeLimits")
+          : t("system.showSizeLimits", { count: bands.length })}
       </button>
       {open && (
         <div className="mt-1.5 space-y-0.5">

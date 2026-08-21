@@ -294,7 +294,25 @@ credits and bulk actions in one module.
 
 **Verification**: route surface and schema count unchanged. **Size: S.**
 
-## J. Look at it, then fix what looking reveals
+## J. Look at it — still blocked, one part done
+
+**Blocked on the browser.** The automation browser still cannot reach the LAN: it
+loads example.com but not `10.0.0.154:3500` or `localhost:3500`, while curl gets
+200 on every route from the same host. Everything from last round's phase G
+onward — the light theme, the series detail page, the cast strip, the profiles
+card, the size bands, and now the fixes in L — is verified by tests, API diffs
+and compiled-CSS inspection but has **never been seen by a human**.
+
+Highest-value things to glance at, in order: light-mode poster grids and the
+Stats charts, the cast strip on a narrow screen, and the profile quality chips
+plus size-band table, which are the densest layout in the app.
+
+**Done**: `posterOpens` is gone. Both library lists open their detail page from
+the poster; only the series list did, which was an oversight rather than a
+distinction, preserved through F only because that phase was meant to change
+nothing.
+
+## J-original. Look at it, then fix what looking reveals
 
 Everything from phase G onward — the light theme, the series detail page, the
 cast strip, the profiles card — is verified by tests, API diffs and compiled-CSS
