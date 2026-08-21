@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { clickable } from "@/lib/utils";
-import { formatDate, formatDateTime, formatSpeed, SERVICE_LABELS } from "../../api/format";
+import { formatDay, formatDayTime, formatSpeed, SERVICE_LABELS } from "../../api/format";
 import type { CalendarItem, HistoryItem } from "../../api/types";
 import {
   BlockView,
@@ -291,7 +291,7 @@ export function CalendarSection({ configured }: { configured: Set<string> }) {
               </div>
             </div>
             <div className="shrink-0 text-xs text-muted-foreground">
-              {c.has_file ? <StateBadge state="downloaded" /> : formatDate(c.date)}
+              {c.has_file ? <StateBadge state="downloaded" /> : formatDay(c.date)}
             </div>
           </Row>
         ))}
@@ -342,14 +342,14 @@ export function HistorySection({ configured }: { configured: Set<string> }) {
               <div className="mt-0.5 flex flex-wrap items-center gap-1 text-xs">
                 <StateBadge state={h.app} />
                 {(h.events ?? []).map((e) => (
-                  <span key={e.type} title={formatDateTime(e.date)}>
+                  <span key={e.type} title={formatDayTime(e.date)}>
                     <StateBadge state={e.type} />
                   </span>
                 ))}
               </div>
             </div>
             <div className="shrink-0 text-xs text-muted-foreground">
-              {formatDateTime(h.date)}
+              {formatDayTime(h.date)}
             </div>
           </Row>
         ))}

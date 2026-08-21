@@ -78,6 +78,47 @@ export function formatDateTime(iso: string): string {
   });
 }
 
+/** Whole days between today and `iso`, in local time. Compares day boundaries
+ * rather than subtracting 24h, so a DST changeover (a 23- or 25-hour day) still
+ * counts as one day. */
+function dayOffset(iso: string): number | null {
+  const then = new Date(iso);
+  if (Number.isNaN(then.getTime())) return null;
+  const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  return Math.round((midnight(then) - midnight(new Date())) / 86_400_000);
+}
+
+/** Intl supplies the wording, so Danish gets "i dag" without a string of our
+ * own. It comes back lowercase; these sit alone in a cell, so capitalise. */
+function namedDay(offset: number): string {
+  const named = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" }).format(
+    offset,
+    "day",
+  );
+  return named.charAt(0).toLocaleUpperCase() + named.slice(1);
+}
+
+/** Like formatDate, but says Today or Tomorrow when the date is one of them —
+ * which on a dashboard is most of what anyone is looking for. */
+export function formatDay(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const offset = dayOffset(iso);
+  if (offset === 0 || offset === 1) return namedDay(offset);
+  return formatDate(iso);
+}
+
+/** formatDateTime with the same substitution, keeping the comma so a named day
+ * and a dated one line up: "Today, 01:38 PM" against "Aug 18, 01:38 PM". */
+export function formatDayTime(iso: string): string {
+  const offset = dayOffset(iso);
+  if (offset !== 0 && offset !== 1) return formatDateTime(iso);
+  const time = new Date(iso).toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${namedDay(offset)}, ${time}`;
+}
+
 /** Plex indexes watched state under every external id it knows; try each id the
  * arr holds until one hits. Undefined means Plex has never seen the title. */
 export function watchedFor(

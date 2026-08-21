@@ -1,5 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { formatBytes, formatEta, formatRelative, formatSpeed, watchedFor } from "./format";
+import {
+  formatBytes,
+  formatDay,
+  formatDayTime,
+  formatEta,
+  formatRelative,
+  formatSpeed,
+  watchedFor,
+} from "./format";
 import type { WatchedItem } from "./types";
 
 describe("formatBytes", () => {
@@ -106,5 +114,59 @@ describe("formatRelative", () => {
     expect(formatRelative(undefined)).toBe("—");
     expect(formatRelative("")).toBe("—");
     expect(formatRelative("not a date")).toBe("—");
+  });
+});
+
+describe("formatDay", () => {
+  // Local time throughout: the dashboard is read on a phone in the user's zone,
+  // and "Tomorrow" has to mean their tomorrow.
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 7, 20, 14, 0, 0)); // 20 Aug 2026, local
+  });
+  afterEach(() => vi.useRealTimers());
+
+  const local = (y: number, m: number, d: number, h = 12) => new Date(y, m, d, h).toISOString();
+
+  it("names today and tomorrow", () => {
+    expect(formatDay(local(2026, 7, 20))).toBe("Today");
+    expect(formatDay(local(2026, 7, 21))).toBe("Tomorrow");
+  });
+
+  it("names them from the edges of the day, not a 24h window", () => {
+    expect(formatDay(local(2026, 7, 20, 0))).toBe("Today");
+    expect(formatDay(local(2026, 7, 20, 23))).toBe("Today");
+    // 23:00 tomorrow is 33h away, but it is still tomorrow
+    expect(formatDay(local(2026, 7, 21, 23))).toBe("Tomorrow");
+  });
+
+  it("falls back to a date outside that window", () => {
+    expect(formatDay(local(2026, 7, 22))).toBe("Aug 22");
+    expect(formatDay(local(2026, 7, 19))).toBe("Aug 19");
+  });
+
+  it("treats nothing as unknown rather than as today", () => {
+    expect(formatDay(null)).toBe("—");
+    expect(formatDay(undefined)).toBe("—");
+    expect(formatDay("")).toBe("—");
+    expect(formatDay("not a date")).toBe("Invalid Date");
+  });
+});
+
+describe("formatDayTime", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 7, 20, 14, 0, 0));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it("keeps the time and swaps only the date part", () => {
+    const today = formatDayTime(new Date(2026, 7, 20, 13, 38).toISOString());
+    expect(today).toMatch(/^Today, /);
+    expect(today).toMatch(/38/);
+  });
+
+  it("leaves other days as they were", () => {
+    expect(formatDayTime(new Date(2026, 7, 18, 13, 38).toISOString())).toMatch(/^Aug 18/);
   });
 });
