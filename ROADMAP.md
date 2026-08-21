@@ -426,7 +426,42 @@ first thing most people want when deciding whether to keep something.
 **Verification**: a movie with a known cast renders it; a movie Radarr has no
 credits for degrades to nothing rather than an empty card. **Size: M.**
 
-## K. Quality profiles and custom formats
+## K. Quality profiles and custom formats — done
+
+Shipped read-only, as the phase specified: `GET /quality-profiles/{app}` and a
+card per arr in Manage -> System, showing each profile's accepted qualities
+best-first, where upgrading stops, and any custom-format scores.
+
+Three things the raw data needed:
+- The API returns qualities **worst first**; the arr's own UI shows them best
+  first, and this view sits beside that UI, so the list is reversed.
+- The cutoff is an **id**, and groups and qualities share the field but not the
+  id space (groups start at 1000). Resolved against the profile's own items,
+  checking groups as groups rather than trusting the number.
+- Every custom format scores **zero** by default, so only non-zero scores are
+  listed — otherwise the handful that matter would be buried.
+
+Grouped qualities ("WEB 1080p" holding WEBDL and WEBRip) are marked and name
+their members. Rejected qualities are returned but collapsed behind a count, so
+a profile reads as what it accepts rather than 26 rows of mostly-unchecked.
+
+**Worth knowing about this setup**: all 12 profiles are stock, every one has
+`upgradeAllowed` **off**, and **neither arr has a single custom format defined**.
+So the custom-format half of this phase has nothing to show here — the card says
+so plainly rather than rendering an empty section. That is the read-only view the
+phase wanted to see before deciding on editing, and the answer it gives is that
+there is nothing here worth an editor yet.
+
+Also fixed a collision this surfaced: `QualityProfileOut` existed in both
+`schemas/library.py` and `schemas/system.py`, so the generator emitted
+`AppSchemasSystemQualityProfileOut`. Renamed to `QualityProfileDetailOut`.
+
+**Verified**: all 12 profiles diffed field-by-field against both arrs' own
+`/qualityprofile` — accepted set, ordering, upgrade flag and item count — zero
+mismatches. 14 backend tests and 9 frontend tests, including the group cutoff,
+an unresolvable cutoff, zero-score omission and the no-custom-formats path.
+
+## K-original. Quality profiles and custom formats
 
 `qualityprofile/schema`, `customformat` and `delayprofile` are all reachable and
 unused. Today changing what quality you want means opening Radarr, then Sonarr.

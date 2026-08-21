@@ -465,6 +465,20 @@ export type CreditsOut = {
 };
 
 /**
+ * CustomFormatScoreOut
+ */
+export type CustomFormatScoreOut = {
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Score
+   */
+  score: number;
+};
+
+/**
  * DiskSpaceOut
  */
 export type DiskSpaceOut = {
@@ -1462,6 +1476,66 @@ export type PushTestOut = {
 };
 
 /**
+ * QualityItemOut
+ */
+export type QualityItemOut = {
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Allowed
+   */
+  allowed?: boolean;
+  /**
+   * Is Group
+   */
+  is_group?: boolean;
+  /**
+   * Members
+   */
+  members?: Array<string>;
+  /**
+   * Is Cutoff
+   */
+  is_cutoff?: boolean;
+};
+
+/**
+ * QualityProfileDetailOut
+ */
+export type QualityProfileDetailOut = {
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Upgrade Allowed
+   */
+  upgrade_allowed?: boolean;
+  /**
+   * Cutoff
+   */
+  cutoff?: string | null;
+  /**
+   * Min Format Score
+   */
+  min_format_score?: number;
+  /**
+   * Items
+   */
+  items?: Array<QualityItemOut>;
+  /**
+   * Format Scores
+   */
+  format_scores?: Array<CustomFormatScoreOut>;
+};
+
+/**
  * QualityProfileOut
  */
 export type QualityProfileOut = {
@@ -1473,6 +1547,20 @@ export type QualityProfileOut = {
    * Name
    */
   name: string;
+};
+
+/**
+ * QualityProfilesOut
+ */
+export type QualityProfilesOut = {
+  /**
+   * Profiles
+   */
+  profiles?: Array<QualityProfileDetailOut>;
+  /**
+   * Custom Formats
+   */
+  custom_formats?: Array<string>;
 };
 
 /**
@@ -4412,6 +4500,38 @@ export type RemoveQueueItemApiV1QueueAppItemIdDeleteResponses = {
 
 export type RemoveQueueItemApiV1QueueAppItemIdDeleteResponse =
   RemoveQueueItemApiV1QueueAppItemIdDeleteResponses[keyof RemoveQueueItemApiV1QueueAppItemIdDeleteResponses];
+
+export type QualityProfilesApiV1QualityProfilesAppGetData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+  };
+  query?: never;
+  url: "/api/v1/quality-profiles/{app}";
+};
+
+export type QualityProfilesApiV1QualityProfilesAppGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type QualityProfilesApiV1QualityProfilesAppGetError =
+  QualityProfilesApiV1QualityProfilesAppGetErrors[keyof QualityProfilesApiV1QualityProfilesAppGetErrors];
+
+export type QualityProfilesApiV1QualityProfilesAppGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: QualityProfilesOut;
+};
+
+export type QualityProfilesApiV1QualityProfilesAppGetResponse =
+  QualityProfilesApiV1QualityProfilesAppGetResponses[keyof QualityProfilesApiV1QualityProfilesAppGetResponses];
 
 export type DiscoverMoviesApiV1DiscoverMoviesGetData = {
   body?: never;

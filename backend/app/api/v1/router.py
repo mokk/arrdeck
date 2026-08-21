@@ -13,6 +13,7 @@ from . import (
     plex,
     popular,
     posters,
+    profiles,
     releases,
     requests,
     settings,
@@ -36,6 +37,7 @@ router.include_router(torrentactions.router)
 router.include_router(importing.router)
 router.include_router(arrqueue.router)
 router.include_router(posters.router)
+router.include_router(profiles.router)
 router.include_router(discover.router)
 router.include_router(releases.router)
 router.include_router(requests.router)

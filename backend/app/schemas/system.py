@@ -219,3 +219,38 @@ class ArrBackupOut(BaseModel):
     size_bytes: int = 0
     time: str | None = None
     url: str | None = None
+
+
+class QualityItemOut(BaseModel):
+    name: str
+    allowed: bool = False
+    # Radarr and Sonarr both group the WEB qualities, e.g. "WEB 1080p" holding
+    # WEBDL-1080p and WEBRip-1080p, and a profile can allow the group as a unit.
+    is_group: bool = False
+    members: list[str] = []
+    # The quality the profile upgrades *until*. Higher qualities can still be
+    # allowed above it, which is the whole point of the setting.
+    is_cutoff: bool = False
+
+
+class CustomFormatScoreOut(BaseModel):
+    name: str
+    score: int
+
+
+class QualityProfileDetailOut(BaseModel):
+    id: int
+    name: str
+    upgrade_allowed: bool = False
+    cutoff: str | None = None
+    min_format_score: int = 0
+    # Best first, matching the arr's own UI. The API returns them worst first.
+    items: list[QualityItemOut] = []
+    format_scores: list[CustomFormatScoreOut] = []
+
+
+class QualityProfilesOut(BaseModel):
+    profiles: list[QualityProfileDetailOut] = []
+    # Names defined in the arr, whether or not any profile scores them. Empty is
+    # a real answer worth showing rather than an empty card.
+    custom_formats: list[str] = []

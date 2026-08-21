@@ -194,6 +194,9 @@ class ArrClient(BaseClient):
         # Radarr: movieId=; Sonarr: seriesId= (+ optional seasonNumber=)
         return await self.get("/rename", params=params)
 
+    async def custom_formats(self) -> list:
+        return await self.get("/customformat")
+
     async def tasks(self) -> list:
         """Scheduled tasks with their last and next run (System -> Tasks)."""
         return await self.get("/system/task")

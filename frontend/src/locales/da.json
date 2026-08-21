@@ -282,7 +282,15 @@
     "allOnSchedule": "{{count}} opgaver, alle efter planen",
     "noTasks": "Ingen opgaver",
     "arrBackups": "Backups af tjenester",
-    "noBackups": "Ingen backups endnu"
+    "noBackups": "Ingen backups endnu",
+    "profilesFor": "{{app}}-kvalitetsprofiler",
+    "noProfiles": "Ingen profiler",
+    "upgradeTo": "opgraderer til {{quality}}",
+    "noUpgrades": "ingen opgraderinger",
+    "showAllQualities": "Vis {{count}} afviste",
+    "showAllowedOnly": "Vis kun accepterede",
+    "customFormats": "Brugerdefinerede formater: {{list}}",
+    "noCustomFormats": "Ingen brugerdefinerede formater"
   },
   "toast": {
     "added": "Tilføjet til biblioteket",

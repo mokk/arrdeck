@@ -17,6 +17,7 @@ import type {
   PlaySession,
   PushEvents,
   PushRules,
+  QualityProfiles,
   ScheduledTask,
   ServiceBlock,
   ServiceInfo,
@@ -286,6 +287,14 @@ export const useArrBackups = (enabled: boolean) =>
     queryFn: () => api.get<ServiceBlock<ArrBackup[]>>("/arr-backups"),
     enabled,
     refetchInterval: SLOW,
+  });
+
+export const useQualityProfiles = (app: string, enabled: boolean) =>
+  useQuery({
+    queryKey: ["qualityProfiles", app],
+    queryFn: () => api.get<QualityProfiles>(`/quality-profiles/${app}`),
+    enabled,
+    staleTime: SLOW,
   });
 
 export const useLogs = (app: string, level: string, enabled: boolean) =>

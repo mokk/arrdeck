@@ -8,8 +8,13 @@ import {
   formatRelative,
   SERVICE_LABELS,
 } from "../../api/format";
-import type { ArrBackup, ScheduledTask } from "../../api/types";
-import { useArrBackups, useServices, useTasks } from "../../hooks/queries";
+import type {
+  ArrBackup,
+  QualityItem,
+  QualityProfileDetail,
+  ScheduledTask,
+} from "../../api/types";
+import { useArrBackups, useQualityProfiles, useServices, useTasks } from "../../hooks/queries";
 import { BlockView, Card, EmptyNote, Row, SectionTitle } from "../Blocks";
 import { Logs } from "./Logs";
 
@@ -188,6 +193,100 @@ function BackupsCard() {
   );
 }
 
+/** One profile: what it accepts, and where it stops upgrading. */
+function ProfileRow({ profile }: { profile: QualityProfileDetail }) {
+  const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
+  const items = profile.items ?? [];
+  const allowed = items.filter((i: QualityItem) => i.allowed);
+  const shown = expanded ? items : allowed;
+  return (
+    <Row className="flex-col items-stretch">
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1 text-sm font-semibold">{profile.name}</div>
+        {profile.upgrade_allowed ? (
+          <span className="shrink-0 text-xs text-muted-foreground">
+            {t("system.upgradeTo", { quality: profile.cutoff ?? "?" })}
+          </span>
+        ) : (
+          <span className="shrink-0 text-xs text-muted-foreground">
+            {t("system.noUpgrades")}
+          </span>
+        )}
+      </div>
+      <div className="mt-1.5 flex flex-wrap gap-1">
+        {shown.map((item: QualityItem) => (
+          <span
+            key={item.name}
+            title={item.members?.length ? item.members.join(", ") : undefined}
+            className={cn(
+              "rounded-md px-1.5 py-0.5 text-[0.68rem] font-semibold",
+              item.allowed
+                ? "bg-primary/15 text-primary"
+                : "bg-secondary text-muted-foreground line-through",
+              item.is_cutoff && "ring-1 ring-primary/60",
+            )}
+          >
+            {item.name}
+            {item.is_group ? " *" : ""}
+          </span>
+        ))}
+      </div>
+      {(profile.format_scores?.length ?? 0) > 0 && (
+        <div className="mt-1.5 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+          {(profile.format_scores ?? []).map((score: { name: string; score: number }) => (
+            <span key={score.name}>
+              {score.name}{" "}
+              <span className={score.score > 0 ? "text-success" : "text-destructive"}>
+                {score.score > 0 ? `+${score.score}` : score.score}
+              </span>
+            </span>
+          ))}
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className={cn(focusRing, "mt-1.5 self-start text-xs font-semibold text-primary")}
+      >
+        {expanded
+          ? t("system.showAllowedOnly")
+          : t("system.showAllQualities", { count: items.length - allowed.length })}
+      </button>
+    </Row>
+  );
+}
+
+/** Read-only: deciding what quality you want still means opening the arr, but
+ * checking what you already asked for no longer does. */
+function ProfilesCard({ app }: { app: string }) {
+  const { t } = useTranslation();
+  const { data } = useQualityProfiles(app, true);
+  const profiles = data?.profiles ?? [];
+  const formats = data?.custom_formats ?? [];
+  return (
+    <>
+      <SectionTitle>
+        {t("system.profilesFor", { app: SERVICE_LABELS[app] ?? app })}
+      </SectionTitle>
+      <Card>
+        {profiles.length === 0 ? (
+          <EmptyNote>{t("system.noProfiles")}</EmptyNote>
+        ) : (
+          profiles.map((profile) => <ProfileRow key={profile.id} profile={profile} />)
+        )}
+        <Row>
+          <span className="text-xs text-muted-foreground">
+            {formats.length === 0
+              ? t("system.noCustomFormats")
+              : t("system.customFormats", { list: formats.join(", ") })}
+          </span>
+        </Row>
+      </Card>
+    </>
+  );
+}
+
 export function SystemTab() {
   const { t } = useTranslation();
   const { data: services } = useServices();
@@ -198,6 +297,11 @@ export function SystemTab() {
   return (
     <>
       <TasksCard />
+      {configured.map((service) =>
+        service.service === "radarr" || service.service === "sonarr" ? (
+          <ProfilesCard key={service.service} app={service.service} />
+        ) : null,
+      )}
       <BackupsCard />
       <SectionTitle>{t("manage.logs")}</SectionTitle>
       <Logs />

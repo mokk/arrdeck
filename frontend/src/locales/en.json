@@ -282,7 +282,15 @@
     "allOnSchedule": "{{count}} tasks, all on schedule",
     "noTasks": "No tasks",
     "arrBackups": "Service backups",
-    "noBackups": "No backups yet"
+    "noBackups": "No backups yet",
+    "profilesFor": "{{app}} quality profiles",
+    "noProfiles": "No profiles",
+    "upgradeTo": "upgrades to {{quality}}",
+    "noUpgrades": "no upgrades",
+    "showAllQualities": "Show {{count}} rejected",
+    "showAllowedOnly": "Show accepted only",
+    "customFormats": "Custom formats: {{list}}",
+    "noCustomFormats": "No custom formats defined"
   },
   "toast": {
     "added": "Added to library",
