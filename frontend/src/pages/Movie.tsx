@@ -1,22 +1,20 @@
-import { ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatBytes, formatDateTime, watchedFor } from "../api/format";
+import { formatBytes, watchedFor } from "../api/format";
 import { Card, ErrorNote, Row, SectionTitle, StateBadge } from "../components/Blocks";
+import {
+  DetailActions,
+  DetailHeader,
+  DetailHero,
+  DetailHistory,
+  DetailProfileSelect,
+  type ExternalLink,
+} from "../components/detail";
 import { BigButton } from "../components/media";
 import { ReleasesSheet } from "../components/ReleasesSheet";
 import { RenameCard } from "../components/RenameCard";
-import { WatchedDot } from "../components/WatchedDot";
 import {
   useDeleteLibraryItem,
   useMovieDetail,
@@ -49,7 +47,7 @@ export default function MoviePage() {
     imdb_id: data?.imdb_id,
   });
 
-  const links: { label: string; url: string }[] = [];
+  const links: ExternalLink[] = [];
   if (watched?.url) links.push({ label: "Plex", url: watched.url });
   if (data?.imdb_id)
     links.push({ label: "IMDb", url: `https://www.imdb.com/title/${data.imdb_id}/` });
@@ -58,39 +56,18 @@ export default function MoviePage() {
 
   return (
     <>
-      <div className="mb-4 mt-1 flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={t("common.back")}
-          onClick={() => navigate(-1)}
-        >
-          <ChevronLeft className="size-6" />
-        </Button>
-        <h1 className="min-w-0 truncate text-2xl font-extrabold tracking-tight">
-          {data?.title ?? "…"}{" "}
-          <span className="font-semibold text-muted-foreground">{data?.year ?? ""}</span>
-        </h1>
-        <WatchedDot item={watched} />
-      </div>
+      <DetailHeader title={data?.title} year={data?.year} watched={watched} />
       {error && <ErrorNote>{(error as Error).message}</ErrorNote>}
       {isLoading && <Skeleton className="mb-4 h-40 w-full rounded-2xl" />}
       {data && <RenameCard app="radarr" id={movieId} />}
       {data && (
         <>
-          <div className="mb-5 flex gap-4">
-            {data.poster && (
-              <img
-                src={data.poster}
-                alt=""
-                className="w-28 shrink-0 rounded-xl bg-card object-cover [aspect-ratio:2/3]"
-              />
-            )}
-            <div className="min-w-0">
-              <div className="text-sm leading-relaxed text-muted-foreground">
-                {data.overview}
-              </div>
-              <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          <DetailHero
+            poster={data.poster}
+            overview={data.overview}
+            links={links}
+            badges={
+              <>
                 <StateBadge
                   state={
                     data.has_file ? "downloaded" : data.monitored ? "wanted" : "unmonitored"
@@ -100,102 +77,35 @@ export default function MoviePage() {
                 {data.runtime ? (
                   <span>· {t("movie.runtime", { min: data.runtime })}</span>
                 ) : null}
-              </div>
-              {links.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {links.map((l) => (
-                    <a
-                      key={l.label}
-                      href={l.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-primary"
-                    >
-                      {l.label} ↗
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+              </>
+            }
+          />
 
           <div className="mb-5">
             <div className="mb-2 flex items-center gap-2">
-              <Select
-                value={
-                  data.quality_profile_id != null ? String(data.quality_profile_id) : undefined
-                }
-                disabled={update.isPending || !options}
-                onValueChange={(v) =>
-                  update.mutate({ id: movieId, quality_profile_id: Number(v) })
-                }
-              >
-                <SelectTrigger size="sm" className="w-auto bg-secondary">
-                  <SelectValue placeholder={t("add.qualityProfile")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {(options?.quality_profiles ?? []).map((p) => (
-                    <SelectItem key={p.id} value={String(p.id)}>
-                      {p.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <DetailProfileSelect
+                value={data.quality_profile_id}
+                options={options}
+                disabled={update.isPending}
+                onChange={(id) => update.mutate({ id: movieId, quality_profile_id: id })}
+              />
             </div>
-            {confirmingDelete ? (
-              <>
-                <BigButton
-                  color="red"
-                  disabled={remove.isPending}
-                  onClick={() =>
-                    remove.mutate(
-                      { id: movieId, deleteFiles: true },
-                      { onSuccess: () => navigate(-1) },
-                    )
-                  }
-                >
-                  {t("add.deleteFromDisk")}
-                </BigButton>
-                <BigButton
-                  color="red"
-                  disabled={remove.isPending}
-                  onClick={() =>
-                    remove.mutate(
-                      { id: movieId, deleteFiles: false },
-                      { onSuccess: () => navigate(-1) },
-                    )
-                  }
-                >
-                  {t("add.removeFromLibrary")}
-                </BigButton>
-                <BigButton color="muted" onClick={() => setConfirmingDelete(false)}>
-                  {t("common.back")}
-                </BigButton>
-              </>
-            ) : (
-              <>
-                <BigButton
-                  color="blue"
-                  disabled={update.isPending}
-                  onClick={() => update.mutate({ id: movieId, monitored: !data.monitored })}
-                >
-                  {data.monitored ? t("add.unmonitor") : t("add.monitor")}
-                </BigButton>
-                <BigButton
-                  color="blue"
-                  disabled={search.isPending}
-                  onClick={() => search.mutate({ app: "radarr", id: movieId })}
-                >
-                  {t("add.searchNow")}
-                </BigButton>
+            <DetailActions
+              monitored={data.monitored ?? false}
+              busy={update.isPending || remove.isPending || search.isPending}
+              confirming={confirmingDelete}
+              onConfirmingChange={setConfirmingDelete}
+              onToggleMonitor={() => update.mutate({ id: movieId, monitored: !data.monitored })}
+              onSearch={() => search.mutate({ app: "radarr", id: movieId })}
+              onDelete={(deleteFiles) =>
+                remove.mutate({ id: movieId, deleteFiles }, { onSuccess: () => navigate(-1) })
+              }
+              extra={
                 <BigButton color="blue" onClick={() => setShowReleases(true)}>
                   {t("releases.interactive")}
                 </BigButton>
-                <BigButton color="red" onClick={() => setConfirmingDelete(true)}>
-                  {t("dl.deleteEllipsis")}
-                </BigButton>
-              </>
-            )}
+              }
+            />
           </div>
 
           <SectionTitle>{t("movie.file")}</SectionTitle>
@@ -222,21 +132,7 @@ export default function MoviePage() {
             )}
           </Card>
 
-          {(data.history?.length ?? 0) > 0 && (
-            <>
-              <SectionTitle>{t("dash.recentHistory")}</SectionTitle>
-              <Card>
-                {(data.history ?? []).map((h, i) => (
-                  <Row key={i}>
-                    <StateBadge state={h.type} />
-                    <div className="ml-auto text-xs text-muted-foreground">
-                      {formatDateTime(h.date)}
-                    </div>
-                  </Row>
-                ))}
-              </Card>
-            </>
-          )}
+          <DetailHistory history={data.history} />
         </>
       )}
       {showReleases && (

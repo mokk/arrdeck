@@ -1837,6 +1837,11 @@ export type SeasonOut = {
 
 /**
  * SeriesDetailOut
+ *
+ * Deliberately mirrors MovieDetailOut, so the two detail pages can show the
+ * same things. The extra fields are the ones with no film equivalent: a series
+ * has a network and an air time, and its "is it on disk" answer is a ratio of
+ * episodes rather than a single file.
  */
 export type SeriesDetailOut = {
   /**
@@ -1848,9 +1853,89 @@ export type SeriesDetailOut = {
    */
   title?: string | null;
   /**
+   * Year
+   */
+  year?: number | null;
+  /**
+   * Overview
+   */
+  overview?: string | null;
+  /**
    * Poster
    */
   poster?: string | null;
+  /**
+   * Status
+   */
+  status?: string | null;
+  /**
+   * Runtime
+   */
+  runtime?: number | null;
+  /**
+   * Path
+   */
+  path?: string | null;
+  /**
+   * Monitored
+   */
+  monitored?: boolean;
+  /**
+   * Size On Disk
+   */
+  size_on_disk?: number;
+  /**
+   * Quality Profile Id
+   */
+  quality_profile_id?: number | null;
+  /**
+   * Imdb Id
+   */
+  imdb_id?: string | null;
+  /**
+   * Tvdb Id
+   */
+  tvdb_id?: number | null;
+  /**
+   * Tmdb Id
+   */
+  tmdb_id?: number | null;
+  /**
+   * Network
+   */
+  network?: string | null;
+  /**
+   * Air Time
+   */
+  air_time?: string | null;
+  /**
+   * Certification
+   */
+  certification?: string | null;
+  /**
+   * Genres
+   */
+  genres?: Array<string>;
+  /**
+   * Episode Count
+   */
+  episode_count?: number;
+  /**
+   * Episode File Count
+   */
+  episode_file_count?: number;
+  /**
+   * Total Episode Count
+   */
+  total_episode_count?: number;
+  /**
+   * Season Count
+   */
+  season_count?: number;
+  /**
+   * History
+   */
+  history?: Array<HistoryEventOut>;
   /**
    * Seasons
    */

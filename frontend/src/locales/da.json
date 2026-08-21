@@ -296,6 +296,11 @@
   },
   "series": {
     "seasons": "Sæsoner",
+    "onDisk": "På disken",
+    "perEpisode": "{{min}} min/afsnit",
+    "seasonCount_one": "{{count}} sæson",
+    "seasonCount_other": "{{count}} sæsoner",
+    "totalEpisodes": "{{count}} inkl. ikke sendte",
     "season": "Sæson {{n}}",
     "specials": "Specials",
     "manageSeasons": "Administrér sæsoner",

@@ -43,6 +43,7 @@ export type WantedPage = G.WantedPageOut;
 export type Collection = G.CollectionOut;
 export type CollectionDetail = G.CollectionDetailOut;
 export type MovieDetail = G.MovieDetailOut;
+export type HistoryEvent = G.HistoryEventOut;
 export type TorrentSummary = G.TorrentSummaryOut;
 export type ImportCandidate = G.ImportCandidateOut;
 export type RenamePreview = G.RenamePreviewOut;

@@ -180,9 +180,37 @@ class SeasonOut(BaseModel):
 
 
 class SeriesDetailOut(BaseModel):
+    """Deliberately mirrors MovieDetailOut, so the two detail pages can show the
+    same things. The extra fields are the ones with no film equivalent: a series
+    has a network and an air time, and its "is it on disk" answer is a ratio of
+    episodes rather than a single file."""
+
     id: int
     title: str | None = None
+    year: int | None = None
+    overview: str | None = None
     poster: str | None = None
+    status: str | None = None  # continuing | ended | upcoming
+    runtime: int | None = None  # minutes per episode
+    path: str | None = None
+    monitored: bool = False
+    size_on_disk: int = 0
+    quality_profile_id: int | None = None
+    imdb_id: str | None = None
+    tvdb_id: int | None = None
+    tmdb_id: int | None = None
+    network: str | None = None
+    air_time: str | None = None
+    certification: str | None = None
+    genres: list[str] = []
+    # Whole-series totals. episode_count counts what has aired, which is what
+    # the file ratio should be read against; total_episode_count includes
+    # unaired episodes and is why the two differ.
+    episode_count: int = 0
+    episode_file_count: int = 0
+    total_episode_count: int = 0
+    season_count: int = 0
+    history: list[HistoryEventOut] = []
     seasons: list[SeasonOut]
 
 

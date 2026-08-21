@@ -252,10 +252,16 @@ export function useUpdateLibraryItem(kind: "movies" | "series") {
       return { prev };
     },
     onError: (_e, _v, ctx) => ctx?.prev && qc.setQueryData(["library", kind], ctx.prev),
-    onSettled: () => {
+    onSettled: (_d, _e, { id }) => {
       qc.invalidateQueries({ queryKey: ["library", kind] });
       qc.invalidateQueries({ queryKey: ["search"] });
       qc.invalidateQueries({ queryKey: ["discover"] });
+      // The detail pages read their own query, not the list. Without this the
+      // Monitor button kept its old label after a successful toggle, because
+      // only the list cache was patched.
+      qc.invalidateQueries({
+        queryKey: [kind === "movies" ? "movieDetail" : "seriesDetail", id],
+      });
     },
   });
 }

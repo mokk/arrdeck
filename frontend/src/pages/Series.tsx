@@ -1,21 +1,35 @@
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatBytes, formatDate } from "../api/format";
+import { formatBytes, formatDay, watchedFor } from "../api/format";
 import type { Season } from "../api/types";
-import { Card, ErrorNote, Row, StateBadge } from "../components/Blocks";
+import { Card, ErrorNote, Row, SectionTitle, StateBadge } from "../components/Blocks";
+import {
+  DetailActions,
+  DetailHeader,
+  DetailHero,
+  DetailHistory,
+  DetailProfileSelect,
+  type ExternalLink,
+} from "../components/detail";
 import { ReleasesSheet } from "../components/ReleasesSheet";
 import { RenameCard } from "../components/RenameCard";
 import {
+  useDeleteLibraryItem,
   useEpisodeMonitor,
   useEpisodeSearch,
+  useOptions,
   useSeasonMonitor,
   useSeasonSearch,
   useSeriesDetail,
   useSeriesEpisodes,
+  useServices,
+  useTriggerSearch,
+  useUpdateLibraryItem,
+  useWatched,
 } from "../hooks/queries";
 
 type ReleaseTarget = { season?: number; episodeId?: number; title: string };
@@ -59,7 +73,7 @@ function EpisodeList({
               ) : (
                 <StateBadge state={e.monitored ? "wanted" : "paused"} />
               )}
-              {formatDate(e.air_date)}
+              {formatDay(e.air_date)}
             </div>
           </div>
           <div className="flex shrink-0 gap-1">
@@ -178,30 +192,38 @@ export default function SeriesPage() {
   const seriesId = Number(id);
   const navigate = useNavigate();
   const { data, error, isLoading } = useSeriesDetail(seriesId);
+  const { data: options } = useOptions("sonarr");
+  const { data: services } = useServices();
+  const { data: watchedMap } = useWatched(
+    (services ?? []).some((sv) => sv.service === "plex" && sv.configured),
+  );
+  const update = useUpdateLibraryItem("series");
+  const remove = useDeleteLibraryItem("series");
+  const search = useTriggerSearch();
   const [releaseTarget, setReleaseTarget] = useState<ReleaseTarget | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  const watched = watchedFor(watchedMap?.data, {
+    tvdb_id: data?.tvdb_id,
+    tmdb_id: data?.tmdb_id,
+    imdb_id: data?.imdb_id,
+  });
+
+  const links: ExternalLink[] = [];
+  if (watched?.url) links.push({ label: "Plex", url: watched.url });
+  if (data?.imdb_id)
+    links.push({ label: "IMDb", url: `https://www.imdb.com/title/${data.imdb_id}/` });
+  if (data?.tvdb_id)
+    links.push({
+      label: "TVDB",
+      url: `https://www.thetvdb.com/dereferrer/series/${data.tvdb_id}`,
+    });
+  if (data?.tmdb_id)
+    links.push({ label: "TMDB", url: `https://www.themoviedb.org/tv/${data.tmdb_id}` });
 
   return (
     <>
-      <div className="mb-4 mt-2 flex items-center gap-2.5">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={t("common.back")}
-          onClick={() => navigate(-1)}
-        >
-          <ChevronLeft className="size-6" />
-        </Button>
-        {data?.poster && (
-          <img
-            src={data.poster}
-            alt=""
-            className="w-9 shrink-0 rounded-md bg-secondary object-cover [aspect-ratio:2/3]"
-          />
-        )}
-        <h1 className="min-w-0 truncate text-2xl font-extrabold tracking-tight">
-          {data?.title ?? "…"}
-        </h1>
-      </div>
+      <DetailHeader title={data?.title} year={data?.year} watched={watched} />
       {error && <ErrorNote>{(error as Error).message}</ErrorNote>}
       {isLoading && (
         <>
@@ -210,14 +232,89 @@ export default function SeriesPage() {
         </>
       )}
       {data && <RenameCard app="sonarr" id={seriesId} />}
-      {data?.seasons.map((s) => (
-        <SeasonCard
-          key={s.number}
-          seriesId={seriesId}
-          season={s}
-          onReleases={setReleaseTarget}
-        />
-      ))}
+      {data && (
+        <>
+          <DetailHero
+            poster={data.poster}
+            overview={data.overview}
+            links={links}
+            badges={
+              <>
+                <StateBadge state={data.monitored ? "ok" : "unmonitored"} />
+                {data.status && <span className="capitalize">{data.status}</span>}
+                {data.network && <span>· {data.network}</span>}
+                {data.runtime ? (
+                  <span>· {t("series.perEpisode", { min: data.runtime })}</span>
+                ) : null}
+                {data.certification && <span>· {data.certification}</span>}
+              </>
+            }
+          />
+
+          <div className="mb-5">
+            <div className="mb-2 flex items-center gap-2">
+              <DetailProfileSelect
+                value={data.quality_profile_id}
+                options={options}
+                disabled={update.isPending}
+                onChange={(id) => update.mutate({ id: seriesId, quality_profile_id: id })}
+              />
+            </div>
+            <DetailActions
+              monitored={data.monitored ?? false}
+              busy={update.isPending || remove.isPending || search.isPending}
+              confirming={confirmingDelete}
+              onConfirmingChange={setConfirmingDelete}
+              onToggleMonitor={() =>
+                update.mutate({ id: seriesId, monitored: !data.monitored })
+              }
+              onSearch={() => search.mutate({ app: "sonarr", id: seriesId })}
+              onDelete={(deleteFiles) =>
+                remove.mutate({ id: seriesId, deleteFiles }, { onSuccess: () => navigate(-1) })
+              }
+            />
+          </div>
+
+          {/* A series has no single file, so the movie page's file card becomes
+              the ratio of episodes on disk. total_episode_count includes unaired
+              ones, which is why it is shown separately rather than as the
+              denominator. */}
+          <SectionTitle>{t("series.onDisk")}</SectionTitle>
+          <Card>
+            <Row>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium">
+                  {t("series.episodes", {
+                    files: data.episode_file_count,
+                    total: data.episode_count,
+                  })}
+                </div>
+                <div className="mt-0.5 text-xs text-muted-foreground">
+                  {formatBytes(data.size_on_disk)}
+                  {data.season_count
+                    ? ` · ${t("series.seasonCount", { count: data.season_count })}`
+                    : ""}
+                  {(data.total_episode_count ?? 0) > (data.episode_count ?? 0)
+                    ? ` · ${t("series.totalEpisodes", { count: data.total_episode_count })}`
+                    : ""}
+                </div>
+              </div>
+            </Row>
+          </Card>
+
+          <SectionTitle>{t("series.seasons")}</SectionTitle>
+          {data.seasons.map((s) => (
+            <SeasonCard
+              key={s.number}
+              seriesId={seriesId}
+              season={s}
+              onReleases={setReleaseTarget}
+            />
+          ))}
+
+          <DetailHistory history={data.history} />
+        </>
+      )}
       {releaseTarget && (
         <ReleasesSheet
           app="sonarr"

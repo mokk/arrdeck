@@ -296,6 +296,11 @@
   },
   "series": {
     "seasons": "Seasons",
+    "onDisk": "On disk",
+    "perEpisode": "{{min}} min/ep",
+    "seasonCount_one": "{{count}} season",
+    "seasonCount_other": "{{count}} seasons",
+    "totalEpisodes": "{{count}} incl. unaired",
     "season": "Season {{n}}",
     "specials": "Specials",
     "manageSeasons": "Manage seasons",

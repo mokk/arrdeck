@@ -159,13 +159,44 @@ async def series_detail(
     series_id: int, sonarr: SonarrClient = Depends(get_sonarr)
 ) -> SeriesDetailOut:
     series = await sonarr.get_series(series_id)
+    try:
+        history = await sonarr.history_series(series_id)
+    except Exception:  # noqa: BLE001 — history is decoration, same as for movies
+        history = []
     seasons = sorted(
         (_season_out(s) for s in series.get("seasons", [])), key=lambda s: s.number
     )
+    stats = series.get("statistics") or {}
     return SeriesDetailOut(
         id=series["id"],
         title=series.get("title"),
+        year=series.get("year"),
+        overview=series.get("overview"),
         poster=_poster(series.get("images")),
+        status=series.get("status"),
+        runtime=series.get("runtime"),
+        path=series.get("path"),
+        monitored=series.get("monitored", False),
+        size_on_disk=stats.get("sizeOnDisk", 0),
+        quality_profile_id=series.get("qualityProfileId"),
+        imdb_id=series.get("imdbId"),
+        tvdb_id=series.get("tvdbId"),
+        tmdb_id=series.get("tmdbId"),
+        network=series.get("network"),
+        air_time=series.get("airTime"),
+        certification=series.get("certification"),
+        genres=series.get("genres") or [],
+        episode_count=stats.get("episodeCount", 0),
+        episode_file_count=stats.get("episodeFileCount", 0),
+        total_episode_count=stats.get("totalEpisodeCount", 0),
+        season_count=stats.get("seasonCount", 0),
+        history=[
+            HistoryEventOut(
+                type=EVENT_LABELS.get(h.get("eventType", ""), h.get("eventType", "")),
+                date=h.get("date", ""),
+            )
+            for h in history[:12]
+        ],
         seasons=seasons,
     )
 

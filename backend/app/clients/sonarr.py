@@ -55,6 +55,9 @@ class SonarrClient(ArrClient):
     async def get_series(self, series_id: int) -> dict:
         return await self.get(f"/series/{series_id}")
 
+    async def history_series(self, series_id: int) -> list:
+        return await self.get("/history/series", params={"seriesId": series_id})
+
     async def episodes(self, series_id: int) -> list:
         return await self.get("/episode", params={"seriesId": series_id})
 
