@@ -38,6 +38,8 @@ jobs:
       # locale sync + tsc --noEmit + production build
       - run: npm run build
         working-directory: frontend
+      - run: npm run check:version
+        working-directory: frontend
       - run: npm run lint
         working-directory: frontend
       # Reported, not gated: 5% today, and gating that would be theatre.

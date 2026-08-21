@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from . import (
+    about,
     arrmeta,
     arrqueue,
     auth,
@@ -30,6 +31,7 @@ from . import (
 )
 
 router = APIRouter(prefix="/api/v1")
+router.include_router(about.router)
 router.include_router(dashboard.router)
 router.include_router(diagnose.router)
 router.include_router(system.router)

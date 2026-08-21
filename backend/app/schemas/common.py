@@ -45,3 +45,10 @@ class ServiceSettingsOut(BaseModel):
     username: str = ""
     password: str = ""
     configured: bool = False
+
+
+class AboutOut(BaseModel):
+    name: str = "arrdeck"
+    version: str = ""
+    # Feature names a client can code against, derived from the mounted router.
+    features: list[str] = []

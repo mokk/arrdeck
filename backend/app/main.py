@@ -23,6 +23,7 @@ from .logging_setup import configure as configure_logging
 from .push import flush_loop, push_loop
 from .registry import Registry
 from .stats import sampler_loop
+from .version import VERSION
 
 # Docker layout: /srv/arrdeck/{app,static}. Dev layout: arrdeck/{backend/app,frontend/dist}.
 _here = Path(__file__).resolve().parent
@@ -89,7 +90,7 @@ async def lifespan(app: FastAPI):
         await client.aclose()
 
 
-app = FastAPI(title="arrdeck", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="arrdeck", version=VERSION, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

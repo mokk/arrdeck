@@ -1,11 +1,12 @@
 {
   "name": "arrdeck-frontend",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "node scripts/check-locales.mjs && tsc --noEmit && vite build",
+    "check:version": "node scripts/check-version.mjs",
     "preview": "vite preview",
     "gen:api": "npx -y --package typescript@5.9 --package @hey-api/openapi-ts@0.99 openapi-ts",
     "gen:icons": "node scripts/gen-icons.mjs",
