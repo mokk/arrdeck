@@ -42,7 +42,7 @@ export function NowPlayingSection({ configured }: { configured: Set<string> }) {
                 <div className="truncate text-xs text-muted-foreground">{s.subtitle}</div>
               )}
               <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                <StateBadge state={s.state === "paused" ? "paused" : "downloading"} raw />
+                <StateBadge state={s.state === "paused" ? "paused" : "playing"} raw />
                 {s.user}
                 {s.player && ` · ${s.player}`}
                 {s.transcoding && ` · ${t("dash.transcoding")}`}
@@ -308,17 +308,19 @@ export function TrendsSection() {
     },
     {
       label: t("dash.movies"),
-      value: String(last.movies),
+      // ?? 0 like the sparkline beside it: these fields are optional, so a
+      // snapshot taken while an arr was down rendered the string "undefined".
+      value: String(last.movies ?? 0),
       values: data.map((s) => s.movies ?? 0),
     },
     {
       label: t("dash.seriesCount"),
-      value: String(last.series),
+      value: String(last.series ?? 0),
       values: data.map((s) => s.series ?? 0),
     },
     {
       label: t("dash.grabs"),
-      value: String(last.indexer_grabs),
+      value: String(last.indexer_grabs ?? 0),
       values: data.map((s) => s.indexer_grabs ?? 0),
     },
   ];

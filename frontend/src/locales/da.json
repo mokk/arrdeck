@@ -90,7 +90,8 @@
     "searchSubs": "Søg",
     "nowPlaying": "Afspilles nu",
     "transcoding": "omkoder",
-    "openInPlex": "Åbn"
+    "openInPlex": "Åbn",
+    "noHistory": "Intet hentet endnu"
   },
   "dl": {
     "title": "Downloads",

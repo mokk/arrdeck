@@ -300,11 +300,27 @@ describe("download queue", () => {
     expect(screen.queryByText("dash.downloadQueue")).toBeNull();
   });
 
-  it("still lists stale queue items while flagging the arr as offline", () => {
+  it("lists stale queue items under a stale note, not an offline error", () => {
+    // A stale block has ok=false but does have data. Treating that as offline
+    // printed "Radarr offline — undefined" above items it was still showing.
     hooks.queue = { data: { radarr: stale([queueItem({ title: "Dune" })], 120) } };
     render(<QueueSection configured={ARRS} />);
     expect(screen.getByText("Dune")).toBeTruthy();
-    expect(screen.getByText(/dash\.serviceOffline:Radarr/)).toBeTruthy();
+    expect(screen.getByText(/common\.staleNote/)).toBeTruthy();
+    expect(screen.queryByText(/dash\.serviceOffline/)).toBeNull();
+  });
+
+  it("still reports a genuinely offline arr, with a reason", () => {
+    hooks.queue = { data: { radarr: { ok: false, data: null, error: "refused" } } };
+    render(<QueueSection configured={ARRS} />);
+    expect(screen.getByText(/dash\.serviceOffline:Radarr\/refused/)).toBeTruthy();
+  });
+
+  it("names a reason even when the block gave none", () => {
+    // The interpolation used to render the literal "undefined" here.
+    hooks.queue = { data: { radarr: { ok: false, data: null, error: null } } };
+    render(<QueueSection configured={ARRS} />);
+    expect(screen.getByText(/dash\.serviceOffline:Radarr\/common\.offline/)).toBeTruthy();
   });
 
   it("flags an item with errors as failed even while its status says downloading", () => {

@@ -164,10 +164,15 @@ export function QueueSection({ configured }: { configured: Set<string> }) {
   const forceImport = useForceImport();
   const [importing, setImporting] = useState<{ app: string; id: number } | null>(null);
   const items = [...(data?.radarr?.data ?? []), ...(data?.sonarr?.data ?? [])];
+  // A stale block also has ok=false, but it has data and an age — calling that
+  // "offline" printed the error as undefined while listing the items below it.
   const offline = (["radarr", "sonarr"] as const).filter(
-    (app) => configured.has(app) && data?.[app] && !data[app].ok,
+    (app) => configured.has(app) && data?.[app] && !data[app].ok && !data[app].data,
   );
-  if (items.length === 0 && offline.length === 0) return null;
+  const stale = (["radarr", "sonarr"] as const).filter(
+    (app) => configured.has(app) && data?.[app] && !data[app].ok && data[app].data,
+  );
+  if (items.length === 0 && offline.length === 0 && stale.length === 0) return null;
   return (
     <div className="mb-6">
       <SectionTitle>{t("dash.downloadQueue")}</SectionTitle>
@@ -176,9 +181,16 @@ export function QueueSection({ configured }: { configured: Set<string> }) {
           <ErrorNote key={app}>
             {t("dash.serviceOffline", {
               service: SERVICE_LABELS[app],
-              error: data?.[app]?.error,
+              error: data?.[app]?.error ?? t("common.offline"),
             })}
           </ErrorNote>
+        ))}
+        {stale.map((app) => (
+          <div key={app} className="px-4 pt-2 text-xs text-warning">
+            {t("common.staleNote", {
+              minutes: Math.round((data?.[app]?.stale_age_seconds ?? 0) / 60),
+            })}
+          </div>
         ))}
         {items.map((q) => (
           <Row key={`${q.app}-${q.id}`}>
@@ -261,6 +273,9 @@ export function CalendarSection({ configured }: { configured: Set<string> }) {
     if (b.date == null) return -1;
     return a.date.localeCompare(b.date);
   });
+  const unreachable = (["radarr", "sonarr"] as const).some(
+    (app) => configured.has(app) && data?.[app] && !data[app].ok && !data[app].data,
+  );
 
   return (
     <div className="mb-6">
@@ -279,7 +294,11 @@ export function CalendarSection({ configured }: { configured: Set<string> }) {
             </ErrorNote>
           ) : null;
         })}
-        {merged.length === 0 && <EmptyNote>{t("dash.nothingScheduled")}</EmptyNote>}
+        {/* Only claim nothing is scheduled when both arrs actually answered —
+            otherwise this asserted an empty calendar for an unreachable one. */}
+        {merged.length === 0 && !unreachable && (
+          <EmptyNote>{t("dash.nothingScheduled")}</EmptyNote>
+        )}
         {merged.slice(0, 15).map((c, i) => (
           <Row key={i}>
             <div className="min-w-0 flex-1">
@@ -326,6 +345,7 @@ export function HistorySection({ configured }: { configured: Set<string> }) {
             </ErrorNote>
           ) : null;
         })}
+        {merged.length === 0 && <EmptyNote>{t("dash.noHistory")}</EmptyNote>}
         {merged.slice(0, 12).map((h, i) => (
           <Row
             key={i}

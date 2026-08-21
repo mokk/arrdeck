@@ -90,7 +90,8 @@
     "searchSubs": "Search",
     "nowPlaying": "Now playing",
     "transcoding": "transcoding",
-    "openInPlex": "Open"
+    "openInPlex": "Open",
+    "noHistory": "Nothing grabbed yet"
   },
   "dl": {
     "title": "Downloads",

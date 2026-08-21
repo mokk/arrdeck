@@ -460,3 +460,58 @@ def test_an_exception_with_no_message_is_named_by_its_type():
     the cause."""
     assert webhooks._error_text(TimeoutError()) == "TimeoutError"
     assert webhooks._error_text(ValueError("no Webhook type")) == "no Webhook type"
+
+
+# --- Defects found while writing the tests above, fixed afterwards ------------
+
+
+async def test_a_failed_removal_still_reports_the_hook_as_installed(db):
+    """The entry is still live in the arr when the delete raises. Reporting it as
+    removed read as success while push kept firing, with only a separate error
+    string to contradict the row."""
+    client = FakeArr(
+        notifications=[arrdeck_entry(7)],
+        fails={"delete_notification": RuntimeError("500 Internal Server Error")},
+    )
+    rows = await webhooks.uninstall(db, FakeRegistry(radarr=client))
+    row = row_for(rows, "radarr")
+    assert row["installed"] is True
+    assert "500" in row["error"]
+
+
+async def test_a_successful_removal_reports_the_hook_as_gone(db):
+    client = FakeArr(notifications=[arrdeck_entry(7)])
+    rows = await webhooks.uninstall(db, FakeRegistry(radarr=client))
+    row = row_for(rows, "radarr")
+    assert row["installed"] is False
+    assert row["error"] == ""
+    assert client.deleted == [7]
+
+
+async def test_a_base_url_no_arr_accepted_is_not_persisted(db):
+    """guess_base_url prefers the stored value, so persisting before anything
+    validated meant a typo stuck for good: every later attempt reused the bad
+    value instead of guessing again."""
+    client = FakeArr(fails={"add_notification": RuntimeError("Unable to connect")})
+    rows = await webhooks.install(db, FakeRegistry(radarr=client), "http://typo.invalid:9999")
+    assert all(not r["installed"] for r in rows)
+    assert db.kv_get(BASE_URL_KEY) is None
+
+
+async def test_a_base_url_an_arr_accepted_is_persisted(db):
+    rows = await webhooks.install(db, FakeRegistry(radarr=FakeArr()), "http://deck:3500")
+    assert any(r["installed"] for r in rows)
+    assert db.kv_get(BASE_URL_KEY) == "http://deck:3500"
+
+
+async def test_an_existing_entry_without_an_id_is_refused_rather_than_duplicated(db):
+    """Adding a second entry would leave two notifications the user cannot tell
+    apart, which is worse than reporting a failure."""
+    malformed = {k: v for k, v in arrdeck_entry(7).items() if k != "id"}
+    client = FakeArr(notifications=[malformed])
+    rows = await webhooks.install(db, FakeRegistry(radarr=client), "http://deck:3500")
+    row = row_for(rows, "radarr")
+    assert row["installed"] is False
+    assert row["error"]
+    assert client.added == []
+    assert client.updated == []

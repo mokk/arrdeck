@@ -313,6 +313,52 @@ refactor because that phase was meant to change nothing.
 the user's eyes or working browser automation. **Size: S**, but blocking for
 anything visual.
 
+## L. Fix what the tests found — partly done
+
+Writing B's and C's tests turned up fifteen defects. The user-visible ones are
+fixed; the rest are recorded here.
+
+**Fixed:**
+- `TrendsSection` printed the literal string **"undefined"** as a tile value.
+  `movies`, `series` and `indexer_grabs` are optional, and a snapshot taken while
+  an arr was down had them absent — the sparklines beside them already used
+  `?? 0`.
+- A playing Plex session was badged **"downloading"**. The badge was chosen for
+  its colour; the word is what the user reads, and nothing was downloading.
+- The queue card reported a **stale** block as an outage, rendering
+  "Radarr offline — undefined" above the items it was still listing. Stale now
+  gets the same age note every other card uses, and a genuine outage with no
+  error text says "offline" rather than interpolating null.
+- The calendar claimed **"nothing scheduled"** when it simply could not reach an
+  arr. It now only says that when both arrs answered.
+- `HistorySection` had **no empty state** — a title, a "see all" link and a blank
+  card.
+- `uninstall` reported `installed: False` **even when the delete raised**, so the
+  row read as removed while the entry was still live and push kept firing.
+- `install` persisted the base URL **before anything validated it**, and
+  `guess_base_url` prefers the stored value — so a typo stuck permanently. It is
+  now saved only once an arr has accepted it.
+- An existing entry with no `id` raised `KeyError`, surfacing as the error text
+  `'id'`. It now refuses explicitly rather than adding a duplicate the user could
+  not tell apart.
+
+**Still open, recorded rather than fixed:**
+- Four cards — `NowPlayingSection`, `HealthSection`, `RequestsSection`,
+  `SubtitlesSection` — read `data?.data ?? []` and hide when empty, so an outage
+  is indistinguishable from "nothing to report". Worst for health: a Radarr
+  outage makes existing warnings vanish rather than saying they could not be
+  fetched. **Size: S.**
+- `_find_existing` matches on the substring `/api/v1/hooks/` alone, ignoring
+  token and host, so a second arrdeck instance against the same arr silently
+  overwrites the first. **Size: S.**
+- A scheme-less service URL makes `guess_base_url` fall back to
+  `http://localhost:3500`, unroutable from inside an arr container. **Size: S.**
+- Nothing calls `test_notification()`; validation relies entirely on the arrs
+  validating on save. **Size: S.**
+- `HOOK_APPS` omits Prowlarr, which has the same notification API. **Size: S.**
+- `RecentSection` prints the title twice when there is no poster. **Size: S.**
+- `status(db, registry)` never uses its `db` parameter. **Trivial.**
+
 ## Order & sizing
 
 | Phase | Size | Why here |

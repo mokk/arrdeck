@@ -165,7 +165,10 @@ describe("now playing", () => {
     };
     render(<NowPlayingSection configured={new Set(["plex"])} />);
     expect(screen.getByText("paused")).toBeTruthy();
-    expect(screen.getByText("downloading")).toBeTruthy();
+    // Not "downloading": the badge was picked for its colour, but the word is
+    // what the user reads, and nothing is being downloaded.
+    expect(screen.getByText("playing")).toBeTruthy();
+    expect(screen.queryByText("downloading")).toBeNull();
   });
 
   it("calls out a transcode, which is the expensive case worth noticing", () => {

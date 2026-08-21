@@ -158,7 +158,6 @@ async def status(db: SettingsDB, registry: Registry) -> list[dict]:
 
 async def install(db: SettingsDB, registry: Registry, base_url: str) -> list[dict]:
     base_url = base_url.strip().rstrip("/")
-    db.kv_set(BASE_URL_KEY, base_url)
     results = []
     for app_name in HOOK_APPS:
         row = {"app": app_name, "installed": False, "error": ""}
@@ -171,6 +170,11 @@ async def install(db: SettingsDB, registry: Registry, base_url: str) -> list[dic
             payload = await _build_payload(client, url)
             existing = _find_existing(await client.notifications())
             if existing:
+                if existing.get("id") is None:
+                    # Matched an arrdeck-shaped entry the arr gave no id for.
+                    # Adding a second one would leave the user with duplicate
+                    # notifications and no way to tell them apart, so refuse.
+                    raise ValueError("existing webhook has no id")
                 payload["id"] = existing["id"]
                 # the arr validates on save by posting a Test payload to the url
                 await client.update_notification(existing["id"], payload)
@@ -181,6 +185,11 @@ async def install(db: SettingsDB, registry: Registry, base_url: str) -> list[dic
             logger.warning("webhook install failed for %s: %s", app_name, exc)
             row["error"] = _error_text(exc)
         results.append(row)
+    # Persist only once an arr has accepted the URL. It was stored first, and
+    # guess_base_url prefers the stored value, so a typo stuck permanently: every
+    # later attempt reused the bad value instead of guessing again.
+    if any(row["installed"] for row in results):
+        db.kv_set(BASE_URL_KEY, base_url)
     return results
 
 
@@ -195,6 +204,10 @@ async def uninstall(db: SettingsDB, registry: Registry) -> list[dict]:
                 if existing:
                     await client.delete_notification(existing["id"])
             except Exception as exc:  # noqa: BLE001
+                # The entry is still live in the arr, so say so. Reporting
+                # installed=False here read as "removed" while push kept firing,
+                # with only a separate error string to contradict it.
+                row["installed"] = True
                 row["error"] = _error_text(exc)
         results.append(row)
     return results
