@@ -86,7 +86,7 @@
     "portMismatch": "qBittorrent bruger {{port}}",
     "subtitles": "Undertekster",
     "subtitlesMissing": "{{movies}} film, {{episodes}} afsnit mangler undertekster",
-    "noProviders": "Ingen udbydere konfigureret",
+    "throttledProviders": "{{count}} udbyder begrænset",
     "searchSubs": "Søg",
     "nowPlaying": "Afspilles nu",
     "transcoding": "omkoder",

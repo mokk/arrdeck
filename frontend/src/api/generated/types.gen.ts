@@ -2746,9 +2746,9 @@ export type SubtitlesOut = {
    */
   movies?: number;
   /**
-   * Providers
+   * Throttled Providers
    */
-  providers?: number;
+  throttled_providers?: number;
   /**
    * Items
    */

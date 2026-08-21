@@ -108,7 +108,11 @@ describe("diagnosis sheet", () => {
   });
 
   it("surfaces a failure instead of an empty sheet", () => {
-    state.result = { data: undefined, error: new Error("radarr unreachable"), isLoading: false };
+    state.result = {
+      data: undefined,
+      error: new Error("radarr unreachable"),
+      isLoading: false,
+    };
     render(<DiagnoseSheet app="radarr" id={7} title="Dune" onClose={() => {}} />);
     expect(screen.getByText("radarr unreachable")).toBeTruthy();
   });

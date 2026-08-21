@@ -80,7 +80,11 @@ class SubtitleItemOut(BaseModel):
 class SubtitlesOut(BaseModel):
     episodes: int = 0  # counts come straight from Bazarr's badges
     movies: int = 0
-    providers: int = 0
+    # Bazarr's `providers` badge counts *throttled* providers, not configured
+    # ones, so zero is the healthy answer. It was read as "none configured",
+    # which warned permanently on a working setup and went quiet exactly when a
+    # provider started failing.
+    throttled_providers: int = 0
     items: list[SubtitleItemOut] = []
 
 

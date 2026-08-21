@@ -86,7 +86,7 @@
     "portMismatch": "qBittorrent is on {{port}}",
     "subtitles": "Subtitles",
     "subtitlesMissing": "{{movies}} movies, {{episodes}} episodes missing subtitles",
-    "noProviders": "No providers configured",
+    "throttledProviders": "{{count}} provider throttled",
     "searchSubs": "Search",
     "nowPlaying": "Now playing",
     "transcoding": "transcoding",

@@ -50,7 +50,7 @@ async def subtitles(bazarr: BazarrClient = Depends(get_bazarr)):
             return {
                 "episodes": badges.get("episodes", 0),
                 "movies": badges.get("movies", 0),
-                "providers": badges.get("providers", 0),
+                "throttled_providers": badges.get("providers", 0),
                 "items": items,
             }
 

@@ -258,9 +258,12 @@ export function SubtitlesSection({ configured }: { configured: Set<string> }) {
               episodes: subs?.episodes ?? 0,
             })}
           </div>
-          {/* no providers means every search is guaranteed to come back empty */}
-          {subs?.providers === 0 && (
-            <span className="text-xs text-warning">{t("dash.noProviders")}</span>
+          {/* Bazarr's badge counts throttled providers, so non-zero is the
+              problem — a throttled provider silently returns nothing. */}
+          {(subs?.throttled_providers ?? 0) > 0 && (
+            <span className="text-xs text-warning">
+              {t("dash.throttledProviders", { count: subs?.throttled_providers ?? 0 })}
+            </span>
           )}
         </Row>
         {(subs?.items ?? []).slice(0, 8).map((item) => (

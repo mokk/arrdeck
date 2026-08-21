@@ -428,21 +428,30 @@ describe("subtitles", () => {
   });
 
   it("counts the movies and episodes still missing subtitles", () => {
-    hooks.subtitles = { data: healthy({ episodes: 12, movies: 3, providers: 4, items: [] }) };
+    hooks.subtitles = {
+      data: healthy({ episodes: 12, movies: 3, throttled_providers: 0, items: [] }),
+    };
     render(<SubtitlesSection configured={new Set(["bazarr"])} />);
     expect(screen.getByText("dash.subtitlesMissing:3/12")).toBeTruthy();
   });
 
-  it("warns when Bazarr has no providers, since every search will come back empty", () => {
-    hooks.subtitles = { data: healthy({ episodes: 1, movies: 0, providers: 0, items: [] }) };
+  it("stays quiet when no provider is throttled, which is the healthy case", () => {
+    // Bazarr's badge counts *throttled* providers, so zero is good news. This
+    // was read as "none configured", so the warning showed permanently on a
+    // working setup — and would have gone quiet exactly when one started failing.
+    hooks.subtitles = {
+      data: healthy({ episodes: 1, movies: 0, throttled_providers: 0, items: [] }),
+    };
     render(<SubtitlesSection configured={new Set(["bazarr"])} />);
-    expect(screen.getByText("dash.noProviders")).toBeTruthy();
+    expect(screen.queryByText(/throttled/i)).toBeNull();
   });
 
-  it("stays quiet about providers when Bazarr has some", () => {
-    hooks.subtitles = { data: healthy({ episodes: 1, movies: 0, providers: 2, items: [] }) };
+  it("warns when a provider is throttled, since it silently returns nothing", () => {
+    hooks.subtitles = {
+      data: healthy({ episodes: 1, movies: 0, throttled_providers: 2, items: [] }),
+    };
     render(<SubtitlesSection configured={new Set(["bazarr"])} />);
-    expect(screen.queryByText("dash.noProviders")).toBeNull();
+    expect(screen.getByText("dash.throttledProviders:2")).toBeTruthy();
   });
 
   it("lists the missing languages per item", () => {
