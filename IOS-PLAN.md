@@ -86,6 +86,36 @@ caller a version and a capability list, and this backend is reachable from the
 internet. The 401 is itself the signal: reach `/about`, get 401, pair, ask again
 — which also separates "an arrdeck that wants pairing" from "not an arrdeck".
 
+## B2. Localised push text — done
+
+Notification text was assembled **server-side in English** — `EVENT_LABELS`,
+`NOUNS` and the glue in `render()` — and shown verbatim, so a device set to
+Danish got English banners. For a native client it is worse: the banner arrives
+pre-rendered, so the app cannot localise it at all.
+
+The payload now names what happened rather than spelling it out: `code`, `count`,
+`app`, and `heading` for pass-through media text that must never be translated.
+The client writes the sentence. That is the same shape APNs wants, where
+`loc-key` and `loc-args` resolve from the app bundle — so phase D inherits this
+rather than designing the payload twice.
+
+`title`/`body` are still sent as an English rendering, so a service worker from
+before this change shows text instead of a blank banner, and a newly added
+server-side event stays readable in a client with no string for it yet.
+
+The device's language travels in the payload because a service worker cannot read
+the app's stored preference. It is recorded per subscription (`language`, added
+through `_migrate_columns`) and sent on subscribe.
+
+**A bug this uncovered:** `push_add` used `INSERT OR REPLACE` naming only two
+columns, so every other column reverted to NULL — a device that had chosen its
+own event set lost that choice whenever the browser rotated its subscription,
+which it does on its own schedule. Now an upsert that preserves what the caller
+did not send.
+
+Existing subscriptions carry `language=NULL` and render English until each device
+re-subscribes once.
+
 ## C. Pairing and auth — Size M
 
 Use what the backend has: an 8-character setup code (alphabet excludes O/0/I/1)
@@ -180,6 +210,7 @@ own build and Apple account, or you would have to run the relay.
 |---|---|---|
 | A server profiles | M | Includes the LAN-permission trap |
 | B capability discovery | — | **done** |
+| B2 localised push text | — | **done** — prerequisite for D |
 | C pairing and auth | M | Web view path needs no backend change |
 | D APNs, operator-supplied | M | The reason to go native |
 | E native shell | M | Usable app; **decision point** |
@@ -189,6 +220,15 @@ own build and Apple account, or you would have to run the relay.
 | I widgets, Live Activity, Intents | M | The genuine payoff |
 
 **A → C → D → E → *evaluate* → F → G → H → I**
+
+Repo layout decided: **two repos, no shared repo.** `arrdeck` keeps the backend
+and the PWA; `arrdeck-ios` pins `arrdeck` as a submodule and reads the tokens,
+locale files and OpenAPI spec straight from it. No third version to coordinate.
+
+A consequence worth acting on early: commit the generated OpenAPI spec into
+`arrdeck`. The PWA's `gen:api` points at a *live* URL, which means a backend
+change cannot be typed until it is deployed — that bit twice while building the
+diagnosis endpoint, and iOS would inherit the same chicken-and-egg.
 
 The PWA stays regardless: it is the desktop and Android client, and A-D improve
 it too.
