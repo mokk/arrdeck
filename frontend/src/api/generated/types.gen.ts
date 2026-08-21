@@ -1476,6 +1476,28 @@ export type PushTestOut = {
 };
 
 /**
+ * QualityDefinitionOut
+ */
+export type QualityDefinitionOut = {
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Min Size
+   */
+  min_size?: number | null;
+  /**
+   * Preferred Size
+   */
+  preferred_size?: number | null;
+  /**
+   * Max Size
+   */
+  max_size?: number | null;
+};
+
+/**
  * QualityItemOut
  */
 export type QualityItemOut = {
@@ -1557,6 +1579,10 @@ export type QualityProfilesOut = {
    * Profiles
    */
   profiles?: Array<QualityProfileDetailOut>;
+  /**
+   * Quality Definitions
+   */
+  quality_definitions?: Array<QualityDefinitionOut>;
   /**
    * Custom Formats
    */

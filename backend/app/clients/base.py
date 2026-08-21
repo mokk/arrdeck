@@ -194,6 +194,10 @@ class ArrClient(BaseClient):
         # Radarr: movieId=; Sonarr: seriesId= (+ optional seasonNumber=)
         return await self.get("/rename", params=params)
 
+    async def quality_definitions(self) -> list:
+        """Per-quality size bands in MB per minute of runtime."""
+        return await self.get("/qualitydefinition")
+
     async def updates(self) -> list:
         """Release history with `installed` and `latest` flags."""
         return await self.get("/update")

@@ -293,7 +293,10 @@
     "showAllQualities": "Vis {{count}} afviste",
     "showAllowedOnly": "Vis kun accepterede",
     "customFormats": "Brugerdefinerede formater: {{list}}",
-    "noCustomFormats": "Ingen brugerdefinerede formater"
+    "noCustomFormats": "Ingen brugerdefinerede formater",
+    "showSizeLimits": "Størrelsesgrænser ({{count}})",
+    "hideSizeLimits": "Skjul størrelsesgrænser",
+    "sizeBand": "{{min}}–{{max}} MB/min"
   },
   "toast": {
     "added": "Tilføjet til biblioteket",

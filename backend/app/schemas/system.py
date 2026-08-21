@@ -257,8 +257,21 @@ class QualityProfileDetailOut(BaseModel):
     format_scores: list[CustomFormatScoreOut] = []
 
 
+class QualityDefinitionOut(BaseModel):
+    name: str
+    # Megabytes per minute of runtime — the arrs reject a release outside this
+    # band regardless of what any profile allows, which is why it belongs next to
+    # the profiles rather than in a settings screen of its own.
+    min_size: float | None = None
+    preferred_size: float | None = None
+    max_size: float | None = None
+
+
 class QualityProfilesOut(BaseModel):
     profiles: list[QualityProfileDetailOut] = []
+    # The arr's global size table. Ordered by the arr's own weight, worst first,
+    # so it reads like the quality ladder.
+    quality_definitions: list[QualityDefinitionOut] = []
     # Names defined in the arr, whether or not any profile scores them. Empty is
     # a real answer worth showing rather than an empty card.
     custom_formats: list[str] = []

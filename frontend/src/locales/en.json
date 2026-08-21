@@ -293,7 +293,10 @@
     "showAllQualities": "Show {{count}} rejected",
     "showAllowedOnly": "Show accepted only",
     "customFormats": "Custom formats: {{list}}",
-    "noCustomFormats": "No custom formats defined"
+    "noCustomFormats": "No custom formats defined",
+    "showSizeLimits": "Size limits ({{count}})",
+    "hideSizeLimits": "Hide size limits",
+    "sizeBand": "{{min}}–{{max}} MB/min"
   },
   "toast": {
     "added": "Added to library",

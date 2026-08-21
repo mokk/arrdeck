@@ -10,6 +10,7 @@ import {
 } from "../../api/format";
 import type {
   ArrBackup,
+  QualityDefinition,
   QualityItem,
   QualityProfileDetail,
   ScheduledTask,
@@ -257,6 +258,41 @@ function ProfileRow({ profile }: { profile: QualityProfileDetail }) {
   );
 }
 
+/** The arr rejects a release outside these bands whatever the profile allows, so
+ * this is the other half of "why didn't that grab". Collapsed by default: on a
+ * stock Radarr every row is the same 0-100, which is noise. */
+function SizeBands({ bands }: { bands: QualityDefinition[] }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  if (bands.length === 0) return null;
+  return (
+    <Row className="flex-col items-stretch">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className={cn(focusRing, "self-start text-xs font-semibold text-primary")}
+      >
+        {open ? t("system.hideSizeLimits") : t("system.showSizeLimits", { count: bands.length })}
+      </button>
+      {open && (
+        <div className="mt-1.5 space-y-0.5">
+          {bands.map((band) => (
+            <div key={band.name} className="flex justify-between gap-3 text-xs">
+              <span className="truncate text-muted-foreground">{band.name}</span>
+              <span className="shrink-0 font-mono">
+                {t("system.sizeBand", {
+                  min: band.min_size ?? 0,
+                  max: band.max_size == null ? "∞" : band.max_size,
+                })}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </Row>
+  );
+}
+
 /** Read-only: deciding what quality you want still means opening the arr, but
  * checking what you already asked for no longer does. */
 function ProfilesCard({ app }: { app: string }) {
@@ -275,6 +311,7 @@ function ProfilesCard({ app }: { app: string }) {
         ) : (
           profiles.map((profile) => <ProfileRow key={profile.id} profile={profile} />)
         )}
+        <SizeBands bands={data?.quality_definitions ?? []} />
         <Row>
           <span className="text-xs text-muted-foreground">
             {formats.length === 0

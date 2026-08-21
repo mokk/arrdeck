@@ -21,6 +21,16 @@ export default defineConfig({
       // generated types, the entry module and the service worker are not
       // exercised by unit tests
       exclude: ["src/api/generated/**", "src/main.tsx", "src/sw.ts", "src/**/*.test.*"],
+      // A floor, not a target: the backend has had one since phase D of the last
+      // round and the frontend has been able to slide freely. Set just under
+      // where the dashboard and detail tests leave it, so a real regression
+      // fails CI while ordinary work does not.
+      thresholds: {
+        statements: 34,
+        branches: 78,
+        functions: 42,
+        lines: 34,
+      },
     },
   },
 });

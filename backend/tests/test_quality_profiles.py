@@ -38,9 +38,15 @@ PROFILE = {
 
 
 class FakeArr:
-    def __init__(self, profiles: list[dict], formats: list[dict] | None = None) -> None:
+    def __init__(
+        self,
+        profiles: list[dict],
+        formats: list[dict] | None = None,
+        definitions: list[dict] | None = None,
+    ) -> None:
         self._profiles = profiles
         self._formats = formats if formats is not None else []
+        self._definitions = definitions if definitions is not None else []
         self.profile_calls = 0
 
     async def quality_profiles(self) -> list[dict]:
@@ -49,6 +55,9 @@ class FakeArr:
 
     async def custom_formats(self) -> list[dict]:
         return self._formats
+
+    async def quality_definitions(self) -> list[dict]:
+        return self._definitions
 
 
 @pytest.fixture(autouse=True)
@@ -178,3 +187,43 @@ async def test_results_are_cached_per_app():
     assert radarr.profile_calls == 1
     # A cache key shared across apps would serve Radarr's profiles for Sonarr.
     assert (await call("sonarr", sonarr)).profiles[0].name == "S"
+
+
+async def test_size_bands_come_back_in_quality_order():
+    """The arr's `weight` is the quality ladder, so ordering by it makes the
+    table read the same way as the profile above it."""
+    definitions = [
+        {"title": "Bluray-1080p", "weight": 9, "minSize": 4, "preferredSize": 125, "maxSize": 130},
+        {"title": "SDTV", "weight": 1, "minSize": 0, "preferredSize": 95, "maxSize": 100},
+    ]
+    out = await call("sonarr", FakeArr([PROFILE], [], definitions))
+    assert [d.name for d in out.quality_definitions] == ["SDTV", "Bluray-1080p"]
+    assert out.quality_definitions[1].max_size == 130
+
+
+async def test_a_definition_with_no_ceiling_is_none_not_zero():
+    """Raw-HD has no preferred or max size in Sonarr; zero would read as
+    "nothing is allowed" rather than "unbounded"."""
+    definitions = [{"title": "Raw-HD", "weight": 1, "minSize": 4}]
+    out = await call("sonarr", FakeArr([PROFILE], [], definitions))
+    assert out.quality_definitions[0].min_size == 4
+    assert out.quality_definitions[0].preferred_size is None
+    assert out.quality_definitions[0].max_size is None
+
+
+async def test_the_name_falls_back_to_the_nested_quality():
+    definitions = [{"quality": {"name": "WEBDL-1080p"}, "weight": 5}]
+    out = await call("sonarr", FakeArr([PROFILE], [], definitions))
+    assert out.quality_definitions[0].name == "WEBDL-1080p"
+
+
+async def test_a_failing_size_table_does_not_take_down_the_profiles():
+    """The bands are context; the profiles are the point of the endpoint."""
+
+    class NoDefinitions(FakeArr):
+        async def quality_definitions(self) -> list[dict]:
+            raise RuntimeError("endpoint gone")
+
+    out = await call("radarr", NoDefinitions([PROFILE]))
+    assert out.profiles[0].name == "HD-1080p"
+    assert out.quality_definitions == []

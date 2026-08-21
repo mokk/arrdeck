@@ -49,6 +49,7 @@ export type WatchedMap = G.WatchedMapOut;
 export type QualityProfiles = G.QualityProfilesOut;
 export type QualityProfileDetail = G.QualityProfileDetailOut;
 export type QualityItem = G.QualityItemOut;
+export type QualityDefinition = G.QualityDefinitionOut;
 export type CreditPerson = G.CreditPersonOut;
 export type TorrentSummary = G.TorrentSummaryOut;
 export type ImportCandidate = G.ImportCandidateOut;

@@ -16,6 +16,7 @@ from ...clients.sonarr import SonarrClient
 from ...deps import get_radarr, get_sonarr
 from ...schemas import (
     CustomFormatScoreOut,
+    QualityDefinitionOut,
     QualityItemOut,
     QualityProfileDetailOut,
     QualityProfilesOut,
@@ -106,16 +107,19 @@ async def quality_profiles(
         raise HTTPException(404, f"unknown app {app!r}")
 
     async def build() -> dict:
-        profiles, formats = await asyncio.gather(
+        profiles, formats, definitions = await asyncio.gather(
             client.quality_profiles(),
             # A profile references formats by id, so the names have to come from
             # here. Not fatal if it fails: the scores still render by id.
             client.custom_formats(),
+            # Nor is this: the size table is context, not the point of the card.
+            client.quality_definitions(),
             return_exceptions=True,
         )
         if isinstance(profiles, BaseException):
             raise profiles
         format_list = [] if isinstance(formats, BaseException) else formats
+        definition_list = [] if isinstance(definitions, BaseException) else definitions
         names = {f.get("id"): f.get("name") or "" for f in format_list}
         return QualityProfilesOut(
             profiles=[
@@ -131,6 +135,15 @@ async def quality_profiles(
                 for p in profiles
             ],
             custom_formats=sorted(f.get("name") or "" for f in format_list),
+            quality_definitions=[
+                QualityDefinitionOut(
+                    name=d.get("title") or (d.get("quality") or {}).get("name") or "",
+                    min_size=d.get("minSize"),
+                    preferred_size=d.get("preferredSize"),
+                    max_size=d.get("maxSize"),
+                )
+                for d in sorted(definition_list, key=lambda d: d.get("weight") or 0)
+            ],
         ).model_dump()
 
     return QualityProfilesOut(**await cached(f"quality_profiles:{app}", 300, build))

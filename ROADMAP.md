@@ -38,7 +38,31 @@ has **no frontend caller**.
 **Verification**: route count drops by one, frontend build unaffected.
 **Size: S.**
 
-## B. Put a floor under frontend coverage
+## B. Put a floor under frontend coverage — done
+
+**27.6% -> 36.7%**, with a CI floor at 34/78/42/34 (statements/branches/functions/
+lines) set just under where it landed. The floor was checked by raising it to 95%
+and confirming CI exits 1 — a threshold that cannot fail is decoration.
+
+87 tests across `dashboard/activity.tsx` and `dashboard/cards.tsx`, both **0% ->
+100% statements**. `Blocks.tsx` came along for the ride, 71.9% -> 86.8%.
+
+Each card is covered in all four states it can be in — loading, healthy, offline
+(`ok:false` with no data), and stale (`ok:false` with data plus an age) — plus the
+conditional logic: the 15/12/8 row caps, calendar sort with undated entries
+parked last, queue badge precedence, which actions appear for which tracked
+state, the `configured` gating, storage's no-bar-without-a-total, the VPN
+port-mismatch warning and the sparkline's flat-series divide-by-zero guard.
+
+Deliberately uncovered: `ImportSheet` internals (own fetch surface, deserves its
+own file), locale-dependent date output (asserted through ordering instead so the
+tests do not break on a machine with a different `Intl` default), and `isPending`
+button states.
+
+**This turned up seven real defects** — see the new phase L. Writing the tests
+was worth it for those alone.
+
+## B-original. Put a floor under frontend coverage
 
 The backend has a 60% floor in CI. The frontend runs coverage and **enforces
 nothing**, so 27.6% can slide to 20% unnoticed. The gaps are not obscure:
@@ -183,7 +207,22 @@ input already exists and is already cached.
 and one waiting on a delay each produce a different, correct explanation.
 **Size: L.**
 
-## G. Quality definitions beside the profiles card
+## G. Quality definitions beside the profiles card — done
+
+`/qualitydefinition` folded into the existing `/quality-profiles/{app}` response
+rather than a second endpoint — the card already fetches per-app, and the bands
+are context for the profile above them. A failure there is swallowed: the bands
+are decoration, the profiles are the point.
+
+Collapsed behind a count, because the two arrs differ sharply: **Sonarr has 22
+real bands** (Bluray-720p is 4–130 MB/min) while **Radarr's are all the stock
+0–100**. Expanded, an absent ceiling shows as ∞ rather than 0, which would read
+as "nothing is allowed" — Sonarr's Raw-HD has no max.
+
+Ordered by the arr's own `weight`, so the table reads in the same direction as the
+quality ladder above it.
+
+## G-original. Quality definitions beside the profiles card
 
 `/qualitydefinition` is 30 rows of min / preferred / max size per quality, and
 sits naturally next to the profiles card phase K shipped — it answers "why was

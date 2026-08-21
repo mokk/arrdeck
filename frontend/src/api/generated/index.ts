@@ -355,6 +355,7 @@ export type {
   QbitTagsApiV1TorrentsQbittorrentTagsGetData,
   QbitTagsApiV1TorrentsQbittorrentTagsGetResponse,
   QbitTagsApiV1TorrentsQbittorrentTagsGetResponses,
+  QualityDefinitionOut,
   QualityItemOut,
   QualityProfileDetailOut,
   QualityProfileOut,

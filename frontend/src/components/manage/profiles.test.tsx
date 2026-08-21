@@ -49,6 +49,11 @@ const PROFILES = {
     },
   ],
   custom_formats: [],
+  quality_definitions: [
+    { name: "SDTV", min_size: 0, preferred_size: 95, max_size: 100 },
+    { name: "Bluray-1080p", min_size: 4, preferred_size: 125, max_size: 130 },
+    { name: "Raw-HD", min_size: 4, preferred_size: null, max_size: null },
+  ],
 };
 
 beforeEach(() => {
@@ -130,5 +135,35 @@ describe("quality profiles card", () => {
     state.profiles = { data: { profiles: [], custom_formats: [] } };
     render(<SystemTab />);
     expect(screen.getByText("system.noProfiles")).toBeTruthy();
+  });
+});
+
+describe("size limits", () => {
+  it("stays collapsed, since on a stock Radarr every row is the same band", () => {
+    render(<SystemTab />);
+    expect(screen.getByText("system.showSizeLimits:3")).toBeTruthy();
+    // Assert on a band value, not a quality name — the names also appear as
+    // chips in the profile above.
+    expect(screen.queryByText("system.sizeBand:4/130")).toBeNull();
+  });
+
+  it("expands to the per-quality bands", () => {
+    render(<SystemTab />);
+    fireEvent.click(screen.getByText("system.showSizeLimits:3"));
+    expect(screen.getByText("SDTV")).toBeTruthy();
+    expect(screen.getByText("system.sizeBand:0/100")).toBeTruthy();
+  });
+
+  it("shows an unbounded ceiling as infinity rather than zero", () => {
+    // Raw-HD has no max in Sonarr; 0 would read as "nothing is allowed".
+    render(<SystemTab />);
+    fireEvent.click(screen.getByText("system.showSizeLimits:3"));
+    expect(screen.getByText("system.sizeBand:4/∞")).toBeTruthy();
+  });
+
+  it("renders nothing when the arr returned no size table", () => {
+    state.profiles = { data: { ...PROFILES, quality_definitions: [] } };
+    render(<SystemTab />);
+    expect(screen.queryByText(/system.showSizeLimits/)).toBeNull();
   });
 });
