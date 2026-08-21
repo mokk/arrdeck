@@ -378,7 +378,42 @@ arrdeck currently cannot say that.
 **Verification**: compare against each arr's System → Tasks page; force an
 overdue task and confirm the warning. **Size: S.**
 
-## J. Cast and crew on the Movie page
+## J. Cast and crew on the Movie page — done
+
+Shipped: `GET /library/movies/{id}/credits` and a cast strip on the Movie page.
+Radarr holds 6,346 credit rows, ~60 per film; **Sonarr has no equivalent** —
+`/api/v3/credit` is a 404 there — so this stays movie-only, as the phase title
+already assumed.
+
+Three things the raw data needed before it was presentable:
+- Cast comes back **unsorted**. `order` is TMDB's billing order, so sorting by
+  it is what makes "top billed" mean anything. Capped at 12.
+- Crew is 30 rows deep including Thanks, Painter, Stunt Double and Stunts.
+  Whitelisted to Director, Screenplay, Writer, Story and Composer.
+- Even whitelisted, a blockbuster fills the list with writers: The Fantastic 4
+  has four Screenplay credits plus a Story credit, and Eric Pearson held two of
+  them, so he appeared twice and the director fell off the end. Now deduplicated
+  by person, max two per job — the list reads Director, two writers, composer.
+
+Headshots go through the existing poster proxy at **w185 rather than w500**:
+14 KB a face against 81 KB, and there are a dozen. That needed the proxy to stop
+force-normalising every URL to poster width, so it now keeps a size it is handed
+and still clamps the `/original` the arrs hand out.
+
+**Deliberately not done**: tapping a person to find their other films in the
+library. Radarr's `/credit` rows key on `movieMetadataId`, which `/movie` does
+not expose and there is no `/moviemetadata` endpoint — so the mapping would take
+one request per film (115) to build an index. A person's name instead links to
+their TMDB page. Worth revisiting: 616 people appear in more than one of these
+films, though the top of that list is stunt crew rather than stars.
+
+**Verified**: 16 backend tests over the shaping, 6 frontend tests over the card
+including the missing-headshot fallback and rendering nothing at all when a film
+has no credits. Live: cast and crew correct for two films, a proxied headshot
+measured at 14 KB, and 30 sampled films all returned full credits — so the
+no-credits path is covered by test rather than by anything in this library.
+
+## J-original. Cast and crew on the Movie page
 
 `/api/v3/credit` holds 6,331 rows for the current library and is untouched. The
 Movie page shows overview, file and history but nothing about who is in it — the

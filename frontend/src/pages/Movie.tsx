@@ -6,6 +6,7 @@ import { formatBytes, watchedFor } from "../api/format";
 import { Card, ErrorNote, Row, SectionTitle, StateBadge } from "../components/Blocks";
 import {
   DetailActions,
+  DetailCredits,
   DetailHeader,
   DetailHero,
   DetailHistory,
@@ -17,6 +18,7 @@ import { ReleasesSheet } from "../components/ReleasesSheet";
 import { RenameCard } from "../components/RenameCard";
 import {
   useDeleteLibraryItem,
+  useMovieCredits,
   useMovieDetail,
   useOptions,
   useServices,
@@ -31,6 +33,7 @@ export default function MoviePage() {
   const movieId = Number(id);
   const navigate = useNavigate();
   const { data, error, isLoading } = useMovieDetail(movieId);
+  const { data: credits } = useMovieCredits(movieId);
   const { data: options } = useOptions("radarr");
   const { data: services } = useServices();
   const { data: watchedMap } = useWatched(
@@ -131,6 +134,8 @@ export default function MoviePage() {
               </Row>
             )}
           </Card>
+
+          <DetailCredits credits={credits} />
 
           <DetailHistory history={data.history} />
         </>

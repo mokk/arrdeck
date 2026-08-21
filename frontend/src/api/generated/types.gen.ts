@@ -429,6 +429,42 @@ export type CollectionOut = {
 };
 
 /**
+ * CreditPersonOut
+ */
+export type CreditPersonOut = {
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Role
+   */
+  role?: string | null;
+  /**
+   * Image
+   */
+  image?: string | null;
+  /**
+   * Tmdb Id
+   */
+  tmdb_id?: number | null;
+};
+
+/**
+ * CreditsOut
+ */
+export type CreditsOut = {
+  /**
+   * Cast
+   */
+  cast?: Array<CreditPersonOut>;
+  /**
+   * Crew
+   */
+  crew?: Array<CreditPersonOut>;
+};
+
+/**
  * DiskSpaceOut
  */
 export type DiskSpaceOut = {
@@ -5181,6 +5217,38 @@ export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses = {
 
 export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponse =
   MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses[keyof MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses];
+
+export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetData = {
+  body?: never;
+  path: {
+    /**
+     * Movie Id
+     */
+    movie_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/movies/{movie_id}/credits";
+};
+
+export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetError =
+  MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetErrors[keyof MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetErrors];
+
+export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: CreditsOut;
+};
+
+export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponse =
+  MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponses[keyof MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponses];
 
 export type DeleteMovieApiV1LibraryMoviesMovieIdDeleteData = {
   body?: never;

@@ -8,6 +8,7 @@ import type {
   ArrRelease,
   Collection,
   CollectionDetail,
+  Credits,
   Episode,
   LibraryMovie,
   LibrarySeries,
@@ -119,6 +120,15 @@ export const useMovieDetail = (id: number) =>
   useQuery({
     queryKey: ["movieDetail", id],
     queryFn: () => api.get<MovieDetail>(`/library/movies/${id}/detail`),
+  });
+
+/** Credits change almost never, so they are a separate query from the detail —
+ * the page refetches monitoring and file state far more often than this. */
+export const useMovieCredits = (id: number) =>
+  useQuery({
+    queryKey: ["movieCredits", id],
+    queryFn: () => api.get<Credits>(`/library/movies/${id}/credits`),
+    staleTime: SLOW,
   });
 
 export const useSeriesDetail = (id: number) =>

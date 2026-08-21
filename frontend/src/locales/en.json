@@ -356,6 +356,7 @@
   },
   "movie": {
     "file": "File",
+    "cast": "Cast & crew",
     "noFile": "No file",
     "runtime": "{{min}} min",
     "status": "Status",

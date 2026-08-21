@@ -25,12 +25,14 @@ const { mutate } = vi.hoisted(() => ({ mutate: vi.fn() }));
 const detail = vi.hoisted(() => ({
   movie: { data: undefined as unknown, error: undefined as unknown, isLoading: false },
   series: { data: undefined as unknown, error: undefined as unknown, isLoading: false },
+  credits: { data: undefined as unknown },
 }));
 
 vi.mock("../hooks/queries", () => {
   const mutation = { mutate, isPending: false };
   return {
     useMovieDetail: () => detail.movie,
+    useMovieCredits: () => detail.credits,
     useSeriesDetail: () => detail.series,
     useSeriesEpisodes: () => ({ data: [], isLoading: false }),
     useOptions: () => ({ data: { quality_profiles: [{ id: 4, name: "HD-1080p" }] } }),
@@ -97,11 +99,25 @@ const SERIES = {
   ],
 };
 
+const CREDITS = {
+  cast: [
+    {
+      name: "Pedro Pascal",
+      role: "Reed Richards",
+      image: "/api/v1/poster?u=x",
+      tmdb_id: 12799,
+    },
+    { name: "Vanessa Kirby", role: "Sue Storm", image: null, tmdb_id: 1266783 },
+  ],
+  crew: [{ name: "Matt Shakman", role: "Director", image: null, tmdb_id: 1223867 }],
+};
+
 beforeEach(() => {
   mutate.mockReset();
   navigate.mockReset();
   detail.movie = { data: MOVIE, error: undefined, isLoading: false };
   detail.series = { data: SERIES, error: undefined, isLoading: false };
+  detail.credits = { data: CREDITS };
 });
 
 const pages = [
@@ -216,6 +232,47 @@ describe("what each page shows that the other cannot", () => {
     expect(screen.getByText("movie.file")).toBeTruthy();
     expect(screen.getByText("Bluray-1080p")).toBeTruthy();
     expect(screen.getByText("releases.interactive")).toBeTruthy();
+  });
+
+  it("the movie page lists top-billed cast and the crew worth naming", () => {
+    render(<MoviePage />);
+    expect(screen.getByText("movie.cast")).toBeTruthy();
+    expect(screen.getByText("Pedro Pascal")).toBeTruthy();
+    expect(screen.getByText("Reed Richards")).toBeTruthy();
+    expect(screen.getByText("Matt Shakman")).toBeTruthy();
+    expect(screen.getByText("Director")).toBeTruthy();
+  });
+
+  it("links a person to their TMDB page", () => {
+    const { container } = render(<MoviePage />);
+    const person = [...container.querySelectorAll("a")].find((a) =>
+      (a.getAttribute("href") ?? "").includes("/person/12799"),
+    );
+    expect(person).toBeTruthy();
+  });
+
+  it("falls back to initials where TMDB has no headshot", () => {
+    render(<MoviePage />);
+    // Vanessa Kirby has no image in the fixture; a grey box would read as a
+    // broken image rather than a missing one.
+    expect(screen.getByText("VK")).toBeTruthy();
+  });
+
+  it("renders nothing at all when the film has no credits", () => {
+    detail.credits = { data: { cast: [], crew: [] } };
+    render(<MoviePage />);
+    expect(screen.queryByText("movie.cast")).toBeNull();
+  });
+
+  it("renders nothing while the credits are still loading", () => {
+    detail.credits = { data: undefined };
+    render(<MoviePage />);
+    expect(screen.queryByText("movie.cast")).toBeNull();
+  });
+
+  it("the series page has no cast section — Sonarr has no credits API", () => {
+    render(<SeriesPage />);
+    expect(screen.queryByText("movie.cast")).toBeNull();
   });
 
   it("the movie page still lists recent history", () => {

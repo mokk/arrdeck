@@ -343,6 +343,20 @@ class MovieDetailOut(BaseModel):
     history: list[HistoryEventOut] = []
 
 
+class CreditPersonOut(BaseModel):
+    name: str
+    # A character for cast, a job for crew — one field because the UI renders
+    # them the same way, under the name.
+    role: str | None = None
+    image: str | None = None
+    tmdb_id: int | None = None
+
+
+class CreditsOut(BaseModel):
+    cast: list[CreditPersonOut] = []
+    crew: list[CreditPersonOut] = []
+
+
 class SubtitleSearchIn(BaseModel):
     kind: Literal["movie", "episode"]
     id: int

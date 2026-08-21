@@ -52,6 +52,10 @@ class RadarrClient(ArrClient):
     async def update_movie(self, movie_id: int, payload: dict) -> dict:
         return await self.request("PUT", f"/movie/{movie_id}", json=payload)
 
+    async def credits(self, movie_id: int) -> list:
+        """Cast and crew. Sonarr has no equivalent — /api/v3/credit is 404 there."""
+        return await self.get("/credit", params={"movieId": movie_id})
+
     async def history_movie(self, movie_id: int) -> list:
         return await self.get("/history/movie", params={"movieId": movie_id})
 

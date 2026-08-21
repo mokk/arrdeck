@@ -14,8 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { formatDayTime } from "../api/format";
-import type { HistoryEvent, Options, WatchedItem } from "../api/types";
+import type { CreditPerson, Credits, HistoryEvent, Options, WatchedItem } from "../api/types";
 import { Card, Row, SectionTitle, StateBadge } from "./Blocks";
 import { BigButton } from "./media";
 import { WatchedDot } from "./WatchedDot";
@@ -202,6 +203,97 @@ export function DetailHistory({ history }: { history: HistoryEvent[] | null | un
             <div className="ml-auto text-xs text-muted-foreground">{formatDayTime(h.date)}</div>
           </Row>
         ))}
+      </Card>
+    </>
+  );
+}
+
+function Initials({ name }: { name: string }) {
+  // A quarter of a cast list has no headshot on TMDB, and a grey box beside a
+  // photo reads as a broken image rather than a missing one.
+  const initials = name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+  return (
+    <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-muted-foreground">
+      {initials || "?"}
+    </div>
+  );
+}
+
+function PersonChip({ person }: { person: CreditPerson }) {
+  const body = (
+    <>
+      {person.image ? (
+        <img
+          src={person.image}
+          alt=""
+          loading="lazy"
+          className="size-14 shrink-0 rounded-full bg-secondary object-cover"
+        />
+      ) : (
+        <Initials name={person.name} />
+      )}
+      <div className="mt-1.5 w-full truncate text-center text-[0.7rem] font-semibold leading-tight">
+        {person.name}
+      </div>
+      <div className="w-full truncate text-center text-[0.65rem] leading-tight text-muted-foreground">
+        {person.role}
+      </div>
+    </>
+  );
+  const className = "flex w-[4.5rem] shrink-0 flex-col items-center";
+  // Radarr knows the TMDB person id, so the name can lead somewhere. Linking
+  // into the library instead would need a person index Radarr does not expose.
+  if (!person.tmdb_id) return <div className={className}>{body}</div>;
+  return (
+    <a
+      href={`https://www.themoviedb.org/person/${person.tmdb_id}`}
+      target="_blank"
+      rel="noreferrer"
+      className={cn(className, "active:opacity-60")}
+    >
+      {body}
+    </a>
+  );
+}
+
+/** Cast and crew. Renders nothing at all when the arr has no credits for a
+ * title, rather than an empty card. */
+export function DetailCredits({ credits }: { credits: Credits | undefined }) {
+  const { t } = useTranslation();
+  const cast = credits?.cast ?? [];
+  const crew = credits?.crew ?? [];
+  if (cast.length === 0 && crew.length === 0) return null;
+  return (
+    <>
+      <SectionTitle>{t("movie.cast")}</SectionTitle>
+      <Card className="p-4">
+        {cast.length > 0 && (
+          <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+            {cast.map((person) => (
+              <PersonChip key={`${person.name}:${person.role}`} person={person} />
+            ))}
+          </div>
+        )}
+        {crew.length > 0 && (
+          <div
+            className={cn(
+              "flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground",
+              cast.length > 0 && "mt-3 border-t border-border pt-3",
+            )}
+          >
+            {crew.map((person) => (
+              <span key={`${person.name}:${person.role}`}>
+                <span className="font-semibold text-foreground">{person.name}</span>{" "}
+                {person.role}
+              </span>
+            ))}
+          </div>
+        )}
       </Card>
     </>
   );

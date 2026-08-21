@@ -356,6 +356,7 @@
   },
   "movie": {
     "file": "Fil",
+    "cast": "Medvirkende",
     "noFile": "Ingen fil",
     "runtime": "{{min}} min.",
     "status": "Status",

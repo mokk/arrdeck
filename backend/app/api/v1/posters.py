@@ -21,20 +21,33 @@ POSTER_HOSTS = {
 }
 TMDB_SIZE_RE = re.compile(r"(https://image\.tmdb\.org/t/p/)([^/]+)(/)")
 TMDB_POSTER_SIZE = "w500"
+# A cast headshot renders about 44px across. At w500 each one is ~81 KB against
+# ~14 KB at w185, and a credits list has a dozen of them.
+TMDB_HEADSHOT_SIZE = "w185"
+ALLOWED_TMDB_SIZES = {TMDB_HEADSHOT_SIZE, TMDB_POSTER_SIZE}
 
 
-def normalise_poster_url(url: str) -> str:
-    return TMDB_SIZE_RE.sub(rf"\1{TMDB_POSTER_SIZE}\3", url)
+def normalise_poster_url(url: str, size: str | None = None) -> str:
+    match = TMDB_SIZE_RE.search(url)
+    if not match:
+        return url
+    current = match.group(2)
+    # A caller-chosen size wins. Otherwise keep a size we already allow, so the
+    # endpoint cannot inflate a headshot back to poster width on the way through;
+    # anything else — notably the /original the arrs hand out at ~220 KB — is
+    # clamped rather than trusted.
+    chosen = size or (current if current in ALLOWED_TMDB_SIZES else TMDB_POSTER_SIZE)
+    return TMDB_SIZE_RE.sub(rf"\1{chosen}\3", url)
 
 
-def proxy_poster(url: str | None) -> str | None:
+def proxy_poster(url: str | None, size: str | None = None) -> str | None:
     """Rewrite known poster URLs through the caching proxy endpoint."""
     if not url:
         return None
     host = urlparse(url).hostname
     if host not in POSTER_HOSTS:
         return url
-    return f"/api/v1/poster?u={quote(normalise_poster_url(url), safe='')}"
+    return f"/api/v1/poster?u={quote(normalise_poster_url(url, size), safe='')}"
 
 
 @router.get("/poster", include_in_schema=False)
