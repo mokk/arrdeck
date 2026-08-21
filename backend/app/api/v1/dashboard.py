@@ -323,30 +323,35 @@ async def history_all(
     return {"items": items, "has_more": has_more}
 
 
+async def build_indexer_stats(prowlarr: ProwlarrClient) -> dict:
+    """Shared with the diagnosis endpoint, behind one cache key so asking "why
+    hasn't this arrived" does not re-query Prowlarr three times."""
+
+    async def call() -> dict:
+        indexers, stats, health = await asyncio.gather(
+            prowlarr.indexers(), prowlarr.indexer_stats(), prowlarr.health()
+        )
+        return {
+            "enabled": sum(1 for i in indexers if i.get("enable")),
+            "total": len(indexers),
+            "health": [
+                {"type": h.get("type"), "message": h.get("message"), "source": h.get("source")}
+                for h in health
+            ],
+            "stats": [
+                {
+                    "name": s.get("indexerName"),
+                    "queries": s.get("numberOfQueries", 0),
+                    "grabs": s.get("numberOfGrabs", 0),
+                    "avg_response_ms": s.get("averageResponseTime", 0),
+                }
+                for s in (stats.get("indexers") or [])
+            ],
+        }
+
+    return await cached("indexers:stats", 300, call)
+
+
 @router.get("/indexers/stats", response_model=ServiceBlock[IndexerStatsOut])
 async def indexer_stats(prowlarr: ProwlarrClient = Depends(get_prowlarr)):
-    async def fetch() -> dict:
-        async def call() -> dict:
-            indexers, stats, health = await asyncio.gather(
-                prowlarr.indexers(), prowlarr.indexer_stats(), prowlarr.health()
-            )
-            return {
-                "enabled": sum(1 for i in indexers if i.get("enable")),
-                "total": len(indexers),
-                "health": [
-                    {"type": h.get("type"), "message": h.get("message")} for h in health
-                ],
-                "stats": [
-                    {
-                        "name": s.get("indexerName"),
-                        "queries": s.get("numberOfQueries", 0),
-                        "grabs": s.get("numberOfGrabs", 0),
-                        "avg_response_ms": s.get("averageResponseTime", 0),
-                    }
-                    for s in (stats.get("indexers") or [])
-                ],
-            }
-
-        return await cached("indexers:stats", 300, call)
-
-    return await guarded(fetch(), "indexers:block")
+    return await guarded(build_indexer_stats(prowlarr), "indexers:block")

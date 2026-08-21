@@ -9,6 +9,10 @@ from .common import ServiceSettingsOut
 class HealthItemOut(BaseModel):
     type: str | None = None
     message: str | None = None
+    # Which check produced it. "UpdateCheck" is a notice rather than a fault, and
+    # without this the diagnosis reported "a new version is available" as an
+    # indexer failure.
+    source: str | None = None
 
 
 class DiskSpaceOut(BaseModel):
@@ -275,3 +279,20 @@ class QualityProfilesOut(BaseModel):
     # Names defined in the arr, whether or not any profile scores them. Empty is
     # a real answer worth showing rather than an empty card.
     custom_formats: list[str] = []
+
+
+class DiagnosisFindingOut(BaseModel):
+    # A translation key suffix rather than a sentence: the app ships English and
+    # Danish, so the wording belongs in the locale files.
+    code: str
+    level: str  # ok | info | warning | blocked
+    # bool comes first on purpose: without it pydantic coerces True to 1 and the
+    # UI renders "1" where it means "yes".
+    params: dict[str, bool | str | int | float | None] = {}
+
+
+class DiagnosisOut(BaseModel):
+    app: str
+    id: int
+    title: str | None = None
+    findings: list[DiagnosisFindingOut] = []

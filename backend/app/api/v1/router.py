@@ -6,6 +6,7 @@ from . import (
     auth,
     credits,
     dashboard,
+    diagnose,
     discover,
     hooks,
     importing,
@@ -30,6 +31,7 @@ from . import (
 
 router = APIRouter(prefix="/api/v1")
 router.include_router(dashboard.router)
+router.include_router(diagnose.router)
 router.include_router(system.router)
 router.include_router(tasks.router)
 router.include_router(plex.router)

@@ -184,7 +184,44 @@ already shows installed versions; it just never says they are stale.
 **Verification**: the strip flags all three today, and stops flagging one after
 its image is pulled. **Size: S.**
 
-## F. "Why hasn't this arrived?"
+## F. "Why hasn't this arrived?" — done
+
+`GET /diagnose/{app}/{item_id}` plus a "Why?" button on every Wanted row. Six
+checks, answered in the order a person asks them and sorted worst-first:
+
+1. **Is it coming?** In the queue, and downloading, stalled, waiting to import,
+   or failed. A failed import keeps a `downloading` status in the arr, so the
+   errors are the only honest signal.
+2. **Is it even out?** Radarr will not search until a film reaches its minimum
+   availability — this is the commonest real answer and the least obvious, since
+   an unreleased film looks identical to a broken indexer.
+3. **Was it grabbed and rejected?** Joined on `movieId` / `seriesId` from the
+   arr's raw blocklist record.
+4. **Is anyone looking?** RSS sync overdue, or simply hours old inside its grace.
+5. **Is it being held on purpose?** Delay profiles, previously unread.
+6. **Is there anywhere to look?** Enabled indexer count and Prowlarr health.
+
+Findings are returned as **codes with params**, not sentences, because the app
+ships English and Danish. The sheet falls back to the code for anything the
+frontend has not shipped a string for, so adding a backend check never renders a
+blank row.
+
+Two mistakes caught by testing against the live stack rather than fixtures:
+- The first version matched the blocklist **on title**, which found nothing: the
+  record names the *release*, not the film. The raw record carries `movieId`, so
+  the join is exact.
+- Prowlarr files **"New update is available" as a warning**, and the first version
+  reported it as an indexer failure on every single item — the same class of false
+  alarm as the old unpackerr one. Notice sources are now filtered out.
+
+Also fixed a schema bug it surfaced: `params` typed as `str | int | float | None`
+coerced `True` to `1`, so a boolean would have rendered as "1".
+
+**Verified** against the real library: a 2027 announcement reports
+`not_yet_available`, the one blocklisted release reports `blocklisted` with its
+indexer and reason, and a healthy wanted film reports `nothing_found`. 27 backend
+tests over the checks, 9 frontend over the sheet.
+
 
 The headline feature of this round. arrdeck already holds every piece of the
 answer and makes the user assemble it: the queue, the blocklist, indexer

@@ -347,6 +347,24 @@
     "empty": "Intet her — biblioteket er komplet",
     "count": "{{count}} elementer"
   },
+  "diagnose": {
+    "title": "Hvorfor er den ikke kommet?",
+    "why": "Hvorfor?",
+    "queue_downloading": "Den hentes nu ({{state}}).",
+    "queue_stalled": "Overførslen er gået i stå ({{state}}) — der flytter ingen data.",
+    "queue_importing": "Hentet, venter på import.",
+    "queue_failed": "Overførslen fejlede og sidder fast i køen: {{reason}}",
+    "not_monitored": "Den overvåges ikke, så der søges ikke efter den.",
+    "not_yet_available": "Ikke udkommet endnu — arren venter, indtil den er {{availability}}.",
+    "not_yet_available_dated": "Ikke udkommet endnu — arren venter, indtil den er {{availability}}, forventet {{date}}.",
+    "blocklisted": "En udgivelse blev hentet og afvist, så den prøves ikke igen: {{release}} fra {{indexer}}.",
+    "rss_overdue": "RSS-synkronisering er {{minutes}} minutter forsinket, så intet nyt opsamles.",
+    "rss_stale": "RSS-synkronisering kørte sidst for {{minutes}} minutter siden.",
+    "delay_profile": "En forsinkelsesprofil holder igen med vilje — usenet {{usenet}}m, torrent {{torrent}}m.",
+    "no_indexers": "Ingen indexers er aktiveret, så der er intet sted at søge.",
+    "indexers_failing": "{{count}} indexer-problem rapporteret: {{message}}",
+    "nothing_found": "Alt ser fint ud — indexerne har blot ikke tilbudt en matchende udgivelse endnu."
+  },
   "collections": {
     "title": "Samlinger",
     "movies": "{{have}}/{{total}} film",

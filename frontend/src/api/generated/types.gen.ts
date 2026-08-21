@@ -479,6 +479,48 @@ export type CustomFormatScoreOut = {
 };
 
 /**
+ * DiagnosisFindingOut
+ */
+export type DiagnosisFindingOut = {
+  /**
+   * Code
+   */
+  code: string;
+  /**
+   * Level
+   */
+  level: string;
+  /**
+   * Params
+   */
+  params?: {
+    [key: string]: boolean | string | number | number | null;
+  };
+};
+
+/**
+ * DiagnosisOut
+ */
+export type DiagnosisOut = {
+  /**
+   * App
+   */
+  app: string;
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Title
+   */
+  title?: string | null;
+  /**
+   * Findings
+   */
+  findings?: Array<DiagnosisFindingOut>;
+};
+
+/**
  * DiskSpaceOut
  */
 export type DiskSpaceOut = {
@@ -594,6 +636,10 @@ export type HealthItemOut = {
    * Message
    */
   message?: string | null;
+  /**
+   * Source
+   */
+  source?: string | null;
 };
 
 /**
@@ -3398,6 +3444,42 @@ export type IndexerStatsApiV1IndexersStatsGetResponses = {
 
 export type IndexerStatsApiV1IndexersStatsGetResponse =
   IndexerStatsApiV1IndexersStatsGetResponses[keyof IndexerStatsApiV1IndexersStatsGetResponses];
+
+export type DiagnoseApiV1DiagnoseAppItemIdGetData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+    /**
+     * Item Id
+     */
+    item_id: number;
+  };
+  query?: never;
+  url: "/api/v1/diagnose/{app}/{item_id}";
+};
+
+export type DiagnoseApiV1DiagnoseAppItemIdGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type DiagnoseApiV1DiagnoseAppItemIdGetError =
+  DiagnoseApiV1DiagnoseAppItemIdGetErrors[keyof DiagnoseApiV1DiagnoseAppItemIdGetErrors];
+
+export type DiagnoseApiV1DiagnoseAppItemIdGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: DiagnosisOut;
+};
+
+export type DiagnoseApiV1DiagnoseAppItemIdGetResponse =
+  DiagnoseApiV1DiagnoseAppItemIdGetResponses[keyof DiagnoseApiV1DiagnoseAppItemIdGetResponses];
 
 export type StatusApiV1StatusGetData = {
   body?: never;

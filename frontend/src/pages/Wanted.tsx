@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate } from "../api/format";
 import type { WantedItem } from "../api/types";
 import { Card, EmptyNote, Row } from "../components/Blocks";
+import { DiagnoseSheet } from "../components/DiagnoseSheet";
 import { ReleasesSheet } from "../components/ReleasesSheet";
 import { useRegisterSubnav } from "../components/subnav";
 import {
@@ -29,6 +30,7 @@ function WantedList({ app, kind }: { app: "radarr" | "sonarr"; kind: Kind }) {
   const episodeSearch = useEpisodeSearch();
   const searchAll = useWantedSearchAll();
   const [releaseTarget, setReleaseTarget] = useState<WantedItem | null>(null);
+  const [diagnosing, setDiagnosing] = useState<WantedItem | null>(null);
 
   // Resetting is the point: the list must clear when the app or kind filter
   // changes, and must not clear when anything else does.
@@ -104,6 +106,15 @@ function WantedList({ app, kind }: { app: "radarr" | "sonarr"; kind: Kind }) {
               </Button>
               <Button
                 variant="ghost"
+                size="sm"
+                aria-label={t("diagnose.why")}
+                title={t("diagnose.why")}
+                onClick={() => setDiagnosing(w)}
+              >
+                {t("diagnose.why")}
+              </Button>
+              <Button
+                variant="ghost"
                 size="icon-sm"
                 aria-label={t("releases.interactive")}
                 title={t("releases.interactive")}
@@ -137,6 +148,14 @@ function WantedList({ app, kind }: { app: "radarr" | "sonarr"; kind: Kind }) {
           }
           title={`${releaseTarget.title} ${releaseTarget.subtitle ?? ""}`}
           onClose={() => setReleaseTarget(null)}
+        />
+      )}
+      {diagnosing && (
+        <DiagnoseSheet
+          app={diagnosing.app}
+          id={diagnosing.id}
+          title={diagnosing.title ?? ""}
+          onClose={() => setDiagnosing(null)}
         />
       )}
     </>

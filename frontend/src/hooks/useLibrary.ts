@@ -9,6 +9,7 @@ import type {
   Collection,
   CollectionDetail,
   Credits,
+  Diagnosis,
   Episode,
   LibraryMovie,
   LibrarySeries,
@@ -120,6 +121,14 @@ export const useMovieDetail = (id: number) =>
   useQuery({
     queryKey: ["movieDetail", id],
     queryFn: () => api.get<MovieDetail>(`/library/movies/${id}/detail`),
+  });
+
+/** One-shot on demand: the sheet is opened deliberately, and every input behind
+ * it is cached server-side, so there is nothing to poll for. */
+export const useDiagnose = (app: string, id: number) =>
+  useQuery({
+    queryKey: ["diagnose", app, id],
+    queryFn: () => api.get<Diagnosis>(`/diagnose/${app}/${id}`),
   });
 
 /** Credits change almost never, so they are a separate query from the detail —

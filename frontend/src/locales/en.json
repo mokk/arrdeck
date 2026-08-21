@@ -347,6 +347,24 @@
     "empty": "Nothing here — the library is complete",
     "count": "{{count}} items"
   },
+  "diagnose": {
+    "title": "Why hasn't this arrived?",
+    "why": "Why?",
+    "queue_downloading": "It is downloading now ({{state}}).",
+    "queue_stalled": "The download has stalled ({{state}}) — no data is moving.",
+    "queue_importing": "Downloaded, waiting to be imported.",
+    "queue_failed": "The download failed and is stuck in the queue: {{reason}}",
+    "not_monitored": "It is not monitored, so nothing will search for it.",
+    "not_yet_available": "Not out yet — the arr waits until it is {{availability}}.",
+    "not_yet_available_dated": "Not out yet — the arr waits until it is {{availability}}, expected {{date}}.",
+    "blocklisted": "A release was grabbed and rejected, so it will not be tried again: {{release}} from {{indexer}}.",
+    "rss_overdue": "RSS sync is {{minutes}} minutes overdue, so nothing new is being picked up.",
+    "rss_stale": "RSS sync last ran {{minutes}} minutes ago.",
+    "delay_profile": "A delay profile is holding grabs on purpose — usenet {{usenet}}m, torrent {{torrent}}m.",
+    "no_indexers": "No indexers are enabled, so there is nowhere to search.",
+    "indexers_failing": "{{count}} indexer problem reported: {{message}}",
+    "nothing_found": "Everything checks out — the indexers simply have not offered a matching release yet."
+  },
   "collections": {
     "title": "Collections",
     "movies": "{{have}}/{{total}} movies",

@@ -194,6 +194,10 @@ class ArrClient(BaseClient):
         # Radarr: movieId=; Sonarr: seriesId= (+ optional seasonNumber=)
         return await self.get("/rename", params=params)
 
+    async def delay_profiles(self) -> list:
+        """Deliberate holds before grabbing — usenetDelay / torrentDelay."""
+        return await self.get("/delayprofile")
+
     async def quality_definitions(self) -> list:
         """Per-quality size bands in MB per minute of runtime."""
         return await self.get("/qualitydefinition")
