@@ -92,7 +92,6 @@ const SERIES = {
   episode_file_count: 10,
   total_episode_count: 39,
   season_count: 4,
-  history: [{ type: "imported", date: "2026-08-19T10:00:00Z" }],
   seasons: [
     { number: 1, monitored: true, episode_count: 9, episode_file_count: 9, size_on_disk: 1 },
   ],
@@ -144,18 +143,6 @@ describe.each(pages)("the %s detail page", (_name, Page) => {
     const hrefs = [...container.querySelectorAll("a")].map((a) => a.getAttribute("href") ?? "");
     expect(hrefs.some((h) => h.includes("imdb.com"))).toBe(true);
     expect(hrefs.some((h) => h.includes("themoviedb.org"))).toBe(true);
-  });
-
-  it("shows recent history", () => {
-    render(<Page />);
-    expect(screen.getByText("dash.recentHistory")).toBeTruthy();
-  });
-
-  it("hides the history section when there is none", () => {
-    detail.movie = { data: { ...MOVIE, history: [] }, error: undefined, isLoading: false };
-    detail.series = { data: { ...SERIES, history: [] }, error: undefined, isLoading: false };
-    render(<Page />);
-    expect(screen.queryByText("dash.recentHistory")).toBeNull();
   });
 
   it("surfaces a load error", () => {
@@ -229,5 +216,23 @@ describe("what each page shows that the other cannot", () => {
     expect(screen.getByText("movie.file")).toBeTruthy();
     expect(screen.getByText("Bluray-1080p")).toBeTruthy();
     expect(screen.getByText("releases.interactive")).toBeTruthy();
+  });
+
+  it("the movie page still lists recent history", () => {
+    render(<MoviePage />);
+    expect(screen.getByText("dash.recentHistory")).toBeTruthy();
+  });
+
+  it("the movie page hides history when there is none", () => {
+    detail.movie = { data: { ...MOVIE, history: [] }, error: undefined, isLoading: false };
+    render(<MoviePage />);
+    expect(screen.queryByText("dash.recentHistory")).toBeNull();
+  });
+
+  it("the series page has no history section", () => {
+    // A bare "imported · Today" row cannot say *which* of 39 episodes it means,
+    // so on a series it was noise. The episode rows carry that state already.
+    render(<SeriesPage />);
+    expect(screen.queryByText("dash.recentHistory")).toBeNull();
   });
 });

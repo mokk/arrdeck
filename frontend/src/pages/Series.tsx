@@ -11,7 +11,6 @@ import {
   DetailActions,
   DetailHeader,
   DetailHero,
-  DetailHistory,
   DetailProfileSelect,
   type ExternalLink,
 } from "../components/detail";
@@ -311,8 +310,6 @@ export default function SeriesPage() {
               onReleases={setReleaseTarget}
             />
           ))}
-
-          <DetailHistory history={data.history} />
         </>
       )}
       {releaseTarget && (

@@ -159,10 +159,6 @@ async def series_detail(
     series_id: int, sonarr: SonarrClient = Depends(get_sonarr)
 ) -> SeriesDetailOut:
     series = await sonarr.get_series(series_id)
-    try:
-        history = await sonarr.history_series(series_id)
-    except Exception:  # noqa: BLE001 — history is decoration, same as for movies
-        history = []
     seasons = sorted(
         (_season_out(s) for s in series.get("seasons", [])), key=lambda s: s.number
     )
@@ -190,13 +186,6 @@ async def series_detail(
         episode_file_count=stats.get("episodeFileCount", 0),
         total_episode_count=stats.get("totalEpisodeCount", 0),
         season_count=stats.get("seasonCount", 0),
-        history=[
-            HistoryEventOut(
-                type=EVENT_LABELS.get(h.get("eventType", ""), h.get("eventType", "")),
-                date=h.get("date", ""),
-            )
-            for h in history[:12]
-        ],
         seasons=seasons,
     )
 

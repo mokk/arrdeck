@@ -1933,10 +1933,6 @@ export type SeriesDetailOut = {
    */
   season_count?: number;
   /**
-   * History
-   */
-  history?: Array<HistoryEventOut>;
-  /**
    * Seasons
    */
   seasons: Array<SeasonOut>;

@@ -210,7 +210,6 @@ class SeriesDetailOut(BaseModel):
     episode_file_count: int = 0
     total_episode_count: int = 0
     season_count: int = 0
-    history: list[HistoryEventOut] = []
     seasons: list[SeasonOut]
 
 
