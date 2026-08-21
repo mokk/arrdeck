@@ -27,7 +27,9 @@
     "ascending": "Stigende",
     "descending": "Faldende",
     "clear": "Ryd",
-    "refresh": "Opdater"
+    "refresh": "Opdater",
+    "notFound": "Siden findes ikke",
+    "backToDashboard": "Tilbage til oversigten"
   },
   "state": {
     "downloading": "downloader",

@@ -73,7 +73,22 @@ the code most likely to break when an arr changes its notification schema.
 **Verification**: the module clears 70%, and a schema change surfaces as a test
 failure rather than a missing notification. **Size: S.**
 
-## D. An unknown URL renders a blank page
+## D. An unknown URL renders a blank page — done
+
+`components/NotFound.tsx` plus a `path="*"` route, last in the table so it cannot
+shadow a real one. It names the path that failed, which makes a bad deep-link
+diagnosable, and links back to the dashboard.
+
+Checked while here: every push deep-link (`/manage`, `/movie/{id}`,
+`/series/{id}`, `/history`) is a real route, so notifications were not the source.
+A `/movie/{id}` for a deleted film still resolves and the page shows its own
+error, which is correct.
+
+**Verified**: 7 tests — known paths still resolve, unknown and deep-unknown paths
+land on the catch-all, the failing path is displayed, the way back exists, and
+the route stays last in the table.
+
+## D-original. An unknown URL renders a blank page
 
 There is no catch-all route. `/nonsense` returns the SPA shell with HTTP 200 and
 then renders nothing — no message, no way back. Easy to hit from a stale

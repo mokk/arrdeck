@@ -27,7 +27,9 @@
     "ascending": "Ascending",
     "descending": "Descending",
     "clear": "Clear",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "notFound": "Page not found",
+    "backToDashboard": "Back to dashboard"
   },
   "state": {
     "downloading": "downloading",

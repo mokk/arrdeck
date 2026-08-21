@@ -15,6 +15,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { cn, focusRing } from "@/lib/utils";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { LoginScreen } from "./components/LoginScreen";
+import { NotFound } from "./components/NotFound";
 import { PullToRefresh } from "./components/PullToRefresh";
 import { SubnavProvider, useSubnav } from "./components/subnav";
 import { useAuthState, useServices } from "./hooks/queries";
@@ -126,6 +127,7 @@ function Shell() {
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/movie/:id" element={<MoviePage />} />
                 <Route path="/stats" element={<StatsPage />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
           </ErrorBoundary>
