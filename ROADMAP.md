@@ -58,7 +58,33 @@ The dashboard is the home screen and Downloads is the second-most-used page.
 
 **Verification**: CI fails on a deliberate coverage drop. **Size: M.**
 
-## C. Test the webhook installer
+## C. Test the webhook installer — done
+
+**22% -> 100%** on `app/webhooks.py`, 38 tests. Backend total 65% -> 67%.
+
+Covered: token and URL derivation, `guess_base_url` precedence, install (add /
+update / skip / per-app failure isolation), payload shaping, the notification
+schema lookup including the missing-`Webhook`-schema case an arr version change
+would cause, status, uninstall, and every branch of the error formatter.
+
+The tests were checked against mutation rather than assumed sound: four
+behaviours were monkeypatched out at runtime and each was caught by the
+corresponding test.
+
+**Fragilities found and deliberately not fixed** (see the new phase K):
+- `install` persists the base URL *before* proving it works, and
+  `guess_base_url` prefers the stored value, so a typo is sticky.
+- `_find_existing` matches on the substring `/api/v1/hooks/` alone, ignoring
+  token and host — a second arrdeck instance against the same arr silently
+  overwrites the first.
+- `uninstall` reports `installed: False` even when the delete raised.
+- A scheme-less service URL makes `guess_base_url` fall back to
+  `http://localhost:3500`, which is unroutable from inside an arr container.
+- Nothing calls `test_notification()`; validation relies entirely on the arrs
+  validating on save.
+- `HOOK_APPS` omits Prowlarr, which has the same notification API.
+
+## C-original. Test the webhook installer
 
 `webhooks.py` is **127 statements at 22% coverage** — the least-tested code in
 the backend, and it writes to three arrs: it creates, updates and deletes
@@ -183,7 +209,24 @@ titles actually on screen need one.
 **Verification**: payload drops materially with the watched dots unchanged.
 **Size: S.**
 
-## I. Files creeping back over 400 lines
+## I. Files creeping back over 400 lines — done
+
+`api/v1/library.py` 410 -> **79**, split into `movies.py` (111), `series.py`
+(175) and `credits.py` (78); `library.py` keeps only the app-agnostic search
+trigger and bulk actions. `schemas/library.py` 414 -> **261**, with the library
+proper moved to `schemas/media.py` (166) behind the same barrel.
+
+The recurring hazard bit again and was caught: `CREW_JOBS`/`CAST_LIMIT` sat
+between `movie_detail` and `movie_credits`, and `_season_out` between
+`delete_movie` and `series_detail` — both would have been swept into the wrong
+module. pyflakes also caught `HTTPException` being used in the new `series.py`
+without an import, which would have been a `NameError` the first time a season
+lookup missed.
+
+Route surface unchanged at 123 with no schema collisions. Nothing above 400 lines
+remains; the next four are 407, 403, 399 and 398.
+
+## I-original. Files creeping back over 400 lines
 
 The previous round's standard was 400. Five files have drifted back to the edge:
 `schemas/library.py` 414, `api/v1/library.py` 410, `hooks/useSystem.ts` 407,

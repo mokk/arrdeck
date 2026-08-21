@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.api.v1.library import CAST_LIMIT, CREW_JOBS, CREW_LIMIT, movie_credits
+from app.api.v1.credits import CAST_LIMIT, CREW_JOBS, CREW_LIMIT, movie_credits
 from app.api.v1.posters import normalise_poster_url
 from app.cache import cache
 

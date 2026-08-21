@@ -4,18 +4,21 @@ from . import (
     arrmeta,
     arrqueue,
     auth,
+    credits,
     dashboard,
     discover,
     hooks,
     importing,
     indexers,
     library,
+    movies,
     plex,
     popular,
     posters,
     profiles,
     releases,
     requests,
+    series,
     settings,
     subtitles,
     system,
@@ -43,6 +46,9 @@ router.include_router(releases.router)
 router.include_router(requests.router)
 router.include_router(indexers.router)
 router.include_router(library.router)
+router.include_router(movies.router)
+router.include_router(series.router)
+router.include_router(credits.router)
 router.include_router(wanted.router)
 router.include_router(arrmeta.router)
 router.include_router(settings.router)
