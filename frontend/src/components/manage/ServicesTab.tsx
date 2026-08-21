@@ -36,13 +36,34 @@ const _FIELD_KEYS: Record<string, string> = {
 export function ServiceSettingsTab() {
   const { t } = useTranslation();
   const { data, error } = useServiceSettings();
-  if (error) return <ErrorNote>{(error as Error).message}</ErrorNote>;
-  if (!data) return <EmptyNote>{t("common.loading")}</EmptyNote>;
+  // Appearance and language are local preferences — they live in localStorage and
+  // never touch the backend. Rendering them above the early returns keeps them
+  // reachable while the service settings are loading, and still reachable if
+  // that request fails, which is exactly when someone may want to change one.
+  const local = (
+    <>
+      <ThemePicker />
+      <LanguagePicker />
+    </>
+  );
+  if (error)
+    return (
+      <>
+        {local}
+        <ErrorNote>{(error as Error).message}</ErrorNote>
+      </>
+    );
+  if (!data)
+    return (
+      <>
+        {local}
+        <EmptyNote>{t("common.loading")}</EmptyNote>
+      </>
+    );
   return (
     <>
       <StatusStrip />
-      <ThemePicker />
-      <LanguagePicker />
+      {local}
       <SecurityCard />
       <NotificationsCard />
       <ImportLists />
