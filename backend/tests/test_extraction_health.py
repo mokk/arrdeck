@@ -58,12 +58,53 @@ def test_command_and_hook_failures_are_warnings():
 
 
 def test_queue_fetch_errors_name_the_app():
-    # this is live on the real stack: unpackerr can't read either arr's queue
-    prom = FakePrometheus(fetch={"Radarr": 1, "Sonarr": 1})
+    prom = FakePrometheus(fetch={"Radarr": 5, "Sonarr": 4})
     out = asyncio.run(_unpackerr_warnings(prom))
     assert len(out) == 2
     assert any("Radarr" in w["message"] for w in out)
     assert any("Sonarr" in w["message"] for w in out)
+
+
+def test_a_single_queue_timeout_is_weather_not_a_fault():
+    """host.docker.internal stalls briefly under load, so unpackerr logs an
+    occasional timeout — seven in sixty hours on the real stack — that recovers
+    within a couple of minutes. Warning on one meant warning for a full hour
+    about something already fixed."""
+    prom = FakePrometheus(fetch={"Radarr": 1, "Sonarr": 1})
+    assert asyncio.run(_unpackerr_warnings(prom)) == []
+
+
+def test_two_timeouts_are_still_below_the_threshold():
+    prom = FakePrometheus(fetch={"Radarr": 2})
+    assert asyncio.run(_unpackerr_warnings(prom)) == []
+
+
+def test_the_threshold_is_reached_not_merely_approached():
+    """Guards the boundary in both directions, so a change to >= or > is caught
+    rather than silently shifting when the warning appears."""
+    from app.api.v1.system import QUEUE_FETCH_THRESHOLD
+
+    below = FakePrometheus(fetch={"Radarr": QUEUE_FETCH_THRESHOLD - 1})
+    at = FakePrometheus(fetch={"Radarr": QUEUE_FETCH_THRESHOLD})
+    assert asyncio.run(_unpackerr_warnings(below)) == []
+    assert len(asyncio.run(_unpackerr_warnings(at))) == 1
+
+
+def test_a_sustained_failure_still_warns():
+    """The point of the threshold is to ignore blips, not to go quiet on a real
+    outage — an arr that is genuinely unreachable produces one every 30s."""
+    prom = FakePrometheus(fetch={"Radarr": 40})
+    out = asyncio.run(_unpackerr_warnings(prom))
+    assert len(out) == 1
+    assert "40 errors" in out[0]["message"]
+
+
+def test_an_extraction_failure_is_not_subject_to_the_threshold():
+    """A failed extraction is a fact about a file, not a transient network
+    condition, so one is worth reporting immediately."""
+    out = asyncio.run(_unpackerr_warnings(FakePrometheus(gauges={"failed": 1})))
+    assert len(out) == 1
+    assert out[0]["level"] == "error"
 
 
 def test_a_missing_prometheus_yields_no_warnings_rather_than_failing():
@@ -128,6 +169,8 @@ def test_the_fetch_error_query_uses_the_app_label():
 
 
 def test_two_apps_failing_produce_two_distinct_warnings():
-    prom = FakePrometheus(fetch={"Radarr": 1, "Sonarr": 4})
+    # Both above the threshold: the point here is that the two series are not
+    # collapsed into one key, which is what the wrong Prometheus label caused.
+    prom = FakePrometheus(fetch={"Radarr": 3, "Sonarr": 4})
     messages = [w["message"] for w in asyncio.run(_unpackerr_warnings(prom))]
     assert len(set(messages)) == 2  # not collapsed into one

@@ -193,6 +193,14 @@ UNPACKERR_FAILURE_COUNTERS = ("cmd_fail", "hook_fail")
 # warn forever. Only a failure inside this window is worth surfacing.
 FAILURE_WINDOW = "1h"
 
+# Queue fetches are different from the other counters: host.docker.internal is
+# Docker's NAT-ed route back to the host and stalls briefly under load, so
+# unpackerr logs an occasional timeout — measured at seven in sixty hours — that
+# recovers on its own within a couple of minutes. Warning on one of those means
+# warning for an hour about something already fixed. Three in the window is a
+# pattern; one is weather.
+QUEUE_FETCH_THRESHOLD = 3
+
 
 async def _unpackerr_warnings(prometheus: PrometheusClient) -> list[dict]:
     """Extraction problems. A download that completes and never imports is
@@ -229,7 +237,7 @@ async def _unpackerr_warnings(prometheus: PrometheusClient) -> list[dict]:
                 })
     if isinstance(fetch_errors, dict):
         for app_name, count in sorted(fetch_errors.items()):
-            if count >= 1:
+            if count >= QUEUE_FETCH_THRESHOLD:
                 warnings.append({
                     "app": "unpackerr",
                     "level": "warning",
