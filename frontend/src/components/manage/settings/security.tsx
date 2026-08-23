@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import {
   useAuthState,
   useDeletePasskey,
@@ -96,11 +96,24 @@ export function SecurityCard() {
         )}
         {(passkeys ?? []).map((pk) => (
           <div key={pk.id} className="flex items-center justify-between text-sm">
-            <span>
+            <span className="min-w-0">
               {pk.name}{" "}
               <span className="text-xs text-muted-foreground">
                 {new Date(pk.created * 1000).toLocaleDateString()}
               </span>
+              {/* A passkey only satisfies a challenge on the hostname it was
+                  made on, so one made elsewhere is worth flagging rather than
+                  leaving to fail silently at sign-in. */}
+              {pk.rp_id && (
+                <span
+                  className={cn(
+                    "ml-1.5 block truncate font-mono text-[0.68rem]",
+                    pk.usable_here ? "text-muted-foreground" : "text-warning",
+                  )}
+                >
+                  {pk.usable_here ? pk.rp_id : t("auth.otherHost", { host: pk.rp_id })}
+                </span>
+              )}
             </span>
             <Button
               size="sm"

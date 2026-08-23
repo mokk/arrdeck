@@ -469,7 +469,8 @@
     "sessionSeen": "Sidst brugt {{when}}",
     "thisDevice": "denne enhed",
     "deletePasskey": "Slet adgangsnøgle {{name}}",
-    "revokeSession": "Log denne enhed ud"
+    "revokeSession": "Log denne enhed ud",
+    "otherHost": "kun {{host}}"
   },
   "popular": {
     "all": "Alle",

@@ -84,6 +84,12 @@ class SettingsDB:
             # the client from a code, but the payload has to say which language
             # the device is in — a service worker cannot read localStorage.
             self._migrate_columns("push_subscriptions", {"language": "TEXT"})
+            # A passkey only works on the hostname it was created on, but the
+            # login challenge used to offer every credential on every host, so a
+            # LAN-registered key was offered over the domain and the browser
+            # silently failed to find it. NULL means "registered before this was
+            # recorded" and stays offered everywhere rather than locking anyone out.
+            self._migrate_columns("credentials", {"rp_id": "TEXT"})
             self._conn.commit()
 
     def _migrate_columns(self, table: str, columns: dict[str, str]) -> None:
@@ -327,22 +333,40 @@ class SettingsDB:
             self._conn.commit()
             return cur.rowcount > 0
 
-    def cred_add(self, credential_id: str, public_key: str, name: str, created: int) -> None:
+    def cred_add(
+        self,
+        credential_id: str,
+        public_key: str,
+        name: str,
+        created: int,
+        rp_id: str | None = None,
+    ) -> None:
         with self._lock:
             self._conn.execute(
-                "INSERT INTO credentials (credential_id, public_key, sign_count, name, created)"
-                " VALUES (?, ?, 0, ?, ?)",
-                (credential_id, public_key, name, created),
+                "INSERT INTO credentials"
+                " (credential_id, public_key, sign_count, name, created, rp_id)"
+                " VALUES (?, ?, 0, ?, ?, ?)",
+                (credential_id, public_key, name, created, rp_id),
             )
             self._conn.commit()
 
-    def cred_list(self) -> list[dict]:
+    def cred_list(self, rp_id: str | None = None) -> list[dict]:
+        """Every credential, or only those usable on `rp_id`.
+
+        A credential with no recorded rp_id predates that column and is included
+        whatever the host: excluding it would lock out anyone whose only passkey
+        was registered before this change.
+        """
         with self._lock:
             rows = self._conn.execute(
-                "SELECT id, credential_id, public_key, sign_count, name, created FROM credentials"
+                "SELECT id, credential_id, public_key, sign_count, name, created, rp_id"
+                " FROM credentials"
             ).fetchall()
-        keys = ["id", "credential_id", "public_key", "sign_count", "name", "created"]
-        return [dict(zip(keys, r, strict=False)) for r in rows]
+        keys = ["id", "credential_id", "public_key", "sign_count", "name", "created", "rp_id"]
+        creds = [dict(zip(keys, r, strict=False)) for r in rows]
+        if rp_id is None:
+            return creds
+        return [c for c in creds if c["rp_id"] in (None, rp_id)]
 
     def cred_delete(self, cred_id: int) -> None:
         with self._lock:

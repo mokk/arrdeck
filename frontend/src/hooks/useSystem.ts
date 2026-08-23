@@ -57,7 +57,17 @@ export const usePasskeys = (enabled: boolean) =>
   useQuery({
     queryKey: ["passkeys"],
     queryFn: () =>
-      api.get<{ id: number; name: string; created: number }[]>("/auth/credentials"),
+      api.get<
+        {
+          id: number;
+          name: string;
+          created: number;
+          // The hostname the passkey was created on. null for one registered
+          // before that was recorded, which still works anywhere.
+          rp_id: string | null;
+          usable_here: boolean;
+        }[]
+      >("/auth/credentials"),
     enabled,
     retry: false,
   });

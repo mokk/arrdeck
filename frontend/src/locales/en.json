@@ -469,7 +469,8 @@
     "sessionSeen": "Last used {{when}}",
     "thisDevice": "this device",
     "deletePasskey": "Delete passkey {{name}}",
-    "revokeSession": "Sign out this device"
+    "revokeSession": "Sign out this device",
+    "otherHost": "{{host}} only"
   },
   "popular": {
     "all": "All",

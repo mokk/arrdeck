@@ -242,6 +242,9 @@ def register_verify(body: VerifyIn, request: Request, response: Response) -> dic
         base64.b64encode(verification.credential_public_key).decode(),
         body.name.strip() or "passkey",
         int(time.time()),
+        # Recorded so the login challenge can offer it only where it works. The
+        # browser bound it to this hostname; nothing else can satisfy it.
+        _rp_id(request),
     )
     _rotate_setup_code(db)  # single-use: a fresh code is issued after each registration
     _clear_failures(db)
@@ -251,11 +254,17 @@ def register_verify(body: VerifyIn, request: Request, response: Response) -> dic
 
 @router.post("/login/options")
 def login_options(request: Request) -> Response:
-    creds = request.app.state.db.cred_list()
+    rp_id = _rp_id(request)
+    # Filtered by hostname: a passkey created on the LAN address cannot satisfy a
+    # challenge for the domain, and offering it anyway made the browser fail to
+    # find any credential without saying why.
+    creds = request.app.state.db.cred_list(rp_id)
     if not creds:
+        if request.app.state.db.cred_list():
+            raise HTTPException(400, f"no passkeys registered for {rp_id}")
         raise HTTPException(400, "no passkeys registered yet")
     options = generate_authentication_options(
-        rp_id=_rp_id(request),
+        rp_id=rp_id,
         allow_credentials=[
             PublicKeyCredentialDescriptor(id=base64url_to_bytes(c["credential_id"]))
             for c in creds
@@ -348,8 +357,16 @@ def revoke_session(session_id: str, request: Request) -> None:
 def credentials(request: Request) -> list[dict]:
     if not is_request_allowed(request):
         raise HTTPException(401, "unauthorized")
+    # rp_id is surfaced so the UI can say which hostname each passkey works on,
+    # and flag one that will never satisfy a challenge from where you are now.
     return [
-        {"id": c["id"], "name": c["name"], "created": c["created"]}
+        {
+            "id": c["id"],
+            "name": c["name"],
+            "created": c["created"],
+            "rp_id": c["rp_id"],
+            "usable_here": c["rp_id"] in (None, _rp_id(request)),
+        }
         for c in request.app.state.db.cred_list()
     ]
 
