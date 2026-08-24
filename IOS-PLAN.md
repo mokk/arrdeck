@@ -3,23 +3,29 @@
 A native client that must work against **any** arrdeck backend — only the HTTP
 API, no assumption that the docker stack is anywhere nearby.
 
-Written 2026-08-21. Facts below were measured against a live instance, not
-assumed.
+Written 2026-08-21, revised 2026-08-24 after review. Counts below rot as the
+backend moves; treat them as order-of-magnitude, dated the day they were taken.
 
-## What is already true
+## What is already true (2026-08-24)
 
-- **The backend is the whole app.** 124 routes doing all arr aggregation,
+- **The backend is the whole app.** 125 routes doing all arr aggregation,
   caching, retries, the diagnosis synthesis, poster proxying and push fan-out. A
   native client is a new *view*, not a rewrite.
 - **The frontend to replace is ~11,000 lines**: 12 pages, 39 real components (10
-  more are shadcn primitives), 110 TanStack Query hooks, 436 locale strings in
+  more are shadcn primitives), 110 TanStack Query hooks, 437 locale strings in
   two languages.
 - `frontend/src/api/client.ts` line 1 already reads *"Single network boundary. A
   future iOS/React Native port only swaps BASE_URL."* The groundwork is there.
-- Auth is **WebAuthn passkeys** with `rp_id` taken from the `Host` header, plus
-  an 8-character setup code and a 180-day session cookie.
+- Auth is **WebAuthn passkeys**, now **scoped per hostname**: each credential
+  records the `rp_id` it was created on and the login challenge only offers ones
+  usable there. Plus an 8-character setup code and a **sliding** 180-day session
+  — refreshed on every use, so a client used even occasionally never
+  re-authenticates.
 - `is_lan()` decides by **hostname, not source IP** — Docker NATs every inbound
   connection, so the source is useless. LAN callers skip auth entirely.
+- **Poster URLs are relative** (`/api/v1/poster?u=…`). The PWA resolves them
+  against its own origin for free; a native UI must prepend the profile's base
+  URL, and the generated Swift client will not do this for you.
 
 ## Three consequences of "any backend"
 
@@ -43,10 +49,11 @@ app. Compatible only if:
 Shipping a shared `.p8` inside the backend image would work but puts a signing
 key in a public artefact. Don't.
 
-**Capability discovery is mandatory, not nice-to-have.** Before phase B there
-was no way to ask a backend what it supports, and an unknown `/api/v1/*` path
-falls through to the SPA and returns **200 HTML** rather than a 404 — so probing
-by calling an endpoint cannot even distinguish "missing" from "present".
+**Capability discovery is mandatory, not nice-to-have.** An unknown `/api/v1/*`
+path falls through to the SPA and returns **200 HTML** rather than a 404, so
+probing by calling an endpoint cannot distinguish "missing" from "present".
+`/about` (phase B) is the answer — but note the discovery *protocol* below,
+because `/about` sits behind auth and old backends predate it.
 
 ---
 
@@ -54,16 +61,30 @@ by calling an endpoint cannot even distinguish "missing" from "present".
 
 The app knows about no deployment.
 
-- Onboarding: enter a base URL, validate it against `/about`, store in the
+- Onboarding: enter a base URL, probe `/about`, store the profile in the
   Keychain. Several profiles, switchable, as Jellyfin and Plex clients do.
-- **`NSLocalNetworkUsageDescription` is mandatory.** iOS blocks a native app from
-  reaching `10.0.0.x` without explicit consent, and the failure mode is a silent
-  timeout.
+- **The probe has three honest outcomes**, and onboarding must handle all of
+  them: **200 JSON with `name: "arrdeck"`** (a LAN arrdeck — no pairing needed);
+  **401** (an arrdeck that wants pairing — *not* a failure); **anything else,
+  including 200 HTML** (not an arrdeck endpoint). A 401 does not prove `/about`
+  exists — every `/api/v1/*` path 401s from remote on any arrdeck version — so
+  the feature list is re-read *after* pairing, and a post-pairing 200-HTML
+  response means an old backend: fall back to the minimal feature set rather
+  than erroring.
+- **Two separate iOS traps, same silent-timeout symptom:**
+  - `NSLocalNetworkUsageDescription` — the local-network privacy prompt.
+  - **App Transport Security** — ATS blocks plain-HTTP URLs by default, and a
+    LAN profile like `http://10.0.0.154:3500` *is* plain HTTP. Without
+    `NSAllowsLocalNetworking` the connection is refused before the privacy
+    prompt is even relevant.
 - **Self-signed and internal-CA certs.** Many self-hosters run LAN-only HTTPS.
-  Decide deliberately: refuse, or offer per-profile "trust this certificate" with
-  a pinned fingerprint. No blanket ATS exception.
-- Handle both auth states the backend can present — LAN bypasses auth, remote
-  needs a session — without being told which.
+  Decide deliberately: refuse, or offer per-profile "trust this certificate"
+  with a pinned fingerprint. No blanket ATS exception for remote hosts.
+- **A profile's origin is part of its identity.** Sessions are cookies and
+  passkeys are rp_id-scoped, so editing a profile's URL from IP to domain
+  silently invalidates both. Treat a URL change as "new profile, re-pair", or
+  users hit exactly the silent failure the passkey-host fix made legible on the
+  web.
 
 ## B. Capability discovery — done
 
@@ -76,59 +97,65 @@ declared feature maps to a real route.
 children are reachable only through private attributes. The schema is the
 framework's own public view.
 
-Version is now single-sourced in `backend/app/version.py` (**0.2.0**). `main.py`
-and `package.json` each carried an independent `0.1.0` that had never been
-bumped. `npm run check:version` fails on drift and runs in CI — not in `npm run
-build`, because the image build stage copies only `frontend/`.
+Version is single-sourced in `backend/app/version.py` (**0.2.0**). `npm run
+check:version` fails on drift and runs in CI — not in `npm run build`, because
+the image build stage copies only `frontend/`.
 
 **Kept behind auth deliberately.** Exempting it would hand an unauthenticated
 caller a version and a capability list, and this backend is reachable from the
-internet. The 401 is itself the signal: reach `/about`, get 401, pair, ask again
-— which also separates "an arrdeck that wants pairing" from "not an arrdeck".
+internet. The discovery protocol in phase A is the consequence.
 
 ## B2. Localised push text — done
 
-Notification text was assembled **server-side in English** — `EVENT_LABELS`,
-`NOUNS` and the glue in `render()` — and shown verbatim, so a device set to
-Danish got English banners. For a native client it is worse: the banner arrives
-pre-rendered, so the app cannot localise it at all.
+Notification text was assembled **server-side in English** and shown verbatim,
+so a device set to Danish got English banners; a native client could not
+localise a pre-rendered banner at all.
 
-The payload now names what happened rather than spelling it out: `code`, `count`,
-`app`, and `heading` for pass-through media text that must never be translated.
-The client writes the sentence. That is the same shape APNs wants, where
-`loc-key` and `loc-args` resolve from the app bundle — so phase D inherits this
-rather than designing the payload twice.
+The payload now names what happened — `code`, `count`, `app`, and `heading` for
+pass-through media text that must never be translated — and the client writes
+the sentence. That is the shape APNs wants (`loc-key`/`loc-args` resolved from
+the app bundle), so phase D inherits the payload rather than designing it twice.
 
-`title`/`body` are still sent as an English rendering, so a service worker from
-before this change shows text instead of a blank banner, and a newly added
-server-side event stays readable in a client with no string for it yet.
+`title`/`body` are still sent as an English rendering, so an old service worker
+shows text instead of a blank banner, and a newer server event stays readable in
+a client with no string for it yet.
 
-The device's language travels in the payload because a service worker cannot read
-the app's stored preference. It is recorded per subscription (`language`, added
-through `_migrate_columns`) and sent on subscribe.
+The device language is recorded per subscription and sent down in the webpush
+payload (a service worker cannot read the app's stored preference). **APNs
+devices do not need it** — iOS localises from the bundle on-device — so phase D
+should not require it for `apns` rows.
 
 **A bug this uncovered:** `push_add` used `INSERT OR REPLACE` naming only two
-columns, so every other column reverted to NULL — a device that had chosen its
-own event set lost that choice whenever the browser rotated its subscription,
-which it does on its own schedule. Now an upsert that preserves what the caller
-did not send.
-
-Existing subscriptions carry `language=NULL` and render English until each device
-re-subscribes once.
+columns, so every other column reverted to NULL on re-subscribe. Now an upsert
+preserving what the caller did not send.
 
 ## C. Pairing and auth — Size M
 
 Use what the backend has: an 8-character setup code (alphabet excludes O/0/I/1)
-and a 180-day session.
+and the sliding 180-day session.
 
 - **Web view for the auth step only.** WebAuthn works in `WKWebView` against
-  whatever origin the user typed, so passkeys work with **zero backend changes**.
-  Capture the `arrdeck_session` cookie into a shared store.
+  whatever origin the profile uses, so passkeys work with **zero backend
+  changes**. Capture the `arrdeck_session` cookie via `WKHTTPCookieStore` into
+  the app's `URLSession` store. Any passkey registered this way is bound to the
+  profile's hostname — correct, and now visible in Manage.
 - **Or a token exchange** — trade a setup code for a long-lived bearer token, so
   a pure-native client never needs a web view. Cleaner for SwiftUI, small
-  backend addition.
+  backend addition, and the same endpoint solves passkey-less desktop browsers.
 
-Start with the first; it needs nothing new server-side.
+Start with the first; it needs nothing new server-side. The sliding session
+means re-auth is effectively never, so the web view is a one-time ritual per
+profile.
+
+## E1. Native shell, skeleton — Size S
+
+Pulled ahead of APNs because **APNs cannot be verified without a real device
+token from a real app** — as originally ordered, D would have been written blind.
+
+- SwiftUI app, profile list from A, `WKWebView` at the profile's URL, shared
+  cookie store, pairing via C.
+- APNs registration wired to `/push/subscribe` with `kind: "apns"` — the token
+  goes nowhere useful until D exists, but the plumbing is testable.
 
 ## D. APNs, operator-supplied — Size M
 
@@ -136,23 +163,26 @@ Start with the first; it needs nothing new server-side.
 
 - APNs settings the **operator** fills in — team id, key id, bundle id, `.p8` —
   beside the existing service settings. Whoever built the app supplies their own.
-- `push_subscriptions` gains a kind discriminator: `webpush` | `apns`. The 6
-  event types and all of `push/pipeline.py`'s collapse and dedupe logic stay
-  untouched; only delivery forks.
+- `push_subscriptions` gains a `kind` discriminator: `webpush` | `apns`. **The
+  new column must join `push_add`'s upsert `ON CONFLICT` clause** — the exact
+  column-reset bug B2 fixed will recur if it is left out. That lesson is already
+  paid for once.
+- The 6 event types and all of `push/pipeline.py`'s collapse and dedupe logic
+  stay untouched; only delivery forks. APNs rows skip the `lang` field.
 - If APNs is unconfigured, say so plainly rather than failing silently.
 - Identical deep-link payloads across transports.
 
-## E. Native shell — Size M
+## E2. Native shell, finish — Size M
 
-Thin SwiftUI app wrapping `WKWebView` at the profile's URL.
-
-- Shared cookie store so the session survives restarts; passkeys work in place.
-- APNs registration to `/push/subscribe`; deep links route into the web view.
+- Deep links from notifications route into the web view.
 - Share extension: accept a URL, hit the existing search-and-add endpoints.
 - Native pull-to-refresh and swipe-back rather than the CSS/JS versions.
 
-**Use it for a week before going further.** If the WebView feel is fine, D and E
-were the whole project.
+**Use it for a week, then decide — with criteria, not vibes:**
+- Jank in scrolling, sheets or transitions → continue to F–H.
+- Only missing widgets and Live Activities → **skip straight to I**, which
+  attaches native extensions to the shell and does not need the UI rewrite.
+- Neither → done; D and E were the whole project.
 
 ---
 
@@ -160,8 +190,9 @@ were the whole project.
 
 ## F. Generated Swift client — Size S
 
-`swift-openapi-generator` against the published spec, as the TS client already
-is. 124 routes, typed, drift becomes a compile error.
+`swift-openapi-generator` against the **committed** spec (see repo layout), as
+the TS client already is. Typed, drift becomes a compile error. Remember: poster
+paths come back relative and need the profile's base URL prepended.
 
 ## G. Port the screens — Size L
 
@@ -178,7 +209,7 @@ easy to lose in a rewrite.
 
 ## H. Localisation — Size S
 
-436 keys, en + da, to `.xcstrings`. Scriptable from the existing JSON;
+437 keys, en + da, to `.xcstrings`. Scriptable from the existing JSON;
 `check-locales.mjs` has an obvious analogue.
 
 ## I. The native-only payoff — Size M
@@ -188,47 +219,50 @@ easy to lose in a rewrite.
 - App Intents / Shortcuts: "add Dune to Radarr".
 - `BGTaskScheduler` pre-warming so the dashboard is populated on open.
 
+Requires only the shell, not the F–H rewrite.
+
 ---
 
 ## Distribution
 
 - **App Store review will fight a self-hosted client** — the usual rejection is
-  "we could not evaluate your app" because the reviewer cannot reach a server.
-  Needs a demo instance or a demo mode.
-- **TestFlight** is the pragmatic path: 90-day builds, own devices, no review
-  friction.
+  "we could not evaluate your app". Needs a demo instance or a demo mode.
+- **TestFlight**: *internal* testing (your own devices, your account) is
+  review-free; **external testers trigger a review**, with the same self-hosted
+  problem as the App Store.
 - **Direct install** works, but a free personal team expires the build after
   **7 days**; a paid account gives a year.
 
-Plan for TestFlight. Don't attempt the App Store unless publishing for others —
-and note that publishing breaks phase D, since every operator would need their
-own build and Apple account, or you would have to run the relay.
+Plan for internal TestFlight. Publishing for others breaks phase D — every
+operator needs their own build and Apple account, or you run the relay.
 
 ## Sequence
 
 | Phase | Size | Note |
 |---|---|---|
-| A server profiles | M | Includes the LAN-permission trap |
+| A server profiles | M | ATS + local-network: two traps, one symptom |
 | B capability discovery | — | **done** |
 | B2 localised push text | — | **done** — prerequisite for D |
 | C pairing and auth | M | Web view path needs no backend change |
+| E1 shell skeleton | S | Before D: APNs needs a real token to test against |
 | D APNs, operator-supplied | M | The reason to go native |
-| E native shell | M | Usable app; **decision point** |
+| E2 shell finish | M | Usable app; **decision point with criteria** |
 | F generated Swift client | S | Only if going full native |
 | G port the screens | L | The actual cost |
 | H localisation | S | Mechanical |
-| I widgets, Live Activity, Intents | M | The genuine payoff |
+| I widgets, Live Activity, Intents | M | Needs only the shell — reachable without F–H |
 
-**A → C → D → E → *evaluate* → F → G → H → I**
+**A → C → E1 → D → E2 → *evaluate* → (F → G → H) or I directly**
 
 Repo layout decided: **two repos, no shared repo.** `arrdeck` keeps the backend
 and the PWA; `arrdeck-ios` pins `arrdeck` as a submodule and reads the tokens,
-locale files and OpenAPI spec straight from it. No third version to coordinate.
+locale files and OpenAPI spec straight from it.
 
-A consequence worth acting on early: commit the generated OpenAPI spec into
-`arrdeck`. The PWA's `gen:api` points at a *live* URL, which means a backend
-change cannot be typed until it is deployed — that bit twice while building the
-diagnosis endpoint, and iOS would inherit the same chicken-and-egg.
+**The spec is committed** at `openapi.json` in the arrdeck repo root, exported
+from the app itself, with a test that fails when it drifts from the mounted
+routes. The PWA's `gen:api` reads the committed file — previously it read a
+*live URL*, so a backend change could not be typed until it was deployed, which
+bit twice while building the diagnosis endpoint.
 
-The PWA stays regardless: it is the desktop and Android client, and A-D improve
+The PWA stays regardless: it is the desktop and Android client, and A–D improve
 it too.

@@ -5,13 +5,27 @@ export type ClientOptions = {
 };
 
 /**
+ * AboutOut
+ */
+export type AboutOut = {
+  /**
+   * Features
+   */
+  features?: Array<string>;
+  /**
+   * Name
+   */
+  name?: string;
+  /**
+   * Version
+   */
+  version?: string;
+};
+
+/**
  * AddIndexerIn
  */
 export type AddIndexerIn = {
-  /**
-   * Schema Name
-   */
-  schema_name: string;
   /**
    * Display Name
    */
@@ -22,6 +36,10 @@ export type AddIndexerIn = {
   field_values?: {
     [key: string]: unknown;
   };
+  /**
+   * Schema Name
+   */
+  schema_name: string;
 };
 
 /**
@@ -29,13 +47,9 @@ export type AddIndexerIn = {
  */
 export type AddMovieIn = {
   /**
-   * Tmdb Id
+   * Monitored
    */
-  tmdb_id: number;
-  /**
-   * Title
-   */
-  title: string;
+  monitored?: boolean;
   /**
    * Quality Profile Id
    */
@@ -45,13 +59,17 @@ export type AddMovieIn = {
    */
   root_folder_path: string;
   /**
-   * Monitored
-   */
-  monitored?: boolean;
-  /**
    * Search Now
    */
   search_now?: boolean;
+  /**
+   * Title
+   */
+  title: string;
+  /**
+   * Tmdb Id
+   */
+  tmdb_id: number;
 };
 
 /**
@@ -59,13 +77,9 @@ export type AddMovieIn = {
  */
 export type AddSeriesIn = {
   /**
-   * Tvdb Id
+   * Monitored
    */
-  tvdb_id: number;
-  /**
-   * Title
-   */
-  title: string;
+  monitored?: boolean;
   /**
    * Quality Profile Id
    */
@@ -75,27 +89,27 @@ export type AddSeriesIn = {
    */
   root_folder_path: string;
   /**
-   * Monitored
+   * Search Now
    */
-  monitored?: boolean;
+  search_now?: boolean;
   /**
    * Season Folder
    */
   season_folder?: boolean;
   /**
-   * Search Now
+   * Title
    */
-  search_now?: boolean;
+  title: string;
+  /**
+   * Tvdb Id
+   */
+  tvdb_id: number;
 };
 
 /**
  * AddTorrentIn
  */
 export type AddTorrentIn = {
-  /**
-   * Url
-   */
-  url: string;
   /**
    * Category
    */
@@ -104,6 +118,10 @@ export type AddTorrentIn = {
    * Paused
    */
   paused?: boolean;
+  /**
+   * Url
+   */
+  url: string;
 };
 
 /**
@@ -115,13 +133,13 @@ export type ArrBackupOut = {
    */
   app: string;
   /**
-   * Name
-   */
-  name: string;
-  /**
    * Kind
    */
   kind?: string;
+  /**
+   * Name
+   */
+  name: string;
   /**
    * Size Bytes
    */
@@ -141,38 +159,6 @@ export type ArrBackupOut = {
  */
 export type ArrReleaseOut = {
   /**
-   * Guid
-   */
-  guid: string;
-  /**
-   * Indexer Id
-   */
-  indexer_id: number;
-  /**
-   * Indexer
-   */
-  indexer?: string | null;
-  /**
-   * Title
-   */
-  title: string;
-  /**
-   * Quality
-   */
-  quality?: string | null;
-  /**
-   * Size
-   */
-  size?: number | null;
-  /**
-   * Seeders
-   */
-  seeders?: number | null;
-  /**
-   * Leechers
-   */
-  leechers?: number | null;
-  /**
    * Age Days
    */
   age_days?: number | null;
@@ -181,9 +167,41 @@ export type ArrReleaseOut = {
    */
   approved?: boolean;
   /**
+   * Guid
+   */
+  guid: string;
+  /**
+   * Indexer
+   */
+  indexer?: string | null;
+  /**
+   * Indexer Id
+   */
+  indexer_id: number;
+  /**
+   * Leechers
+   */
+  leechers?: number | null;
+  /**
+   * Quality
+   */
+  quality?: string | null;
+  /**
    * Rejections
    */
   rejections?: Array<string>;
+  /**
+   * Seeders
+   */
+  seeders?: number | null;
+  /**
+   * Size
+   */
+  size?: number | null;
+  /**
+   * Title
+   */
+  title: string;
 };
 
 /**
@@ -191,15 +209,11 @@ export type ArrReleaseOut = {
  */
 export type BackupOut = {
   /**
-   * Version
+   * Credentials
    */
-  version?: number;
-  /**
-   * Services
-   */
-  services?: {
-    [key: string]: ServiceSettingsOut;
-  };
+  credentials?: Array<{
+    [key: string]: unknown;
+  }>;
   /**
    * Kv
    */
@@ -207,21 +221,25 @@ export type BackupOut = {
     [key: string]: string;
   };
   /**
-   * Credentials
-   */
-  credentials?: Array<{
-    [key: string]: unknown;
-  }>;
-  /**
    * Push Subscriptions
    */
   push_subscriptions?: Array<{
     [key: string]: unknown;
   }>;
   /**
+   * Services
+   */
+  services?: {
+    [key: string]: ServiceSettingsOut;
+  };
+  /**
    * Stats Samples
    */
   stats_samples?: Array<StatsSampleOut>;
+  /**
+   * Version
+   */
+  version?: number;
 };
 
 /**
@@ -233,29 +251,29 @@ export type BlocklistItemOut = {
    */
   app: "radarr" | "sonarr";
   /**
+   * Date
+   */
+  date?: string | null;
+  /**
    * Id
    */
   id: number;
   /**
-   * Title
+   * Indexer
    */
-  title?: string;
-  /**
-   * Source Title
-   */
-  source_title?: string;
+  indexer?: string | null;
   /**
    * Quality
    */
   quality?: string | null;
   /**
-   * Date
+   * Source Title
    */
-  date?: string | null;
+  source_title?: string;
   /**
-   * Indexer
+   * Title
    */
-  indexer?: string | null;
+  title?: string;
 };
 
 /**
@@ -277,13 +295,13 @@ export type BlocklistPageOut = {
  */
 export type BodyAddTorrentFileApiV1TorrentsClientAddFilePost = {
   /**
-   * File
-   */
-  file: Blob | File;
-  /**
    * Category
    */
   category?: string;
+  /**
+   * File
+   */
+  file: Blob | File;
   /**
    * Paused
    */
@@ -295,19 +313,23 @@ export type BodyAddTorrentFileApiV1TorrentsClientAddFilePost = {
  */
 export type BulkDeleteIn = {
   /**
-   * Ids
-   */
-  ids: Array<number>;
-  /**
    * Delete Files
    */
   delete_files?: boolean;
+  /**
+   * Ids
+   */
+  ids: Array<number>;
 };
 
 /**
  * BulkEditIn
  */
 export type BulkEditIn = {
+  /**
+   * Apply Tags
+   */
+  apply_tags?: "add" | "remove" | "replace";
   /**
    * Ids
    */
@@ -324,10 +346,6 @@ export type BulkEditIn = {
    * Tags
    */
   tags?: Array<number> | null;
-  /**
-   * Apply Tags
-   */
-  apply_tags?: "add" | "remove" | "replace";
 };
 
 /**
@@ -339,25 +357,25 @@ export type CalendarItemOut = {
    */
   app: "radarr" | "sonarr";
   /**
-   * Title
-   */
-  title: string;
-  /**
    * Date
    */
   date?: string | null;
-  /**
-   * Has File
-   */
-  has_file?: boolean;
   /**
    * Extra
    */
   extra?: string | null;
   /**
+   * Has File
+   */
+  has_file?: boolean;
+  /**
    * Release Type
    */
   release_type?: string | null;
+  /**
+   * Title
+   */
+  title: string;
 };
 
 /**
@@ -377,13 +395,13 @@ export type CollectionDetailOut = {
    */
   id: number;
   /**
-   * Title
-   */
-  title?: string | null;
-  /**
    * Monitored
    */
   monitored?: boolean;
+  /**
+   * Movies
+   */
+  movies?: Array<SearchResultOut>;
   /**
    * Overview
    */
@@ -393,9 +411,9 @@ export type CollectionDetailOut = {
    */
   poster?: string | null;
   /**
-   * Movies
+   * Title
    */
-  movies?: Array<SearchResultOut>;
+  title?: string | null;
 };
 
 /**
@@ -407,9 +425,9 @@ export type CollectionOut = {
    */
   id: number;
   /**
-   * Title
+   * Missing Count
    */
-  title?: string | null;
+  missing_count?: number;
   /**
    * Monitored
    */
@@ -419,19 +437,23 @@ export type CollectionOut = {
    */
   movie_count?: number;
   /**
-   * Missing Count
-   */
-  missing_count?: number;
-  /**
    * Poster
    */
   poster?: string | null;
+  /**
+   * Title
+   */
+  title?: string | null;
 };
 
 /**
  * CreditPersonOut
  */
 export type CreditPersonOut = {
+  /**
+   * Image
+   */
+  image?: string | null;
   /**
    * Name
    */
@@ -440,10 +462,6 @@ export type CreditPersonOut = {
    * Role
    */
   role?: string | null;
-  /**
-   * Image
-   */
-  image?: string | null;
   /**
    * Tmdb Id
    */
@@ -507,6 +525,10 @@ export type DiagnosisOut = {
    */
   app: string;
   /**
+   * Findings
+   */
+  findings?: Array<DiagnosisFindingOut>;
+  /**
    * Id
    */
   id: number;
@@ -514,10 +536,6 @@ export type DiagnosisOut = {
    * Title
    */
   title?: string | null;
-  /**
-   * Findings
-   */
-  findings?: Array<DiagnosisFindingOut>;
 };
 
 /**
@@ -525,17 +543,17 @@ export type DiagnosisOut = {
  */
 export type DiskSpaceOut = {
   /**
-   * Path
+   * Free Bytes
    */
-  path: string;
+  free_bytes?: number;
   /**
    * Label
    */
   label?: string;
   /**
-   * Free Bytes
+   * Path
    */
-  free_bytes?: number;
+  path: string;
   /**
    * Total Bytes
    */
@@ -571,33 +589,33 @@ export type EpisodeMonitorIn = {
  */
 export type EpisodeOut = {
   /**
-   * Id
+   * Air Date
    */
-  id: number;
-  /**
-   * Season
-   */
-  season: number;
+  air_date?: string | null;
   /**
    * Episode
    */
   episode: number;
   /**
-   * Title
-   */
-  title?: string | null;
-  /**
-   * Air Date
-   */
-  air_date?: string | null;
-  /**
    * Has File
    */
   has_file?: boolean;
   /**
+   * Id
+   */
+  id: number;
+  /**
    * Monitored
    */
   monitored?: boolean;
+  /**
+   * Season
+   */
+  season: number;
+  /**
+   * Title
+   */
+  title?: string | null;
 };
 
 /**
@@ -629,10 +647,6 @@ export type HttpValidationError = {
  */
 export type HealthItemOut = {
   /**
-   * Type
-   */
-  type?: string | null;
-  /**
    * Message
    */
   message?: string | null;
@@ -640,6 +654,10 @@ export type HealthItemOut = {
    * Source
    */
   source?: string | null;
+  /**
+   * Type
+   */
+  type?: string | null;
 };
 
 /**
@@ -659,13 +677,13 @@ export type HealthWarningOut = {
    */
   message?: string;
   /**
-   * Wiki Url
-   */
-  wiki_url?: string | null;
-  /**
    * Source
    */
   source?: string | null;
+  /**
+   * Wiki Url
+   */
+  wiki_url?: string | null;
 };
 
 /**
@@ -673,13 +691,13 @@ export type HealthWarningOut = {
  */
 export type HistoryEventOut = {
   /**
-   * Type
-   */
-  type: string;
-  /**
    * Date
    */
   date: string;
+  /**
+   * Type
+   */
+  type: string;
 };
 
 /**
@@ -693,17 +711,9 @@ export type HistoryItemOut = {
    */
   app: "radarr" | "sonarr";
   /**
-   * Title
-   */
-  title: string;
-  /**
    * Date
    */
   date: string;
-  /**
-   * Quality
-   */
-  quality?: string | null;
   /**
    * Events
    */
@@ -713,9 +723,17 @@ export type HistoryItemOut = {
    */
   movie_id?: number | null;
   /**
+   * Quality
+   */
+  quality?: string | null;
+  /**
    * Series Id
    */
   series_id?: number | null;
+  /**
+   * Title
+   */
+  title: string;
 };
 
 /**
@@ -723,13 +741,13 @@ export type HistoryItemOut = {
  */
 export type HistoryPageOut = {
   /**
-   * Items
-   */
-  items: Array<HistoryItemOut>;
-  /**
    * Has More
    */
   has_more?: boolean;
+  /**
+   * Items
+   */
+  items: Array<HistoryItemOut>;
 };
 
 /**
@@ -745,41 +763,41 @@ export type HistoryResponse = {
  */
 export type ImportCandidateOut = {
   /**
-   * Path
+   * Importable
    */
-  path: string;
-  /**
-   * Name
-   */
-  name?: string;
-  /**
-   * Size
-   */
-  size?: number;
-  /**
-   * Title
-   */
-  title?: string;
-  /**
-   * Subtitle
-   */
-  subtitle?: string | null;
-  /**
-   * Quality
-   */
-  quality?: string | null;
+  importable?: boolean;
   /**
    * Languages
    */
   languages?: Array<string>;
   /**
+   * Name
+   */
+  name?: string;
+  /**
+   * Path
+   */
+  path: string;
+  /**
+   * Quality
+   */
+  quality?: string | null;
+  /**
    * Rejections
    */
   rejections?: Array<string>;
   /**
-   * Importable
+   * Size
    */
-  importable?: boolean;
+  size?: number;
+  /**
+   * Subtitle
+   */
+  subtitle?: string | null;
+  /**
+   * Title
+   */
+  title?: string;
 };
 
 /**
@@ -791,29 +809,29 @@ export type ImportListOut = {
    */
   app: "radarr" | "sonarr";
   /**
-   * Id
+   * Enable Auto
    */
-  id: number;
-  /**
-   * Name
-   */
-  name?: string;
-  /**
-   * Implementation
-   */
-  implementation?: string;
+  enable_auto?: boolean;
   /**
    * Enabled
    */
   enabled?: boolean;
   /**
-   * Enable Auto
+   * Id
    */
-  enable_auto?: boolean;
+  id: number;
+  /**
+   * Implementation
+   */
+  implementation?: string;
   /**
    * Monitor
    */
   monitor?: string | null;
+  /**
+   * Name
+   */
+  name?: string;
   /**
    * Quality Profile Id
    */
@@ -829,6 +847,10 @@ export type ImportListOut = {
  */
 export type IndexerOut = {
   /**
+   * Enable
+   */
+  enable?: boolean;
+  /**
    * Id
    */
   id: number;
@@ -837,23 +859,27 @@ export type IndexerOut = {
    */
   name?: string | null;
   /**
-   * Enable
+   * Privacy
    */
-  enable?: boolean;
+  privacy?: string | null;
   /**
    * Protocol
    */
   protocol?: string | null;
-  /**
-   * Privacy
-   */
-  privacy?: string | null;
 };
 
 /**
  * IndexerStatOut
  */
 export type IndexerStatOut = {
+  /**
+   * Avg Response Ms
+   */
+  avg_response_ms?: number;
+  /**
+   * Grabs
+   */
+  grabs?: number;
   /**
    * Name
    */
@@ -862,14 +888,6 @@ export type IndexerStatOut = {
    * Queries
    */
   queries?: number;
-  /**
-   * Grabs
-   */
-  grabs?: number;
-  /**
-   * Avg Response Ms
-   */
-  avg_response_ms?: number;
 };
 
 /**
@@ -881,10 +899,6 @@ export type IndexerStatsOut = {
    */
   enabled: number;
   /**
-   * Total
-   */
-  total: number;
-  /**
    * Health
    */
   health: Array<HealthItemOut>;
@@ -892,6 +906,10 @@ export type IndexerStatsOut = {
    * Stats
    */
   stats: Array<IndexerStatOut>;
+  /**
+   * Total
+   */
+  total: number;
 };
 
 /**
@@ -899,75 +917,55 @@ export type IndexerStatsOut = {
  */
 export type LibraryMovieOut = {
   /**
+   * Has File
+   */
+  has_file?: boolean;
+  /**
    * Id
    */
   id: number;
   /**
-   * Title
+   * Imdb Id
    */
-  title?: string | null;
-  /**
-   * Year
-   */
-  year?: number | null;
+  imdb_id?: string | null;
   /**
    * Monitored
    */
   monitored?: boolean;
   /**
-   * Has File
+   * Poster
    */
-  has_file?: boolean;
-  /**
-   * Size On Disk
-   */
-  size_on_disk?: number;
+  poster?: string | null;
   /**
    * Quality Profile Id
    */
   quality_profile_id?: number | null;
   /**
-   * Poster
+   * Size On Disk
    */
-  poster?: string | null;
+  size_on_disk?: number;
   /**
    * Tags
    */
   tags?: Array<number>;
   /**
+   * Title
+   */
+  title?: string | null;
+  /**
    * Tmdb Id
    */
   tmdb_id?: number | null;
   /**
-   * Imdb Id
+   * Year
    */
-  imdb_id?: string | null;
+  year?: number | null;
 };
 
 /**
  * LibrarySeriesOut
  */
 export type LibrarySeriesOut = {
-  /**
-   * Id
-   */
-  id: number;
-  /**
-   * Title
-   */
-  title?: string | null;
-  /**
-   * Year
-   */
-  year?: number | null;
-  /**
-   * Monitored
-   */
-  monitored?: boolean;
-  /**
-   * Status
-   */
-  status?: string | null;
   /**
    * Episode Count
    */
@@ -977,29 +975,49 @@ export type LibrarySeriesOut = {
    */
   episode_file_count?: number;
   /**
-   * Size On Disk
+   * Id
    */
-  size_on_disk?: number;
+  id: number;
   /**
-   * Quality Profile Id
+   * Imdb Id
    */
-  quality_profile_id?: number | null;
+  imdb_id?: string | null;
+  /**
+   * Monitored
+   */
+  monitored?: boolean;
   /**
    * Poster
    */
   poster?: string | null;
   /**
+   * Quality Profile Id
+   */
+  quality_profile_id?: number | null;
+  /**
+   * Size On Disk
+   */
+  size_on_disk?: number;
+  /**
+   * Status
+   */
+  status?: string | null;
+  /**
    * Tags
    */
   tags?: Array<number>;
+  /**
+   * Title
+   */
+  title?: string | null;
   /**
    * Tvdb Id
    */
   tvdb_id?: number | null;
   /**
-   * Imdb Id
+   * Year
    */
-  imdb_id?: string | null;
+  year?: number | null;
 };
 
 /**
@@ -1025,9 +1043,9 @@ export type LogEntryOut = {
    */
   app: string;
   /**
-   * Time
+   * Exception
    */
-  time?: string;
+  exception?: string | null;
   /**
    * Level
    */
@@ -1041,9 +1059,9 @@ export type LogEntryOut = {
    */
   message?: string;
   /**
-   * Exception
+   * Time
    */
-  exception?: string | null;
+  time?: string;
 };
 
 /**
@@ -1051,13 +1069,13 @@ export type LogEntryOut = {
  */
 export type ManualImportAssignIn = {
   /**
-   * Item Id
-   */
-  item_id: number;
-  /**
    * Files
    */
   files: Array<ManualImportFileIn>;
+  /**
+   * Item Id
+   */
+  item_id: number;
   /**
    * Mode
    */
@@ -1069,21 +1087,21 @@ export type ManualImportAssignIn = {
  */
 export type ManualImportFileIn = {
   /**
-   * Path
+   * Episode Ids
    */
-  path: string;
+  episode_ids?: Array<number>;
   /**
    * Movie Id
    */
   movie_id?: number | null;
   /**
+   * Path
+   */
+  path: string;
+  /**
    * Series Id
    */
   series_id?: number | null;
-  /**
-   * Episode Ids
-   */
-  episode_ids?: Array<number>;
 };
 
 /**
@@ -1095,13 +1113,13 @@ export type ManualImportIn = {
    */
   item_id: number;
   /**
-   * Paths
-   */
-  paths: Array<string>;
-  /**
    * Mode
    */
   mode?: "auto" | "move" | "copy";
+  /**
+   * Paths
+   */
+  paths: Array<string>;
 };
 
 /**
@@ -1109,25 +1127,13 @@ export type ManualImportIn = {
  */
 export type MediaRequestOut = {
   /**
+   * Created At
+   */
+  created_at?: string | null;
+  /**
    * Id
    */
   id: number;
-  /**
-   * Type
-   */
-  type: string;
-  /**
-   * Status
-   */
-  status: number;
-  /**
-   * Title
-   */
-  title?: string;
-  /**
-   * Year
-   */
-  year?: string | null;
   /**
    * Poster
    */
@@ -1137,13 +1143,25 @@ export type MediaRequestOut = {
    */
   requested_by?: string;
   /**
-   * Created At
-   */
-  created_at?: string | null;
-  /**
    * Seasons
    */
   seasons?: Array<number>;
+  /**
+   * Status
+   */
+  status: number;
+  /**
+   * Title
+   */
+  title?: string;
+  /**
+   * Type
+   */
+  type: string;
+  /**
+   * Year
+   */
+  year?: string | null;
 };
 
 /**
@@ -1160,67 +1178,67 @@ export type MonitorIn = {
  * MovieDetailOut
  */
 export type MovieDetailOut = {
-  /**
-   * Id
-   */
-  id: number;
-  /**
-   * Title
-   */
-  title?: string | null;
-  /**
-   * Year
-   */
-  year?: number | null;
-  /**
-   * Overview
-   */
-  overview?: string | null;
-  /**
-   * Poster
-   */
-  poster?: string | null;
-  /**
-   * Status
-   */
-  status?: string | null;
-  /**
-   * Runtime
-   */
-  runtime?: number | null;
-  /**
-   * Path
-   */
-  path?: string | null;
-  /**
-   * Monitored
-   */
-  monitored?: boolean;
+  file?: MovieFileOut | null;
   /**
    * Has File
    */
   has_file?: boolean;
   /**
-   * Size On Disk
+   * History
    */
-  size_on_disk?: number;
+  history?: Array<HistoryEventOut>;
   /**
-   * Quality Profile Id
+   * Id
    */
-  quality_profile_id?: number | null;
+  id: number;
   /**
    * Imdb Id
    */
   imdb_id?: string | null;
   /**
+   * Monitored
+   */
+  monitored?: boolean;
+  /**
+   * Overview
+   */
+  overview?: string | null;
+  /**
+   * Path
+   */
+  path?: string | null;
+  /**
+   * Poster
+   */
+  poster?: string | null;
+  /**
+   * Quality Profile Id
+   */
+  quality_profile_id?: number | null;
+  /**
+   * Runtime
+   */
+  runtime?: number | null;
+  /**
+   * Size On Disk
+   */
+  size_on_disk?: number;
+  /**
+   * Status
+   */
+  status?: string | null;
+  /**
+   * Title
+   */
+  title?: string | null;
+  /**
    * Tmdb Id
    */
   tmdb_id?: number | null;
-  file?: MovieFileOut | null;
   /**
-   * History
+   * Year
    */
-  history?: Array<HistoryEventOut>;
+  year?: number | null;
 };
 
 /**
@@ -1232,17 +1250,17 @@ export type MovieFileOut = {
    */
   quality?: string | null;
   /**
-   * Size
+   * Release Group
    */
-  size?: number;
+  release_group?: string | null;
   /**
    * Resolution
    */
   resolution?: string | null;
   /**
-   * Release Group
+   * Size
    */
-  release_group?: string | null;
+  size?: number;
 };
 
 /**
@@ -1264,33 +1282,29 @@ export type OptionsOut = {
  */
 export type PlaySessionOut = {
   /**
-   * Title
-   */
-  title?: string;
-  /**
-   * Subtitle
-   */
-  subtitle?: string | null;
-  /**
    * Kind
    */
   kind?: string;
-  /**
-   * User
-   */
-  user?: string;
   /**
    * Player
    */
   player?: string;
   /**
+   * Progress
+   */
+  progress?: number;
+  /**
    * State
    */
   state?: string;
   /**
-   * Progress
+   * Subtitle
    */
-  progress?: number;
+  subtitle?: string | null;
+  /**
+   * Title
+   */
+  title?: string;
   /**
    * Transcoding
    */
@@ -1299,6 +1313,10 @@ export type PlaySessionOut = {
    * Url
    */
   url?: string | null;
+  /**
+   * User
+   */
+  user?: string;
 };
 
 /**
@@ -1314,19 +1332,27 @@ export type PopularIndexerOut = {
    */
   indexer_id: number;
   /**
-   * Scanned
-   */
-  scanned?: number;
-  /**
    * Releases
    */
   releases?: Array<PopularReleaseOut>;
+  /**
+   * Scanned
+   */
+  scanned?: number;
 };
 
 /**
  * PopularReleaseOut
  */
 export type PopularReleaseOut = {
+  /**
+   * Category
+   */
+  category?: string | null;
+  /**
+   * Grabs
+   */
+  grabs?: number;
   /**
    * Guid
    */
@@ -1336,41 +1362,33 @@ export type PopularReleaseOut = {
    */
   indexer_id?: number;
   /**
-   * Title
+   * Info Url
    */
-  title?: string;
-  /**
-   * Category
-   */
-  category?: string | null;
+  info_url?: string | null;
   /**
    * Kind
    */
   kind?: string;
   /**
-   * Size
-   */
-  size?: number;
-  /**
-   * Seeders
-   */
-  seeders?: number;
-  /**
    * Leechers
    */
   leechers?: number;
-  /**
-   * Grabs
-   */
-  grabs?: number;
   /**
    * Published
    */
   published?: string | null;
   /**
-   * Info Url
+   * Seeders
    */
-  info_url?: string | null;
+  seeders?: number;
+  /**
+   * Size
+   */
+  size?: number;
+  /**
+   * Title
+   */
+  title?: string;
 };
 
 /**
@@ -1428,13 +1446,13 @@ export type PushEventsOut = {
    */
   available: Array<PushEventOut>;
   /**
-   * Enabled
-   */
-  enabled: Array<string>;
-  /**
    * Device
    */
   device?: Array<string> | null;
+  /**
+   * Enabled
+   */
+  enabled: Array<string>;
 };
 
 /**
@@ -1442,23 +1460,23 @@ export type PushEventsOut = {
  */
 export type PushRulesIn = {
   /**
-   * Quiet Start
-   */
-  quiet_start?: string;
-  /**
    * Quiet End
    */
   quiet_end?: string;
   /**
-   * Timezone
+   * Quiet Start
    */
-  timezone?: string;
+  quiet_start?: string;
   /**
    * Tags
    */
   tags?: {
     [key: string]: Array<number>;
   };
+  /**
+   * Timezone
+   */
+  timezone?: string;
 };
 
 /**
@@ -1466,17 +1484,17 @@ export type PushRulesIn = {
  */
 export type PushRulesOut = {
   /**
-   * Quiet Start
-   */
-  quiet_start?: string;
-  /**
    * Quiet End
    */
   quiet_end?: string;
   /**
-   * Timezone
+   * Quiet Now
    */
-  timezone?: string;
+  quiet_now?: boolean;
+  /**
+   * Quiet Start
+   */
+  quiet_start?: string;
   /**
    * Tags
    */
@@ -1484,15 +1502,19 @@ export type PushRulesOut = {
     [key: string]: Array<number>;
   };
   /**
-   * Quiet Now
+   * Timezone
    */
-  quiet_now?: boolean;
+  timezone?: string;
 };
 
 /**
  * PushSubscribeIn
  */
 export type PushSubscribeIn = {
+  /**
+   * Language
+   */
+  language?: string | null;
   /**
    * Subscription
    */
@@ -1526,21 +1548,21 @@ export type PushTestOut = {
  */
 export type QualityDefinitionOut = {
   /**
-   * Name
+   * Max Size
    */
-  name: string;
+  max_size?: number | null;
   /**
    * Min Size
    */
   min_size?: number | null;
   /**
+   * Name
+   */
+  name: string;
+  /**
    * Preferred Size
    */
   preferred_size?: number | null;
-  /**
-   * Max Size
-   */
-  max_size?: number | null;
 };
 
 /**
@@ -1548,13 +1570,13 @@ export type QualityDefinitionOut = {
  */
 export type QualityItemOut = {
   /**
-   * Name
-   */
-  name: string;
-  /**
    * Allowed
    */
   allowed?: boolean;
+  /**
+   * Is Cutoff
+   */
+  is_cutoff?: boolean;
   /**
    * Is Group
    */
@@ -1564,9 +1586,9 @@ export type QualityItemOut = {
    */
   members?: Array<string>;
   /**
-   * Is Cutoff
+   * Name
    */
-  is_cutoff?: boolean;
+  name: string;
 };
 
 /**
@@ -1574,9 +1596,25 @@ export type QualityItemOut = {
  */
 export type QualityProfileDetailOut = {
   /**
+   * Cutoff
+   */
+  cutoff?: string | null;
+  /**
+   * Format Scores
+   */
+  format_scores?: Array<CustomFormatScoreOut>;
+  /**
    * Id
    */
   id: number;
+  /**
+   * Items
+   */
+  items?: Array<QualityItemOut>;
+  /**
+   * Min Format Score
+   */
+  min_format_score?: number;
   /**
    * Name
    */
@@ -1585,22 +1623,6 @@ export type QualityProfileDetailOut = {
    * Upgrade Allowed
    */
   upgrade_allowed?: boolean;
-  /**
-   * Cutoff
-   */
-  cutoff?: string | null;
-  /**
-   * Min Format Score
-   */
-  min_format_score?: number;
-  /**
-   * Items
-   */
-  items?: Array<QualityItemOut>;
-  /**
-   * Format Scores
-   */
-  format_scores?: Array<CustomFormatScoreOut>;
 };
 
 /**
@@ -1622,6 +1644,10 @@ export type QualityProfileOut = {
  */
 export type QualityProfilesOut = {
   /**
+   * Custom Formats
+   */
+  custom_formats?: Array<string>;
+  /**
    * Profiles
    */
   profiles?: Array<QualityProfileDetailOut>;
@@ -1629,10 +1655,6 @@ export type QualityProfilesOut = {
    * Quality Definitions
    */
   quality_definitions?: Array<QualityDefinitionOut>;
-  /**
-   * Custom Formats
-   */
-  custom_formats?: Array<string>;
 };
 
 /**
@@ -1644,41 +1666,17 @@ export type QueueItemOut = {
    */
   app: "radarr" | "sonarr";
   /**
-   * Id
+   * Episode Id
    */
-  id: number;
-  /**
-   * Title
-   */
-  title: string;
-  /**
-   * Status
-   */
-  status: string;
-  /**
-   * Tracked State
-   */
-  tracked_state?: string | null;
-  /**
-   * Tracked Status
-   */
-  tracked_status?: string | null;
-  /**
-   * Size
-   */
-  size: number;
-  /**
-   * Size Left
-   */
-  size_left: number;
-  /**
-   * Time Left
-   */
-  time_left?: string | null;
+  episode_id?: number | null;
   /**
    * Errors
    */
   errors?: Array<string>;
+  /**
+   * Id
+   */
+  id: number;
   /**
    * Movie Id
    */
@@ -1688,9 +1686,33 @@ export type QueueItemOut = {
    */
   series_id?: number | null;
   /**
-   * Episode Id
+   * Size
    */
-  episode_id?: number | null;
+  size: number;
+  /**
+   * Size Left
+   */
+  size_left: number;
+  /**
+   * Status
+   */
+  status: string;
+  /**
+   * Time Left
+   */
+  time_left?: string | null;
+  /**
+   * Title
+   */
+  title: string;
+  /**
+   * Tracked State
+   */
+  tracked_state?: string | null;
+  /**
+   * Tracked Status
+   */
+  tracked_status?: string | null;
 };
 
 /**
@@ -1710,25 +1732,25 @@ export type RecentItemOut = {
    */
   app: "radarr" | "sonarr";
   /**
-   * Title
-   */
-  title: string;
-  /**
-   * Subtitle
-   */
-  subtitle?: string | null;
-  /**
    * Date
    */
   date: string;
+  /**
+   * Library Id
+   */
+  library_id?: number | null;
   /**
    * Poster
    */
   poster?: string | null;
   /**
-   * Library Id
+   * Subtitle
    */
-  library_id?: number | null;
+  subtitle?: string | null;
+  /**
+   * Title
+   */
+  title: string;
 };
 
 /**
@@ -1746,34 +1768,6 @@ export type RegisterOptionsIn = {
  */
 export type ReleaseOut = {
   /**
-   * Guid
-   */
-  guid: string;
-  /**
-   * Indexer Id
-   */
-  indexer_id: number;
-  /**
-   * Indexer
-   */
-  indexer?: string | null;
-  /**
-   * Title
-   */
-  title: string;
-  /**
-   * Size
-   */
-  size?: number | null;
-  /**
-   * Seeders
-   */
-  seeders?: number | null;
-  /**
-   * Leechers
-   */
-  leechers?: number | null;
-  /**
    * Age Days
    */
   age_days?: number | null;
@@ -1781,6 +1775,34 @@ export type ReleaseOut = {
    * Download Url
    */
   download_url?: string | null;
+  /**
+   * Guid
+   */
+  guid: string;
+  /**
+   * Indexer
+   */
+  indexer?: string | null;
+  /**
+   * Indexer Id
+   */
+  indexer_id: number;
+  /**
+   * Leechers
+   */
+  leechers?: number | null;
+  /**
+   * Seeders
+   */
+  seeders?: number | null;
+  /**
+   * Size
+   */
+  size?: number | null;
+  /**
+   * Title
+   */
+  title: string;
 };
 
 /**
@@ -1788,13 +1810,13 @@ export type ReleaseOut = {
  */
 export type RenameIn = {
   /**
-   * Id
-   */
-  id: number;
-  /**
    * File Ids
    */
   file_ids: Array<number>;
+  /**
+   * Id
+   */
+  id: number;
 };
 
 /**
@@ -1802,13 +1824,13 @@ export type RenameIn = {
  */
 export type RenamePreviewOut = {
   /**
-   * File Id
-   */
-  file_id: number;
-  /**
    * Existing Path
    */
   existing_path?: string;
+  /**
+   * File Id
+   */
+  file_id: number;
   /**
    * New Path
    */
@@ -1820,9 +1842,23 @@ export type RenamePreviewOut = {
  */
 export type RestoreIn = {
   /**
-   * Version
+   * Credentials
    */
-  version?: number;
+  credentials?: Array<{
+    [key: string]: unknown;
+  }>;
+  /**
+   * Kv
+   */
+  kv?: {
+    [key: string]: string;
+  };
+  /**
+   * Push Subscriptions
+   */
+  push_subscriptions?: Array<{
+    [key: string]: unknown;
+  }>;
   /**
    * Services
    */
@@ -1832,29 +1868,15 @@ export type RestoreIn = {
     };
   };
   /**
-   * Kv
-   */
-  kv?: {
-    [key: string]: string;
-  };
-  /**
-   * Credentials
-   */
-  credentials?: Array<{
-    [key: string]: unknown;
-  }>;
-  /**
-   * Push Subscriptions
-   */
-  push_subscriptions?: Array<{
-    [key: string]: unknown;
-  }>;
-  /**
    * Stats Samples
    */
   stats_samples?: Array<{
     [key: string]: unknown;
   }>;
+  /**
+   * Version
+   */
+  version?: number;
 };
 
 /**
@@ -1862,21 +1884,21 @@ export type RestoreIn = {
  */
 export type RestoreOut = {
   /**
-   * Services
+   * Credentials
    */
-  services?: number;
+  credentials?: number;
   /**
    * Kv
    */
   kv?: number;
   /**
-   * Credentials
-   */
-  credentials?: number;
-  /**
    * Push Subscriptions
    */
   push_subscriptions?: number;
+  /**
+   * Services
+   */
+  services?: number;
   /**
    * Stats
    */
@@ -1888,6 +1910,10 @@ export type RestoreOut = {
  */
 export type RootFolderOut = {
   /**
+   * Free Space
+   */
+  free_space?: number | null;
+  /**
    * Id
    */
   id: number;
@@ -1895,10 +1921,6 @@ export type RootFolderOut = {
    * Path
    */
   path: string;
-  /**
-   * Free Space
-   */
-  free_space?: number | null;
 };
 
 /**
@@ -1910,29 +1932,33 @@ export type ScheduledTaskOut = {
    */
   app: string;
   /**
-   * Name
+   * Interval Minutes
    */
-  name: string;
+  interval_minutes?: number;
   /**
    * Label
    */
   label: string;
   /**
-   * Interval Minutes
+   * Last Duration Seconds
    */
-  interval_minutes?: number;
+  last_duration_seconds?: number | null;
   /**
    * Last Execution
    */
   last_execution?: string | null;
   /**
+   * Name
+   */
+  name: string;
+  /**
    * Next Execution
    */
   next_execution?: string | null;
   /**
-   * Last Duration Seconds
+   * Notable
    */
-  last_duration_seconds?: number | null;
+  notable?: boolean;
   /**
    * Overdue
    */
@@ -1941,10 +1967,6 @@ export type ScheduledTaskOut = {
    * Overdue By Seconds
    */
   overdue_by_seconds?: number | null;
-  /**
-   * Notable
-   */
-  notable?: boolean;
 };
 
 /**
@@ -1952,41 +1974,21 @@ export type ScheduledTaskOut = {
  */
 export type SearchResultOut = {
   /**
-   * Kind
+   * Has File
    */
-  kind: "movie" | "series";
-  /**
-   * Title
-   */
-  title: string;
-  /**
-   * Year
-   */
-  year?: number | null;
-  /**
-   * Overview
-   */
-  overview?: string | null;
-  /**
-   * Remote Id
-   */
-  remote_id: number;
-  /**
-   * Poster
-   */
-  poster?: string | null;
-  /**
-   * In Library
-   */
-  in_library?: boolean;
+  has_file?: boolean | null;
   /**
    * Imdb Id
    */
   imdb_id?: string | null;
   /**
-   * Tmdb Id
+   * In Library
    */
-  tmdb_id?: number | null;
+  in_library?: boolean;
+  /**
+   * Kind
+   */
+  kind: "movie" | "series";
   /**
    * Library Id
    */
@@ -1996,27 +1998,39 @@ export type SearchResultOut = {
    */
   monitored?: boolean | null;
   /**
+   * Overview
+   */
+  overview?: string | null;
+  /**
+   * Poster
+   */
+  poster?: string | null;
+  /**
    * Quality Profile Id
    */
   quality_profile_id?: number | null;
   /**
-   * Has File
+   * Remote Id
    */
-  has_file?: boolean | null;
+  remote_id: number;
+  /**
+   * Title
+   */
+  title: string;
+  /**
+   * Tmdb Id
+   */
+  tmdb_id?: number | null;
+  /**
+   * Year
+   */
+  year?: number | null;
 };
 
 /**
  * SeasonOut
  */
 export type SeasonOut = {
-  /**
-   * Number
-   */
-  number: number;
-  /**
-   * Monitored
-   */
-  monitored: boolean;
   /**
    * Episode Count
    */
@@ -2025,6 +2039,14 @@ export type SeasonOut = {
    * Episode File Count
    */
   episode_file_count?: number;
+  /**
+   * Monitored
+   */
+  monitored: boolean;
+  /**
+   * Number
+   */
+  number: number;
   /**
    * Size On Disk
    */
@@ -2041,66 +2063,6 @@ export type SeasonOut = {
  */
 export type SeriesDetailOut = {
   /**
-   * Id
-   */
-  id: number;
-  /**
-   * Title
-   */
-  title?: string | null;
-  /**
-   * Year
-   */
-  year?: number | null;
-  /**
-   * Overview
-   */
-  overview?: string | null;
-  /**
-   * Poster
-   */
-  poster?: string | null;
-  /**
-   * Status
-   */
-  status?: string | null;
-  /**
-   * Runtime
-   */
-  runtime?: number | null;
-  /**
-   * Path
-   */
-  path?: string | null;
-  /**
-   * Monitored
-   */
-  monitored?: boolean;
-  /**
-   * Size On Disk
-   */
-  size_on_disk?: number;
-  /**
-   * Quality Profile Id
-   */
-  quality_profile_id?: number | null;
-  /**
-   * Imdb Id
-   */
-  imdb_id?: string | null;
-  /**
-   * Tvdb Id
-   */
-  tvdb_id?: number | null;
-  /**
-   * Tmdb Id
-   */
-  tmdb_id?: number | null;
-  /**
-   * Network
-   */
-  network?: string | null;
-  /**
    * Air Time
    */
   air_time?: string | null;
@@ -2108,10 +2070,6 @@ export type SeriesDetailOut = {
    * Certification
    */
   certification?: string | null;
-  /**
-   * Genres
-   */
-  genres?: Array<string>;
   /**
    * Episode Count
    */
@@ -2121,9 +2079,45 @@ export type SeriesDetailOut = {
    */
   episode_file_count?: number;
   /**
-   * Total Episode Count
+   * Genres
    */
-  total_episode_count?: number;
+  genres?: Array<string>;
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Imdb Id
+   */
+  imdb_id?: string | null;
+  /**
+   * Monitored
+   */
+  monitored?: boolean;
+  /**
+   * Network
+   */
+  network?: string | null;
+  /**
+   * Overview
+   */
+  overview?: string | null;
+  /**
+   * Path
+   */
+  path?: string | null;
+  /**
+   * Poster
+   */
+  poster?: string | null;
+  /**
+   * Quality Profile Id
+   */
+  quality_profile_id?: number | null;
+  /**
+   * Runtime
+   */
+  runtime?: number | null;
   /**
    * Season Count
    */
@@ -2132,21 +2126,49 @@ export type SeriesDetailOut = {
    * Seasons
    */
   seasons: Array<SeasonOut>;
+  /**
+   * Size On Disk
+   */
+  size_on_disk?: number;
+  /**
+   * Status
+   */
+  status?: string | null;
+  /**
+   * Title
+   */
+  title?: string | null;
+  /**
+   * Tmdb Id
+   */
+  tmdb_id?: number | null;
+  /**
+   * Total Episode Count
+   */
+  total_episode_count?: number;
+  /**
+   * Tvdb Id
+   */
+  tvdb_id?: number | null;
+  /**
+   * Year
+   */
+  year?: number | null;
 };
 
 /**
  * ServiceBlock[IndexerStatsOut]
  */
 export type ServiceBlockIndexerStatsOut = {
-  /**
-   * Ok
-   */
-  ok: boolean;
   data?: IndexerStatsOut | null;
   /**
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2157,15 +2179,15 @@ export type ServiceBlockIndexerStatsOut = {
  * ServiceBlock[PopularSnapshotOut]
  */
 export type ServiceBlockPopularSnapshotOut = {
-  /**
-   * Ok
-   */
-  ok: boolean;
   data?: PopularSnapshotOut | null;
   /**
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2176,15 +2198,15 @@ export type ServiceBlockPopularSnapshotOut = {
  * ServiceBlock[SubtitlesOut]
  */
 export type ServiceBlockSubtitlesOut = {
-  /**
-   * Ok
-   */
-  ok: boolean;
   data?: SubtitlesOut | null;
   /**
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2195,15 +2217,15 @@ export type ServiceBlockSubtitlesOut = {
  * ServiceBlock[TorrentGroupOut]
  */
 export type ServiceBlockTorrentGroupOut = {
-  /**
-   * Ok
-   */
-  ok: boolean;
   data?: TorrentGroupOut | null;
   /**
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2214,15 +2236,15 @@ export type ServiceBlockTorrentGroupOut = {
  * ServiceBlock[TorrentSummaryOut]
  */
 export type ServiceBlockTorrentSummaryOut = {
-  /**
-   * Ok
-   */
-  ok: boolean;
   data?: TorrentSummaryOut | null;
   /**
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2233,15 +2255,15 @@ export type ServiceBlockTorrentSummaryOut = {
  * ServiceBlock[VpnStatusOut]
  */
 export type ServiceBlockVpnStatusOut = {
-  /**
-   * Ok
-   */
-  ok: boolean;
   data?: VpnStatusOut | null;
   /**
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2252,15 +2274,15 @@ export type ServiceBlockVpnStatusOut = {
  * ServiceBlock[WatchedMapOut]
  */
 export type ServiceBlockWatchedMapOut = {
-  /**
-   * Ok
-   */
-  ok: boolean;
   data?: WatchedMapOut | null;
   /**
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2272,10 +2294,6 @@ export type ServiceBlockWatchedMapOut = {
  */
 export type ServiceBlockListArrBackupOut = {
   /**
-   * Ok
-   */
-  ok: boolean;
-  /**
    * Data
    */
   data?: Array<ArrBackupOut> | null;
@@ -2283,6 +2301,10 @@ export type ServiceBlockListArrBackupOut = {
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2294,10 +2316,6 @@ export type ServiceBlockListArrBackupOut = {
  */
 export type ServiceBlockListCalendarItemOut = {
   /**
-   * Ok
-   */
-  ok: boolean;
-  /**
    * Data
    */
   data?: Array<CalendarItemOut> | null;
@@ -2305,6 +2323,10 @@ export type ServiceBlockListCalendarItemOut = {
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2316,10 +2338,6 @@ export type ServiceBlockListCalendarItemOut = {
  */
 export type ServiceBlockListDiskSpaceOut = {
   /**
-   * Ok
-   */
-  ok: boolean;
-  /**
    * Data
    */
   data?: Array<DiskSpaceOut> | null;
@@ -2327,6 +2345,10 @@ export type ServiceBlockListDiskSpaceOut = {
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2338,10 +2360,6 @@ export type ServiceBlockListDiskSpaceOut = {
  */
 export type ServiceBlockListHealthWarningOut = {
   /**
-   * Ok
-   */
-  ok: boolean;
-  /**
    * Data
    */
   data?: Array<HealthWarningOut> | null;
@@ -2349,6 +2367,10 @@ export type ServiceBlockListHealthWarningOut = {
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2360,10 +2382,6 @@ export type ServiceBlockListHealthWarningOut = {
  */
 export type ServiceBlockListHistoryItemOut = {
   /**
-   * Ok
-   */
-  ok: boolean;
-  /**
    * Data
    */
   data?: Array<HistoryItemOut> | null;
@@ -2371,6 +2389,10 @@ export type ServiceBlockListHistoryItemOut = {
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2382,10 +2404,6 @@ export type ServiceBlockListHistoryItemOut = {
  */
 export type ServiceBlockListMediaRequestOut = {
   /**
-   * Ok
-   */
-  ok: boolean;
-  /**
    * Data
    */
   data?: Array<MediaRequestOut> | null;
@@ -2393,6 +2411,10 @@ export type ServiceBlockListMediaRequestOut = {
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2404,10 +2426,6 @@ export type ServiceBlockListMediaRequestOut = {
  */
 export type ServiceBlockListPlaySessionOut = {
   /**
-   * Ok
-   */
-  ok: boolean;
-  /**
    * Data
    */
   data?: Array<PlaySessionOut> | null;
@@ -2415,6 +2433,10 @@ export type ServiceBlockListPlaySessionOut = {
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2426,10 +2448,6 @@ export type ServiceBlockListPlaySessionOut = {
  */
 export type ServiceBlockListQueueItemOut = {
   /**
-   * Ok
-   */
-  ok: boolean;
-  /**
    * Data
    */
   data?: Array<QueueItemOut> | null;
@@ -2437,6 +2455,10 @@ export type ServiceBlockListQueueItemOut = {
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2448,10 +2470,6 @@ export type ServiceBlockListQueueItemOut = {
  */
 export type ServiceBlockListScheduledTaskOut = {
   /**
-   * Ok
-   */
-  ok: boolean;
-  /**
    * Data
    */
   data?: Array<ScheduledTaskOut> | null;
@@ -2459,6 +2477,10 @@ export type ServiceBlockListScheduledTaskOut = {
    * Error
    */
   error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
   /**
    * Stale Age Seconds
    */
@@ -2470,13 +2492,13 @@ export type ServiceBlockListScheduledTaskOut = {
  */
 export type ServiceInfoOut = {
   /**
-   * Service
-   */
-  service: string;
-  /**
    * Configured
    */
   configured: boolean;
+  /**
+   * Service
+   */
+  service: string;
 };
 
 /**
@@ -2484,21 +2506,21 @@ export type ServiceInfoOut = {
  */
 export type ServiceSettingsIn = {
   /**
-   * Url
-   */
-  url?: string;
-  /**
    * Api Key
    */
   api_key?: string;
   /**
-   * Username
-   */
-  username?: string;
-  /**
    * Password
    */
   password?: string;
+  /**
+   * Url
+   */
+  url?: string;
+  /**
+   * Username
+   */
+  username?: string;
 };
 
 /**
@@ -2506,31 +2528,43 @@ export type ServiceSettingsIn = {
  */
 export type ServiceSettingsOut = {
   /**
-   * Url
-   */
-  url?: string;
-  /**
    * Api Key
    */
   api_key?: string;
   /**
-   * Username
+   * Configured
    */
-  username?: string;
+  configured?: boolean;
   /**
    * Password
    */
   password?: string;
   /**
-   * Configured
+   * Url
    */
-  configured?: boolean;
+  url?: string;
+  /**
+   * Username
+   */
+  username?: string;
 };
 
 /**
  * ServiceStatus
  */
 export type ServiceStatus = {
+  /**
+   * Error
+   */
+  error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
+  /**
+   * Retries
+   */
+  retries?: number;
   /**
    * Service
    */
@@ -2546,25 +2580,13 @@ export type ServiceStatus = {
     | "plex"
     | "prometheus";
   /**
-   * Ok
+   * Update Available
    */
-  ok: boolean;
+  update_available?: string | null;
   /**
    * Version
    */
   version?: string | null;
-  /**
-   * Error
-   */
-  error?: string | null;
-  /**
-   * Retries
-   */
-  retries?: number;
-  /**
-   * Update Available
-   */
-  update_available?: string | null;
 };
 
 /**
@@ -2572,21 +2594,21 @@ export type ServiceStatus = {
  */
 export type SessionOut = {
   /**
-   * Id
-   */
-  id: string;
-  /**
    * Created
    */
   created: number;
   /**
-   * Last Used
-   */
-  last_used: number;
-  /**
    * Current
    */
   current?: boolean;
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Last Used
+   */
+  last_used: number;
 };
 
 /**
@@ -2644,13 +2666,25 @@ export type SpeedLimitOut = {
  */
 export type StatsSampleOut = {
   /**
-   * Ts
-   */
-  ts: number;
-  /**
    * Disk Free Bytes
    */
   disk_free_bytes?: number;
+  /**
+   * Episode Files
+   */
+  episode_files?: number;
+  /**
+   * Indexer Grabs
+   */
+  indexer_grabs?: number;
+  /**
+   * Indexer Queries
+   */
+  indexer_queries?: number;
+  /**
+   * Library Bytes
+   */
+  library_bytes?: number;
   /**
    * Movies
    */
@@ -2660,14 +2694,6 @@ export type StatsSampleOut = {
    */
   series?: number;
   /**
-   * Episode Files
-   */
-  episode_files?: number;
-  /**
-   * Library Bytes
-   */
-  library_bytes?: number;
-  /**
    * Torrents Qbit
    */
   torrents_qbit?: number;
@@ -2676,13 +2702,9 @@ export type StatsSampleOut = {
    */
   torrents_tm?: number;
   /**
-   * Indexer Grabs
+   * Ts
    */
-  indexer_grabs?: number;
-  /**
-   * Indexer Queries
-   */
-  indexer_queries?: number;
+  ts: number;
 };
 
 /**
@@ -2690,29 +2712,29 @@ export type StatsSampleOut = {
  */
 export type SubtitleItemOut = {
   /**
+   * Id
+   */
+  id: number;
+  /**
    * Kind
    */
   kind: string;
   /**
-   * Id
+   * Missing
    */
-  id: number;
+  missing?: Array<string>;
   /**
    * Series Id
    */
   series_id?: number | null;
   /**
-   * Title
-   */
-  title?: string;
-  /**
    * Subtitle
    */
   subtitle?: string | null;
   /**
-   * Missing
+   * Title
    */
-  missing?: Array<string>;
+  title?: string;
 };
 
 /**
@@ -2720,13 +2742,13 @@ export type SubtitleItemOut = {
  */
 export type SubtitleSearchIn = {
   /**
-   * Kind
-   */
-  kind: "movie" | "episode";
-  /**
    * Id
    */
   id: number;
+  /**
+   * Kind
+   */
+  kind: "movie" | "episode";
   /**
    * Series Id
    */
@@ -2742,6 +2764,10 @@ export type SubtitlesOut = {
    */
   episodes?: number;
   /**
+   * Items
+   */
+  items?: Array<SubtitleItemOut>;
+  /**
    * Movies
    */
   movies?: number;
@@ -2749,10 +2775,6 @@ export type SubtitlesOut = {
    * Throttled Providers
    */
   throttled_providers?: number;
-  /**
-   * Items
-   */
-  items?: Array<SubtitleItemOut>;
 };
 
 /**
@@ -2794,13 +2816,13 @@ export type TorrentCategoryIn = {
  */
 export type TorrentDeleteIn = {
   /**
-   * Ids
-   */
-  ids: Array<string>;
-  /**
    * Delete Data
    */
   delete_data?: boolean;
+  /**
+   * Ids
+   */
+  ids: Array<string>;
 };
 
 /**
@@ -2808,29 +2830,29 @@ export type TorrentDeleteIn = {
  */
 export type TorrentDetailsOut = {
   /**
-   * Files
+   * Categories
    */
-  files: Array<TorrentFileOut>;
-  /**
-   * Dl Limit Kib
-   */
-  dl_limit_kib?: number;
-  /**
-   * Ul Limit Kib
-   */
-  ul_limit_kib?: number;
+  categories?: Array<string>;
   /**
    * Category
    */
   category?: string | null;
   /**
-   * Categories
+   * Dl Limit Kib
    */
-  categories?: Array<string>;
+  dl_limit_kib?: number;
+  /**
+   * Files
+   */
+  files: Array<TorrentFileOut>;
   /**
    * Trackers
    */
   trackers?: Array<TrackerOut>;
+  /**
+   * Ul Limit Kib
+   */
+  ul_limit_kib?: number;
 };
 
 /**
@@ -2838,21 +2860,21 @@ export type TorrentDetailsOut = {
  */
 export type TorrentFileOut = {
   /**
+   * Index
+   */
+  index?: number;
+  /**
    * Name
    */
   name: string;
-  /**
-   * Size
-   */
-  size: number;
   /**
    * Progress
    */
   progress: number;
   /**
-   * Index
+   * Size
    */
-  index?: number;
+  size: number;
   /**
    * Wanted
    */
@@ -2892,18 +2914,18 @@ export type TorrentForceStartIn = {
  */
 export type TorrentGroupOut = {
   /**
+   * States
+   */
+  states?: Array<string>;
+  /**
    * Torrents
    */
   torrents: Array<TorrentOut>;
-  totals: TransferTotals;
   /**
    * Total
    */
   total?: number;
-  /**
-   * States
-   */
-  states?: Array<string>;
+  totals: TransferTotals;
 };
 
 /**
@@ -2925,9 +2947,25 @@ export type TorrentLimitsIn = {
  */
 export type TorrentOut = {
   /**
+   * Added On
+   */
+  added_on?: number | null;
+  /**
    * Client
    */
   client: "qbittorrent" | "transmission";
+  /**
+   * Dl Speed
+   */
+  dl_speed: number;
+  /**
+   * Error
+   */
+  error?: string | null;
+  /**
+   * Eta
+   */
+  eta?: number | null;
   /**
    * Id
    */
@@ -2937,53 +2975,37 @@ export type TorrentOut = {
    */
   name: string;
   /**
-   * State
-   */
-  state: string;
-  /**
    * Progress
    */
   progress: number;
-  /**
-   * Size
-   */
-  size: number;
-  /**
-   * Dl Speed
-   */
-  dl_speed: number;
-  /**
-   * Ul Speed
-   */
-  ul_speed: number;
-  /**
-   * Eta
-   */
-  eta?: number | null;
   /**
    * Ratio
    */
   ratio?: number | null;
   /**
-   * Uploaded
+   * Size
    */
-  uploaded?: number;
+  size: number;
   /**
-   * Added On
+   * State
    */
-  added_on?: number | null;
+  state: string;
+  /**
+   * Tags
+   */
+  tags?: Array<string>;
   /**
    * Tracker
    */
   tracker?: string | null;
   /**
-   * Error
+   * Ul Speed
    */
-  error?: string | null;
+  ul_speed: number;
   /**
-   * Tags
+   * Uploaded
    */
-  tags?: Array<string>;
+  uploaded?: number;
 };
 
 /**
@@ -3004,19 +3026,19 @@ export type TorrentPriorityIn = {
  * TorrentSummaryOut
  */
 export type TorrentSummaryOut = {
-  totals: TransferTotals;
   /**
-   * Count
+   * Active
    */
-  count?: number;
+  active?: Array<TorrentOut>;
   /**
    * Active Count
    */
   active_count?: number;
   /**
-   * Active
+   * Count
    */
-  active?: Array<TorrentOut>;
+  count?: number;
+  totals: TransferTotals;
 };
 
 /**
@@ -3028,13 +3050,13 @@ export type TorrentTagsIn = {
    */
   ids: Array<string>;
   /**
-   * Tags
-   */
-  tags: Array<string>;
-  /**
    * Remove
    */
   remove?: boolean;
+  /**
+   * Tags
+   */
+  tags: Array<string>;
 };
 
 /**
@@ -3062,13 +3084,13 @@ export type TrackerOut = {
    */
   host: string;
   /**
-   * Ok
-   */
-  ok?: boolean;
-  /**
    * Message
    */
   message?: string | null;
+  /**
+   * Ok
+   */
+  ok?: boolean;
 };
 
 /**
@@ -3090,6 +3112,16 @@ export type TransferTotals = {
  */
 export type ValidationError = {
   /**
+   * Context
+   */
+  ctx?: {
+    [key: string]: unknown;
+  };
+  /**
+   * Input
+   */
+  input?: unknown;
+  /**
    * Location
    */
   loc: Array<string | number>;
@@ -3101,22 +3133,16 @@ export type ValidationError = {
    * Error Type
    */
   type: string;
-  /**
-   * Input
-   */
-  input?: unknown;
-  /**
-   * Context
-   */
-  ctx?: {
-    [key: string]: unknown;
-  };
 };
 
 /**
  * VerifyIn
  */
 export type VerifyIn = {
+  /**
+   * Code
+   */
+  code?: string;
   /**
    * Credential
    */
@@ -3127,10 +3153,6 @@ export type VerifyIn = {
    * Name
    */
   name?: string;
-  /**
-   * Code
-   */
-  code?: string;
 };
 
 /**
@@ -3138,39 +3160,43 @@ export type VerifyIn = {
  */
 export type VpnStatusOut = {
   /**
-   * Status
-   */
-  status?: string;
-  /**
-   * Public Ip
-   */
-  public_ip?: string;
-  /**
-   * Country
-   */
-  country?: string | null;
-  /**
    * City
    */
   city?: string | null;
-  /**
-   * Forwarded Port
-   */
-  forwarded_port?: number | null;
   /**
    * Client Port
    */
   client_port?: number | null;
   /**
+   * Country
+   */
+  country?: string | null;
+  /**
+   * Forwarded Port
+   */
+  forwarded_port?: number | null;
+  /**
    * Port Matches
    */
   port_matches?: boolean | null;
+  /**
+   * Public Ip
+   */
+  public_ip?: string;
+  /**
+   * Status
+   */
+  status?: string;
 };
 
 /**
  * WantedItemOut
  */
 export type WantedItemOut = {
+  /**
+   * Air Date
+   */
+  air_date?: string | null;
   /**
    * App
    */
@@ -3184,27 +3210,27 @@ export type WantedItemOut = {
    */
   library_id: number;
   /**
-   * Title
+   * Poster
    */
-  title: string;
+  poster?: string | null;
   /**
    * Subtitle
    */
   subtitle?: string | null;
   /**
-   * Air Date
+   * Title
    */
-  air_date?: string | null;
-  /**
-   * Poster
-   */
-  poster?: string | null;
+  title: string;
 };
 
 /**
  * WantedPageOut
  */
 export type WantedPageOut = {
+  /**
+   * Has More
+   */
+  has_more?: boolean;
   /**
    * Items
    */
@@ -3213,10 +3239,6 @@ export type WantedPageOut = {
    * Total
    */
   total?: number;
-  /**
-   * Has More
-   */
-  has_more?: boolean;
 };
 
 /**
@@ -3224,17 +3246,17 @@ export type WantedPageOut = {
  */
 export type WatchedItemOut = {
   /**
-   * Watched
+   * Key
    */
-  watched?: boolean;
+  key?: string | null;
   /**
    * Progress
    */
   progress?: number;
   /**
-   * Key
+   * Watched
    */
-  key?: string | null;
+  watched?: boolean;
 };
 
 /**
@@ -3266,6 +3288,10 @@ export type WebhookAppOut = {
    */
   configured?: boolean;
   /**
+   * Error
+   */
+  error?: string;
+  /**
    * Installed
    */
   installed?: boolean;
@@ -3273,10 +3299,6 @@ export type WebhookAppOut = {
    * Url
    */
   url?: string;
-  /**
-   * Error
-   */
-  error?: string;
 };
 
 /**
@@ -3294,6 +3316,10 @@ export type WebhookInstallIn = {
  */
 export type WebhookStatusOut = {
   /**
+   * Apps
+   */
+  apps: Array<WebhookAppOut>;
+  /**
    * Base Url
    */
   base_url: string;
@@ -3301,28 +3327,445 @@ export type WebhookStatusOut = {
    * Last Event
    */
   last_event?: number | null;
-  /**
-   * Apps
-   */
-  apps: Array<WebhookAppOut>;
 };
 
-export type QueueApiV1QueueGetData = {
+export type AboutApiV1AboutGetData = {
   body?: never;
   path?: never;
   query?: never;
-  url: "/api/v1/queue";
+  url: "/api/v1/about";
 };
 
-export type QueueApiV1QueueGetResponses = {
+export type AboutApiV1AboutGetResponses = {
   /**
    * Successful Response
    */
-  200: QueueResponse;
+  200: AboutOut;
 };
 
-export type QueueApiV1QueueGetResponse =
-  QueueApiV1QueueGetResponses[keyof QueueApiV1QueueGetResponses];
+export type AboutApiV1AboutGetResponse =
+  AboutApiV1AboutGetResponses[keyof AboutApiV1AboutGetResponses];
+
+export type ArrBackupsApiV1ArrBackupsGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/arr-backups";
+};
+
+export type ArrBackupsApiV1ArrBackupsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ServiceBlockListArrBackupOut;
+};
+
+export type ArrBackupsApiV1ArrBackupsGetResponse =
+  ArrBackupsApiV1ArrBackupsGetResponses[keyof ArrBackupsApiV1ArrBackupsGetResponses];
+
+export type CredentialsApiV1AuthCredentialsGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/credentials";
+};
+
+export type CredentialsApiV1AuthCredentialsGetResponses = {
+  /**
+   * Response Credentials Api V1 Auth Credentials Get
+   *
+   * Successful Response
+   */
+  200: Array<{
+    [key: string]: unknown;
+  }>;
+};
+
+export type CredentialsApiV1AuthCredentialsGetResponse =
+  CredentialsApiV1AuthCredentialsGetResponses[keyof CredentialsApiV1AuthCredentialsGetResponses];
+
+export type DeleteCredentialApiV1AuthCredentialsCredIdDeleteData = {
+  body?: never;
+  path: {
+    /**
+     * Cred Id
+     */
+    cred_id: number;
+  };
+  query?: never;
+  url: "/api/v1/auth/credentials/{cred_id}";
+};
+
+export type DeleteCredentialApiV1AuthCredentialsCredIdDeleteErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type DeleteCredentialApiV1AuthCredentialsCredIdDeleteError =
+  DeleteCredentialApiV1AuthCredentialsCredIdDeleteErrors[keyof DeleteCredentialApiV1AuthCredentialsCredIdDeleteErrors];
+
+export type DeleteCredentialApiV1AuthCredentialsCredIdDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type DeleteCredentialApiV1AuthCredentialsCredIdDeleteResponse =
+  DeleteCredentialApiV1AuthCredentialsCredIdDeleteResponses[keyof DeleteCredentialApiV1AuthCredentialsCredIdDeleteResponses];
+
+export type LoginOptionsApiV1AuthLoginOptionsPostData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/login/options";
+};
+
+export type LoginOptionsApiV1AuthLoginOptionsPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: unknown;
+};
+
+export type LoginVerifyApiV1AuthLoginVerifyPostData = {
+  body: VerifyIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/login/verify";
+};
+
+export type LoginVerifyApiV1AuthLoginVerifyPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type LoginVerifyApiV1AuthLoginVerifyPostError =
+  LoginVerifyApiV1AuthLoginVerifyPostErrors[keyof LoginVerifyApiV1AuthLoginVerifyPostErrors];
+
+export type LoginVerifyApiV1AuthLoginVerifyPostResponses = {
+  /**
+   * Response Login Verify Api V1 Auth Login Verify Post
+   *
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown;
+  };
+};
+
+export type LoginVerifyApiV1AuthLoginVerifyPostResponse =
+  LoginVerifyApiV1AuthLoginVerifyPostResponses[keyof LoginVerifyApiV1AuthLoginVerifyPostResponses];
+
+export type LogoutApiV1AuthLogoutPostData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/logout";
+};
+
+export type LogoutApiV1AuthLogoutPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type LogoutApiV1AuthLogoutPostResponse =
+  LogoutApiV1AuthLogoutPostResponses[keyof LogoutApiV1AuthLogoutPostResponses];
+
+export type RegisterOptionsApiV1AuthRegisterOptionsPostData = {
+  /**
+   * Body
+   */
+  body?: RegisterOptionsIn | null;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/register/options";
+};
+
+export type RegisterOptionsApiV1AuthRegisterOptionsPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type RegisterOptionsApiV1AuthRegisterOptionsPostError =
+  RegisterOptionsApiV1AuthRegisterOptionsPostErrors[keyof RegisterOptionsApiV1AuthRegisterOptionsPostErrors];
+
+export type RegisterOptionsApiV1AuthRegisterOptionsPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: unknown;
+};
+
+export type RegisterVerifyApiV1AuthRegisterVerifyPostData = {
+  body: VerifyIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/register/verify";
+};
+
+export type RegisterVerifyApiV1AuthRegisterVerifyPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type RegisterVerifyApiV1AuthRegisterVerifyPostError =
+  RegisterVerifyApiV1AuthRegisterVerifyPostErrors[keyof RegisterVerifyApiV1AuthRegisterVerifyPostErrors];
+
+export type RegisterVerifyApiV1AuthRegisterVerifyPostResponses = {
+  /**
+   * Response Register Verify Api V1 Auth Register Verify Post
+   *
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown;
+  };
+};
+
+export type RegisterVerifyApiV1AuthRegisterVerifyPostResponse =
+  RegisterVerifyApiV1AuthRegisterVerifyPostResponses[keyof RegisterVerifyApiV1AuthRegisterVerifyPostResponses];
+
+export type RevokeOtherSessionsApiV1AuthSessionsDeleteData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/sessions";
+};
+
+export type RevokeOtherSessionsApiV1AuthSessionsDeleteResponses = {
+  /**
+   * Response Revoke Other Sessions Api V1 Auth Sessions Delete
+   *
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown;
+  };
+};
+
+export type RevokeOtherSessionsApiV1AuthSessionsDeleteResponse =
+  RevokeOtherSessionsApiV1AuthSessionsDeleteResponses[keyof RevokeOtherSessionsApiV1AuthSessionsDeleteResponses];
+
+export type SessionsApiV1AuthSessionsGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/sessions";
+};
+
+export type SessionsApiV1AuthSessionsGetResponses = {
+  /**
+   * Response Sessions Api V1 Auth Sessions Get
+   *
+   * Successful Response
+   */
+  200: Array<SessionOut>;
+};
+
+export type SessionsApiV1AuthSessionsGetResponse =
+  SessionsApiV1AuthSessionsGetResponses[keyof SessionsApiV1AuthSessionsGetResponses];
+
+export type RevokeSessionApiV1AuthSessionsSessionIdDeleteData = {
+  body?: never;
+  path: {
+    /**
+     * Session Id
+     */
+    session_id: string;
+  };
+  query?: never;
+  url: "/api/v1/auth/sessions/{session_id}";
+};
+
+export type RevokeSessionApiV1AuthSessionsSessionIdDeleteErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type RevokeSessionApiV1AuthSessionsSessionIdDeleteError =
+  RevokeSessionApiV1AuthSessionsSessionIdDeleteErrors[keyof RevokeSessionApiV1AuthSessionsSessionIdDeleteErrors];
+
+export type RevokeSessionApiV1AuthSessionsSessionIdDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type RevokeSessionApiV1AuthSessionsSessionIdDeleteResponse =
+  RevokeSessionApiV1AuthSessionsSessionIdDeleteResponses[keyof RevokeSessionApiV1AuthSessionsSessionIdDeleteResponses];
+
+export type SetupCodeApiV1AuthSetupCodeGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/setup-code";
+};
+
+export type SetupCodeApiV1AuthSetupCodeGetResponses = {
+  /**
+   * Response Setup Code Api V1 Auth Setup Code Get
+   *
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown;
+  };
+};
+
+export type SetupCodeApiV1AuthSetupCodeGetResponse =
+  SetupCodeApiV1AuthSetupCodeGetResponses[keyof SetupCodeApiV1AuthSetupCodeGetResponses];
+
+export type AuthStateApiV1AuthStateGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/state";
+};
+
+export type AuthStateApiV1AuthStateGetResponses = {
+  /**
+   * Response Auth State Api V1 Auth State Get
+   *
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown;
+  };
+};
+
+export type AuthStateApiV1AuthStateGetResponse =
+  AuthStateApiV1AuthStateGetResponses[keyof AuthStateApiV1AuthStateGetResponses];
+
+export type BackupApiV1BackupGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/backup";
+};
+
+export type BackupApiV1BackupGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: BackupOut;
+};
+
+export type BackupApiV1BackupGetResponse =
+  BackupApiV1BackupGetResponses[keyof BackupApiV1BackupGetResponses];
+
+export type BlocklistApiV1BlocklistGetData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Page
+     */
+    page?: number;
+  };
+  url: "/api/v1/blocklist";
+};
+
+export type BlocklistApiV1BlocklistGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type BlocklistApiV1BlocklistGetError =
+  BlocklistApiV1BlocklistGetErrors[keyof BlocklistApiV1BlocklistGetErrors];
+
+export type BlocklistApiV1BlocklistGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: BlocklistPageOut;
+};
+
+export type BlocklistApiV1BlocklistGetResponse =
+  BlocklistApiV1BlocklistGetResponses[keyof BlocklistApiV1BlocklistGetResponses];
+
+export type BlocklistClearApiV1BlocklistAppDeleteData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+  };
+  query?: never;
+  url: "/api/v1/blocklist/{app}";
+};
+
+export type BlocklistClearApiV1BlocklistAppDeleteErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type BlocklistClearApiV1BlocklistAppDeleteError =
+  BlocklistClearApiV1BlocklistAppDeleteErrors[keyof BlocklistClearApiV1BlocklistAppDeleteErrors];
+
+export type BlocklistClearApiV1BlocklistAppDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type BlocklistClearApiV1BlocklistAppDeleteResponse =
+  BlocklistClearApiV1BlocklistAppDeleteResponses[keyof BlocklistClearApiV1BlocklistAppDeleteResponses];
+
+export type BlocklistRemoveApiV1BlocklistAppEntryIdDeleteData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+    /**
+     * Entry Id
+     */
+    entry_id: number;
+  };
+  query?: never;
+  url: "/api/v1/blocklist/{app}/{entry_id}";
+};
+
+export type BlocklistRemoveApiV1BlocklistAppEntryIdDeleteErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type BlocklistRemoveApiV1BlocklistAppEntryIdDeleteError =
+  BlocklistRemoveApiV1BlocklistAppEntryIdDeleteErrors[keyof BlocklistRemoveApiV1BlocklistAppEntryIdDeleteErrors];
+
+export type BlocklistRemoveApiV1BlocklistAppEntryIdDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type BlocklistRemoveApiV1BlocklistAppEntryIdDeleteResponse =
+  BlocklistRemoveApiV1BlocklistAppEntryIdDeleteResponses[keyof BlocklistRemoveApiV1BlocklistAppEntryIdDeleteResponses];
 
 export type CalendarApiV1CalendarGetData = {
   body?: never;
@@ -3359,1438 +3802,6 @@ export type CalendarApiV1CalendarGetResponses = {
 
 export type CalendarApiV1CalendarGetResponse =
   CalendarApiV1CalendarGetResponses[keyof CalendarApiV1CalendarGetResponses];
-
-export type HistoryApiV1HistoryGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/history";
-};
-
-export type HistoryApiV1HistoryGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: HistoryResponse;
-};
-
-export type HistoryApiV1HistoryGetResponse =
-  HistoryApiV1HistoryGetResponses[keyof HistoryApiV1HistoryGetResponses];
-
-export type RecentApiV1DashboardRecentGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/dashboard/recent";
-};
-
-export type RecentApiV1DashboardRecentGetResponses = {
-  /**
-   * Response Recent Api V1 Dashboard Recent Get
-   *
-   * Successful Response
-   */
-  200: Array<RecentItemOut>;
-};
-
-export type RecentApiV1DashboardRecentGetResponse =
-  RecentApiV1DashboardRecentGetResponses[keyof RecentApiV1DashboardRecentGetResponses];
-
-export type HistoryAllApiV1HistoryAllGetData = {
-  body?: never;
-  path?: never;
-  query?: {
-    /**
-     * Page
-     */
-    page?: number;
-  };
-  url: "/api/v1/history/all";
-};
-
-export type HistoryAllApiV1HistoryAllGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type HistoryAllApiV1HistoryAllGetError =
-  HistoryAllApiV1HistoryAllGetErrors[keyof HistoryAllApiV1HistoryAllGetErrors];
-
-export type HistoryAllApiV1HistoryAllGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: HistoryPageOut;
-};
-
-export type HistoryAllApiV1HistoryAllGetResponse =
-  HistoryAllApiV1HistoryAllGetResponses[keyof HistoryAllApiV1HistoryAllGetResponses];
-
-export type IndexerStatsApiV1IndexersStatsGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/indexers/stats";
-};
-
-export type IndexerStatsApiV1IndexersStatsGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: ServiceBlockIndexerStatsOut;
-};
-
-export type IndexerStatsApiV1IndexersStatsGetResponse =
-  IndexerStatsApiV1IndexersStatsGetResponses[keyof IndexerStatsApiV1IndexersStatsGetResponses];
-
-export type DiagnoseApiV1DiagnoseAppItemIdGetData = {
-  body?: never;
-  path: {
-    /**
-     * App
-     */
-    app: string;
-    /**
-     * Item Id
-     */
-    item_id: number;
-  };
-  query?: never;
-  url: "/api/v1/diagnose/{app}/{item_id}";
-};
-
-export type DiagnoseApiV1DiagnoseAppItemIdGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type DiagnoseApiV1DiagnoseAppItemIdGetError =
-  DiagnoseApiV1DiagnoseAppItemIdGetErrors[keyof DiagnoseApiV1DiagnoseAppItemIdGetErrors];
-
-export type DiagnoseApiV1DiagnoseAppItemIdGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: DiagnosisOut;
-};
-
-export type DiagnoseApiV1DiagnoseAppItemIdGetResponse =
-  DiagnoseApiV1DiagnoseAppItemIdGetResponses[keyof DiagnoseApiV1DiagnoseAppItemIdGetResponses];
-
-export type StatusApiV1StatusGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/status";
-};
-
-export type StatusApiV1StatusGetResponses = {
-  /**
-   * Response Status Api V1 Status Get
-   *
-   * Successful Response
-   */
-  200: Array<ServiceStatus>;
-};
-
-export type StatusApiV1StatusGetResponse =
-  StatusApiV1StatusGetResponses[keyof StatusApiV1StatusGetResponses];
-
-export type DiskspaceApiV1DiskspaceGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/diskspace";
-};
-
-export type DiskspaceApiV1DiskspaceGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: ServiceBlockListDiskSpaceOut;
-};
-
-export type DiskspaceApiV1DiskspaceGetResponse =
-  DiskspaceApiV1DiskspaceGetResponses[keyof DiskspaceApiV1DiskspaceGetResponses];
-
-export type VpnStatusApiV1VpnGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/vpn";
-};
-
-export type VpnStatusApiV1VpnGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: ServiceBlockVpnStatusOut;
-};
-
-export type VpnStatusApiV1VpnGetResponse =
-  VpnStatusApiV1VpnGetResponses[keyof VpnStatusApiV1VpnGetResponses];
-
-export type HealthApiV1HealthGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/health";
-};
-
-export type HealthApiV1HealthGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: ServiceBlockListHealthWarningOut;
-};
-
-export type HealthApiV1HealthGetResponse =
-  HealthApiV1HealthGetResponses[keyof HealthApiV1HealthGetResponses];
-
-export type TasksApiV1TasksGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/tasks";
-};
-
-export type TasksApiV1TasksGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: ServiceBlockListScheduledTaskOut;
-};
-
-export type TasksApiV1TasksGetResponse =
-  TasksApiV1TasksGetResponses[keyof TasksApiV1TasksGetResponses];
-
-export type ArrBackupsApiV1ArrBackupsGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/arr-backups";
-};
-
-export type ArrBackupsApiV1ArrBackupsGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: ServiceBlockListArrBackupOut;
-};
-
-export type ArrBackupsApiV1ArrBackupsGetResponse =
-  ArrBackupsApiV1ArrBackupsGetResponses[keyof ArrBackupsApiV1ArrBackupsGetResponses];
-
-export type WatchedApiV1WatchedGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/watched";
-};
-
-export type WatchedApiV1WatchedGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: ServiceBlockWatchedMapOut;
-};
-
-export type WatchedApiV1WatchedGetResponse =
-  WatchedApiV1WatchedGetResponses[keyof WatchedApiV1WatchedGetResponses];
-
-export type PlaySessionsApiV1SessionsGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/sessions";
-};
-
-export type PlaySessionsApiV1SessionsGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: ServiceBlockListPlaySessionOut;
-};
-
-export type PlaySessionsApiV1SessionsGetResponse =
-  PlaySessionsApiV1SessionsGetResponses[keyof PlaySessionsApiV1SessionsGetResponses];
-
-export type PopularApiV1PopularGetData = {
-  body?: never;
-  path?: never;
-  query?: {
-    /**
-     * Hours
-     */
-    hours?: number;
-    /**
-     * Limit
-     */
-    limit?: number;
-  };
-  url: "/api/v1/popular";
-};
-
-export type PopularApiV1PopularGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type PopularApiV1PopularGetError =
-  PopularApiV1PopularGetErrors[keyof PopularApiV1PopularGetErrors];
-
-export type PopularApiV1PopularGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: ServiceBlockPopularSnapshotOut;
-};
-
-export type PopularApiV1PopularGetResponse =
-  PopularApiV1PopularGetResponses[keyof PopularApiV1PopularGetResponses];
-
-export type SubtitlesApiV1SubtitlesGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/subtitles";
-};
-
-export type SubtitlesApiV1SubtitlesGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: ServiceBlockSubtitlesOut;
-};
-
-export type SubtitlesApiV1SubtitlesGetResponse =
-  SubtitlesApiV1SubtitlesGetResponses[keyof SubtitlesApiV1SubtitlesGetResponses];
-
-export type SubtitleSearchApiV1SubtitlesSearchPostData = {
-  body: SubtitleSearchIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/subtitles/search";
-};
-
-export type SubtitleSearchApiV1SubtitlesSearchPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type SubtitleSearchApiV1SubtitlesSearchPostError =
-  SubtitleSearchApiV1SubtitlesSearchPostErrors[keyof SubtitleSearchApiV1SubtitlesSearchPostErrors];
-
-export type SubtitleSearchApiV1SubtitlesSearchPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type SubtitleSearchApiV1SubtitlesSearchPostResponse =
-  SubtitleSearchApiV1SubtitlesSearchPostResponses[keyof SubtitleSearchApiV1SubtitlesSearchPostResponses];
-
-export type TorrentsApiV1TorrentsGetData = {
-  body?: never;
-  path?: never;
-  query?: {
-    /**
-     * Q
-     */
-    q?: string;
-    /**
-     * State
-     */
-    state?: string;
-    /**
-     * Sort
-     */
-    sort?: string;
-    /**
-     * Dir
-     */
-    dir?: string;
-    /**
-     * Limit
-     */
-    limit?: number;
-  };
-  url: "/api/v1/torrents";
-};
-
-export type TorrentsApiV1TorrentsGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type TorrentsApiV1TorrentsGetError =
-  TorrentsApiV1TorrentsGetErrors[keyof TorrentsApiV1TorrentsGetErrors];
-
-export type TorrentsApiV1TorrentsGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: TorrentsResponse;
-};
-
-export type TorrentsApiV1TorrentsGetResponse =
-  TorrentsApiV1TorrentsGetResponses[keyof TorrentsApiV1TorrentsGetResponses];
-
-export type TorrentsSummaryApiV1TorrentsSummaryGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/torrents/summary";
-};
-
-export type TorrentsSummaryApiV1TorrentsSummaryGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: TorrentsSummaryResponse;
-};
-
-export type TorrentsSummaryApiV1TorrentsSummaryGetResponse =
-  TorrentsSummaryApiV1TorrentsSummaryGetResponses[keyof TorrentsSummaryApiV1TorrentsSummaryGetResponses];
-
-export type QbitPauseApiV1TorrentsQbittorrentPausePostData = {
-  body: TorrentActionIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/torrents/qbittorrent/pause";
-};
-
-export type QbitPauseApiV1TorrentsQbittorrentPausePostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type QbitPauseApiV1TorrentsQbittorrentPausePostError =
-  QbitPauseApiV1TorrentsQbittorrentPausePostErrors[keyof QbitPauseApiV1TorrentsQbittorrentPausePostErrors];
-
-export type QbitPauseApiV1TorrentsQbittorrentPausePostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type QbitPauseApiV1TorrentsQbittorrentPausePostResponse =
-  QbitPauseApiV1TorrentsQbittorrentPausePostResponses[keyof QbitPauseApiV1TorrentsQbittorrentPausePostResponses];
-
-export type QbitResumeApiV1TorrentsQbittorrentResumePostData = {
-  body: TorrentActionIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/torrents/qbittorrent/resume";
-};
-
-export type QbitResumeApiV1TorrentsQbittorrentResumePostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type QbitResumeApiV1TorrentsQbittorrentResumePostError =
-  QbitResumeApiV1TorrentsQbittorrentResumePostErrors[keyof QbitResumeApiV1TorrentsQbittorrentResumePostErrors];
-
-export type QbitResumeApiV1TorrentsQbittorrentResumePostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type QbitResumeApiV1TorrentsQbittorrentResumePostResponse =
-  QbitResumeApiV1TorrentsQbittorrentResumePostResponses[keyof QbitResumeApiV1TorrentsQbittorrentResumePostResponses];
-
-export type QbitDeleteApiV1TorrentsQbittorrentDeletePostData = {
-  body: TorrentDeleteIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/torrents/qbittorrent/delete";
-};
-
-export type QbitDeleteApiV1TorrentsQbittorrentDeletePostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type QbitDeleteApiV1TorrentsQbittorrentDeletePostError =
-  QbitDeleteApiV1TorrentsQbittorrentDeletePostErrors[keyof QbitDeleteApiV1TorrentsQbittorrentDeletePostErrors];
-
-export type QbitDeleteApiV1TorrentsQbittorrentDeletePostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type QbitDeleteApiV1TorrentsQbittorrentDeletePostResponse =
-  QbitDeleteApiV1TorrentsQbittorrentDeletePostResponses[keyof QbitDeleteApiV1TorrentsQbittorrentDeletePostResponses];
-
-export type TmPauseApiV1TorrentsTransmissionPausePostData = {
-  body: TorrentActionIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/torrents/transmission/pause";
-};
-
-export type TmPauseApiV1TorrentsTransmissionPausePostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type TmPauseApiV1TorrentsTransmissionPausePostError =
-  TmPauseApiV1TorrentsTransmissionPausePostErrors[keyof TmPauseApiV1TorrentsTransmissionPausePostErrors];
-
-export type TmPauseApiV1TorrentsTransmissionPausePostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type TmPauseApiV1TorrentsTransmissionPausePostResponse =
-  TmPauseApiV1TorrentsTransmissionPausePostResponses[keyof TmPauseApiV1TorrentsTransmissionPausePostResponses];
-
-export type TmResumeApiV1TorrentsTransmissionResumePostData = {
-  body: TorrentActionIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/torrents/transmission/resume";
-};
-
-export type TmResumeApiV1TorrentsTransmissionResumePostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type TmResumeApiV1TorrentsTransmissionResumePostError =
-  TmResumeApiV1TorrentsTransmissionResumePostErrors[keyof TmResumeApiV1TorrentsTransmissionResumePostErrors];
-
-export type TmResumeApiV1TorrentsTransmissionResumePostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type TmResumeApiV1TorrentsTransmissionResumePostResponse =
-  TmResumeApiV1TorrentsTransmissionResumePostResponses[keyof TmResumeApiV1TorrentsTransmissionResumePostResponses];
-
-export type TmDeleteApiV1TorrentsTransmissionDeletePostData = {
-  body: TorrentDeleteIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/torrents/transmission/delete";
-};
-
-export type TmDeleteApiV1TorrentsTransmissionDeletePostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type TmDeleteApiV1TorrentsTransmissionDeletePostError =
-  TmDeleteApiV1TorrentsTransmissionDeletePostErrors[keyof TmDeleteApiV1TorrentsTransmissionDeletePostErrors];
-
-export type TmDeleteApiV1TorrentsTransmissionDeletePostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type TmDeleteApiV1TorrentsTransmissionDeletePostResponse =
-  TmDeleteApiV1TorrentsTransmissionDeletePostResponses[keyof TmDeleteApiV1TorrentsTransmissionDeletePostResponses];
-
-export type QbitCategoriesApiV1TorrentsQbittorrentCategoriesGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/torrents/qbittorrent/categories";
-};
-
-export type QbitCategoriesApiV1TorrentsQbittorrentCategoriesGetResponses = {
-  /**
-   * Response Qbit Categories Api V1 Torrents Qbittorrent Categories Get
-   *
-   * Successful Response
-   */
-  200: Array<string>;
-};
-
-export type QbitCategoriesApiV1TorrentsQbittorrentCategoriesGetResponse =
-  QbitCategoriesApiV1TorrentsQbittorrentCategoriesGetResponses[keyof QbitCategoriesApiV1TorrentsQbittorrentCategoriesGetResponses];
-
-export type AddTorrentApiV1TorrentsClientAddPostData = {
-  body: AddTorrentIn;
-  path: {
-    /**
-     * Client
-     */
-    client: string;
-  };
-  query?: never;
-  url: "/api/v1/torrents/{client}/add";
-};
-
-export type AddTorrentApiV1TorrentsClientAddPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type AddTorrentApiV1TorrentsClientAddPostError =
-  AddTorrentApiV1TorrentsClientAddPostErrors[keyof AddTorrentApiV1TorrentsClientAddPostErrors];
-
-export type AddTorrentApiV1TorrentsClientAddPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type AddTorrentApiV1TorrentsClientAddPostResponse =
-  AddTorrentApiV1TorrentsClientAddPostResponses[keyof AddTorrentApiV1TorrentsClientAddPostResponses];
-
-export type AddTorrentFileApiV1TorrentsClientAddFilePostData = {
-  body: BodyAddTorrentFileApiV1TorrentsClientAddFilePost;
-  path: {
-    /**
-     * Client
-     */
-    client: string;
-  };
-  query?: never;
-  url: "/api/v1/torrents/{client}/add-file";
-};
-
-export type AddTorrentFileApiV1TorrentsClientAddFilePostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type AddTorrentFileApiV1TorrentsClientAddFilePostError =
-  AddTorrentFileApiV1TorrentsClientAddFilePostErrors[keyof AddTorrentFileApiV1TorrentsClientAddFilePostErrors];
-
-export type AddTorrentFileApiV1TorrentsClientAddFilePostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type AddTorrentFileApiV1TorrentsClientAddFilePostResponse =
-  AddTorrentFileApiV1TorrentsClientAddFilePostResponses[keyof AddTorrentFileApiV1TorrentsClientAddFilePostResponses];
-
-export type TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetData = {
-  body?: never;
-  path: {
-    /**
-     * Client
-     */
-    client: string;
-    /**
-     * Torrent Id
-     */
-    torrent_id: string;
-  };
-  query?: never;
-  url: "/api/v1/torrents/{client}/{torrent_id}/details";
-};
-
-export type TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetError =
-  TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetErrors[keyof TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetErrors];
-
-export type TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: TorrentDetailsOut;
-};
-
-export type TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetResponse =
-  TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetResponses[keyof TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetResponses];
-
-export type TorrentRecheckApiV1TorrentsClientRecheckPostData = {
-  body: TorrentActionIn;
-  path: {
-    /**
-     * Client
-     */
-    client: string;
-  };
-  query?: never;
-  url: "/api/v1/torrents/{client}/recheck";
-};
-
-export type TorrentRecheckApiV1TorrentsClientRecheckPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type TorrentRecheckApiV1TorrentsClientRecheckPostError =
-  TorrentRecheckApiV1TorrentsClientRecheckPostErrors[keyof TorrentRecheckApiV1TorrentsClientRecheckPostErrors];
-
-export type TorrentRecheckApiV1TorrentsClientRecheckPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type TorrentRecheckApiV1TorrentsClientRecheckPostResponse =
-  TorrentRecheckApiV1TorrentsClientRecheckPostResponses[keyof TorrentRecheckApiV1TorrentsClientRecheckPostResponses];
-
-export type TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostData = {
-  body: TorrentLimitsIn;
-  path: {
-    /**
-     * Client
-     */
-    client: string;
-    /**
-     * Torrent Id
-     */
-    torrent_id: string;
-  };
-  query?: never;
-  url: "/api/v1/torrents/{client}/{torrent_id}/limits";
-};
-
-export type TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostError =
-  TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostErrors[keyof TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostErrors];
-
-export type TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostResponse =
-  TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostResponses[keyof TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostResponses];
-
-export type TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostData = {
-  body: TorrentFileToggleIn;
-  path: {
-    /**
-     * Client
-     */
-    client: string;
-    /**
-     * Torrent Id
-     */
-    torrent_id: string;
-  };
-  query?: never;
-  url: "/api/v1/torrents/{client}/{torrent_id}/files";
-};
-
-export type TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostError =
-  TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostErrors[keyof TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostErrors];
-
-export type TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostResponse =
-  TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostResponses[keyof TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostResponses];
-
-export type TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostData = {
-  body: TorrentCategoryIn;
-  path: {
-    /**
-     * Torrent Id
-     */
-    torrent_id: string;
-  };
-  query?: never;
-  url: "/api/v1/torrents/qbittorrent/{torrent_id}/category";
-};
-
-export type TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostError =
-  TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostErrors[keyof TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostErrors];
-
-export type TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostResponse =
-  TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostResponses[keyof TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostResponses];
-
-export type TorrentPriorityApiV1TorrentsClientPriorityPostData = {
-  body: TorrentPriorityIn;
-  path: {
-    /**
-     * Client
-     */
-    client: string;
-  };
-  query?: never;
-  url: "/api/v1/torrents/{client}/priority";
-};
-
-export type TorrentPriorityApiV1TorrentsClientPriorityPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type TorrentPriorityApiV1TorrentsClientPriorityPostError =
-  TorrentPriorityApiV1TorrentsClientPriorityPostErrors[keyof TorrentPriorityApiV1TorrentsClientPriorityPostErrors];
-
-export type TorrentPriorityApiV1TorrentsClientPriorityPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type TorrentPriorityApiV1TorrentsClientPriorityPostResponse =
-  TorrentPriorityApiV1TorrentsClientPriorityPostResponses[keyof TorrentPriorityApiV1TorrentsClientPriorityPostResponses];
-
-export type TorrentForceStartApiV1TorrentsQbittorrentForceStartPostData = {
-  body: TorrentForceStartIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/torrents/qbittorrent/force-start";
-};
-
-export type TorrentForceStartApiV1TorrentsQbittorrentForceStartPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type TorrentForceStartApiV1TorrentsQbittorrentForceStartPostError =
-  TorrentForceStartApiV1TorrentsQbittorrentForceStartPostErrors[keyof TorrentForceStartApiV1TorrentsQbittorrentForceStartPostErrors];
-
-export type TorrentForceStartApiV1TorrentsQbittorrentForceStartPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type TorrentForceStartApiV1TorrentsQbittorrentForceStartPostResponse =
-  TorrentForceStartApiV1TorrentsQbittorrentForceStartPostResponses[keyof TorrentForceStartApiV1TorrentsQbittorrentForceStartPostResponses];
-
-export type QbitTagsApiV1TorrentsQbittorrentTagsGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/torrents/qbittorrent/tags";
-};
-
-export type QbitTagsApiV1TorrentsQbittorrentTagsGetResponses = {
-  /**
-   * Response Qbit Tags Api V1 Torrents Qbittorrent Tags Get
-   *
-   * Successful Response
-   */
-  200: Array<string>;
-};
-
-export type QbitTagsApiV1TorrentsQbittorrentTagsGetResponse =
-  QbitTagsApiV1TorrentsQbittorrentTagsGetResponses[keyof QbitTagsApiV1TorrentsQbittorrentTagsGetResponses];
-
-export type QbitSetTagsApiV1TorrentsQbittorrentTagsPostData = {
-  body: TorrentTagsIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/torrents/qbittorrent/tags";
-};
-
-export type QbitSetTagsApiV1TorrentsQbittorrentTagsPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type QbitSetTagsApiV1TorrentsQbittorrentTagsPostError =
-  QbitSetTagsApiV1TorrentsQbittorrentTagsPostErrors[keyof QbitSetTagsApiV1TorrentsQbittorrentTagsPostErrors];
-
-export type QbitSetTagsApiV1TorrentsQbittorrentTagsPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type QbitSetTagsApiV1TorrentsQbittorrentTagsPostResponse =
-  QbitSetTagsApiV1TorrentsQbittorrentTagsPostResponses[keyof QbitSetTagsApiV1TorrentsQbittorrentTagsPostResponses];
-
-export type SpeedLimitApiV1TorrentsSpeedLimitGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/torrents/speed-limit";
-};
-
-export type SpeedLimitApiV1TorrentsSpeedLimitGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: SpeedLimitOut;
-};
-
-export type SpeedLimitApiV1TorrentsSpeedLimitGetResponse =
-  SpeedLimitApiV1TorrentsSpeedLimitGetResponses[keyof SpeedLimitApiV1TorrentsSpeedLimitGetResponses];
-
-export type SetSpeedLimitApiV1TorrentsClientSpeedLimitPostData = {
-  body: SpeedLimitIn;
-  path: {
-    /**
-     * Client
-     */
-    client: string;
-  };
-  query?: never;
-  url: "/api/v1/torrents/{client}/speed-limit";
-};
-
-export type SetSpeedLimitApiV1TorrentsClientSpeedLimitPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type SetSpeedLimitApiV1TorrentsClientSpeedLimitPostError =
-  SetSpeedLimitApiV1TorrentsClientSpeedLimitPostErrors[keyof SetSpeedLimitApiV1TorrentsClientSpeedLimitPostErrors];
-
-export type SetSpeedLimitApiV1TorrentsClientSpeedLimitPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type SetSpeedLimitApiV1TorrentsClientSpeedLimitPostResponse =
-  SetSpeedLimitApiV1TorrentsClientSpeedLimitPostResponses[keyof SetSpeedLimitApiV1TorrentsClientSpeedLimitPostResponses];
-
-export type ManualImportCandidatesApiV1ManualImportAppItemIdGetData = {
-  body?: never;
-  path: {
-    /**
-     * App
-     */
-    app: string;
-    /**
-     * Item Id
-     */
-    item_id: number;
-  };
-  query?: never;
-  url: "/api/v1/manual-import/{app}/{item_id}";
-};
-
-export type ManualImportCandidatesApiV1ManualImportAppItemIdGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type ManualImportCandidatesApiV1ManualImportAppItemIdGetError =
-  ManualImportCandidatesApiV1ManualImportAppItemIdGetErrors[keyof ManualImportCandidatesApiV1ManualImportAppItemIdGetErrors];
-
-export type ManualImportCandidatesApiV1ManualImportAppItemIdGetResponses = {
-  /**
-   * Response Manual Import Candidates Api V1 Manual Import  App   Item Id  Get
-   *
-   * Successful Response
-   */
-  200: Array<ImportCandidateOut>;
-};
-
-export type ManualImportCandidatesApiV1ManualImportAppItemIdGetResponse =
-  ManualImportCandidatesApiV1ManualImportAppItemIdGetResponses[keyof ManualImportCandidatesApiV1ManualImportAppItemIdGetResponses];
-
-export type ManualImportRunApiV1ManualImportAppPostData = {
-  body: ManualImportIn;
-  path: {
-    /**
-     * App
-     */
-    app: string;
-  };
-  query?: never;
-  url: "/api/v1/manual-import/{app}";
-};
-
-export type ManualImportRunApiV1ManualImportAppPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type ManualImportRunApiV1ManualImportAppPostError =
-  ManualImportRunApiV1ManualImportAppPostErrors[keyof ManualImportRunApiV1ManualImportAppPostErrors];
-
-export type ManualImportRunApiV1ManualImportAppPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type ManualImportRunApiV1ManualImportAppPostResponse =
-  ManualImportRunApiV1ManualImportAppPostResponses[keyof ManualImportRunApiV1ManualImportAppPostResponses];
-
-export type ManualImportAssignApiV1ManualImportAppAssignPostData = {
-  body: ManualImportAssignIn;
-  path: {
-    /**
-     * App
-     */
-    app: string;
-  };
-  query?: never;
-  url: "/api/v1/manual-import/{app}/assign";
-};
-
-export type ManualImportAssignApiV1ManualImportAppAssignPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type ManualImportAssignApiV1ManualImportAppAssignPostError =
-  ManualImportAssignApiV1ManualImportAppAssignPostErrors[keyof ManualImportAssignApiV1ManualImportAppAssignPostErrors];
-
-export type ManualImportAssignApiV1ManualImportAppAssignPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type ManualImportAssignApiV1ManualImportAppAssignPostResponse =
-  ManualImportAssignApiV1ManualImportAppAssignPostResponses[keyof ManualImportAssignApiV1ManualImportAppAssignPostResponses];
-
-export type RenamePreviewApiV1RenameAppItemIdGetData = {
-  body?: never;
-  path: {
-    /**
-     * App
-     */
-    app: string;
-    /**
-     * Item Id
-     */
-    item_id: number;
-  };
-  query?: never;
-  url: "/api/v1/rename/{app}/{item_id}";
-};
-
-export type RenamePreviewApiV1RenameAppItemIdGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type RenamePreviewApiV1RenameAppItemIdGetError =
-  RenamePreviewApiV1RenameAppItemIdGetErrors[keyof RenamePreviewApiV1RenameAppItemIdGetErrors];
-
-export type RenamePreviewApiV1RenameAppItemIdGetResponses = {
-  /**
-   * Response Rename Preview Api V1 Rename  App   Item Id  Get
-   *
-   * Successful Response
-   */
-  200: Array<RenamePreviewOut>;
-};
-
-export type RenamePreviewApiV1RenameAppItemIdGetResponse =
-  RenamePreviewApiV1RenameAppItemIdGetResponses[keyof RenamePreviewApiV1RenameAppItemIdGetResponses];
-
-export type RenameFilesApiV1RenameAppPostData = {
-  body: RenameIn;
-  path: {
-    /**
-     * App
-     */
-    app: string;
-  };
-  query?: never;
-  url: "/api/v1/rename/{app}";
-};
-
-export type RenameFilesApiV1RenameAppPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type RenameFilesApiV1RenameAppPostError =
-  RenameFilesApiV1RenameAppPostErrors[keyof RenameFilesApiV1RenameAppPostErrors];
-
-export type RenameFilesApiV1RenameAppPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type RenameFilesApiV1RenameAppPostResponse =
-  RenameFilesApiV1RenameAppPostResponses[keyof RenameFilesApiV1RenameAppPostResponses];
-
-export type ForceImportApiV1QueueAppItemIdForceImportPostData = {
-  body?: never;
-  path: {
-    /**
-     * App
-     */
-    app: string;
-    /**
-     * Item Id
-     */
-    item_id: number;
-  };
-  query?: never;
-  url: "/api/v1/queue/{app}/{item_id}/force-import";
-};
-
-export type ForceImportApiV1QueueAppItemIdForceImportPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type ForceImportApiV1QueueAppItemIdForceImportPostError =
-  ForceImportApiV1QueueAppItemIdForceImportPostErrors[keyof ForceImportApiV1QueueAppItemIdForceImportPostErrors];
-
-export type ForceImportApiV1QueueAppItemIdForceImportPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type ForceImportApiV1QueueAppItemIdForceImportPostResponse =
-  ForceImportApiV1QueueAppItemIdForceImportPostResponses[keyof ForceImportApiV1QueueAppItemIdForceImportPostResponses];
-
-export type BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostData = {
-  body?: never;
-  path: {
-    /**
-     * App
-     */
-    app: string;
-    /**
-     * Item Id
-     */
-    item_id: number;
-  };
-  query?: never;
-  url: "/api/v1/queue/{app}/{item_id}/blocklist-retry";
-};
-
-export type BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostError =
-  BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostErrors[keyof BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostErrors];
-
-export type BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostResponse =
-  BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostResponses[keyof BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostResponses];
-
-export type RemoveQueueItemApiV1QueueAppItemIdDeleteData = {
-  body?: never;
-  path: {
-    /**
-     * App
-     */
-    app: string;
-    /**
-     * Item Id
-     */
-    item_id: number;
-  };
-  query?: {
-    /**
-     * Remove From Client
-     */
-    remove_from_client?: boolean;
-    /**
-     * Blocklist
-     */
-    blocklist?: boolean;
-  };
-  url: "/api/v1/queue/{app}/{item_id}";
-};
-
-export type RemoveQueueItemApiV1QueueAppItemIdDeleteErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type RemoveQueueItemApiV1QueueAppItemIdDeleteError =
-  RemoveQueueItemApiV1QueueAppItemIdDeleteErrors[keyof RemoveQueueItemApiV1QueueAppItemIdDeleteErrors];
-
-export type RemoveQueueItemApiV1QueueAppItemIdDeleteResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type RemoveQueueItemApiV1QueueAppItemIdDeleteResponse =
-  RemoveQueueItemApiV1QueueAppItemIdDeleteResponses[keyof RemoveQueueItemApiV1QueueAppItemIdDeleteResponses];
-
-export type QualityProfilesApiV1QualityProfilesAppGetData = {
-  body?: never;
-  path: {
-    /**
-     * App
-     */
-    app: string;
-  };
-  query?: never;
-  url: "/api/v1/quality-profiles/{app}";
-};
-
-export type QualityProfilesApiV1QualityProfilesAppGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type QualityProfilesApiV1QualityProfilesAppGetError =
-  QualityProfilesApiV1QualityProfilesAppGetErrors[keyof QualityProfilesApiV1QualityProfilesAppGetErrors];
-
-export type QualityProfilesApiV1QualityProfilesAppGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: QualityProfilesOut;
-};
-
-export type QualityProfilesApiV1QualityProfilesAppGetResponse =
-  QualityProfilesApiV1QualityProfilesAppGetResponses[keyof QualityProfilesApiV1QualityProfilesAppGetResponses];
-
-export type DiscoverMoviesApiV1DiscoverMoviesGetData = {
-  body?: never;
-  path?: never;
-  query?: {
-    /**
-     * Page
-     */
-    page?: number;
-  };
-  url: "/api/v1/discover/movies";
-};
-
-export type DiscoverMoviesApiV1DiscoverMoviesGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type DiscoverMoviesApiV1DiscoverMoviesGetError =
-  DiscoverMoviesApiV1DiscoverMoviesGetErrors[keyof DiscoverMoviesApiV1DiscoverMoviesGetErrors];
-
-export type DiscoverMoviesApiV1DiscoverMoviesGetResponses = {
-  /**
-   * Response Discover Movies Api V1 Discover Movies Get
-   *
-   * Successful Response
-   */
-  200: Array<SearchResultOut>;
-};
-
-export type DiscoverMoviesApiV1DiscoverMoviesGetResponse =
-  DiscoverMoviesApiV1DiscoverMoviesGetResponses[keyof DiscoverMoviesApiV1DiscoverMoviesGetResponses];
-
-export type DiscoverSeriesApiV1DiscoverSeriesGetData = {
-  body?: never;
-  path?: never;
-  query?: {
-    /**
-     * Page
-     */
-    page?: number;
-  };
-  url: "/api/v1/discover/series";
-};
-
-export type DiscoverSeriesApiV1DiscoverSeriesGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type DiscoverSeriesApiV1DiscoverSeriesGetError =
-  DiscoverSeriesApiV1DiscoverSeriesGetErrors[keyof DiscoverSeriesApiV1DiscoverSeriesGetErrors];
-
-export type DiscoverSeriesApiV1DiscoverSeriesGetResponses = {
-  /**
-   * Response Discover Series Api V1 Discover Series Get
-   *
-   * Successful Response
-   */
-  200: Array<SearchResultOut>;
-};
-
-export type DiscoverSeriesApiV1DiscoverSeriesGetResponse =
-  DiscoverSeriesApiV1DiscoverSeriesGetResponses[keyof DiscoverSeriesApiV1DiscoverSeriesGetResponses];
-
-export type SearchMoviesApiV1SearchMoviesGetData = {
-  body?: never;
-  path?: never;
-  query: {
-    /**
-     * Q
-     */
-    q: string;
-  };
-  url: "/api/v1/search/movies";
-};
-
-export type SearchMoviesApiV1SearchMoviesGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type SearchMoviesApiV1SearchMoviesGetError =
-  SearchMoviesApiV1SearchMoviesGetErrors[keyof SearchMoviesApiV1SearchMoviesGetErrors];
-
-export type SearchMoviesApiV1SearchMoviesGetResponses = {
-  /**
-   * Response Search Movies Api V1 Search Movies Get
-   *
-   * Successful Response
-   */
-  200: Array<SearchResultOut>;
-};
-
-export type SearchMoviesApiV1SearchMoviesGetResponse =
-  SearchMoviesApiV1SearchMoviesGetResponses[keyof SearchMoviesApiV1SearchMoviesGetResponses];
-
-export type SearchSeriesApiV1SearchSeriesGetData = {
-  body?: never;
-  path?: never;
-  query: {
-    /**
-     * Q
-     */
-    q: string;
-  };
-  url: "/api/v1/search/series";
-};
-
-export type SearchSeriesApiV1SearchSeriesGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type SearchSeriesApiV1SearchSeriesGetError =
-  SearchSeriesApiV1SearchSeriesGetErrors[keyof SearchSeriesApiV1SearchSeriesGetErrors];
-
-export type SearchSeriesApiV1SearchSeriesGetResponses = {
-  /**
-   * Response Search Series Api V1 Search Series Get
-   *
-   * Successful Response
-   */
-  200: Array<SearchResultOut>;
-};
-
-export type SearchSeriesApiV1SearchSeriesGetResponse =
-  SearchSeriesApiV1SearchSeriesGetResponses[keyof SearchSeriesApiV1SearchSeriesGetResponses];
 
 export type CollectionsApiV1CollectionsGetData = {
   body?: never;
@@ -4884,7 +3895,232 @@ export type ToggleCollectionApiV1CollectionsCollectionIdPatchResponses = {
 export type ToggleCollectionApiV1CollectionsCollectionIdPatchResponse =
   ToggleCollectionApiV1CollectionsCollectionIdPatchResponses[keyof ToggleCollectionApiV1CollectionsCollectionIdPatchResponses];
 
-export type OptionsApiV1OptionsAppGetData = {
+export type RecentApiV1DashboardRecentGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/dashboard/recent";
+};
+
+export type RecentApiV1DashboardRecentGetResponses = {
+  /**
+   * Response Recent Api V1 Dashboard Recent Get
+   *
+   * Successful Response
+   */
+  200: Array<RecentItemOut>;
+};
+
+export type RecentApiV1DashboardRecentGetResponse =
+  RecentApiV1DashboardRecentGetResponses[keyof RecentApiV1DashboardRecentGetResponses];
+
+export type DiagnoseApiV1DiagnoseAppItemIdGetData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+    /**
+     * Item Id
+     */
+    item_id: number;
+  };
+  query?: never;
+  url: "/api/v1/diagnose/{app}/{item_id}";
+};
+
+export type DiagnoseApiV1DiagnoseAppItemIdGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type DiagnoseApiV1DiagnoseAppItemIdGetError =
+  DiagnoseApiV1DiagnoseAppItemIdGetErrors[keyof DiagnoseApiV1DiagnoseAppItemIdGetErrors];
+
+export type DiagnoseApiV1DiagnoseAppItemIdGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: DiagnosisOut;
+};
+
+export type DiagnoseApiV1DiagnoseAppItemIdGetResponse =
+  DiagnoseApiV1DiagnoseAppItemIdGetResponses[keyof DiagnoseApiV1DiagnoseAppItemIdGetResponses];
+
+export type DiscoverMoviesApiV1DiscoverMoviesGetData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Page
+     */
+    page?: number;
+  };
+  url: "/api/v1/discover/movies";
+};
+
+export type DiscoverMoviesApiV1DiscoverMoviesGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type DiscoverMoviesApiV1DiscoverMoviesGetError =
+  DiscoverMoviesApiV1DiscoverMoviesGetErrors[keyof DiscoverMoviesApiV1DiscoverMoviesGetErrors];
+
+export type DiscoverMoviesApiV1DiscoverMoviesGetResponses = {
+  /**
+   * Response Discover Movies Api V1 Discover Movies Get
+   *
+   * Successful Response
+   */
+  200: Array<SearchResultOut>;
+};
+
+export type DiscoverMoviesApiV1DiscoverMoviesGetResponse =
+  DiscoverMoviesApiV1DiscoverMoviesGetResponses[keyof DiscoverMoviesApiV1DiscoverMoviesGetResponses];
+
+export type DiscoverSeriesApiV1DiscoverSeriesGetData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Page
+     */
+    page?: number;
+  };
+  url: "/api/v1/discover/series";
+};
+
+export type DiscoverSeriesApiV1DiscoverSeriesGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type DiscoverSeriesApiV1DiscoverSeriesGetError =
+  DiscoverSeriesApiV1DiscoverSeriesGetErrors[keyof DiscoverSeriesApiV1DiscoverSeriesGetErrors];
+
+export type DiscoverSeriesApiV1DiscoverSeriesGetResponses = {
+  /**
+   * Response Discover Series Api V1 Discover Series Get
+   *
+   * Successful Response
+   */
+  200: Array<SearchResultOut>;
+};
+
+export type DiscoverSeriesApiV1DiscoverSeriesGetResponse =
+  DiscoverSeriesApiV1DiscoverSeriesGetResponses[keyof DiscoverSeriesApiV1DiscoverSeriesGetResponses];
+
+export type DiskspaceApiV1DiskspaceGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/diskspace";
+};
+
+export type DiskspaceApiV1DiskspaceGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ServiceBlockListDiskSpaceOut;
+};
+
+export type DiskspaceApiV1DiskspaceGetResponse =
+  DiskspaceApiV1DiskspaceGetResponses[keyof DiskspaceApiV1DiskspaceGetResponses];
+
+export type HealthApiV1HealthGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/health";
+};
+
+export type HealthApiV1HealthGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ServiceBlockListHealthWarningOut;
+};
+
+export type HealthApiV1HealthGetResponse =
+  HealthApiV1HealthGetResponses[keyof HealthApiV1HealthGetResponses];
+
+export type HistoryApiV1HistoryGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/history";
+};
+
+export type HistoryApiV1HistoryGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: HistoryResponse;
+};
+
+export type HistoryApiV1HistoryGetResponse =
+  HistoryApiV1HistoryGetResponses[keyof HistoryApiV1HistoryGetResponses];
+
+export type HistoryAllApiV1HistoryAllGetData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Page
+     */
+    page?: number;
+  };
+  url: "/api/v1/history/all";
+};
+
+export type HistoryAllApiV1HistoryAllGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type HistoryAllApiV1HistoryAllGetError =
+  HistoryAllApiV1HistoryAllGetErrors[keyof HistoryAllApiV1HistoryAllGetErrors];
+
+export type HistoryAllApiV1HistoryAllGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: HistoryPageOut;
+};
+
+export type HistoryAllApiV1HistoryAllGetResponse =
+  HistoryAllApiV1HistoryAllGetResponses[keyof HistoryAllApiV1HistoryAllGetResponses];
+
+export type ImportListsApiV1ImportListsGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/import-lists";
+};
+
+export type ImportListsApiV1ImportListsGetResponses = {
+  /**
+   * Response Import Lists Api V1 Import Lists Get
+   *
+   * Successful Response
+   */
+  200: Array<ImportListOut>;
+};
+
+export type ImportListsApiV1ImportListsGetResponse =
+  ImportListsApiV1ImportListsGetResponses[keyof ImportListsApiV1ImportListsGetResponses];
+
+export type SyncImportListsApiV1ImportListsAppSyncPostData = {
   body?: never;
   path: {
     /**
@@ -4893,380 +4129,64 @@ export type OptionsApiV1OptionsAppGetData = {
     app: string;
   };
   query?: never;
-  url: "/api/v1/options/{app}";
+  url: "/api/v1/import-lists/{app}/sync";
 };
 
-export type OptionsApiV1OptionsAppGetErrors = {
+export type SyncImportListsApiV1ImportListsAppSyncPostErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError;
 };
 
-export type OptionsApiV1OptionsAppGetError =
-  OptionsApiV1OptionsAppGetErrors[keyof OptionsApiV1OptionsAppGetErrors];
+export type SyncImportListsApiV1ImportListsAppSyncPostError =
+  SyncImportListsApiV1ImportListsAppSyncPostErrors[keyof SyncImportListsApiV1ImportListsAppSyncPostErrors];
 
-export type OptionsApiV1OptionsAppGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: OptionsOut;
-};
-
-export type OptionsApiV1OptionsAppGetResponse =
-  OptionsApiV1OptionsAppGetResponses[keyof OptionsApiV1OptionsAppGetResponses];
-
-export type AddMovieApiV1MoviesPostData = {
-  body: AddMovieIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/movies";
-};
-
-export type AddMovieApiV1MoviesPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type AddMovieApiV1MoviesPostError =
-  AddMovieApiV1MoviesPostErrors[keyof AddMovieApiV1MoviesPostErrors];
-
-export type AddMovieApiV1MoviesPostResponses = {
-  /**
-   * Response Add Movie Api V1 Movies Post
-   *
-   * Successful Response
-   */
-  201: {
-    [key: string]: unknown;
-  };
-};
-
-export type AddMovieApiV1MoviesPostResponse =
-  AddMovieApiV1MoviesPostResponses[keyof AddMovieApiV1MoviesPostResponses];
-
-export type AddSeriesApiV1SeriesPostData = {
-  body: AddSeriesIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/series";
-};
-
-export type AddSeriesApiV1SeriesPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type AddSeriesApiV1SeriesPostError =
-  AddSeriesApiV1SeriesPostErrors[keyof AddSeriesApiV1SeriesPostErrors];
-
-export type AddSeriesApiV1SeriesPostResponses = {
-  /**
-   * Response Add Series Api V1 Series Post
-   *
-   * Successful Response
-   */
-  201: {
-    [key: string]: unknown;
-  };
-};
-
-export type AddSeriesApiV1SeriesPostResponse =
-  AddSeriesApiV1SeriesPostResponses[keyof AddSeriesApiV1SeriesPostResponses];
-
-export type SearchReleasesApiV1SearchReleasesGetData = {
-  body?: never;
-  path?: never;
-  query: {
-    /**
-     * Q
-     */
-    q: string;
-  };
-  url: "/api/v1/search/releases";
-};
-
-export type SearchReleasesApiV1SearchReleasesGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type SearchReleasesApiV1SearchReleasesGetError =
-  SearchReleasesApiV1SearchReleasesGetErrors[keyof SearchReleasesApiV1SearchReleasesGetErrors];
-
-export type SearchReleasesApiV1SearchReleasesGetResponses = {
-  /**
-   * Response Search Releases Api V1 Search Releases Get
-   *
-   * Successful Response
-   */
-  200: Array<ReleaseOut>;
-};
-
-export type SearchReleasesApiV1SearchReleasesGetResponse =
-  SearchReleasesApiV1SearchReleasesGetResponses[keyof SearchReleasesApiV1SearchReleasesGetResponses];
-
-export type GrabReleaseApiV1ReleasesGrabPostData = {
-  body: GrabIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/releases/grab";
-};
-
-export type GrabReleaseApiV1ReleasesGrabPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type GrabReleaseApiV1ReleasesGrabPostError =
-  GrabReleaseApiV1ReleasesGrabPostErrors[keyof GrabReleaseApiV1ReleasesGrabPostErrors];
-
-export type GrabReleaseApiV1ReleasesGrabPostResponses = {
+export type SyncImportListsApiV1ImportListsAppSyncPostResponses = {
   /**
    * Successful Response
    */
   204: void;
 };
 
-export type GrabReleaseApiV1ReleasesGrabPostResponse =
-  GrabReleaseApiV1ReleasesGrabPostResponses[keyof GrabReleaseApiV1ReleasesGrabPostResponses];
+export type SyncImportListsApiV1ImportListsAppSyncPostResponse =
+  SyncImportListsApiV1ImportListsAppSyncPostResponses[keyof SyncImportListsApiV1ImportListsAppSyncPostResponses];
 
-export type MovieReleasesApiV1ReleasesMovieMovieIdGetData = {
+export type ToggleImportListApiV1ImportListsAppListIdTogglePostData = {
   body?: never;
-  path: {
-    /**
-     * Movie Id
-     */
-    movie_id: number;
-  };
-  query?: never;
-  url: "/api/v1/releases/movie/{movie_id}";
-};
-
-export type MovieReleasesApiV1ReleasesMovieMovieIdGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type MovieReleasesApiV1ReleasesMovieMovieIdGetError =
-  MovieReleasesApiV1ReleasesMovieMovieIdGetErrors[keyof MovieReleasesApiV1ReleasesMovieMovieIdGetErrors];
-
-export type MovieReleasesApiV1ReleasesMovieMovieIdGetResponses = {
-  /**
-   * Response Movie Releases Api V1 Releases Movie  Movie Id  Get
-   *
-   * Successful Response
-   */
-  200: Array<ArrReleaseOut>;
-};
-
-export type MovieReleasesApiV1ReleasesMovieMovieIdGetResponse =
-  MovieReleasesApiV1ReleasesMovieMovieIdGetResponses[keyof MovieReleasesApiV1ReleasesMovieMovieIdGetResponses];
-
-export type SeriesReleasesApiV1ReleasesSeriesSeriesIdGetData = {
-  body?: never;
-  path: {
-    /**
-     * Series Id
-     */
-    series_id: number;
-  };
-  query?: {
-    /**
-     * Season
-     */
-    season?: number | null;
-    /**
-     * Episode Id
-     */
-    episode_id?: number | null;
-  };
-  url: "/api/v1/releases/series/{series_id}";
-};
-
-export type SeriesReleasesApiV1ReleasesSeriesSeriesIdGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type SeriesReleasesApiV1ReleasesSeriesSeriesIdGetError =
-  SeriesReleasesApiV1ReleasesSeriesSeriesIdGetErrors[keyof SeriesReleasesApiV1ReleasesSeriesSeriesIdGetErrors];
-
-export type SeriesReleasesApiV1ReleasesSeriesSeriesIdGetResponses = {
-  /**
-   * Response Series Releases Api V1 Releases Series  Series Id  Get
-   *
-   * Successful Response
-   */
-  200: Array<ArrReleaseOut>;
-};
-
-export type SeriesReleasesApiV1ReleasesSeriesSeriesIdGetResponse =
-  SeriesReleasesApiV1ReleasesSeriesSeriesIdGetResponses[keyof SeriesReleasesApiV1ReleasesSeriesSeriesIdGetResponses];
-
-export type GrabArrReleaseApiV1ReleasesAppGrabPostData = {
-  body: GrabIn;
   path: {
     /**
      * App
      */
     app: string;
+    /**
+     * List Id
+     */
+    list_id: number;
   };
   query?: never;
-  url: "/api/v1/releases/{app}/grab";
+  url: "/api/v1/import-lists/{app}/{list_id}/toggle";
 };
 
-export type GrabArrReleaseApiV1ReleasesAppGrabPostErrors = {
+export type ToggleImportListApiV1ImportListsAppListIdTogglePostErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError;
 };
 
-export type GrabArrReleaseApiV1ReleasesAppGrabPostError =
-  GrabArrReleaseApiV1ReleasesAppGrabPostErrors[keyof GrabArrReleaseApiV1ReleasesAppGrabPostErrors];
+export type ToggleImportListApiV1ImportListsAppListIdTogglePostError =
+  ToggleImportListApiV1ImportListsAppListIdTogglePostErrors[keyof ToggleImportListApiV1ImportListsAppListIdTogglePostErrors];
 
-export type GrabArrReleaseApiV1ReleasesAppGrabPostResponses = {
+export type ToggleImportListApiV1ImportListsAppListIdTogglePostResponses = {
   /**
    * Successful Response
    */
   204: void;
 };
 
-export type GrabArrReleaseApiV1ReleasesAppGrabPostResponse =
-  GrabArrReleaseApiV1ReleasesAppGrabPostResponses[keyof GrabArrReleaseApiV1ReleasesAppGrabPostResponses];
-
-export type MediaRequestsApiV1RequestsGetData = {
-  body?: never;
-  path?: never;
-  query?: {
-    /**
-     * Filter
-     */
-    filter?: string;
-    /**
-     * Take
-     */
-    take?: number;
-  };
-  url: "/api/v1/requests";
-};
-
-export type MediaRequestsApiV1RequestsGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type MediaRequestsApiV1RequestsGetError =
-  MediaRequestsApiV1RequestsGetErrors[keyof MediaRequestsApiV1RequestsGetErrors];
-
-export type MediaRequestsApiV1RequestsGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: ServiceBlockListMediaRequestOut;
-};
-
-export type MediaRequestsApiV1RequestsGetResponse =
-  MediaRequestsApiV1RequestsGetResponses[keyof MediaRequestsApiV1RequestsGetResponses];
-
-export type RequestActionApiV1RequestsRequestIdActionPostData = {
-  body?: never;
-  path: {
-    /**
-     * Request Id
-     */
-    request_id: number;
-    /**
-     * Action
-     */
-    action: string;
-  };
-  query?: never;
-  url: "/api/v1/requests/{request_id}/{action}";
-};
-
-export type RequestActionApiV1RequestsRequestIdActionPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type RequestActionApiV1RequestsRequestIdActionPostError =
-  RequestActionApiV1RequestsRequestIdActionPostErrors[keyof RequestActionApiV1RequestsRequestIdActionPostErrors];
-
-export type RequestActionApiV1RequestsRequestIdActionPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type RequestActionApiV1RequestsRequestIdActionPostResponse =
-  RequestActionApiV1RequestsRequestIdActionPostResponses[keyof RequestActionApiV1RequestsRequestIdActionPostResponses];
-
-export type IndexerSchemasApiV1IndexersSchemasGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/indexers/schemas";
-};
-
-export type IndexerSchemasApiV1IndexersSchemasGetResponses = {
-  /**
-   * Response Indexer Schemas Api V1 Indexers Schemas Get
-   *
-   * Successful Response
-   */
-  200: Array<{
-    [key: string]: unknown;
-  }>;
-};
-
-export type IndexerSchemasApiV1IndexersSchemasGetResponse =
-  IndexerSchemasApiV1IndexersSchemasGetResponses[keyof IndexerSchemasApiV1IndexersSchemasGetResponses];
-
-export type TestNewIndexerApiV1IndexersTestNewPostData = {
-  body: AddIndexerIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/indexers/test-new";
-};
-
-export type TestNewIndexerApiV1IndexersTestNewPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type TestNewIndexerApiV1IndexersTestNewPostError =
-  TestNewIndexerApiV1IndexersTestNewPostErrors[keyof TestNewIndexerApiV1IndexersTestNewPostErrors];
-
-export type TestNewIndexerApiV1IndexersTestNewPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type TestNewIndexerApiV1IndexersTestNewPostResponse =
-  TestNewIndexerApiV1IndexersTestNewPostResponses[keyof TestNewIndexerApiV1IndexersTestNewPostResponses];
+export type ToggleImportListApiV1ImportListsAppListIdTogglePostResponse =
+  ToggleImportListApiV1ImportListsAppListIdTogglePostResponses[keyof ToggleImportListApiV1ImportListsAppListIdTogglePostResponses];
 
 export type IndexersApiV1IndexersGetData = {
   body?: never;
@@ -5317,6 +4237,71 @@ export type AddIndexerApiV1IndexersPostResponses = {
 
 export type AddIndexerApiV1IndexersPostResponse =
   AddIndexerApiV1IndexersPostResponses[keyof AddIndexerApiV1IndexersPostResponses];
+
+export type IndexerSchemasApiV1IndexersSchemasGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/indexers/schemas";
+};
+
+export type IndexerSchemasApiV1IndexersSchemasGetResponses = {
+  /**
+   * Response Indexer Schemas Api V1 Indexers Schemas Get
+   *
+   * Successful Response
+   */
+  200: Array<{
+    [key: string]: unknown;
+  }>;
+};
+
+export type IndexerSchemasApiV1IndexersSchemasGetResponse =
+  IndexerSchemasApiV1IndexersSchemasGetResponses[keyof IndexerSchemasApiV1IndexersSchemasGetResponses];
+
+export type IndexerStatsApiV1IndexersStatsGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/indexers/stats";
+};
+
+export type IndexerStatsApiV1IndexersStatsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ServiceBlockIndexerStatsOut;
+};
+
+export type IndexerStatsApiV1IndexersStatsGetResponse =
+  IndexerStatsApiV1IndexersStatsGetResponses[keyof IndexerStatsApiV1IndexersStatsGetResponses];
+
+export type TestNewIndexerApiV1IndexersTestNewPostData = {
+  body: AddIndexerIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/indexers/test-new";
+};
+
+export type TestNewIndexerApiV1IndexersTestNewPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TestNewIndexerApiV1IndexersTestNewPostError =
+  TestNewIndexerApiV1IndexersTestNewPostErrors[keyof TestNewIndexerApiV1IndexersTestNewPostErrors];
+
+export type TestNewIndexerApiV1IndexersTestNewPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type TestNewIndexerApiV1IndexersTestNewPostResponse =
+  TestNewIndexerApiV1IndexersTestNewPostResponses[keyof TestNewIndexerApiV1IndexersTestNewPostResponses];
 
 export type ToggleIndexerApiV1IndexersIndexerIdPatchData = {
   body?: never;
@@ -5391,137 +4376,59 @@ export type TestIndexerApiV1IndexersIndexerIdTestPostResponses = {
 export type TestIndexerApiV1IndexersIndexerIdTestPostResponse =
   TestIndexerApiV1IndexersIndexerIdTestPostResponses[keyof TestIndexerApiV1IndexersIndexerIdTestPostResponses];
 
-export type TriggerSearchApiV1LibraryAppItemIdSearchPostData = {
-  body?: never;
-  path: {
-    /**
-     * App
-     */
-    app: string;
-    /**
-     * Item Id
-     */
-    item_id: number;
-  };
+export type EpisodesMonitorApiV1LibraryEpisodesMonitorPatchData = {
+  body: EpisodeMonitorIn;
+  path?: never;
   query?: never;
-  url: "/api/v1/library/{app}/{item_id}/search";
+  url: "/api/v1/library/episodes/monitor";
 };
 
-export type TriggerSearchApiV1LibraryAppItemIdSearchPostErrors = {
+export type EpisodesMonitorApiV1LibraryEpisodesMonitorPatchErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError;
 };
 
-export type TriggerSearchApiV1LibraryAppItemIdSearchPostError =
-  TriggerSearchApiV1LibraryAppItemIdSearchPostErrors[keyof TriggerSearchApiV1LibraryAppItemIdSearchPostErrors];
+export type EpisodesMonitorApiV1LibraryEpisodesMonitorPatchError =
+  EpisodesMonitorApiV1LibraryEpisodesMonitorPatchErrors[keyof EpisodesMonitorApiV1LibraryEpisodesMonitorPatchErrors];
 
-export type TriggerSearchApiV1LibraryAppItemIdSearchPostResponses = {
+export type EpisodesMonitorApiV1LibraryEpisodesMonitorPatchResponses = {
   /**
    * Successful Response
    */
   204: void;
 };
 
-export type TriggerSearchApiV1LibraryAppItemIdSearchPostResponse =
-  TriggerSearchApiV1LibraryAppItemIdSearchPostResponses[keyof TriggerSearchApiV1LibraryAppItemIdSearchPostResponses];
+export type EpisodesMonitorApiV1LibraryEpisodesMonitorPatchResponse =
+  EpisodesMonitorApiV1LibraryEpisodesMonitorPatchResponses[keyof EpisodesMonitorApiV1LibraryEpisodesMonitorPatchResponses];
 
-export type LibraryBulkEditApiV1LibraryKindBulkPostData = {
-  body: BulkEditIn;
-  path: {
-    /**
-     * Kind
-     */
-    kind: string;
-  };
+export type EpisodesSearchApiV1LibraryEpisodesSearchPostData = {
+  body: EpisodeIdsIn;
+  path?: never;
   query?: never;
-  url: "/api/v1/library/{kind}/bulk";
+  url: "/api/v1/library/episodes/search";
 };
 
-export type LibraryBulkEditApiV1LibraryKindBulkPostErrors = {
+export type EpisodesSearchApiV1LibraryEpisodesSearchPostErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError;
 };
 
-export type LibraryBulkEditApiV1LibraryKindBulkPostError =
-  LibraryBulkEditApiV1LibraryKindBulkPostErrors[keyof LibraryBulkEditApiV1LibraryKindBulkPostErrors];
+export type EpisodesSearchApiV1LibraryEpisodesSearchPostError =
+  EpisodesSearchApiV1LibraryEpisodesSearchPostErrors[keyof EpisodesSearchApiV1LibraryEpisodesSearchPostErrors];
 
-export type LibraryBulkEditApiV1LibraryKindBulkPostResponses = {
+export type EpisodesSearchApiV1LibraryEpisodesSearchPostResponses = {
   /**
    * Successful Response
    */
   204: void;
 };
 
-export type LibraryBulkEditApiV1LibraryKindBulkPostResponse =
-  LibraryBulkEditApiV1LibraryKindBulkPostResponses[keyof LibraryBulkEditApiV1LibraryKindBulkPostResponses];
-
-export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostData = {
-  body: BulkDeleteIn;
-  path: {
-    /**
-     * Kind
-     */
-    kind: string;
-  };
-  query?: never;
-  url: "/api/v1/library/{kind}/bulk-delete";
-};
-
-export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostError =
-  LibraryBulkDeleteApiV1LibraryKindBulkDeletePostErrors[keyof LibraryBulkDeleteApiV1LibraryKindBulkDeletePostErrors];
-
-export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponse =
-  LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponses[keyof LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponses];
-
-export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostData = {
-  body: BulkDeleteIn;
-  path: {
-    /**
-     * Kind
-     */
-    kind: string;
-  };
-  query?: never;
-  url: "/api/v1/library/{kind}/bulk-search";
-};
-
-export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostError =
-  LibraryBulkSearchApiV1LibraryKindBulkSearchPostErrors[keyof LibraryBulkSearchApiV1LibraryKindBulkSearchPostErrors];
-
-export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponse =
-  LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponses[keyof LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponses];
+export type EpisodesSearchApiV1LibraryEpisodesSearchPostResponse =
+  EpisodesSearchApiV1LibraryEpisodesSearchPostResponses[keyof EpisodesSearchApiV1LibraryEpisodesSearchPostResponses];
 
 export type LibraryMoviesApiV1LibraryMoviesGetData = {
   body?: never;
@@ -5541,38 +4448,6 @@ export type LibraryMoviesApiV1LibraryMoviesGetResponses = {
 
 export type LibraryMoviesApiV1LibraryMoviesGetResponse =
   LibraryMoviesApiV1LibraryMoviesGetResponses[keyof LibraryMoviesApiV1LibraryMoviesGetResponses];
-
-export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetData = {
-  body?: never;
-  path: {
-    /**
-     * Movie Id
-     */
-    movie_id: number;
-  };
-  query?: never;
-  url: "/api/v1/library/movies/{movie_id}/detail";
-};
-
-export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetError =
-  MovieDetailApiV1LibraryMoviesMovieIdDetailGetErrors[keyof MovieDetailApiV1LibraryMoviesMovieIdDetailGetErrors];
-
-export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: MovieDetailOut;
-};
-
-export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponse =
-  MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses[keyof MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses];
 
 export type DeleteMovieApiV1LibraryMoviesMovieIdDeleteData = {
   body?: never;
@@ -5647,6 +4522,70 @@ export type UpdateMovieApiV1LibraryMoviesMovieIdPatchResponses = {
 export type UpdateMovieApiV1LibraryMoviesMovieIdPatchResponse =
   UpdateMovieApiV1LibraryMoviesMovieIdPatchResponses[keyof UpdateMovieApiV1LibraryMoviesMovieIdPatchResponses];
 
+export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetData = {
+  body?: never;
+  path: {
+    /**
+     * Movie Id
+     */
+    movie_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/movies/{movie_id}/credits";
+};
+
+export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetError =
+  MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetErrors[keyof MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetErrors];
+
+export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: CreditsOut;
+};
+
+export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponse =
+  MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponses[keyof MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponses];
+
+export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetData = {
+  body?: never;
+  path: {
+    /**
+     * Movie Id
+     */
+    movie_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/movies/{movie_id}/detail";
+};
+
+export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetError =
+  MovieDetailApiV1LibraryMoviesMovieIdDetailGetErrors[keyof MovieDetailApiV1LibraryMoviesMovieIdDetailGetErrors];
+
+export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: MovieDetailOut;
+};
+
+export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponse =
+  MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses[keyof MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses];
+
 export type LibrarySeriesApiV1LibrarySeriesGetData = {
   body?: never;
   path?: never;
@@ -5665,6 +4604,79 @@ export type LibrarySeriesApiV1LibrarySeriesGetResponses = {
 
 export type LibrarySeriesApiV1LibrarySeriesGetResponse =
   LibrarySeriesApiV1LibrarySeriesGetResponses[keyof LibrarySeriesApiV1LibrarySeriesGetResponses];
+
+export type DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteData = {
+  body?: never;
+  path: {
+    /**
+     * Series Id
+     */
+    series_id: number;
+  };
+  query?: {
+    /**
+     * Delete Files
+     */
+    delete_files?: boolean;
+  };
+  url: "/api/v1/library/series/{series_id}";
+};
+
+export type DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteError =
+  DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteErrors[keyof DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteErrors];
+
+export type DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteResponse =
+  DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteResponses[keyof DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteResponses];
+
+export type UpdateSeriesApiV1LibrarySeriesSeriesIdPatchData = {
+  body: LibraryUpdateIn;
+  path: {
+    /**
+     * Series Id
+     */
+    series_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/series/{series_id}";
+};
+
+export type UpdateSeriesApiV1LibrarySeriesSeriesIdPatchErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type UpdateSeriesApiV1LibrarySeriesSeriesIdPatchError =
+  UpdateSeriesApiV1LibrarySeriesSeriesIdPatchErrors[keyof UpdateSeriesApiV1LibrarySeriesSeriesIdPatchErrors];
+
+export type UpdateSeriesApiV1LibrarySeriesSeriesIdPatchResponses = {
+  /**
+   * Response Update Series Api V1 Library Series  Series Id  Patch
+   *
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown;
+  };
+};
+
+export type UpdateSeriesApiV1LibrarySeriesSeriesIdPatchResponse =
+  UpdateSeriesApiV1LibrarySeriesSeriesIdPatchResponses[keyof UpdateSeriesApiV1LibrarySeriesSeriesIdPatchResponses];
 
 export type SeriesDetailApiV1LibrarySeriesSeriesIdDetailGetData = {
   body?: never;
@@ -5809,329 +4821,137 @@ export type SeasonSearchApiV1LibrarySeriesSeriesIdSeasonsSeasonSearchPostRespons
 export type SeasonSearchApiV1LibrarySeriesSeriesIdSeasonsSeasonSearchPostResponse =
   SeasonSearchApiV1LibrarySeriesSeriesIdSeasonsSeasonSearchPostResponses[keyof SeasonSearchApiV1LibrarySeriesSeriesIdSeasonsSeasonSearchPostResponses];
 
-export type EpisodesMonitorApiV1LibraryEpisodesMonitorPatchData = {
-  body: EpisodeMonitorIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/library/episodes/monitor";
-};
-
-export type EpisodesMonitorApiV1LibraryEpisodesMonitorPatchErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type EpisodesMonitorApiV1LibraryEpisodesMonitorPatchError =
-  EpisodesMonitorApiV1LibraryEpisodesMonitorPatchErrors[keyof EpisodesMonitorApiV1LibraryEpisodesMonitorPatchErrors];
-
-export type EpisodesMonitorApiV1LibraryEpisodesMonitorPatchResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type EpisodesMonitorApiV1LibraryEpisodesMonitorPatchResponse =
-  EpisodesMonitorApiV1LibraryEpisodesMonitorPatchResponses[keyof EpisodesMonitorApiV1LibraryEpisodesMonitorPatchResponses];
-
-export type EpisodesSearchApiV1LibraryEpisodesSearchPostData = {
-  body: EpisodeIdsIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/library/episodes/search";
-};
-
-export type EpisodesSearchApiV1LibraryEpisodesSearchPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type EpisodesSearchApiV1LibraryEpisodesSearchPostError =
-  EpisodesSearchApiV1LibraryEpisodesSearchPostErrors[keyof EpisodesSearchApiV1LibraryEpisodesSearchPostErrors];
-
-export type EpisodesSearchApiV1LibraryEpisodesSearchPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type EpisodesSearchApiV1LibraryEpisodesSearchPostResponse =
-  EpisodesSearchApiV1LibraryEpisodesSearchPostResponses[keyof EpisodesSearchApiV1LibraryEpisodesSearchPostResponses];
-
-export type DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteData = {
-  body?: never;
-  path: {
-    /**
-     * Series Id
-     */
-    series_id: number;
-  };
-  query?: {
-    /**
-     * Delete Files
-     */
-    delete_files?: boolean;
-  };
-  url: "/api/v1/library/series/{series_id}";
-};
-
-export type DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteError =
-  DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteErrors[keyof DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteErrors];
-
-export type DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteResponse =
-  DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteResponses[keyof DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteResponses];
-
-export type UpdateSeriesApiV1LibrarySeriesSeriesIdPatchData = {
-  body: LibraryUpdateIn;
-  path: {
-    /**
-     * Series Id
-     */
-    series_id: number;
-  };
-  query?: never;
-  url: "/api/v1/library/series/{series_id}";
-};
-
-export type UpdateSeriesApiV1LibrarySeriesSeriesIdPatchErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type UpdateSeriesApiV1LibrarySeriesSeriesIdPatchError =
-  UpdateSeriesApiV1LibrarySeriesSeriesIdPatchErrors[keyof UpdateSeriesApiV1LibrarySeriesSeriesIdPatchErrors];
-
-export type UpdateSeriesApiV1LibrarySeriesSeriesIdPatchResponses = {
-  /**
-   * Response Update Series Api V1 Library Series  Series Id  Patch
-   *
-   * Successful Response
-   */
-  200: {
-    [key: string]: unknown;
-  };
-};
-
-export type UpdateSeriesApiV1LibrarySeriesSeriesIdPatchResponse =
-  UpdateSeriesApiV1LibrarySeriesSeriesIdPatchResponses[keyof UpdateSeriesApiV1LibrarySeriesSeriesIdPatchResponses];
-
-export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetData = {
-  body?: never;
-  path: {
-    /**
-     * Movie Id
-     */
-    movie_id: number;
-  };
-  query?: never;
-  url: "/api/v1/library/movies/{movie_id}/credits";
-};
-
-export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetError =
-  MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetErrors[keyof MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetErrors];
-
-export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: CreditsOut;
-};
-
-export type MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponse =
-  MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponses[keyof MovieCreditsApiV1LibraryMoviesMovieIdCreditsGetResponses];
-
-export type WantedApiV1WantedAppGetData = {
+export type TriggerSearchApiV1LibraryAppItemIdSearchPostData = {
   body?: never;
   path: {
     /**
      * App
      */
     app: string;
+    /**
+     * Item Id
+     */
+    item_id: number;
   };
-  query?: {
+  query?: never;
+  url: "/api/v1/library/{app}/{item_id}/search";
+};
+
+export type TriggerSearchApiV1LibraryAppItemIdSearchPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TriggerSearchApiV1LibraryAppItemIdSearchPostError =
+  TriggerSearchApiV1LibraryAppItemIdSearchPostErrors[keyof TriggerSearchApiV1LibraryAppItemIdSearchPostErrors];
+
+export type TriggerSearchApiV1LibraryAppItemIdSearchPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type TriggerSearchApiV1LibraryAppItemIdSearchPostResponse =
+  TriggerSearchApiV1LibraryAppItemIdSearchPostResponses[keyof TriggerSearchApiV1LibraryAppItemIdSearchPostResponses];
+
+export type LibraryBulkEditApiV1LibraryKindBulkPostData = {
+  body: BulkEditIn;
+  path: {
     /**
      * Kind
      */
-    kind?: string;
-    /**
-     * Page
-     */
-    page?: number;
+    kind: string;
   };
-  url: "/api/v1/wanted/{app}";
+  query?: never;
+  url: "/api/v1/library/{kind}/bulk";
 };
 
-export type WantedApiV1WantedAppGetErrors = {
+export type LibraryBulkEditApiV1LibraryKindBulkPostErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError;
 };
 
-export type WantedApiV1WantedAppGetError =
-  WantedApiV1WantedAppGetErrors[keyof WantedApiV1WantedAppGetErrors];
+export type LibraryBulkEditApiV1LibraryKindBulkPostError =
+  LibraryBulkEditApiV1LibraryKindBulkPostErrors[keyof LibraryBulkEditApiV1LibraryKindBulkPostErrors];
 
-export type WantedApiV1WantedAppGetResponses = {
+export type LibraryBulkEditApiV1LibraryKindBulkPostResponses = {
   /**
    * Successful Response
    */
-  200: WantedPageOut;
+  204: void;
 };
 
-export type WantedApiV1WantedAppGetResponse =
-  WantedApiV1WantedAppGetResponses[keyof WantedApiV1WantedAppGetResponses];
+export type LibraryBulkEditApiV1LibraryKindBulkPostResponse =
+  LibraryBulkEditApiV1LibraryKindBulkPostResponses[keyof LibraryBulkEditApiV1LibraryKindBulkPostResponses];
 
-export type WantedSearchAllApiV1WantedAppSearchAllPostData = {
-  body?: never;
+export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostData = {
+  body: BulkDeleteIn;
   path: {
-    /**
-     * App
-     */
-    app: string;
-  };
-  query?: {
     /**
      * Kind
      */
-    kind?: string;
+    kind: string;
   };
-  url: "/api/v1/wanted/{app}/search-all";
+  query?: never;
+  url: "/api/v1/library/{kind}/bulk-delete";
 };
 
-export type WantedSearchAllApiV1WantedAppSearchAllPostErrors = {
+export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError;
 };
 
-export type WantedSearchAllApiV1WantedAppSearchAllPostError =
-  WantedSearchAllApiV1WantedAppSearchAllPostErrors[keyof WantedSearchAllApiV1WantedAppSearchAllPostErrors];
+export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostError =
+  LibraryBulkDeleteApiV1LibraryKindBulkDeletePostErrors[keyof LibraryBulkDeleteApiV1LibraryKindBulkDeletePostErrors];
 
-export type WantedSearchAllApiV1WantedAppSearchAllPostResponses = {
+export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponses = {
   /**
    * Successful Response
    */
   204: void;
 };
 
-export type WantedSearchAllApiV1WantedAppSearchAllPostResponse =
-  WantedSearchAllApiV1WantedAppSearchAllPostResponses[keyof WantedSearchAllApiV1WantedAppSearchAllPostResponses];
+export type LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponse =
+  LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponses[keyof LibraryBulkDeleteApiV1LibraryKindBulkDeletePostResponses];
 
-export type ImportListsApiV1ImportListsGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/import-lists";
-};
-
-export type ImportListsApiV1ImportListsGetResponses = {
-  /**
-   * Response Import Lists Api V1 Import Lists Get
-   *
-   * Successful Response
-   */
-  200: Array<ImportListOut>;
-};
-
-export type ImportListsApiV1ImportListsGetResponse =
-  ImportListsApiV1ImportListsGetResponses[keyof ImportListsApiV1ImportListsGetResponses];
-
-export type ToggleImportListApiV1ImportListsAppListIdTogglePostData = {
-  body?: never;
+export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostData = {
+  body: BulkDeleteIn;
   path: {
     /**
-     * App
+     * Kind
      */
-    app: string;
-    /**
-     * List Id
-     */
-    list_id: number;
+    kind: string;
   };
   query?: never;
-  url: "/api/v1/import-lists/{app}/{list_id}/toggle";
+  url: "/api/v1/library/{kind}/bulk-search";
 };
 
-export type ToggleImportListApiV1ImportListsAppListIdTogglePostErrors = {
+export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError;
 };
 
-export type ToggleImportListApiV1ImportListsAppListIdTogglePostError =
-  ToggleImportListApiV1ImportListsAppListIdTogglePostErrors[keyof ToggleImportListApiV1ImportListsAppListIdTogglePostErrors];
+export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostError =
+  LibraryBulkSearchApiV1LibraryKindBulkSearchPostErrors[keyof LibraryBulkSearchApiV1LibraryKindBulkSearchPostErrors];
 
-export type ToggleImportListApiV1ImportListsAppListIdTogglePostResponses = {
+export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponses = {
   /**
    * Successful Response
    */
   204: void;
 };
 
-export type ToggleImportListApiV1ImportListsAppListIdTogglePostResponse =
-  ToggleImportListApiV1ImportListsAppListIdTogglePostResponses[keyof ToggleImportListApiV1ImportListsAppListIdTogglePostResponses];
-
-export type SyncImportListsApiV1ImportListsAppSyncPostData = {
-  body?: never;
-  path: {
-    /**
-     * App
-     */
-    app: string;
-  };
-  query?: never;
-  url: "/api/v1/import-lists/{app}/sync";
-};
-
-export type SyncImportListsApiV1ImportListsAppSyncPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type SyncImportListsApiV1ImportListsAppSyncPostError =
-  SyncImportListsApiV1ImportListsAppSyncPostErrors[keyof SyncImportListsApiV1ImportListsAppSyncPostErrors];
-
-export type SyncImportListsApiV1ImportListsAppSyncPostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type SyncImportListsApiV1ImportListsAppSyncPostResponse =
-  SyncImportListsApiV1ImportListsAppSyncPostResponses[keyof SyncImportListsApiV1ImportListsAppSyncPostResponses];
+export type LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponse =
+  LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponses[keyof LibraryBulkSearchApiV1LibraryKindBulkSearchPostResponses];
 
 export type LogsApiV1LogsAppGetData = {
   body?: never;
@@ -6176,290 +4996,206 @@ export type LogsApiV1LogsAppGetResponses = {
 export type LogsApiV1LogsAppGetResponse =
   LogsApiV1LogsAppGetResponses[keyof LogsApiV1LogsAppGetResponses];
 
-export type BlocklistApiV1BlocklistGetData = {
+export type ManualImportRunApiV1ManualImportAppPostData = {
+  body: ManualImportIn;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+  };
+  query?: never;
+  url: "/api/v1/manual-import/{app}";
+};
+
+export type ManualImportRunApiV1ManualImportAppPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type ManualImportRunApiV1ManualImportAppPostError =
+  ManualImportRunApiV1ManualImportAppPostErrors[keyof ManualImportRunApiV1ManualImportAppPostErrors];
+
+export type ManualImportRunApiV1ManualImportAppPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type ManualImportRunApiV1ManualImportAppPostResponse =
+  ManualImportRunApiV1ManualImportAppPostResponses[keyof ManualImportRunApiV1ManualImportAppPostResponses];
+
+export type ManualImportAssignApiV1ManualImportAppAssignPostData = {
+  body: ManualImportAssignIn;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+  };
+  query?: never;
+  url: "/api/v1/manual-import/{app}/assign";
+};
+
+export type ManualImportAssignApiV1ManualImportAppAssignPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type ManualImportAssignApiV1ManualImportAppAssignPostError =
+  ManualImportAssignApiV1ManualImportAppAssignPostErrors[keyof ManualImportAssignApiV1ManualImportAppAssignPostErrors];
+
+export type ManualImportAssignApiV1ManualImportAppAssignPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type ManualImportAssignApiV1ManualImportAppAssignPostResponse =
+  ManualImportAssignApiV1ManualImportAppAssignPostResponses[keyof ManualImportAssignApiV1ManualImportAppAssignPostResponses];
+
+export type ManualImportCandidatesApiV1ManualImportAppItemIdGetData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+    /**
+     * Item Id
+     */
+    item_id: number;
+  };
+  query?: never;
+  url: "/api/v1/manual-import/{app}/{item_id}";
+};
+
+export type ManualImportCandidatesApiV1ManualImportAppItemIdGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type ManualImportCandidatesApiV1ManualImportAppItemIdGetError =
+  ManualImportCandidatesApiV1ManualImportAppItemIdGetErrors[keyof ManualImportCandidatesApiV1ManualImportAppItemIdGetErrors];
+
+export type ManualImportCandidatesApiV1ManualImportAppItemIdGetResponses = {
+  /**
+   * Response Manual Import Candidates Api V1 Manual Import  App   Item Id  Get
+   *
+   * Successful Response
+   */
+  200: Array<ImportCandidateOut>;
+};
+
+export type ManualImportCandidatesApiV1ManualImportAppItemIdGetResponse =
+  ManualImportCandidatesApiV1ManualImportAppItemIdGetResponses[keyof ManualImportCandidatesApiV1ManualImportAppItemIdGetResponses];
+
+export type AddMovieApiV1MoviesPostData = {
+  body: AddMovieIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/movies";
+};
+
+export type AddMovieApiV1MoviesPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type AddMovieApiV1MoviesPostError =
+  AddMovieApiV1MoviesPostErrors[keyof AddMovieApiV1MoviesPostErrors];
+
+export type AddMovieApiV1MoviesPostResponses = {
+  /**
+   * Response Add Movie Api V1 Movies Post
+   *
+   * Successful Response
+   */
+  201: {
+    [key: string]: unknown;
+  };
+};
+
+export type AddMovieApiV1MoviesPostResponse =
+  AddMovieApiV1MoviesPostResponses[keyof AddMovieApiV1MoviesPostResponses];
+
+export type OptionsApiV1OptionsAppGetData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+  };
+  query?: never;
+  url: "/api/v1/options/{app}";
+};
+
+export type OptionsApiV1OptionsAppGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type OptionsApiV1OptionsAppGetError =
+  OptionsApiV1OptionsAppGetErrors[keyof OptionsApiV1OptionsAppGetErrors];
+
+export type OptionsApiV1OptionsAppGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: OptionsOut;
+};
+
+export type OptionsApiV1OptionsAppGetResponse =
+  OptionsApiV1OptionsAppGetResponses[keyof OptionsApiV1OptionsAppGetResponses];
+
+export type PopularApiV1PopularGetData = {
   body?: never;
   path?: never;
   query?: {
     /**
-     * Page
+     * Hours
      */
-    page?: number;
-  };
-  url: "/api/v1/blocklist";
-};
-
-export type BlocklistApiV1BlocklistGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type BlocklistApiV1BlocklistGetError =
-  BlocklistApiV1BlocklistGetErrors[keyof BlocklistApiV1BlocklistGetErrors];
-
-export type BlocklistApiV1BlocklistGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: BlocklistPageOut;
-};
-
-export type BlocklistApiV1BlocklistGetResponse =
-  BlocklistApiV1BlocklistGetResponses[keyof BlocklistApiV1BlocklistGetResponses];
-
-export type BlocklistRemoveApiV1BlocklistAppEntryIdDeleteData = {
-  body?: never;
-  path: {
+    hours?: number;
     /**
-     * App
+     * Limit
      */
-    app: string;
-    /**
-     * Entry Id
-     */
-    entry_id: number;
+    limit?: number;
   };
-  query?: never;
-  url: "/api/v1/blocklist/{app}/{entry_id}";
+  url: "/api/v1/popular";
 };
 
-export type BlocklistRemoveApiV1BlocklistAppEntryIdDeleteErrors = {
+export type PopularApiV1PopularGetErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError;
 };
 
-export type BlocklistRemoveApiV1BlocklistAppEntryIdDeleteError =
-  BlocklistRemoveApiV1BlocklistAppEntryIdDeleteErrors[keyof BlocklistRemoveApiV1BlocklistAppEntryIdDeleteErrors];
+export type PopularApiV1PopularGetError =
+  PopularApiV1PopularGetErrors[keyof PopularApiV1PopularGetErrors];
 
-export type BlocklistRemoveApiV1BlocklistAppEntryIdDeleteResponses = {
+export type PopularApiV1PopularGetResponses = {
   /**
    * Successful Response
    */
-  204: void;
+  200: ServiceBlockPopularSnapshotOut;
 };
 
-export type BlocklistRemoveApiV1BlocklistAppEntryIdDeleteResponse =
-  BlocklistRemoveApiV1BlocklistAppEntryIdDeleteResponses[keyof BlocklistRemoveApiV1BlocklistAppEntryIdDeleteResponses];
-
-export type BlocklistClearApiV1BlocklistAppDeleteData = {
-  body?: never;
-  path: {
-    /**
-     * App
-     */
-    app: string;
-  };
-  query?: never;
-  url: "/api/v1/blocklist/{app}";
-};
-
-export type BlocklistClearApiV1BlocklistAppDeleteErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type BlocklistClearApiV1BlocklistAppDeleteError =
-  BlocklistClearApiV1BlocklistAppDeleteErrors[keyof BlocklistClearApiV1BlocklistAppDeleteErrors];
-
-export type BlocklistClearApiV1BlocklistAppDeleteResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type BlocklistClearApiV1BlocklistAppDeleteResponse =
-  BlocklistClearApiV1BlocklistAppDeleteResponses[keyof BlocklistClearApiV1BlocklistAppDeleteResponses];
-
-export type TagsApiV1TagsAppGetData = {
-  body?: never;
-  path: {
-    /**
-     * App
-     */
-    app: string;
-  };
-  query?: never;
-  url: "/api/v1/tags/{app}";
-};
-
-export type TagsApiV1TagsAppGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type TagsApiV1TagsAppGetError =
-  TagsApiV1TagsAppGetErrors[keyof TagsApiV1TagsAppGetErrors];
-
-export type TagsApiV1TagsAppGetResponses = {
-  /**
-   * Response Tags Api V1 Tags  App  Get
-   *
-   * Successful Response
-   */
-  200: Array<TagOut>;
-};
-
-export type TagsApiV1TagsAppGetResponse =
-  TagsApiV1TagsAppGetResponses[keyof TagsApiV1TagsAppGetResponses];
-
-export type ServicesApiV1ServicesGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/services";
-};
-
-export type ServicesApiV1ServicesGetResponses = {
-  /**
-   * Response Services Api V1 Services Get
-   *
-   * Successful Response
-   */
-  200: Array<ServiceInfoOut>;
-};
-
-export type ServicesApiV1ServicesGetResponse =
-  ServicesApiV1ServicesGetResponses[keyof ServicesApiV1ServicesGetResponses];
-
-export type AllSettingsApiV1SettingsServicesGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/settings/services";
-};
-
-export type AllSettingsApiV1SettingsServicesGetResponses = {
-  /**
-   * Response All Settings Api V1 Settings Services Get
-   *
-   * Successful Response
-   */
-  200: {
-    [key: string]: ServiceSettingsOut;
-  };
-};
-
-export type AllSettingsApiV1SettingsServicesGetResponse =
-  AllSettingsApiV1SettingsServicesGetResponses[keyof AllSettingsApiV1SettingsServicesGetResponses];
-
-export type SaveSettingsApiV1SettingsServicesNamePutData = {
-  body: ServiceSettingsIn;
-  path: {
-    /**
-     * Name
-     */
-    name: string;
-  };
-  query?: never;
-  url: "/api/v1/settings/services/{name}";
-};
-
-export type SaveSettingsApiV1SettingsServicesNamePutErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type SaveSettingsApiV1SettingsServicesNamePutError =
-  SaveSettingsApiV1SettingsServicesNamePutErrors[keyof SaveSettingsApiV1SettingsServicesNamePutErrors];
-
-export type SaveSettingsApiV1SettingsServicesNamePutResponses = {
-  /**
-   * Response Save Settings Api V1 Settings Services  Name  Put
-   *
-   * Successful Response
-   */
-  200: {
-    [key: string]: unknown;
-  };
-};
-
-export type SaveSettingsApiV1SettingsServicesNamePutResponse =
-  SaveSettingsApiV1SettingsServicesNamePutResponses[keyof SaveSettingsApiV1SettingsServicesNamePutResponses];
-
-export type PushVapidApiV1PushVapidGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/push/vapid";
-};
-
-export type PushVapidApiV1PushVapidGetResponses = {
-  /**
-   * Response Push Vapid Api V1 Push Vapid Get
-   *
-   * Successful Response
-   */
-  200: {
-    [key: string]: unknown;
-  };
-};
-
-export type PushVapidApiV1PushVapidGetResponse =
-  PushVapidApiV1PushVapidGetResponses[keyof PushVapidApiV1PushVapidGetResponses];
-
-export type PushSubscribeApiV1PushSubscribePostData = {
-  body: PushSubscribeIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/push/subscribe";
-};
-
-export type PushSubscribeApiV1PushSubscribePostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type PushSubscribeApiV1PushSubscribePostError =
-  PushSubscribeApiV1PushSubscribePostErrors[keyof PushSubscribeApiV1PushSubscribePostErrors];
-
-export type PushSubscribeApiV1PushSubscribePostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type PushSubscribeApiV1PushSubscribePostResponse =
-  PushSubscribeApiV1PushSubscribePostResponses[keyof PushSubscribeApiV1PushSubscribePostResponses];
-
-export type PushUnsubscribeApiV1PushUnsubscribePostData = {
-  body: PushSubscribeIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/push/unsubscribe";
-};
-
-export type PushUnsubscribeApiV1PushUnsubscribePostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type PushUnsubscribeApiV1PushUnsubscribePostError =
-  PushUnsubscribeApiV1PushUnsubscribePostErrors[keyof PushUnsubscribeApiV1PushUnsubscribePostErrors];
-
-export type PushUnsubscribeApiV1PushUnsubscribePostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type PushUnsubscribeApiV1PushUnsubscribePostResponse =
-  PushUnsubscribeApiV1PushUnsubscribePostResponses[keyof PushUnsubscribeApiV1PushUnsubscribePostResponses];
+export type PopularApiV1PopularGetResponse =
+  PopularApiV1PopularGetResponses[keyof PopularApiV1PopularGetResponses];
 
 export type PushEventsApiV1PushEventsGetData = {
   body?: never;
@@ -6564,6 +5300,33 @@ export type SavePushRulesApiV1PushRulesPutResponses = {
 export type SavePushRulesApiV1PushRulesPutResponse =
   SavePushRulesApiV1PushRulesPutResponses[keyof SavePushRulesApiV1PushRulesPutResponses];
 
+export type PushSubscribeApiV1PushSubscribePostData = {
+  body: PushSubscribeIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/push/subscribe";
+};
+
+export type PushSubscribeApiV1PushSubscribePostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type PushSubscribeApiV1PushSubscribePostError =
+  PushSubscribeApiV1PushSubscribePostErrors[keyof PushSubscribeApiV1PushSubscribePostErrors];
+
+export type PushSubscribeApiV1PushSubscribePostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type PushSubscribeApiV1PushSubscribePostResponse =
+  PushSubscribeApiV1PushSubscribePostResponses[keyof PushSubscribeApiV1PushSubscribePostResponses];
+
 export type PushTestApiV1PushTestPostData = {
   body: PushTestIn;
   path?: never;
@@ -6590,6 +5353,54 @@ export type PushTestApiV1PushTestPostResponses = {
 
 export type PushTestApiV1PushTestPostResponse =
   PushTestApiV1PushTestPostResponses[keyof PushTestApiV1PushTestPostResponses];
+
+export type PushUnsubscribeApiV1PushUnsubscribePostData = {
+  body: PushSubscribeIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/push/unsubscribe";
+};
+
+export type PushUnsubscribeApiV1PushUnsubscribePostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type PushUnsubscribeApiV1PushUnsubscribePostError =
+  PushUnsubscribeApiV1PushUnsubscribePostErrors[keyof PushUnsubscribeApiV1PushUnsubscribePostErrors];
+
+export type PushUnsubscribeApiV1PushUnsubscribePostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type PushUnsubscribeApiV1PushUnsubscribePostResponse =
+  PushUnsubscribeApiV1PushUnsubscribePostResponses[keyof PushUnsubscribeApiV1PushUnsubscribePostResponses];
+
+export type PushVapidApiV1PushVapidGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/push/vapid";
+};
+
+export type PushVapidApiV1PushVapidGetResponses = {
+  /**
+   * Response Push Vapid Api V1 Push Vapid Get
+   *
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown;
+  };
+};
+
+export type PushVapidApiV1PushVapidGetResponse =
+  PushVapidApiV1PushVapidGetResponses[keyof PushVapidApiV1PushVapidGetResponses];
 
 export type WebhookStatusApiV1PushWebhookGetData = {
   body?: never;
@@ -6656,6 +5467,646 @@ export type WebhookUninstallApiV1PushWebhookUninstallPostResponses = {
 export type WebhookUninstallApiV1PushWebhookUninstallPostResponse =
   WebhookUninstallApiV1PushWebhookUninstallPostResponses[keyof WebhookUninstallApiV1PushWebhookUninstallPostResponses];
 
+export type QualityProfilesApiV1QualityProfilesAppGetData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+  };
+  query?: never;
+  url: "/api/v1/quality-profiles/{app}";
+};
+
+export type QualityProfilesApiV1QualityProfilesAppGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type QualityProfilesApiV1QualityProfilesAppGetError =
+  QualityProfilesApiV1QualityProfilesAppGetErrors[keyof QualityProfilesApiV1QualityProfilesAppGetErrors];
+
+export type QualityProfilesApiV1QualityProfilesAppGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: QualityProfilesOut;
+};
+
+export type QualityProfilesApiV1QualityProfilesAppGetResponse =
+  QualityProfilesApiV1QualityProfilesAppGetResponses[keyof QualityProfilesApiV1QualityProfilesAppGetResponses];
+
+export type QueueApiV1QueueGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/queue";
+};
+
+export type QueueApiV1QueueGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: QueueResponse;
+};
+
+export type QueueApiV1QueueGetResponse =
+  QueueApiV1QueueGetResponses[keyof QueueApiV1QueueGetResponses];
+
+export type RemoveQueueItemApiV1QueueAppItemIdDeleteData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+    /**
+     * Item Id
+     */
+    item_id: number;
+  };
+  query?: {
+    /**
+     * Remove From Client
+     */
+    remove_from_client?: boolean;
+    /**
+     * Blocklist
+     */
+    blocklist?: boolean;
+  };
+  url: "/api/v1/queue/{app}/{item_id}";
+};
+
+export type RemoveQueueItemApiV1QueueAppItemIdDeleteErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type RemoveQueueItemApiV1QueueAppItemIdDeleteError =
+  RemoveQueueItemApiV1QueueAppItemIdDeleteErrors[keyof RemoveQueueItemApiV1QueueAppItemIdDeleteErrors];
+
+export type RemoveQueueItemApiV1QueueAppItemIdDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type RemoveQueueItemApiV1QueueAppItemIdDeleteResponse =
+  RemoveQueueItemApiV1QueueAppItemIdDeleteResponses[keyof RemoveQueueItemApiV1QueueAppItemIdDeleteResponses];
+
+export type BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+    /**
+     * Item Id
+     */
+    item_id: number;
+  };
+  query?: never;
+  url: "/api/v1/queue/{app}/{item_id}/blocklist-retry";
+};
+
+export type BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostError =
+  BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostErrors[keyof BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostErrors];
+
+export type BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostResponse =
+  BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostResponses[keyof BlocklistRetryApiV1QueueAppItemIdBlocklistRetryPostResponses];
+
+export type ForceImportApiV1QueueAppItemIdForceImportPostData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+    /**
+     * Item Id
+     */
+    item_id: number;
+  };
+  query?: never;
+  url: "/api/v1/queue/{app}/{item_id}/force-import";
+};
+
+export type ForceImportApiV1QueueAppItemIdForceImportPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type ForceImportApiV1QueueAppItemIdForceImportPostError =
+  ForceImportApiV1QueueAppItemIdForceImportPostErrors[keyof ForceImportApiV1QueueAppItemIdForceImportPostErrors];
+
+export type ForceImportApiV1QueueAppItemIdForceImportPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type ForceImportApiV1QueueAppItemIdForceImportPostResponse =
+  ForceImportApiV1QueueAppItemIdForceImportPostResponses[keyof ForceImportApiV1QueueAppItemIdForceImportPostResponses];
+
+export type GrabReleaseApiV1ReleasesGrabPostData = {
+  body: GrabIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/releases/grab";
+};
+
+export type GrabReleaseApiV1ReleasesGrabPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type GrabReleaseApiV1ReleasesGrabPostError =
+  GrabReleaseApiV1ReleasesGrabPostErrors[keyof GrabReleaseApiV1ReleasesGrabPostErrors];
+
+export type GrabReleaseApiV1ReleasesGrabPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type GrabReleaseApiV1ReleasesGrabPostResponse =
+  GrabReleaseApiV1ReleasesGrabPostResponses[keyof GrabReleaseApiV1ReleasesGrabPostResponses];
+
+export type MovieReleasesApiV1ReleasesMovieMovieIdGetData = {
+  body?: never;
+  path: {
+    /**
+     * Movie Id
+     */
+    movie_id: number;
+  };
+  query?: never;
+  url: "/api/v1/releases/movie/{movie_id}";
+};
+
+export type MovieReleasesApiV1ReleasesMovieMovieIdGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type MovieReleasesApiV1ReleasesMovieMovieIdGetError =
+  MovieReleasesApiV1ReleasesMovieMovieIdGetErrors[keyof MovieReleasesApiV1ReleasesMovieMovieIdGetErrors];
+
+export type MovieReleasesApiV1ReleasesMovieMovieIdGetResponses = {
+  /**
+   * Response Movie Releases Api V1 Releases Movie  Movie Id  Get
+   *
+   * Successful Response
+   */
+  200: Array<ArrReleaseOut>;
+};
+
+export type MovieReleasesApiV1ReleasesMovieMovieIdGetResponse =
+  MovieReleasesApiV1ReleasesMovieMovieIdGetResponses[keyof MovieReleasesApiV1ReleasesMovieMovieIdGetResponses];
+
+export type SeriesReleasesApiV1ReleasesSeriesSeriesIdGetData = {
+  body?: never;
+  path: {
+    /**
+     * Series Id
+     */
+    series_id: number;
+  };
+  query?: {
+    /**
+     * Season
+     */
+    season?: number | null;
+    /**
+     * Episode Id
+     */
+    episode_id?: number | null;
+  };
+  url: "/api/v1/releases/series/{series_id}";
+};
+
+export type SeriesReleasesApiV1ReleasesSeriesSeriesIdGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type SeriesReleasesApiV1ReleasesSeriesSeriesIdGetError =
+  SeriesReleasesApiV1ReleasesSeriesSeriesIdGetErrors[keyof SeriesReleasesApiV1ReleasesSeriesSeriesIdGetErrors];
+
+export type SeriesReleasesApiV1ReleasesSeriesSeriesIdGetResponses = {
+  /**
+   * Response Series Releases Api V1 Releases Series  Series Id  Get
+   *
+   * Successful Response
+   */
+  200: Array<ArrReleaseOut>;
+};
+
+export type SeriesReleasesApiV1ReleasesSeriesSeriesIdGetResponse =
+  SeriesReleasesApiV1ReleasesSeriesSeriesIdGetResponses[keyof SeriesReleasesApiV1ReleasesSeriesSeriesIdGetResponses];
+
+export type GrabArrReleaseApiV1ReleasesAppGrabPostData = {
+  body: GrabIn;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+  };
+  query?: never;
+  url: "/api/v1/releases/{app}/grab";
+};
+
+export type GrabArrReleaseApiV1ReleasesAppGrabPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type GrabArrReleaseApiV1ReleasesAppGrabPostError =
+  GrabArrReleaseApiV1ReleasesAppGrabPostErrors[keyof GrabArrReleaseApiV1ReleasesAppGrabPostErrors];
+
+export type GrabArrReleaseApiV1ReleasesAppGrabPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type GrabArrReleaseApiV1ReleasesAppGrabPostResponse =
+  GrabArrReleaseApiV1ReleasesAppGrabPostResponses[keyof GrabArrReleaseApiV1ReleasesAppGrabPostResponses];
+
+export type RenameFilesApiV1RenameAppPostData = {
+  body: RenameIn;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+  };
+  query?: never;
+  url: "/api/v1/rename/{app}";
+};
+
+export type RenameFilesApiV1RenameAppPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type RenameFilesApiV1RenameAppPostError =
+  RenameFilesApiV1RenameAppPostErrors[keyof RenameFilesApiV1RenameAppPostErrors];
+
+export type RenameFilesApiV1RenameAppPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type RenameFilesApiV1RenameAppPostResponse =
+  RenameFilesApiV1RenameAppPostResponses[keyof RenameFilesApiV1RenameAppPostResponses];
+
+export type RenamePreviewApiV1RenameAppItemIdGetData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+    /**
+     * Item Id
+     */
+    item_id: number;
+  };
+  query?: never;
+  url: "/api/v1/rename/{app}/{item_id}";
+};
+
+export type RenamePreviewApiV1RenameAppItemIdGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type RenamePreviewApiV1RenameAppItemIdGetError =
+  RenamePreviewApiV1RenameAppItemIdGetErrors[keyof RenamePreviewApiV1RenameAppItemIdGetErrors];
+
+export type RenamePreviewApiV1RenameAppItemIdGetResponses = {
+  /**
+   * Response Rename Preview Api V1 Rename  App   Item Id  Get
+   *
+   * Successful Response
+   */
+  200: Array<RenamePreviewOut>;
+};
+
+export type RenamePreviewApiV1RenameAppItemIdGetResponse =
+  RenamePreviewApiV1RenameAppItemIdGetResponses[keyof RenamePreviewApiV1RenameAppItemIdGetResponses];
+
+export type MediaRequestsApiV1RequestsGetData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Filter
+     */
+    filter?: string;
+    /**
+     * Take
+     */
+    take?: number;
+  };
+  url: "/api/v1/requests";
+};
+
+export type MediaRequestsApiV1RequestsGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type MediaRequestsApiV1RequestsGetError =
+  MediaRequestsApiV1RequestsGetErrors[keyof MediaRequestsApiV1RequestsGetErrors];
+
+export type MediaRequestsApiV1RequestsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ServiceBlockListMediaRequestOut;
+};
+
+export type MediaRequestsApiV1RequestsGetResponse =
+  MediaRequestsApiV1RequestsGetResponses[keyof MediaRequestsApiV1RequestsGetResponses];
+
+export type RequestActionApiV1RequestsRequestIdActionPostData = {
+  body?: never;
+  path: {
+    /**
+     * Request Id
+     */
+    request_id: number;
+    /**
+     * Action
+     */
+    action: string;
+  };
+  query?: never;
+  url: "/api/v1/requests/{request_id}/{action}";
+};
+
+export type RequestActionApiV1RequestsRequestIdActionPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type RequestActionApiV1RequestsRequestIdActionPostError =
+  RequestActionApiV1RequestsRequestIdActionPostErrors[keyof RequestActionApiV1RequestsRequestIdActionPostErrors];
+
+export type RequestActionApiV1RequestsRequestIdActionPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type RequestActionApiV1RequestsRequestIdActionPostResponse =
+  RequestActionApiV1RequestsRequestIdActionPostResponses[keyof RequestActionApiV1RequestsRequestIdActionPostResponses];
+
+export type RestoreApiV1RestorePostData = {
+  body: RestoreIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/restore";
+};
+
+export type RestoreApiV1RestorePostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type RestoreApiV1RestorePostError =
+  RestoreApiV1RestorePostErrors[keyof RestoreApiV1RestorePostErrors];
+
+export type RestoreApiV1RestorePostResponses = {
+  /**
+   * Successful Response
+   */
+  200: RestoreOut;
+};
+
+export type RestoreApiV1RestorePostResponse =
+  RestoreApiV1RestorePostResponses[keyof RestoreApiV1RestorePostResponses];
+
+export type SearchMoviesApiV1SearchMoviesGetData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Q
+     */
+    q: string;
+  };
+  url: "/api/v1/search/movies";
+};
+
+export type SearchMoviesApiV1SearchMoviesGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type SearchMoviesApiV1SearchMoviesGetError =
+  SearchMoviesApiV1SearchMoviesGetErrors[keyof SearchMoviesApiV1SearchMoviesGetErrors];
+
+export type SearchMoviesApiV1SearchMoviesGetResponses = {
+  /**
+   * Response Search Movies Api V1 Search Movies Get
+   *
+   * Successful Response
+   */
+  200: Array<SearchResultOut>;
+};
+
+export type SearchMoviesApiV1SearchMoviesGetResponse =
+  SearchMoviesApiV1SearchMoviesGetResponses[keyof SearchMoviesApiV1SearchMoviesGetResponses];
+
+export type SearchReleasesApiV1SearchReleasesGetData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Q
+     */
+    q: string;
+  };
+  url: "/api/v1/search/releases";
+};
+
+export type SearchReleasesApiV1SearchReleasesGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type SearchReleasesApiV1SearchReleasesGetError =
+  SearchReleasesApiV1SearchReleasesGetErrors[keyof SearchReleasesApiV1SearchReleasesGetErrors];
+
+export type SearchReleasesApiV1SearchReleasesGetResponses = {
+  /**
+   * Response Search Releases Api V1 Search Releases Get
+   *
+   * Successful Response
+   */
+  200: Array<ReleaseOut>;
+};
+
+export type SearchReleasesApiV1SearchReleasesGetResponse =
+  SearchReleasesApiV1SearchReleasesGetResponses[keyof SearchReleasesApiV1SearchReleasesGetResponses];
+
+export type SearchSeriesApiV1SearchSeriesGetData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Q
+     */
+    q: string;
+  };
+  url: "/api/v1/search/series";
+};
+
+export type SearchSeriesApiV1SearchSeriesGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type SearchSeriesApiV1SearchSeriesGetError =
+  SearchSeriesApiV1SearchSeriesGetErrors[keyof SearchSeriesApiV1SearchSeriesGetErrors];
+
+export type SearchSeriesApiV1SearchSeriesGetResponses = {
+  /**
+   * Response Search Series Api V1 Search Series Get
+   *
+   * Successful Response
+   */
+  200: Array<SearchResultOut>;
+};
+
+export type SearchSeriesApiV1SearchSeriesGetResponse =
+  SearchSeriesApiV1SearchSeriesGetResponses[keyof SearchSeriesApiV1SearchSeriesGetResponses];
+
+export type AddSeriesApiV1SeriesPostData = {
+  body: AddSeriesIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/series";
+};
+
+export type AddSeriesApiV1SeriesPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type AddSeriesApiV1SeriesPostError =
+  AddSeriesApiV1SeriesPostErrors[keyof AddSeriesApiV1SeriesPostErrors];
+
+export type AddSeriesApiV1SeriesPostResponses = {
+  /**
+   * Response Add Series Api V1 Series Post
+   *
+   * Successful Response
+   */
+  201: {
+    [key: string]: unknown;
+  };
+};
+
+export type AddSeriesApiV1SeriesPostResponse =
+  AddSeriesApiV1SeriesPostResponses[keyof AddSeriesApiV1SeriesPostResponses];
+
+export type ServicesApiV1ServicesGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/services";
+};
+
+export type ServicesApiV1ServicesGetResponses = {
+  /**
+   * Response Services Api V1 Services Get
+   *
+   * Successful Response
+   */
+  200: Array<ServiceInfoOut>;
+};
+
+export type ServicesApiV1ServicesGetResponse =
+  ServicesApiV1ServicesGetResponses[keyof ServicesApiV1ServicesGetResponses];
+
+export type PlaySessionsApiV1SessionsGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/sessions";
+};
+
+export type PlaySessionsApiV1SessionsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ServiceBlockListPlaySessionOut;
+};
+
+export type PlaySessionsApiV1SessionsGetResponse =
+  PlaySessionsApiV1SessionsGetResponses[keyof PlaySessionsApiV1SessionsGetResponses];
+
 export type ExportSettingsApiV1SettingsExportGetData = {
   body?: never;
   path?: never;
@@ -6700,83 +6151,62 @@ export type ImportSettingsApiV1SettingsImportPostResponses = {
 export type ImportSettingsApiV1SettingsImportPostResponse =
   ImportSettingsApiV1SettingsImportPostResponses[keyof ImportSettingsApiV1SettingsImportPostResponses];
 
-export type BackupApiV1BackupGetData = {
+export type AllSettingsApiV1SettingsServicesGetData = {
   body?: never;
   path?: never;
   query?: never;
-  url: "/api/v1/backup";
+  url: "/api/v1/settings/services";
 };
 
-export type BackupApiV1BackupGetResponses = {
+export type AllSettingsApiV1SettingsServicesGetResponses = {
   /**
-   * Successful Response
-   */
-  200: BackupOut;
-};
-
-export type BackupApiV1BackupGetResponse =
-  BackupApiV1BackupGetResponses[keyof BackupApiV1BackupGetResponses];
-
-export type RestoreApiV1RestorePostData = {
-  body: RestoreIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/restore";
-};
-
-export type RestoreApiV1RestorePostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type RestoreApiV1RestorePostError =
-  RestoreApiV1RestorePostErrors[keyof RestoreApiV1RestorePostErrors];
-
-export type RestoreApiV1RestorePostResponses = {
-  /**
-   * Successful Response
-   */
-  200: RestoreOut;
-};
-
-export type RestoreApiV1RestorePostResponse =
-  RestoreApiV1RestorePostResponses[keyof RestoreApiV1RestorePostResponses];
-
-export type StatsHistoryApiV1StatsHistoryGetData = {
-  body?: never;
-  path?: never;
-  query?: {
-    /**
-     * Days
-     */
-    days?: number;
-  };
-  url: "/api/v1/stats/history";
-};
-
-export type StatsHistoryApiV1StatsHistoryGetErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type StatsHistoryApiV1StatsHistoryGetError =
-  StatsHistoryApiV1StatsHistoryGetErrors[keyof StatsHistoryApiV1StatsHistoryGetErrors];
-
-export type StatsHistoryApiV1StatsHistoryGetResponses = {
-  /**
-   * Response Stats History Api V1 Stats History Get
+   * Response All Settings Api V1 Settings Services Get
    *
    * Successful Response
    */
-  200: Array<StatsSampleOut>;
+  200: {
+    [key: string]: ServiceSettingsOut;
+  };
 };
 
-export type StatsHistoryApiV1StatsHistoryGetResponse =
-  StatsHistoryApiV1StatsHistoryGetResponses[keyof StatsHistoryApiV1StatsHistoryGetResponses];
+export type AllSettingsApiV1SettingsServicesGetResponse =
+  AllSettingsApiV1SettingsServicesGetResponses[keyof AllSettingsApiV1SettingsServicesGetResponses];
+
+export type SaveSettingsApiV1SettingsServicesNamePutData = {
+  body: ServiceSettingsIn;
+  path: {
+    /**
+     * Name
+     */
+    name: string;
+  };
+  query?: never;
+  url: "/api/v1/settings/services/{name}";
+};
+
+export type SaveSettingsApiV1SettingsServicesNamePutErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type SaveSettingsApiV1SettingsServicesNamePutError =
+  SaveSettingsApiV1SettingsServicesNamePutErrors[keyof SaveSettingsApiV1SettingsServicesNamePutErrors];
+
+export type SaveSettingsApiV1SettingsServicesNamePutResponses = {
+  /**
+   * Response Save Settings Api V1 Settings Services  Name  Put
+   *
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown;
+  };
+};
+
+export type SaveSettingsApiV1SettingsServicesNamePutResponse =
+  SaveSettingsApiV1SettingsServicesNamePutResponses[keyof SaveSettingsApiV1SettingsServicesNamePutResponses];
 
 export type TestServiceApiV1SettingsServicesNameTestPostData = {
   body?: never;
@@ -6814,289 +6244,898 @@ export type TestServiceApiV1SettingsServicesNameTestPostResponses = {
 export type TestServiceApiV1SettingsServicesNameTestPostResponse =
   TestServiceApiV1SettingsServicesNameTestPostResponses[keyof TestServiceApiV1SettingsServicesNameTestPostResponses];
 
-export type AuthStateApiV1AuthStateGetData = {
+export type StatsHistoryApiV1StatsHistoryGetData = {
   body?: never;
   path?: never;
-  query?: never;
-  url: "/api/v1/auth/state";
-};
-
-export type AuthStateApiV1AuthStateGetResponses = {
-  /**
-   * Response Auth State Api V1 Auth State Get
-   *
-   * Successful Response
-   */
-  200: {
-    [key: string]: unknown;
+  query?: {
+    /**
+     * Days
+     */
+    days?: number;
   };
+  url: "/api/v1/stats/history";
 };
 
-export type AuthStateApiV1AuthStateGetResponse =
-  AuthStateApiV1AuthStateGetResponses[keyof AuthStateApiV1AuthStateGetResponses];
-
-export type SetupCodeApiV1AuthSetupCodeGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/auth/setup-code";
-};
-
-export type SetupCodeApiV1AuthSetupCodeGetResponses = {
-  /**
-   * Response Setup Code Api V1 Auth Setup Code Get
-   *
-   * Successful Response
-   */
-  200: {
-    [key: string]: unknown;
-  };
-};
-
-export type SetupCodeApiV1AuthSetupCodeGetResponse =
-  SetupCodeApiV1AuthSetupCodeGetResponses[keyof SetupCodeApiV1AuthSetupCodeGetResponses];
-
-export type RegisterOptionsApiV1AuthRegisterOptionsPostData = {
-  /**
-   * Body
-   */
-  body?: RegisterOptionsIn | null;
-  path?: never;
-  query?: never;
-  url: "/api/v1/auth/register/options";
-};
-
-export type RegisterOptionsApiV1AuthRegisterOptionsPostErrors = {
+export type StatsHistoryApiV1StatsHistoryGetErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError;
 };
 
-export type RegisterOptionsApiV1AuthRegisterOptionsPostError =
-  RegisterOptionsApiV1AuthRegisterOptionsPostErrors[keyof RegisterOptionsApiV1AuthRegisterOptionsPostErrors];
+export type StatsHistoryApiV1StatsHistoryGetError =
+  StatsHistoryApiV1StatsHistoryGetErrors[keyof StatsHistoryApiV1StatsHistoryGetErrors];
 
-export type RegisterOptionsApiV1AuthRegisterOptionsPostResponses = {
+export type StatsHistoryApiV1StatsHistoryGetResponses = {
+  /**
+   * Response Stats History Api V1 Stats History Get
+   *
+   * Successful Response
+   */
+  200: Array<StatsSampleOut>;
+};
+
+export type StatsHistoryApiV1StatsHistoryGetResponse =
+  StatsHistoryApiV1StatsHistoryGetResponses[keyof StatsHistoryApiV1StatsHistoryGetResponses];
+
+export type StatusApiV1StatusGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/status";
+};
+
+export type StatusApiV1StatusGetResponses = {
+  /**
+   * Response Status Api V1 Status Get
+   *
+   * Successful Response
+   */
+  200: Array<ServiceStatus>;
+};
+
+export type StatusApiV1StatusGetResponse =
+  StatusApiV1StatusGetResponses[keyof StatusApiV1StatusGetResponses];
+
+export type SubtitlesApiV1SubtitlesGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/subtitles";
+};
+
+export type SubtitlesApiV1SubtitlesGetResponses = {
   /**
    * Successful Response
    */
-  200: unknown;
+  200: ServiceBlockSubtitlesOut;
 };
 
-export type RegisterVerifyApiV1AuthRegisterVerifyPostData = {
-  body: VerifyIn;
+export type SubtitlesApiV1SubtitlesGetResponse =
+  SubtitlesApiV1SubtitlesGetResponses[keyof SubtitlesApiV1SubtitlesGetResponses];
+
+export type SubtitleSearchApiV1SubtitlesSearchPostData = {
+  body: SubtitleSearchIn;
   path?: never;
   query?: never;
-  url: "/api/v1/auth/register/verify";
+  url: "/api/v1/subtitles/search";
 };
 
-export type RegisterVerifyApiV1AuthRegisterVerifyPostErrors = {
+export type SubtitleSearchApiV1SubtitlesSearchPostErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError;
 };
 
-export type RegisterVerifyApiV1AuthRegisterVerifyPostError =
-  RegisterVerifyApiV1AuthRegisterVerifyPostErrors[keyof RegisterVerifyApiV1AuthRegisterVerifyPostErrors];
+export type SubtitleSearchApiV1SubtitlesSearchPostError =
+  SubtitleSearchApiV1SubtitlesSearchPostErrors[keyof SubtitleSearchApiV1SubtitlesSearchPostErrors];
 
-export type RegisterVerifyApiV1AuthRegisterVerifyPostResponses = {
-  /**
-   * Response Register Verify Api V1 Auth Register Verify Post
-   *
-   * Successful Response
-   */
-  200: {
-    [key: string]: unknown;
-  };
-};
-
-export type RegisterVerifyApiV1AuthRegisterVerifyPostResponse =
-  RegisterVerifyApiV1AuthRegisterVerifyPostResponses[keyof RegisterVerifyApiV1AuthRegisterVerifyPostResponses];
-
-export type LoginOptionsApiV1AuthLoginOptionsPostData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/auth/login/options";
-};
-
-export type LoginOptionsApiV1AuthLoginOptionsPostResponses = {
-  /**
-   * Successful Response
-   */
-  200: unknown;
-};
-
-export type LoginVerifyApiV1AuthLoginVerifyPostData = {
-  body: VerifyIn;
-  path?: never;
-  query?: never;
-  url: "/api/v1/auth/login/verify";
-};
-
-export type LoginVerifyApiV1AuthLoginVerifyPostErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type LoginVerifyApiV1AuthLoginVerifyPostError =
-  LoginVerifyApiV1AuthLoginVerifyPostErrors[keyof LoginVerifyApiV1AuthLoginVerifyPostErrors];
-
-export type LoginVerifyApiV1AuthLoginVerifyPostResponses = {
-  /**
-   * Response Login Verify Api V1 Auth Login Verify Post
-   *
-   * Successful Response
-   */
-  200: {
-    [key: string]: unknown;
-  };
-};
-
-export type LoginVerifyApiV1AuthLoginVerifyPostResponse =
-  LoginVerifyApiV1AuthLoginVerifyPostResponses[keyof LoginVerifyApiV1AuthLoginVerifyPostResponses];
-
-export type LogoutApiV1AuthLogoutPostData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/auth/logout";
-};
-
-export type LogoutApiV1AuthLogoutPostResponses = {
+export type SubtitleSearchApiV1SubtitlesSearchPostResponses = {
   /**
    * Successful Response
    */
   204: void;
 };
 
-export type LogoutApiV1AuthLogoutPostResponse =
-  LogoutApiV1AuthLogoutPostResponses[keyof LogoutApiV1AuthLogoutPostResponses];
+export type SubtitleSearchApiV1SubtitlesSearchPostResponse =
+  SubtitleSearchApiV1SubtitlesSearchPostResponses[keyof SubtitleSearchApiV1SubtitlesSearchPostResponses];
 
-export type RevokeOtherSessionsApiV1AuthSessionsDeleteData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/auth/sessions";
-};
-
-export type RevokeOtherSessionsApiV1AuthSessionsDeleteResponses = {
-  /**
-   * Response Revoke Other Sessions Api V1 Auth Sessions Delete
-   *
-   * Successful Response
-   */
-  200: {
-    [key: string]: unknown;
-  };
-};
-
-export type RevokeOtherSessionsApiV1AuthSessionsDeleteResponse =
-  RevokeOtherSessionsApiV1AuthSessionsDeleteResponses[keyof RevokeOtherSessionsApiV1AuthSessionsDeleteResponses];
-
-export type SessionsApiV1AuthSessionsGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/auth/sessions";
-};
-
-export type SessionsApiV1AuthSessionsGetResponses = {
-  /**
-   * Response Sessions Api V1 Auth Sessions Get
-   *
-   * Successful Response
-   */
-  200: Array<SessionOut>;
-};
-
-export type SessionsApiV1AuthSessionsGetResponse =
-  SessionsApiV1AuthSessionsGetResponses[keyof SessionsApiV1AuthSessionsGetResponses];
-
-export type RevokeSessionApiV1AuthSessionsSessionIdDeleteData = {
+export type TagsApiV1TagsAppGetData = {
   body?: never;
   path: {
     /**
-     * Session Id
+     * App
      */
-    session_id: string;
+    app: string;
   };
   query?: never;
-  url: "/api/v1/auth/sessions/{session_id}";
+  url: "/api/v1/tags/{app}";
 };
 
-export type RevokeSessionApiV1AuthSessionsSessionIdDeleteErrors = {
+export type TagsApiV1TagsAppGetErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError;
 };
 
-export type RevokeSessionApiV1AuthSessionsSessionIdDeleteError =
-  RevokeSessionApiV1AuthSessionsSessionIdDeleteErrors[keyof RevokeSessionApiV1AuthSessionsSessionIdDeleteErrors];
+export type TagsApiV1TagsAppGetError =
+  TagsApiV1TagsAppGetErrors[keyof TagsApiV1TagsAppGetErrors];
 
-export type RevokeSessionApiV1AuthSessionsSessionIdDeleteResponses = {
+export type TagsApiV1TagsAppGetResponses = {
   /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type RevokeSessionApiV1AuthSessionsSessionIdDeleteResponse =
-  RevokeSessionApiV1AuthSessionsSessionIdDeleteResponses[keyof RevokeSessionApiV1AuthSessionsSessionIdDeleteResponses];
-
-export type CredentialsApiV1AuthCredentialsGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/v1/auth/credentials";
-};
-
-export type CredentialsApiV1AuthCredentialsGetResponses = {
-  /**
-   * Response Credentials Api V1 Auth Credentials Get
+   * Response Tags Api V1 Tags  App  Get
    *
    * Successful Response
    */
-  200: Array<{
-    [key: string]: unknown;
-  }>;
+  200: Array<TagOut>;
 };
 
-export type CredentialsApiV1AuthCredentialsGetResponse =
-  CredentialsApiV1AuthCredentialsGetResponses[keyof CredentialsApiV1AuthCredentialsGetResponses];
+export type TagsApiV1TagsAppGetResponse =
+  TagsApiV1TagsAppGetResponses[keyof TagsApiV1TagsAppGetResponses];
 
-export type DeleteCredentialApiV1AuthCredentialsCredIdDeleteData = {
+export type TasksApiV1TasksGetData = {
   body?: never;
-  path: {
-    /**
-     * Cred Id
-     */
-    cred_id: number;
-  };
+  path?: never;
   query?: never;
-  url: "/api/v1/auth/credentials/{cred_id}";
+  url: "/api/v1/tasks";
 };
 
-export type DeleteCredentialApiV1AuthCredentialsCredIdDeleteErrors = {
+export type TasksApiV1TasksGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ServiceBlockListScheduledTaskOut;
+};
+
+export type TasksApiV1TasksGetResponse =
+  TasksApiV1TasksGetResponses[keyof TasksApiV1TasksGetResponses];
+
+export type TorrentsApiV1TorrentsGetData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Q
+     */
+    q?: string;
+    /**
+     * State
+     */
+    state?: string;
+    /**
+     * Sort
+     */
+    sort?: string;
+    /**
+     * Dir
+     */
+    dir?: string;
+    /**
+     * Limit
+     */
+    limit?: number;
+  };
+  url: "/api/v1/torrents";
+};
+
+export type TorrentsApiV1TorrentsGetErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError;
 };
 
-export type DeleteCredentialApiV1AuthCredentialsCredIdDeleteError =
-  DeleteCredentialApiV1AuthCredentialsCredIdDeleteErrors[keyof DeleteCredentialApiV1AuthCredentialsCredIdDeleteErrors];
+export type TorrentsApiV1TorrentsGetError =
+  TorrentsApiV1TorrentsGetErrors[keyof TorrentsApiV1TorrentsGetErrors];
 
-export type DeleteCredentialApiV1AuthCredentialsCredIdDeleteResponses = {
+export type TorrentsApiV1TorrentsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: TorrentsResponse;
+};
+
+export type TorrentsApiV1TorrentsGetResponse =
+  TorrentsApiV1TorrentsGetResponses[keyof TorrentsApiV1TorrentsGetResponses];
+
+export type QbitCategoriesApiV1TorrentsQbittorrentCategoriesGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/torrents/qbittorrent/categories";
+};
+
+export type QbitCategoriesApiV1TorrentsQbittorrentCategoriesGetResponses = {
+  /**
+   * Response Qbit Categories Api V1 Torrents Qbittorrent Categories Get
+   *
+   * Successful Response
+   */
+  200: Array<string>;
+};
+
+export type QbitCategoriesApiV1TorrentsQbittorrentCategoriesGetResponse =
+  QbitCategoriesApiV1TorrentsQbittorrentCategoriesGetResponses[keyof QbitCategoriesApiV1TorrentsQbittorrentCategoriesGetResponses];
+
+export type QbitDeleteApiV1TorrentsQbittorrentDeletePostData = {
+  body: TorrentDeleteIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/torrents/qbittorrent/delete";
+};
+
+export type QbitDeleteApiV1TorrentsQbittorrentDeletePostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type QbitDeleteApiV1TorrentsQbittorrentDeletePostError =
+  QbitDeleteApiV1TorrentsQbittorrentDeletePostErrors[keyof QbitDeleteApiV1TorrentsQbittorrentDeletePostErrors];
+
+export type QbitDeleteApiV1TorrentsQbittorrentDeletePostResponses = {
   /**
    * Successful Response
    */
   204: void;
 };
 
-export type DeleteCredentialApiV1AuthCredentialsCredIdDeleteResponse =
-  DeleteCredentialApiV1AuthCredentialsCredIdDeleteResponses[keyof DeleteCredentialApiV1AuthCredentialsCredIdDeleteResponses];
+export type QbitDeleteApiV1TorrentsQbittorrentDeletePostResponse =
+  QbitDeleteApiV1TorrentsQbittorrentDeletePostResponses[keyof QbitDeleteApiV1TorrentsQbittorrentDeletePostResponses];
+
+export type TorrentForceStartApiV1TorrentsQbittorrentForceStartPostData = {
+  body: TorrentForceStartIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/torrents/qbittorrent/force-start";
+};
+
+export type TorrentForceStartApiV1TorrentsQbittorrentForceStartPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TorrentForceStartApiV1TorrentsQbittorrentForceStartPostError =
+  TorrentForceStartApiV1TorrentsQbittorrentForceStartPostErrors[keyof TorrentForceStartApiV1TorrentsQbittorrentForceStartPostErrors];
+
+export type TorrentForceStartApiV1TorrentsQbittorrentForceStartPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type TorrentForceStartApiV1TorrentsQbittorrentForceStartPostResponse =
+  TorrentForceStartApiV1TorrentsQbittorrentForceStartPostResponses[keyof TorrentForceStartApiV1TorrentsQbittorrentForceStartPostResponses];
+
+export type QbitPauseApiV1TorrentsQbittorrentPausePostData = {
+  body: TorrentActionIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/torrents/qbittorrent/pause";
+};
+
+export type QbitPauseApiV1TorrentsQbittorrentPausePostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type QbitPauseApiV1TorrentsQbittorrentPausePostError =
+  QbitPauseApiV1TorrentsQbittorrentPausePostErrors[keyof QbitPauseApiV1TorrentsQbittorrentPausePostErrors];
+
+export type QbitPauseApiV1TorrentsQbittorrentPausePostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type QbitPauseApiV1TorrentsQbittorrentPausePostResponse =
+  QbitPauseApiV1TorrentsQbittorrentPausePostResponses[keyof QbitPauseApiV1TorrentsQbittorrentPausePostResponses];
+
+export type QbitResumeApiV1TorrentsQbittorrentResumePostData = {
+  body: TorrentActionIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/torrents/qbittorrent/resume";
+};
+
+export type QbitResumeApiV1TorrentsQbittorrentResumePostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type QbitResumeApiV1TorrentsQbittorrentResumePostError =
+  QbitResumeApiV1TorrentsQbittorrentResumePostErrors[keyof QbitResumeApiV1TorrentsQbittorrentResumePostErrors];
+
+export type QbitResumeApiV1TorrentsQbittorrentResumePostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type QbitResumeApiV1TorrentsQbittorrentResumePostResponse =
+  QbitResumeApiV1TorrentsQbittorrentResumePostResponses[keyof QbitResumeApiV1TorrentsQbittorrentResumePostResponses];
+
+export type QbitTagsApiV1TorrentsQbittorrentTagsGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/torrents/qbittorrent/tags";
+};
+
+export type QbitTagsApiV1TorrentsQbittorrentTagsGetResponses = {
+  /**
+   * Response Qbit Tags Api V1 Torrents Qbittorrent Tags Get
+   *
+   * Successful Response
+   */
+  200: Array<string>;
+};
+
+export type QbitTagsApiV1TorrentsQbittorrentTagsGetResponse =
+  QbitTagsApiV1TorrentsQbittorrentTagsGetResponses[keyof QbitTagsApiV1TorrentsQbittorrentTagsGetResponses];
+
+export type QbitSetTagsApiV1TorrentsQbittorrentTagsPostData = {
+  body: TorrentTagsIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/torrents/qbittorrent/tags";
+};
+
+export type QbitSetTagsApiV1TorrentsQbittorrentTagsPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type QbitSetTagsApiV1TorrentsQbittorrentTagsPostError =
+  QbitSetTagsApiV1TorrentsQbittorrentTagsPostErrors[keyof QbitSetTagsApiV1TorrentsQbittorrentTagsPostErrors];
+
+export type QbitSetTagsApiV1TorrentsQbittorrentTagsPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type QbitSetTagsApiV1TorrentsQbittorrentTagsPostResponse =
+  QbitSetTagsApiV1TorrentsQbittorrentTagsPostResponses[keyof QbitSetTagsApiV1TorrentsQbittorrentTagsPostResponses];
+
+export type TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostData = {
+  body: TorrentCategoryIn;
+  path: {
+    /**
+     * Torrent Id
+     */
+    torrent_id: string;
+  };
+  query?: never;
+  url: "/api/v1/torrents/qbittorrent/{torrent_id}/category";
+};
+
+export type TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostError =
+  TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostErrors[keyof TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostErrors];
+
+export type TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostResponse =
+  TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostResponses[keyof TorrentCategoryApiV1TorrentsQbittorrentTorrentIdCategoryPostResponses];
+
+export type SpeedLimitApiV1TorrentsSpeedLimitGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/torrents/speed-limit";
+};
+
+export type SpeedLimitApiV1TorrentsSpeedLimitGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: SpeedLimitOut;
+};
+
+export type SpeedLimitApiV1TorrentsSpeedLimitGetResponse =
+  SpeedLimitApiV1TorrentsSpeedLimitGetResponses[keyof SpeedLimitApiV1TorrentsSpeedLimitGetResponses];
+
+export type TorrentsSummaryApiV1TorrentsSummaryGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/torrents/summary";
+};
+
+export type TorrentsSummaryApiV1TorrentsSummaryGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: TorrentsSummaryResponse;
+};
+
+export type TorrentsSummaryApiV1TorrentsSummaryGetResponse =
+  TorrentsSummaryApiV1TorrentsSummaryGetResponses[keyof TorrentsSummaryApiV1TorrentsSummaryGetResponses];
+
+export type TmDeleteApiV1TorrentsTransmissionDeletePostData = {
+  body: TorrentDeleteIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/torrents/transmission/delete";
+};
+
+export type TmDeleteApiV1TorrentsTransmissionDeletePostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TmDeleteApiV1TorrentsTransmissionDeletePostError =
+  TmDeleteApiV1TorrentsTransmissionDeletePostErrors[keyof TmDeleteApiV1TorrentsTransmissionDeletePostErrors];
+
+export type TmDeleteApiV1TorrentsTransmissionDeletePostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type TmDeleteApiV1TorrentsTransmissionDeletePostResponse =
+  TmDeleteApiV1TorrentsTransmissionDeletePostResponses[keyof TmDeleteApiV1TorrentsTransmissionDeletePostResponses];
+
+export type TmPauseApiV1TorrentsTransmissionPausePostData = {
+  body: TorrentActionIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/torrents/transmission/pause";
+};
+
+export type TmPauseApiV1TorrentsTransmissionPausePostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TmPauseApiV1TorrentsTransmissionPausePostError =
+  TmPauseApiV1TorrentsTransmissionPausePostErrors[keyof TmPauseApiV1TorrentsTransmissionPausePostErrors];
+
+export type TmPauseApiV1TorrentsTransmissionPausePostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type TmPauseApiV1TorrentsTransmissionPausePostResponse =
+  TmPauseApiV1TorrentsTransmissionPausePostResponses[keyof TmPauseApiV1TorrentsTransmissionPausePostResponses];
+
+export type TmResumeApiV1TorrentsTransmissionResumePostData = {
+  body: TorrentActionIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/torrents/transmission/resume";
+};
+
+export type TmResumeApiV1TorrentsTransmissionResumePostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TmResumeApiV1TorrentsTransmissionResumePostError =
+  TmResumeApiV1TorrentsTransmissionResumePostErrors[keyof TmResumeApiV1TorrentsTransmissionResumePostErrors];
+
+export type TmResumeApiV1TorrentsTransmissionResumePostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type TmResumeApiV1TorrentsTransmissionResumePostResponse =
+  TmResumeApiV1TorrentsTransmissionResumePostResponses[keyof TmResumeApiV1TorrentsTransmissionResumePostResponses];
+
+export type AddTorrentApiV1TorrentsClientAddPostData = {
+  body: AddTorrentIn;
+  path: {
+    /**
+     * Client
+     */
+    client: string;
+  };
+  query?: never;
+  url: "/api/v1/torrents/{client}/add";
+};
+
+export type AddTorrentApiV1TorrentsClientAddPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type AddTorrentApiV1TorrentsClientAddPostError =
+  AddTorrentApiV1TorrentsClientAddPostErrors[keyof AddTorrentApiV1TorrentsClientAddPostErrors];
+
+export type AddTorrentApiV1TorrentsClientAddPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type AddTorrentApiV1TorrentsClientAddPostResponse =
+  AddTorrentApiV1TorrentsClientAddPostResponses[keyof AddTorrentApiV1TorrentsClientAddPostResponses];
+
+export type AddTorrentFileApiV1TorrentsClientAddFilePostData = {
+  body: BodyAddTorrentFileApiV1TorrentsClientAddFilePost;
+  path: {
+    /**
+     * Client
+     */
+    client: string;
+  };
+  query?: never;
+  url: "/api/v1/torrents/{client}/add-file";
+};
+
+export type AddTorrentFileApiV1TorrentsClientAddFilePostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type AddTorrentFileApiV1TorrentsClientAddFilePostError =
+  AddTorrentFileApiV1TorrentsClientAddFilePostErrors[keyof AddTorrentFileApiV1TorrentsClientAddFilePostErrors];
+
+export type AddTorrentFileApiV1TorrentsClientAddFilePostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type AddTorrentFileApiV1TorrentsClientAddFilePostResponse =
+  AddTorrentFileApiV1TorrentsClientAddFilePostResponses[keyof AddTorrentFileApiV1TorrentsClientAddFilePostResponses];
+
+export type TorrentPriorityApiV1TorrentsClientPriorityPostData = {
+  body: TorrentPriorityIn;
+  path: {
+    /**
+     * Client
+     */
+    client: string;
+  };
+  query?: never;
+  url: "/api/v1/torrents/{client}/priority";
+};
+
+export type TorrentPriorityApiV1TorrentsClientPriorityPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TorrentPriorityApiV1TorrentsClientPriorityPostError =
+  TorrentPriorityApiV1TorrentsClientPriorityPostErrors[keyof TorrentPriorityApiV1TorrentsClientPriorityPostErrors];
+
+export type TorrentPriorityApiV1TorrentsClientPriorityPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type TorrentPriorityApiV1TorrentsClientPriorityPostResponse =
+  TorrentPriorityApiV1TorrentsClientPriorityPostResponses[keyof TorrentPriorityApiV1TorrentsClientPriorityPostResponses];
+
+export type TorrentRecheckApiV1TorrentsClientRecheckPostData = {
+  body: TorrentActionIn;
+  path: {
+    /**
+     * Client
+     */
+    client: string;
+  };
+  query?: never;
+  url: "/api/v1/torrents/{client}/recheck";
+};
+
+export type TorrentRecheckApiV1TorrentsClientRecheckPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TorrentRecheckApiV1TorrentsClientRecheckPostError =
+  TorrentRecheckApiV1TorrentsClientRecheckPostErrors[keyof TorrentRecheckApiV1TorrentsClientRecheckPostErrors];
+
+export type TorrentRecheckApiV1TorrentsClientRecheckPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type TorrentRecheckApiV1TorrentsClientRecheckPostResponse =
+  TorrentRecheckApiV1TorrentsClientRecheckPostResponses[keyof TorrentRecheckApiV1TorrentsClientRecheckPostResponses];
+
+export type SetSpeedLimitApiV1TorrentsClientSpeedLimitPostData = {
+  body: SpeedLimitIn;
+  path: {
+    /**
+     * Client
+     */
+    client: string;
+  };
+  query?: never;
+  url: "/api/v1/torrents/{client}/speed-limit";
+};
+
+export type SetSpeedLimitApiV1TorrentsClientSpeedLimitPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type SetSpeedLimitApiV1TorrentsClientSpeedLimitPostError =
+  SetSpeedLimitApiV1TorrentsClientSpeedLimitPostErrors[keyof SetSpeedLimitApiV1TorrentsClientSpeedLimitPostErrors];
+
+export type SetSpeedLimitApiV1TorrentsClientSpeedLimitPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type SetSpeedLimitApiV1TorrentsClientSpeedLimitPostResponse =
+  SetSpeedLimitApiV1TorrentsClientSpeedLimitPostResponses[keyof SetSpeedLimitApiV1TorrentsClientSpeedLimitPostResponses];
+
+export type TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetData = {
+  body?: never;
+  path: {
+    /**
+     * Client
+     */
+    client: string;
+    /**
+     * Torrent Id
+     */
+    torrent_id: string;
+  };
+  query?: never;
+  url: "/api/v1/torrents/{client}/{torrent_id}/details";
+};
+
+export type TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetError =
+  TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetErrors[keyof TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetErrors];
+
+export type TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: TorrentDetailsOut;
+};
+
+export type TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetResponse =
+  TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetResponses[keyof TorrentDetailsApiV1TorrentsClientTorrentIdDetailsGetResponses];
+
+export type TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostData = {
+  body: TorrentFileToggleIn;
+  path: {
+    /**
+     * Client
+     */
+    client: string;
+    /**
+     * Torrent Id
+     */
+    torrent_id: string;
+  };
+  query?: never;
+  url: "/api/v1/torrents/{client}/{torrent_id}/files";
+};
+
+export type TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostError =
+  TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostErrors[keyof TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostErrors];
+
+export type TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostResponse =
+  TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostResponses[keyof TorrentFileToggleApiV1TorrentsClientTorrentIdFilesPostResponses];
+
+export type TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostData = {
+  body: TorrentLimitsIn;
+  path: {
+    /**
+     * Client
+     */
+    client: string;
+    /**
+     * Torrent Id
+     */
+    torrent_id: string;
+  };
+  query?: never;
+  url: "/api/v1/torrents/{client}/{torrent_id}/limits";
+};
+
+export type TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostError =
+  TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostErrors[keyof TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostErrors];
+
+export type TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostResponse =
+  TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostResponses[keyof TorrentLimitsApiV1TorrentsClientTorrentIdLimitsPostResponses];
+
+export type VpnStatusApiV1VpnGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/vpn";
+};
+
+export type VpnStatusApiV1VpnGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ServiceBlockVpnStatusOut;
+};
+
+export type VpnStatusApiV1VpnGetResponse =
+  VpnStatusApiV1VpnGetResponses[keyof VpnStatusApiV1VpnGetResponses];
+
+export type WantedApiV1WantedAppGetData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+  };
+  query?: {
+    /**
+     * Kind
+     */
+    kind?: string;
+    /**
+     * Page
+     */
+    page?: number;
+  };
+  url: "/api/v1/wanted/{app}";
+};
+
+export type WantedApiV1WantedAppGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type WantedApiV1WantedAppGetError =
+  WantedApiV1WantedAppGetErrors[keyof WantedApiV1WantedAppGetErrors];
+
+export type WantedApiV1WantedAppGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: WantedPageOut;
+};
+
+export type WantedApiV1WantedAppGetResponse =
+  WantedApiV1WantedAppGetResponses[keyof WantedApiV1WantedAppGetResponses];
+
+export type WantedSearchAllApiV1WantedAppSearchAllPostData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+  };
+  query?: {
+    /**
+     * Kind
+     */
+    kind?: string;
+  };
+  url: "/api/v1/wanted/{app}/search-all";
+};
+
+export type WantedSearchAllApiV1WantedAppSearchAllPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type WantedSearchAllApiV1WantedAppSearchAllPostError =
+  WantedSearchAllApiV1WantedAppSearchAllPostErrors[keyof WantedSearchAllApiV1WantedAppSearchAllPostErrors];
+
+export type WantedSearchAllApiV1WantedAppSearchAllPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type WantedSearchAllApiV1WantedAppSearchAllPostResponse =
+  WantedSearchAllApiV1WantedAppSearchAllPostResponses[keyof WantedSearchAllApiV1WantedAppSearchAllPostResponses];
+
+export type WatchedApiV1WatchedGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/watched";
+};
+
+export type WatchedApiV1WatchedGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ServiceBlockWatchedMapOut;
+};
+
+export type WatchedApiV1WatchedGetResponse =
+  WatchedApiV1WatchedGetResponses[keyof WatchedApiV1WatchedGetResponses];
