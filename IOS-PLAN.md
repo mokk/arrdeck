@@ -147,7 +147,19 @@ Start with the first; it needs nothing new server-side. The sliding session
 means re-auth is effectively never, so the web view is a one-time ritual per
 profile.
 
-## E1. Native shell, skeleton — Size S
+## Decision (2026-09-22): native UI, no PWA tab
+
+Asked directly, the user chose the native rewrite over the web-view shell. The
+only web content in the app is the sign-in sheet, which is unavoidable (see C).
+Consequences: F and G move ahead of D; E1/E2 shrink to the push-registration
+plumbing D needs, folded into D; the "use it for a week, then decide" gate is
+gone — the decision is made.
+
+New sequence: **A → C → F → G (Dashboard first) → D → H → I.**
+
+The sections below predate the decision and are kept for the reasoning.
+
+## E1. Native shell, skeleton — Size S (superseded)
 
 Pulled ahead of APNs because **APNs cannot be verified without a real device
 token from a real app** — as originally ordered, D would have been written blind.
@@ -172,7 +184,7 @@ token from a real app** — as originally ordered, D would have been written bli
 - If APNs is unconfigured, say so plainly rather than failing silently.
 - Identical deep-link payloads across transports.
 
-## E2. Native shell, finish — Size M
+## E2. Native shell, finish — Size M (superseded)
 
 - Deep links from notifications route into the web view.
 - Share extension: accept a URL, hit the existing search-and-add endpoints.
@@ -244,15 +256,15 @@ operator needs their own build and Apple account, or you run the relay.
 | B capability discovery | — | **done** |
 | B2 localised push text | — | **done** — prerequisite for D |
 | C pairing and auth | M | Web view path needs no backend change |
-| E1 shell skeleton | S | Before D: APNs needs a real token to test against |
-| D APNs, operator-supplied | M | The reason to go native |
-| E2 shell finish | M | Usable app; **decision point with criteria** |
-| F generated Swift client | S | Only if going full native |
-| G port the screens | L | The actual cost |
+| F generated Swift client | S | From the committed spec; drift is a compile error |
+| G port the screens | L | Dashboard first — it establishes the ServiceBlock pattern |
+| D APNs, operator-supplied | M | Includes the push-registration plumbing E1 would have had |
 | H localisation | S | Mechanical |
-| I widgets, Live Activity, Intents | M | Needs only the shell — reachable without F–H |
+| I widgets, Live Activity, Intents | M | The genuine payoff |
 
-**A → C → E1 → D → E2 → *evaluate* → (F → G → H) or I directly**
+**A → C → F → G (Dashboard) → G (rest) → D → H → I** — E1/E2 superseded by the
+native-first decision above; C is done (2026-09-22), with pairing native except
+the sign-in web view.
 
 Repo layout decided: **two repos, no shared repo.** `arrdeck` keeps the backend
 and the PWA; `arrdeck-ios` pins `arrdeck` as a submodule and reads the tokens,
