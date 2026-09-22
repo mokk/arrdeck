@@ -253,6 +253,16 @@ easy to lose in a rewrite.
 - Not yet: the "See all →" links (Wanted, Calendar, History, Stats pages) and
   the manual-import sheet; they arrive with their screens.
 
+**Downloads done (2026-09-22, same day).** Server-side query (`TorrentQuery`:
+text, state, sort, direction, limit) with the backend's comparator mirrored
+client-side so the merged, independently-capped lists re-sort correctly —
+nulls last in both directions. Debounced search, swipe pause/resume/delete,
+delete-with-or-without-files, throttle ("some" semantics: either client
+throttled reads as on), load-more, the arr queue with remove. Detail sheet
+carries files and trackers; limits, queue position, category, tags and the
+add-torrent sheet are still to come, as is bulk select. Reached from the
+dashboard's toolbar until there is a tab bar.
+
 ## H. Localisation — Size S
 
 437 keys, en + da, to `.xcstrings`. Scriptable from the existing JSON;
@@ -291,7 +301,7 @@ operator needs their own build and Apple account, or you run the relay.
 | B2 localised push text | — | **done** — prerequisite for D |
 | C pairing and auth | M | Web view path needs no backend change |
 | F generated Swift client | — | **done** — see the two spec constraints above |
-| G port the screens | L | **Dashboard done**; next Downloads, then Movie/Series detail |
+| G port the screens | L | **Dashboard, Downloads done**; next Movie/Series detail |
 | D APNs, operator-supplied | M | Includes the push-registration plumbing E1 would have had |
 | H localisation | S | Mechanical |
 | I widgets, Live Activity, Intents | M | The genuine payoff |
