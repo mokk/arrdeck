@@ -512,7 +512,7 @@ export type DiagnosisFindingOut = {
    * Params
    */
   params?: {
-    [key: string]: boolean | string | number | number | null;
+    [key: string]: unknown;
   };
 };
 

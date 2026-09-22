@@ -1,6 +1,8 @@
 """Services, auth, push, backups, health and the media-server integrations."""
 
 
+from typing import Any
+
 from pydantic import BaseModel
 
 from .common import ServiceSettingsOut
@@ -294,9 +296,13 @@ class DiagnosisFindingOut(BaseModel):
     # Danish, so the wording belongs in the locale files.
     code: str
     level: str  # ok | info | warning | blocked
-    # bool comes first on purpose: without it pydantic coerces True to 1 and the
-    # UI renders "1" where it means "yes".
-    params: dict[str, bool | str | int | float | None] = {}
+    # Any, not a typed union. The union used to exist to stop pydantic coercing
+    # True to 1 (bool had to come first), which Any also avoids — and the union
+    # rendered as a nullable anyOf inside additionalProperties in the OpenAPI
+    # spec, which swift-openapi-generator turns into Swift that does not
+    # compile. Values here are heterogeneous display material either way; a
+    # test pins the no-coercion behaviour.
+    params: dict[str, Any] = {}
 
 
 class DiagnosisOut(BaseModel):

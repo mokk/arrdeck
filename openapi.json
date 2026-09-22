@@ -831,25 +831,7 @@
             "type": "string"
           },
           "params": {
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
+            "additionalProperties": true,
             "default": {},
             "title": "Params",
             "type": "object"
