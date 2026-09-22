@@ -263,6 +263,14 @@ carries files and trackers; limits, queue position, category, tags and the
 add-torrent sheet are still to come, as is bulk select. Reached from the
 dashboard's toolbar until there is a tab bar.
 
+**Movie/Series detail done (2026-09-22).** `MediaRef` (movie/series + id) is
+what posters and history rows link to; one `navigationDestination` on the
+dashboard resolves it. Shared `DetailModelBase` carries options, Plex watched
+state (only asked when Plex is configured), monitor/profile/search/delete;
+delete pops the screen. Series expands seasons on demand and caches episodes
+per season. Not yet: rename card, interactive-search (releases) sheet, the
+diagnosis sheet — each is its own screen.
+
 ## H. Localisation — Size S
 
 437 keys, en + da, to `.xcstrings`. Scriptable from the existing JSON;
@@ -301,7 +309,7 @@ operator needs their own build and Apple account, or you run the relay.
 | B2 localised push text | — | **done** — prerequisite for D |
 | C pairing and auth | M | Web view path needs no backend change |
 | F generated Swift client | — | **done** — see the two spec constraints above |
-| G port the screens | L | **Dashboard, Downloads done**; next Movie/Series detail |
+| G port the screens | L | **Dashboard, Downloads, Movie/Series detail done**; next Wanted + diagnose |
 | D APNs, operator-supplied | M | Includes the push-registration plumbing E1 would have had |
 | H localisation | S | Mechanical |
 | I widgets, Live Activity, Intents | M | The genuine payoff |
