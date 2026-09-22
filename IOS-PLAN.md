@@ -200,11 +200,27 @@ token from a real app** — as originally ordered, D would have been written bli
 
 ## If a real native UI is still wanted
 
-## F. Generated Swift client — Size S
+## F. Generated Swift client — done (2026-09-22)
 
 `swift-openapi-generator` against the **committed** spec (see repo layout), as
 the TS client already is. Typed, drift becomes a compile error. Remember: poster
 paths come back relative and need the profile's base URL prepended.
+
+Two things the spec had to give up for it, both fixed at the boundary rather
+than worked around in Swift:
+
+- **No nullable unions inside `additionalProperties`** — `DiagnosisFindingOut.params`
+  became `dict[str, Any]` (backend change; the generator emitted Swift that did
+  not compile).
+- **No `{type: null}` at all.** pydantic v2 writes every `X | None` as
+  `anyOf: [X, null]`, and the generator *silently skips the whole property*
+  with only a build warning — the first client had no `ServiceBlock.data`, no
+  poster URLs and no queue `tracked_state` (213 fields), and compiled fine.
+  The iOS repo now derives its copy of the spec (`Scripts/derive-spec.jq`:
+  `anyOf: [X, null]` → `X`, property made optional — `decodeIfPresent` treats
+  null and absent alike) and its CI fails on drift from the submodule. Keep
+  nullable fields out of `required` on the backend, or that rewrite stops being
+  lossless.
 
 ## G. Port the screens — Size L
 
@@ -218,6 +234,24 @@ History, Stats.
 Carry over deliberately: the **adaptive poll cadence** (5s moving, 20s idle) and
 the **stale-data-with-age** display. Both were considered decisions and both are
 easy to lose in a rewrite.
+
+**Dashboard done (2026-09-22).** What it established, for the screens after it:
+
+- `ArrdeckData` is the layer between the generated client and SwiftUI: domain
+  typealiases, `Block<T>` (healthy / stale-with-age / offline, built from any
+  generated `ServiceBlock_*` via a shape protocol — so a generated type losing
+  `data` again fails to compile), `Loadable<T>` (loading / loaded / failed) for
+  the call itself, `Cadence` + `Motion` (the 5s/20s rule), `Format`, and an
+  `@Observable` model per screen over a protocol (`DashboardAPI`) so tests feed
+  canned answers without a network.
+- A failed poll never blanks a card: stale data stays, the card gets a
+  "could not refresh" note, and only transport-level failures raise the
+  connection banner. A 401 anywhere flips the profile back to the connection
+  screen through one `SessionController`.
+- Every Danish/English string is still a literal `Text("…")`; H sweeps them.
+- With one saved server the app opens straight into it — the list is for choosing.
+- Not yet: the "See all →" links (Wanted, Calendar, History, Stats pages) and
+  the manual-import sheet; they arrive with their screens.
 
 ## H. Localisation — Size S
 
@@ -256,8 +290,8 @@ operator needs their own build and Apple account, or you run the relay.
 | B capability discovery | — | **done** |
 | B2 localised push text | — | **done** — prerequisite for D |
 | C pairing and auth | M | Web view path needs no backend change |
-| F generated Swift client | S | From the committed spec; drift is a compile error |
-| G port the screens | L | Dashboard first — it establishes the ServiceBlock pattern |
+| F generated Swift client | — | **done** — see the two spec constraints above |
+| G port the screens | L | **Dashboard done**; next Downloads, then Movie/Series detail |
 | D APNs, operator-supplied | M | Includes the push-registration plumbing E1 would have had |
 | H localisation | S | Mechanical |
 | I widgets, Live Activity, Intents | M | The genuine payoff |
