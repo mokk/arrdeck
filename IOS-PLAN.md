@@ -383,6 +383,39 @@ Indexers / System / Connections as `/settings/:section`. Old paths redirect
 (`/downloads`, `/history`, `/manage`, `/search`) and the push deep-links were
 updated to match. Books get `pages/Book.tsx` over `/library/books/{id}/detail`.
 
+## Per-title subtitles, episode files, the New feed, authors and editions (2026-09-23)
+
+Five smaller features, all backend-first with both clients following:
+
+- **Subtitles per title.** `GET /subtitles/movie/{radarr_id}` and
+  `/subtitles/series/{id}` map Bazarr's rows to present/missing tracks
+  (`tracked` is false for a movie without a language profile); the download
+  routes call Bazarr's `PATCH …/subtitles` for one language. The clients show
+  present languages as badges and a "Get <language>" per missing one. The app
+  hides the section when the call fails (Bazarr not configured) rather than
+  plumbing a flag through every detail screen.
+- **Episode files.** Sonarr's `includeEpisodeFile=true` puts id, quality and
+  size on each episode; `DELETE /library/episodes/files/{id}` removes one.
+- **Since you last looked.** `GET /activity/since?since=` merges the arrs'
+  imports/failures/grabs with torrents finished after the cutoff (qBittorrent
+  `completion_on`, Transmission `doneDate`, now on `TorrentOut.completed_on`).
+  The PWA keeps the mark in localStorage (`lib/lastSeen.ts`,
+  `useSyncExternalStore`), the app in UserDefaults (`ActivityFeedModel`, polled
+  every 60 s for the tab badge). Activity opens on "New"; showing it moves the
+  mark while the list stays put.
+- **Authors.** `/library/authors[/{id}]` and a PATCH for monitoring and
+  `monitorNewItems`; the detail carries every book (the Books tab hides
+  unmonitored ones — this is where one gets monitored again) and the author's
+  series joined with what you have. Book detail lists the series it is in.
+- **Editions.** Search results carry every edition; the fork's lookup now maps
+  author and editions (`bookLookupDetails`, Readarr 0.10.0.3) so
+  `GET /search/books/editions?edition=` can list a whole work, and the picked
+  edition becomes the monitored one on add. The metadata server still trims
+  edition lists, so many works show only one.
+
+Overseerr approve/decline was already there (dashboard requests card), so
+nothing was added for it.
+
 ## Adding books, and .torrent uploads in the app (2026-09-23)
 
 Adding books needed no fork change after all: Readarr's `/book/lookup` returns
