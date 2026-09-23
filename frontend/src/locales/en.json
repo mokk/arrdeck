@@ -257,7 +257,8 @@
       "protocol": "Protocol",
       "privacy": "Privacy",
       "enable": "Enabled",
-      "author": "Author"
+      "author": "Author",
+      "added": "Added"
     },
     "export": "Export settings",
     "import": "Import settings",

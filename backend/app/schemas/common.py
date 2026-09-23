@@ -6,8 +6,17 @@ from pydantic import BaseModel
 
 T = TypeVar("T")
 ServiceName = Literal[
-    "radarr", "sonarr", "readarr", "prowlarr", "qbittorrent", "transmission", "overseerr", "gluetun",
-    "bazarr", "plex", "prometheus",
+    "radarr",
+    "sonarr",
+    "readarr",
+    "prowlarr",
+    "qbittorrent",
+    "transmission",
+    "overseerr",
+    "gluetun",
+    "bazarr",
+    "plex",
+    "prometheus",
 ]
 
 

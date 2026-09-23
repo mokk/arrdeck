@@ -6,6 +6,7 @@ app. Depends on library.py one-way — HistoryEventOut lives there — so nothin
 imports back.
 """
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel
@@ -30,6 +31,8 @@ class LibraryMovieOut(BaseModel):
     tags: list[int] = []
     tmdb_id: int | None = None
     imdb_id: str | None = None
+    # when the arr started monitoring it; the libraries sort on this by default
+    added: datetime | None = None
 
 
 class LibrarySeriesOut(BaseModel):
@@ -46,6 +49,8 @@ class LibrarySeriesOut(BaseModel):
     tags: list[int] = []
     tvdb_id: int | None = None
     imdb_id: str | None = None
+    # when the arr started monitoring it; the libraries sort on this by default
+    added: datetime | None = None
 
 
 class SeasonOut(BaseModel):

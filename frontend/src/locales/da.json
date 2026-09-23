@@ -257,7 +257,8 @@
       "protocol": "Protokol",
       "privacy": "Privatliv",
       "enable": "Aktiveret",
-      "author": "Forfatter"
+      "author": "Forfatter",
+      "added": "Tilføjet"
     },
     "export": "Eksportér indstillinger",
     "import": "Importér indstillinger",

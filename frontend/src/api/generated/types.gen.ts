@@ -1039,6 +1039,10 @@ export type IndexerStatsOut = {
  */
 export type LibraryBookOut = {
   /**
+   * Added
+   */
+  added?: string | null;
+  /**
    * Author
    */
   author?: string | null;
@@ -1097,6 +1101,10 @@ export type LibraryBookOut = {
  */
 export type LibraryMovieOut = {
   /**
+   * Added
+   */
+  added?: string | null;
+  /**
    * Has File
    */
   has_file?: boolean;
@@ -1146,6 +1154,10 @@ export type LibraryMovieOut = {
  * LibrarySeriesOut
  */
 export type LibrarySeriesOut = {
+  /**
+   * Added
+   */
+  added?: string | null;
   /**
    * Episode Count
    */

@@ -62,6 +62,7 @@ def book_row(book: dict, authors: dict[int, dict]) -> dict:
         "monitored": book.get("monitored", False),
         "has_file": (stats.get("bookFileCount") or 0) > 0,
         "size_on_disk": stats.get("sizeOnDisk", 0),
+        "added": book.get("added"),
         "quality_profile_id": author.get("qualityProfileId"),
         "poster": book_cover(book.get("images")),
         "page_count": book.get("pageCount") or None,
@@ -92,7 +93,11 @@ async def book_detail(book_id: int, readarr: ReadarrClient = Depends(get_readarr
     stats = book.get("statistics") or {}
     ratings = book.get("ratings") or {}
     goodreads = next(
-        (link.get("url") for link in book.get("links") or [] if "goodreads" in (link.get("name") or "").lower()),
+        (
+            link.get("url")
+            for link in book.get("links") or []
+            if "goodreads" in (link.get("name") or "").lower()
+        ),
         None,
     )
     return BookDetailOut(

@@ -33,6 +33,7 @@ async def library_series(sonarr: SonarrClient = Depends(get_sonarr)) -> list[dic
             "episode_count": (s.get("statistics") or {}).get("episodeCount", 0),
             "episode_file_count": (s.get("statistics") or {}).get("episodeFileCount", 0),
             "size_on_disk": (s.get("statistics") or {}).get("sizeOnDisk", 0),
+            "added": s.get("added"),
             "quality_profile_id": s.get("qualityProfileId"),
             "poster": _poster(s.get("images")),
             "tags": s.get("tags") or [],
@@ -59,9 +60,7 @@ async def series_detail(
     series_id: int, sonarr: SonarrClient = Depends(get_sonarr)
 ) -> SeriesDetailOut:
     series = await sonarr.get_series(series_id)
-    seasons = sorted(
-        (_season_out(s) for s in series.get("seasons", [])), key=lambda s: s.number
-    )
+    seasons = sorted((_season_out(s) for s in series.get("seasons", [])), key=lambda s: s.number)
     stats = series.get("statistics") or {}
     return SeriesDetailOut(
         id=series["id"],
@@ -129,9 +128,7 @@ async def season_monitor(
 async def season_search(
     series_id: int, season: int, sonarr: SonarrClient = Depends(get_sonarr)
 ) -> None:
-    await sonarr.command(
-        {"name": "SeasonSearch", "seriesId": series_id, "seasonNumber": season}
-    )
+    await sonarr.command({"name": "SeasonSearch", "seriesId": series_id, "seasonNumber": season})
 
 
 @router.patch("/library/episodes/monitor", status_code=204)
@@ -142,9 +139,7 @@ async def episodes_monitor(
 
 
 @router.post("/library/episodes/search", status_code=204)
-async def episodes_search(
-    body: EpisodeIdsIn, sonarr: SonarrClient = Depends(get_sonarr)
-) -> None:
+async def episodes_search(body: EpisodeIdsIn, sonarr: SonarrClient = Depends(get_sonarr)) -> None:
     await sonarr.command({"name": "EpisodeSearch", "episodeIds": body.ids})
 
 

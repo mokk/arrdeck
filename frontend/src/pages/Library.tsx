@@ -38,6 +38,7 @@ interface Card {
   poster?: string | null;
   year?: number | null;
   author?: string | null;
+  added?: string | null;
   status: "downloaded" | "wanted" | "unmonitored" | "continuing" | "ended";
   size_on_disk?: number;
   episode_file_count?: number;
@@ -52,24 +53,21 @@ const CONFIG = {
     app: "radarr",
     route: "movie",
     placeholder: "library.searchMovies",
-    sortKeys: ["title", "year", "status", "size_on_disk"],
-    defaultSort: "title",
+    sortKeys: ["added", "title", "year", "status", "size_on_disk"],
     addTab: "movies",
   },
   series: {
     app: "sonarr",
     route: "series",
     placeholder: "library.searchShows",
-    sortKeys: ["title", "year", "status", "episode_file_count", "size_on_disk"],
-    defaultSort: "title",
+    sortKeys: ["added", "title", "year", "status", "episode_file_count", "size_on_disk"],
     addTab: "series",
   },
   books: {
     app: "readarr",
     route: "book",
     placeholder: "library.searchBooks",
-    sortKeys: ["author", "title", "year", "status", "size_on_disk"],
-    defaultSort: "author",
+    sortKeys: ["added", "author", "title", "year", "status", "size_on_disk"],
     // Readarr's lookup returns no author or edition data yet, so there is
     // nothing to build an add flow on.
     addTab: null,
@@ -159,7 +157,10 @@ function LibraryGrid({
     kind !== "books" && (services ?? []).some((sv) => sv.service === "plex" && sv.configured),
   );
   const [q, setQ] = usePersistentState(`library.${kind}.filter`, "");
-  const sort = useSort<Record<string, unknown>>(`library.${kind}`, config.defaultSort);
+  // Newest additions first, the way the app opens too. `added` is an ISO
+  // timestamp, so string order is date order. A fresh storage key so the
+  // default reaches people who already had "title" persisted.
+  const sort = useSort<Record<string, unknown>>(`library.${kind}.sort`, "added", "desc");
   const [sortOpen, setSortOpen] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [checked, setChecked] = useState<Set<number>>(new Set());

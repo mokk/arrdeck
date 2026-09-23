@@ -29,6 +29,7 @@ async def library_movies(radarr: RadarrClient = Depends(get_radarr)) -> list[dic
             "monitored": m.get("monitored", False),
             "has_file": m.get("hasFile", False),
             "size_on_disk": m.get("sizeOnDisk", 0),
+            "added": m.get("added"),
             "quality_profile_id": m.get("qualityProfileId"),
             "poster": _poster(m.get("images")),
             "tags": m.get("tags") or [],
@@ -40,9 +41,7 @@ async def library_movies(radarr: RadarrClient = Depends(get_radarr)) -> list[dic
 
 
 @router.get("/library/movies/{movie_id}/detail", response_model=MovieDetailOut)
-async def movie_detail(
-    movie_id: int, radarr: RadarrClient = Depends(get_radarr)
-) -> MovieDetailOut:
+async def movie_detail(movie_id: int, radarr: RadarrClient = Depends(get_radarr)) -> MovieDetailOut:
     movie = await radarr.get_movie(movie_id)
     try:
         history = await radarr.history_movie(movie_id)

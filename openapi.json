@@ -1800,6 +1800,18 @@
       },
       "LibraryBookOut": {
         "properties": {
+          "added": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Added"
+          },
           "author": {
             "anyOf": [
               {
@@ -1927,6 +1939,18 @@
       },
       "LibraryMovieOut": {
         "properties": {
+          "added": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Added"
+          },
           "has_file": {
             "default": false,
             "title": "Has File",
@@ -2029,6 +2053,18 @@
       },
       "LibrarySeriesOut": {
         "properties": {
+          "added": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Added"
+          },
           "episode_count": {
             "default": 0,
             "title": "Episode Count",

@@ -1,5 +1,6 @@
 """Movies, series, episodes, discovery, calendar, history and indexers."""
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel
@@ -266,7 +267,6 @@ class ImportListOut(BaseModel):
     root_folder: str | None = None
 
 
-
 class LibraryBookOut(BaseModel):
     id: int
     title: str | None = None
@@ -282,6 +282,8 @@ class LibraryBookOut(BaseModel):
     poster: str | None = None
     page_count: int | None = None
     foreign_book_id: str | None = None
+    # when the arr started monitoring it; the libraries sort on this by default
+    added: datetime | None = None
 
 
 class BookEditionOut(BaseModel):
