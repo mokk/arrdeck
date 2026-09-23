@@ -317,7 +317,20 @@ each still lacks is listed under its own entry above (add-indexer, bulk
 select, rename card, interactive-search sheet, torrent limits/tags/category,
 add-torrent).
 
-## H. Localisation — Size S
+## H. Localisation — done (2026-09-23)
+
+Not the 437 PWA keys one by one: the compiler's own `-emit-localized-strings`
+pass (what Xcode runs) lists every localisable key with the exact
+`%lld`/`%@` form SwiftUI looks up, and `Scripts/localize.py` turns that plus
+`Localization/da.json` into `App/Sources/Localizable.xcstrings`. The catalog
+lives in the app, not the package, because a package's `Text("…")` resolves
+against `Bundle.main` — so no `bundle:` argument on 200 call sites. The
+data layer's labels go through `String(localized:)`; badge states are looked
+up dynamically with the raw state as the key. `test.sh`/CI fail when a new
+string has no Danish entry or the catalog is stale. 245 strings; the PWA's
+Danish reused where the wording matched.
+
+## H (original notes) — Size S
 
 437 keys, en + da, to `.xcstrings`. Scriptable from the existing JSON;
 `check-locales.mjs` has an obvious analogue.
