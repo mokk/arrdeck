@@ -89,7 +89,9 @@ class ReadarrClient(ArrClient):
         return await self.get("/search", params={"term": term}, timeout=SEARCH_TIMEOUT)
 
     async def add_book(self, payload: dict) -> dict:
-        return await self.request("POST", "/book", json=payload)
+        # A new author means Readarr pulls their whole bibliography from the
+        # metadata server before it answers — the same slow path as search.
+        return await self.request("POST", "/book", json=payload, timeout=SEARCH_TIMEOUT)
 
     async def quality_profiles(self) -> list:
         return await self.get("/qualityprofile")
