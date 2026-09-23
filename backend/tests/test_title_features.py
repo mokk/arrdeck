@@ -28,6 +28,8 @@ def test_title_subtitles_split_present_and_missing_and_flag_untracked():
         {"language": "English", "code": "en", "forced": False, "hi": True, "path": None}
     ]
     assert title_subtitles(None) == {"tracked": False, "present": [], "missing": []}
+    assert title_subtitles({"profileId": None, "subtitles": [], "missing_subtitles": []})["tracked"] is False
+    assert title_subtitles({"profileId": 1, "subtitles": [], "missing_subtitles": []})["tracked"] is True
 
 
 def test_episode_row_reads_the_file_readarr_style():

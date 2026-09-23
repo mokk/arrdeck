@@ -91,8 +91,11 @@ def title_subtitles(row: dict | None) -> dict:
     same as complete — hence `tracked`."""
     if row is None:
         return {"tracked": False, "present": [], "missing": []}
+    # Movies carry their language profile; a movie without one is not tracked
+    # either. Episode rows do not carry it, so they count as tracked.
+    tracked = "profileId" not in row or row.get("profileId") is not None
     return {
-        "tracked": True,
+        "tracked": tracked,
         "present": [_track(x) for x in row.get("subtitles") or []],
         "missing": [_track(x) for x in row.get("missing_subtitles") or []],
     }
