@@ -530,7 +530,8 @@
       "allUnmonitored": "Everything here is unmonitored, and unmonitored titles are hidden.",
       "showUnmonitored": "Show unmonitored",
       "clearSearch": "Clear search"
-    }
+    },
+    "downloading": "Downloading"
   },
   "activity": {
     "downloads": "Downloads",
@@ -639,5 +640,16 @@
   },
   "confirm": {
     "title": "{{action}}?"
+  },
+  "person": {
+    "inLibrary_one": "{{count}} film in your library",
+    "inLibrary_other": "{{count}} films in your library",
+    "yours": "In your library",
+    "notYours": "Not in your library",
+    "noneOwned": "None of their films are in the library yet."
+  },
+  "detail": {
+    "previous": "Previous title",
+    "next": "Next title"
   }
 }

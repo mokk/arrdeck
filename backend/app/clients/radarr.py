@@ -54,6 +54,11 @@ class RadarrClient(ArrClient):
         """Cast and crew. Sonarr has no equivalent — /api/v3/credit is 404 there."""
         return await self.get("/credit", params={"movieId": movie_id})
 
+    async def all_credits(self) -> list:
+        """Every credit of every film in one call (~3 MB for 125 films), keyed
+        by movieMetadataId rather than the movie id."""
+        return await self.get("/credit", timeout=60.0)
+
     async def history_movie(self, movie_id: int) -> list:
         return await self.get("/history/movie", params={"movieId": movie_id})
 

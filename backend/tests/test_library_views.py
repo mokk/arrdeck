@@ -8,6 +8,7 @@ import pytest
 from app.api.v1.books import shelf_rows
 from app.api.v1.discover import _fanart, _rating
 from app.api.v1.movies import movie_quality
+from app.api.v1.people import elsewhere_rows, index_credits, metadata_map
 from app.api.v1.requests import request_keys
 from app.api.v1.series import current_season, next_episodes
 from app.cache import cache
@@ -150,3 +151,112 @@ def test_request_keys_separate_films_from_shows():
         "tv:tvdb:9",
     ]
     assert request_keys({"type": "tv", "media": {}}) == []
+
+
+class FakeDB:
+    def __init__(self) -> None:
+        self.kv: dict[str, str] = {}
+
+    def kv_get(self, key: str) -> str | None:
+        return self.kv.get(key)
+
+    def kv_set(self, key: str, value: str) -> None:
+        self.kv[key] = value
+
+
+class FakeRadarr:
+    name = "radarr"
+
+    def __init__(self) -> None:
+        self.asked: list[int] = []
+
+    async def credits(self, movie_id: int) -> list[dict]:
+        self.asked.append(movie_id)
+        return [{"movieMetadataId": movie_id * 10}]
+
+
+def test_metadata_map_asks_only_about_unmapped_films_and_keeps_the_answer():
+    radarr, db = FakeRadarr(), FakeDB()
+    first = asyncio.run(metadata_map(radarr, db, [{"id": 1}, {"id": 2}]))
+    assert first == {10: 1, 20: 2}
+    again = asyncio.run(metadata_map(radarr, db, [{"id": 1}, {"id": 2}, {"id": 3}]))
+    assert again == {10: 1, 20: 2, 30: 3}
+    assert radarr.asked == [1, 2, 3], "films already mapped are not asked about again"
+
+
+def test_index_credits_joins_people_to_movies_once_each():
+    credits = [
+        {
+            "personTmdbId": 7,
+            "personName": "Greta",
+            "movieMetadataId": 10,
+            "type": "crew",
+            "job": "Director",
+        },
+        {
+            "personTmdbId": 7,
+            "personName": "Greta",
+            "movieMetadataId": 10,
+            "type": "crew",
+            "job": "Writer",
+        },
+        {
+            "personTmdbId": 7,
+            "personName": "Greta",
+            "movieMetadataId": 20,
+            "type": "cast",
+            "character": "Herself",
+        },
+        {"personTmdbId": 8, "movieMetadataId": 99, "type": "cast"},
+    ]
+    people = index_credits(credits, {10: 1, 20: 2})
+    assert people == {7: {"name": "Greta", "movies": {1: "Director", 2: "Herself"}}}
+
+
+def test_elsewhere_keeps_released_films_not_in_the_library_most_popular_first():
+    credits = {
+        "cast": [
+            {
+                "id": 1,
+                "mediaType": "movie",
+                "title": "Owned",
+                "releaseDate": "2020-01-01",
+                "popularity": 9,
+            },
+            {
+                "id": 2,
+                "mediaType": "movie",
+                "title": "Less known",
+                "releaseDate": "2019-01-01",
+                "popularity": 1,
+            },
+            {"id": 3, "mediaType": "tv", "name": "A show", "popularity": 50},
+            {"id": 4, "mediaType": "movie", "title": "Announced", "popularity": 30},
+            {
+                "id": 6,
+                "mediaType": "movie",
+                "title": "Next year",
+                "releaseDate": "2027-01-01",
+                "popularity": 40,
+            },
+        ],
+        "crew": [
+            {
+                "id": 5,
+                "mediaType": "movie",
+                "title": "Famous",
+                "releaseDate": "2021-05-01",
+                "popularity": 20,
+            },
+            {
+                "id": 5,
+                "mediaType": "movie",
+                "title": "Famous",
+                "releaseDate": "2021-05-01",
+                "popularity": 20,
+            },
+        ],
+    }
+    rows = elsewhere_rows(credits, in_library={1}, today="2026-09-23")
+    assert [r["title"] for r in rows] == ["Famous", "Less known"]
+    assert rows[0]["kind"] == "movie" and rows[0]["remote_id"] == 5 and rows[0]["year"] == 2021

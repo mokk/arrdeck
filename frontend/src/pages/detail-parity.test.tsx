@@ -19,6 +19,11 @@ const navigate = vi.fn();
 vi.mock("react-router-dom", () => ({
   useNavigate: () => navigate,
   useParams: () => ({ id: "1" }),
+  Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => (
+    <a href={to} {...rest}>
+      {children}
+    </a>
+  ),
 }));
 
 const { mutate } = vi.hoisted(() => ({ mutate: vi.fn() }));
@@ -248,7 +253,7 @@ describe("what each page shows that the other cannot", () => {
     expect(screen.getByText("Director")).toBeTruthy();
   });
 
-  it("links a person to their TMDB page", () => {
+  it("links a person to their page in the app", () => {
     const { container } = render(<MoviePage />);
     const person = [...container.querySelectorAll("a")].find((a) =>
       (a.getAttribute("href") ?? "").includes("/person/12799"),

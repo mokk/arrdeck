@@ -71,6 +71,7 @@ export type QualityProfileDetail = G.QualityProfileDetailOut;
 export type QualityItem = G.QualityItemOut;
 export type QualityDefinition = G.QualityDefinitionOut;
 export type CreditPerson = G.CreditPersonOut;
+export type Person = G.PersonOut;
 export type TorrentSummary = G.TorrentSummaryOut;
 export type ImportCandidate = G.ImportCandidateOut;
 export type RenamePreview = G.RenamePreviewOut;

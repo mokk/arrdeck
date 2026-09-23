@@ -16,6 +16,7 @@ from . import (
     indexers,
     library,
     movies,
+    people,
     plex,
     popular,
     posters,
@@ -57,6 +58,7 @@ router.include_router(library.router)
 router.include_router(movies.router)
 router.include_router(series.router)
 router.include_router(credits.router)
+router.include_router(people.router)
 router.include_router(wanted.router)
 router.include_router(arrmeta.router)
 router.include_router(settings.router)

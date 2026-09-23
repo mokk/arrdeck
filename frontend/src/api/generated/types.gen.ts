@@ -1909,6 +1909,73 @@ export type OptionsOut = {
 };
 
 /**
+ * PersonMovieOut
+ */
+export type PersonMovieOut = {
+  /**
+   * Has File
+   */
+  has_file?: boolean;
+  /**
+   * Monitored
+   */
+  monitored?: boolean;
+  /**
+   * Movie Id
+   */
+  movie_id: number;
+  /**
+   * Poster
+   */
+  poster?: string | null;
+  /**
+   * Role
+   */
+  role?: string | null;
+  /**
+   * Title
+   */
+  title?: string | null;
+  /**
+   * Year
+   */
+  year?: number | null;
+};
+
+/**
+ * PersonOut
+ *
+ * Someone from a film's credits: what of theirs is in the library, and —
+ * when Overseerr is there to ask — the films of theirs that are not.
+ */
+export type PersonOut = {
+  /**
+   * Elsewhere
+   */
+  elsewhere?: Array<SearchResultOut>;
+  /**
+   * Image
+   */
+  image?: string | null;
+  /**
+   * Known For
+   */
+  known_for?: string | null;
+  /**
+   * Name
+   */
+  name?: string | null;
+  /**
+   * Owned
+   */
+  owned?: Array<PersonMovieOut>;
+  /**
+   * Tmdb Id
+   */
+  tmdb_id: number;
+};
+
+/**
  * PlaySessionOut
  */
 export type PlaySessionOut = {
@@ -5847,6 +5914,38 @@ export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses = {
 
 export type MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponse =
   MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses[keyof MovieDetailApiV1LibraryMoviesMovieIdDetailGetResponses];
+
+export type PersonApiV1LibraryPeopleTmdbIdGetData = {
+  body?: never;
+  path: {
+    /**
+     * Tmdb Id
+     */
+    tmdb_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/people/{tmdb_id}";
+};
+
+export type PersonApiV1LibraryPeopleTmdbIdGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type PersonApiV1LibraryPeopleTmdbIdGetError =
+  PersonApiV1LibraryPeopleTmdbIdGetErrors[keyof PersonApiV1LibraryPeopleTmdbIdGetErrors];
+
+export type PersonApiV1LibraryPeopleTmdbIdGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: PersonOut;
+};
+
+export type PersonApiV1LibraryPeopleTmdbIdGetResponse =
+  PersonApiV1LibraryPeopleTmdbIdGetResponses[keyof PersonApiV1LibraryPeopleTmdbIdGetResponses];
 
 export type LibrarySeriesApiV1LibrarySeriesGetData = {
   body?: never;

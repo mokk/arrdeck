@@ -328,7 +328,12 @@ export default function SeriesPage() {
 
   return (
     <>
-      <DetailHeader title={data?.title} year={data?.year} watched={watched} />
+      <DetailHeader
+        title={data?.title}
+        year={data?.year}
+        watched={watched}
+        sequence={{ route: "series", id: seriesId }}
+      />
       {error && <ErrorNote>{(error as Error).message}</ErrorNote>}
       {isLoading && (
         <>
@@ -341,6 +346,7 @@ export default function SeriesPage() {
         <>
           <DetailHero
             poster={data.poster}
+            backdrop={data.fanart}
             overview={data.overview}
             links={links}
             badges={

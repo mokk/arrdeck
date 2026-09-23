@@ -88,17 +88,19 @@ export function UpNextView({
   onOpen,
 }: {
   rows: LibrarySeries[];
-  onOpen: (id: number) => void;
+  /** the order is this view's, so swiping on the show follows it */
+  onOpen: (id: number, order: number[]) => void;
 }) {
   const { t } = useTranslation();
   const [showIdle, setShowIdle] = useState(false);
   const { airing, idle } = splitUpNext(rows);
+  const order = [...airing, ...idle].map((s) => s.id);
   return (
     <>
       {airing.length > 0 ? (
         <div className="overflow-hidden rounded-2xl bg-card">
           {airing.map((s) => (
-            <UpNextRow key={s.id} show={s} onOpen={() => onOpen(s.id)} />
+            <UpNextRow key={s.id} show={s} onOpen={() => onOpen(s.id, order)} />
           ))}
         </div>
       ) : (
@@ -125,7 +127,7 @@ export function UpNextView({
           {showIdle && (
             <div className="overflow-hidden rounded-2xl bg-card">
               {idle.map((s) => (
-                <UpNextRow key={s.id} show={s} onOpen={() => onOpen(s.id)} />
+                <UpNextRow key={s.id} show={s} onOpen={() => onOpen(s.id, order)} />
               ))}
             </div>
           )}

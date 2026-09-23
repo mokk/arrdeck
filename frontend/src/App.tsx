@@ -28,6 +28,7 @@ const BookPage = lazy(() => import("./pages/Book"));
 const CalendarPage = lazy(() => import("./pages/Calendar"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const MoviePage = lazy(() => import("./pages/Movie"));
+const PersonPage = lazy(() => import("./pages/Person"));
 const PopularPage = lazy(() => import("./pages/Popular"));
 const SeriesPage = lazy(() => import("./pages/Series"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -156,6 +157,7 @@ function Shell() {
                 <Route path="/author/:id" element={<AuthorPage />} />
                 <Route path="/book/:id" element={<BookPage />} />
                 <Route path="/movie/:id" element={<MoviePage />} />
+                <Route path="/person/:id" element={<PersonPage />} />
                 <Route path="/series/:id" element={<SeriesPage />} />
                 <Route path="/stats" element={<StatsPage />} />
                 {/* the pre-redesign tabs; bookmarks and push deep-links still

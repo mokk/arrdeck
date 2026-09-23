@@ -63,7 +63,12 @@ export default function MoviePage() {
 
   return (
     <>
-      <DetailHeader title={data?.title} year={data?.year} watched={watched} />
+      <DetailHeader
+        title={data?.title}
+        year={data?.year}
+        watched={watched}
+        sequence={{ route: "movie", id: movieId }}
+      />
       {error && <ErrorNote>{(error as Error).message}</ErrorNote>}
       {isLoading && <Skeleton className="mb-4 h-40 w-full rounded-2xl" />}
       {data && <RenameCard app="radarr" id={movieId} />}
@@ -71,6 +76,7 @@ export default function MoviePage() {
         <>
           <DetailHero
             poster={data.poster}
+            backdrop={data.fanart}
             overview={data.overview}
             links={links}
             badges={

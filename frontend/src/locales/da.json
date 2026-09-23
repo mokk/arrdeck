@@ -530,7 +530,8 @@
       "allUnmonitored": "Alt her er uovervåget, og uovervågede titler er skjult.",
       "showUnmonitored": "Vis uovervågede",
       "clearSearch": "Ryd søgning"
-    }
+    },
+    "downloading": "Henter"
   },
   "activity": {
     "downloads": "Downloads",
@@ -639,5 +640,16 @@
   },
   "confirm": {
     "title": "{{action}}?"
+  },
+  "person": {
+    "inLibrary_one": "{{count}} film i dit bibliotek",
+    "inLibrary_other": "{{count}} film i dit bibliotek",
+    "yours": "I dit bibliotek",
+    "notYours": "Ikke i dit bibliotek",
+    "noneOwned": "Ingen af deres film er i biblioteket endnu."
+  },
+  "detail": {
+    "previous": "Forrige titel",
+    "next": "Næste titel"
   }
 }

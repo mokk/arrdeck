@@ -42,13 +42,19 @@ export default function BookPage() {
 
   return (
     <>
-      <DetailHeader title={data?.title} year={data?.year} />
+      <DetailHeader
+        title={data?.title}
+        year={data?.year}
+        sequence={{ route: "book", id: bookId }}
+      />
       {error && <ErrorNote>{(error as Error).message}</ErrorNote>}
       {isLoading && <Skeleton className="mb-4 h-40 w-full rounded-2xl" />}
       {data && (
         <>
           <DetailHero
             poster={data.poster}
+            backdrop={data.poster}
+            blurBackdrop
             overview={data.overview}
             links={links}
             badges={

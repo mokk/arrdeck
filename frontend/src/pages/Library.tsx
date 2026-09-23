@@ -36,12 +36,14 @@ import {
   useLibraryMovies,
   useLibrarySeries,
   useOptions,
+  useQueue,
   useServices,
   useWatched,
 } from "../hooks/queries";
 import { useLongPress } from "../hooks/useLongPress";
 import { usePersistentState } from "../hooks/usePersistentState";
 import { LAYOUTS_FOR, type Layout, setPref, usePref } from "../lib/prefs";
+import { setSequence } from "../lib/sequence";
 
 /** One card. Each library maps its row onto this so the view stays generic;
  * `status` is derived here because the sort sheet offers it. */
@@ -190,6 +192,17 @@ function LibraryView({
   const { data: watched } = useWatched(
     kind !== "books" && (services ?? []).some((sv) => sv.service === "plex" && sv.configured),
   );
+  // What is downloading right now, per title: a bar on its cover.
+  const { data: queue } = useQueue();
+  const progress = new Map<number, number>();
+  for (const item of queue?.[config.app]?.data ?? []) {
+    const id =
+      kind === "movies" ? item.movie_id : kind === "series" ? item.series_id : item.book_id;
+    if (id == null) continue;
+    const done = item.size ? 1 - (item.size_left ?? 0) / item.size : 0;
+    // a show with several episodes in the queue shows the furthest along
+    progress.set(id, Math.max(progress.get(id) ?? 0, done));
+  }
   const [q, setQ] = usePersistentState(`library.${kind}.filter`, "");
   // Newest additions first, the way the app opens too. `added` is an ISO
   // timestamp, so string order is date order. A fresh storage key so the
@@ -253,10 +266,16 @@ function LibraryView({
         anchor={anchors.get(card.id)}
         dimmed={unmonitored === "dim" && card.status === "unmonitored"}
         watched={watchedItem}
+        progress={progress.get(card.id)}
         checked={selectMode ? checked.has(card.id) : undefined}
-        onOpen={() =>
-          selectMode ? toggleChecked(card.id) : navigate(`/${config.route}/${card.id}`)
-        }
+        onOpen={() => {
+          if (selectMode) return toggleChecked(card.id);
+          setSequence(
+            config.route,
+            shown.map((c) => c.id),
+          );
+          navigate(`/${config.route}/${card.id}`);
+        }}
         onMenu={() =>
           !selectMode &&
           setMenu({
@@ -287,7 +306,10 @@ function LibraryView({
       {layout === "upnext" ? (
         <UpNextView
           rows={shown as unknown as LibrarySeries[]}
-          onOpen={(id) => navigate(`/series/${id}`)}
+          onOpen={(id, order) => {
+            setSequence("series", order);
+            navigate(`/series/${id}`);
+          }}
         />
       ) : layout === "shelf" ? (
         <ShelfView
@@ -378,6 +400,7 @@ function LibraryItem({
   anchor,
   dimmed,
   watched,
+  progress,
   checked,
   onOpen,
   onMenu,
@@ -387,6 +410,8 @@ function LibraryItem({
   anchor?: string;
   dimmed: boolean;
   watched: WatchedItem | undefined;
+  /** 0–1 while in the download queue */
+  progress?: number;
   /** undefined outside select mode */
   checked?: boolean;
   onOpen: () => void;
@@ -406,6 +431,18 @@ function LibraryItem({
   const anchorMargin = "scroll-mt-[calc(env(safe-area-inset-top)+0.75rem)]";
   const dot = (
     <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-full", DOT[card.status])} />
+  );
+  const bar = progress !== undefined && (
+    <div
+      role="progressbar"
+      aria-label={t("library.downloading")}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(progress * 100)}
+      className="h-1 w-full overflow-hidden rounded-full bg-black/40"
+    >
+      <div className="h-full bg-primary" style={{ width: `${Math.round(progress * 100)}%` }} />
+    </div>
   );
   const tick = checked !== undefined && (
     <div
@@ -433,6 +470,7 @@ function LibraryItem({
       >
         <div className={cn("relative", dimmed && "opacity-40")}>
           <Cover src={card.poster} title={card.title} subtitle={card.subtitle} />
+          {bar && <div className="absolute inset-x-2 bottom-2">{bar}</div>}
           {tick}
         </div>
         <div className="mt-1.5 flex items-center gap-1.5">
@@ -466,6 +504,7 @@ function LibraryItem({
           <WatchedDot item={watched} />
         </div>
         <div className="truncate text-xs text-muted-foreground">{card.subtitle}</div>
+        {bar && <div className="mt-1 max-w-48">{bar}</div>}
         {details && (
           <>
             {card.detail && (

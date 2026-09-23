@@ -43,6 +43,13 @@ class OverseerrClient(BaseClient):
     async def movie_details(self, tmdb_id: int) -> dict:
         return await self.get(f"/movie/{tmdb_id}")
 
+    async def person(self, tmdb_id: int) -> dict:
+        return await self.get(f"/person/{tmdb_id}")
+
+    async def person_credits(self, tmdb_id: int) -> dict:
+        """A person's whole filmography, films and shows, cast and crew."""
+        return await self.get(f"/person/{tmdb_id}/combined_credits")
+
     async def post(self, path: str, **kwargs: Any) -> Any:
         headers = kwargs.pop("headers", {})
         headers["X-Api-Key"] = self.api_key

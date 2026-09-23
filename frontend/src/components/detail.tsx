@@ -2,10 +2,10 @@
 // used to show a title and season cards and nothing else, while the movie page
 // had a synopsis, badges, external links, a profile picker and actions — so the
 // shared shell lives here rather than being copied into the second page.
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -14,9 +14,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { cn, focusRing } from "@/lib/utils";
 import { formatDayTime } from "../api/format";
 import type { CreditPerson, Credits, HistoryEvent, Options, WatchedItem } from "../api/types";
+import { type Route, useSequence } from "../lib/sequence";
 import { Card, Row, SectionTitle, StateBadge } from "./Blocks";
 import { useConfirm } from "./Confirm";
 import { BigButton } from "./media";
@@ -26,10 +27,13 @@ export function DetailHeader({
   title,
   year,
   watched,
+  sequence,
 }: {
   title: string | null | undefined;
   year?: number | null;
   watched?: WatchedItem;
+  /** the title's place in the list it was opened from: arrows and swipe */
+  sequence?: { route: Route; id: number };
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -43,10 +47,39 @@ export function DetailHeader({
       >
         <ChevronLeft className="size-6" />
       </Button>
-      <h1 className="min-w-0 truncate text-2xl font-extrabold tracking-tight">
+      <h1 className="min-w-0 flex-1 truncate text-2xl font-extrabold tracking-tight">
         {title ?? "…"} <span className="font-semibold text-muted-foreground">{year ?? ""}</span>
       </h1>
       <WatchedDot item={watched} />
+      {sequence && <SequenceArrows route={sequence.route} id={sequence.id} />}
+    </div>
+  );
+}
+
+function SequenceArrows({ route, id }: { route: Route; id: number }) {
+  const { t } = useTranslation();
+  const { prev, next, goPrev, goNext } = useSequence(route, id);
+  if (prev == null && next == null) return null;
+  return (
+    <div className="flex shrink-0">
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label={t("detail.previous")}
+        disabled={prev == null}
+        onClick={goPrev}
+      >
+        <ChevronLeft />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label={t("detail.next")}
+        disabled={next == null}
+        onClick={goNext}
+      >
+        <ChevronRight />
+      </Button>
     </div>
   );
 }
@@ -58,22 +91,70 @@ export type ExternalLink = { label: string; url: string };
  * supplies it rather than the component guessing from optional fields. */
 export function DetailHero({
   poster,
+  backdrop,
+  blurBackdrop = false,
   overview,
   badges,
   links,
 }: {
   poster?: string | null;
+  /** the wide fanart behind the header; a book passes its cover, blurred */
+  backdrop?: string | null;
+  blurBackdrop?: boolean;
   overview?: string | null;
   badges: ReactNode;
   links: ExternalLink[];
 }) {
   return (
-    <div className="mb-5 flex gap-4">
+    <>
+      {backdrop && (
+        <div
+          aria-hidden="true"
+          className="relative -mx-4 -mt-2 mb-[-4.5rem] h-44 overflow-hidden sm:h-60"
+        >
+          <img
+            src={backdrop}
+            alt=""
+            className={cn(
+              "size-full object-cover",
+              blurBackdrop && "scale-110 blur-2xl saturate-150",
+            )}
+          />
+          {/* fades into the page so the poster and text sit on the background */}
+          <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/40 to-background" />
+        </div>
+      )}
+      <DetailHeroBody
+        poster={poster}
+        overview={overview}
+        badges={badges}
+        links={links}
+        lifted={!!backdrop}
+      />
+    </>
+  );
+}
+
+function DetailHeroBody({
+  poster,
+  overview,
+  badges,
+  links,
+  lifted,
+}: {
+  poster?: string | null;
+  overview?: string | null;
+  badges: ReactNode;
+  links: ExternalLink[];
+  lifted: boolean;
+}) {
+  return (
+    <div className={cn("relative mb-5 flex gap-4", lifted && "items-end")}>
       {poster && (
         <img
           src={poster}
           alt=""
-          className="w-28 shrink-0 rounded-xl bg-card object-cover [aspect-ratio:2/3]"
+          className="w-28 shrink-0 rounded-xl bg-card object-cover shadow-lg [aspect-ratio:2/3]"
         />
       )}
       <div className="min-w-0">
@@ -255,18 +336,16 @@ function PersonChip({ person }: { person: CreditPerson }) {
     </>
   );
   const className = "flex w-[4.5rem] shrink-0 flex-col items-center";
-  // Radarr knows the TMDB person id, so the name can lead somewhere. Linking
-  // into the library instead would need a person index Radarr does not expose.
+  // Radarr knows the TMDB person id, which leads to their page here: what
+  // of theirs is in the library, and what is not.
   if (!person.tmdb_id) return <div className={className}>{body}</div>;
   return (
-    <a
-      href={`https://www.themoviedb.org/person/${person.tmdb_id}`}
-      target="_blank"
-      rel="noreferrer"
-      className={cn(className, "active:opacity-60")}
+    <Link
+      to={`/person/${person.tmdb_id}`}
+      className={cn(className, focusRing, "active:opacity-60")}
     >
       {body}
-    </a>
+    </Link>
   );
 }
 
@@ -297,7 +376,19 @@ export function DetailCredits({ credits }: { credits: Credits | undefined }) {
           >
             {crew.map((person) => (
               <span key={`${person.name}:${person.role}`}>
-                <span className="font-semibold text-foreground">{person.name}</span>{" "}
+                {person.tmdb_id ? (
+                  <Link
+                    to={`/person/${person.tmdb_id}`}
+                    className={cn(
+                      focusRing,
+                      "rounded font-semibold text-foreground underline-offset-2 hover:underline",
+                    )}
+                  >
+                    {person.name}
+                  </Link>
+                ) : (
+                  <span className="font-semibold text-foreground">{person.name}</span>
+                )}{" "}
                 {person.role}
               </span>
             ))}

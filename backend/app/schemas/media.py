@@ -11,7 +11,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from .library import HistoryEventOut
+from .library import HistoryEventOut, SearchResultOut
 
 
 class LibraryUpdateIn(BaseModel):
@@ -208,3 +208,25 @@ class CreditPersonOut(BaseModel):
 class CreditsOut(BaseModel):
     cast: list[CreditPersonOut] = []
     crew: list[CreditPersonOut] = []
+
+
+class PersonMovieOut(BaseModel):
+    movie_id: int
+    title: str | None = None
+    year: int | None = None
+    poster: str | None = None
+    role: str | None = None  # the character, or the job
+    has_file: bool = False
+    monitored: bool = False
+
+
+class PersonOut(BaseModel):
+    """Someone from a film's credits: what of theirs is in the library, and —
+    when Overseerr is there to ask — the films of theirs that are not."""
+
+    tmdb_id: int
+    name: str | None = None
+    image: str | None = None
+    known_for: str | None = None
+    owned: list[PersonMovieOut] = []
+    elsewhere: list[SearchResultOut] = []

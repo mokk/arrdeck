@@ -58,6 +58,7 @@ export function tabFor(pathname: string, search = ""): string {
   const first = `/${pathname.split("/")[1] ?? ""}`;
   switch (first) {
     case "/movie":
+    case "/person":
       return "/movies";
     case "/series":
       return "/shows";

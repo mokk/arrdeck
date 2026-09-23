@@ -22,6 +22,7 @@ import type {
   LibrarySeries,
   MovieDetail,
   Options,
+  Person,
   SeriesDetail,
   ShelfSeries,
   Tag,
@@ -141,6 +142,13 @@ export const useDiagnose = (app: string, id: number) =>
 
 /** Credits change almost never, so they are a separate query from the detail —
  * the page refetches monitoring and file state far more often than this. */
+export const usePerson = (tmdbId: number) =>
+  useQuery({
+    queryKey: ["person", tmdbId],
+    queryFn: () => api.get<Person>(`/library/people/${tmdbId}`),
+    staleTime: 10 * 60_000,
+  });
+
 export const useMovieCredits = (id: number) =>
   useQuery({
     queryKey: ["movieCredits", id],
