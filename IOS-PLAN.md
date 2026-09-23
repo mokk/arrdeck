@@ -383,6 +383,20 @@ Indexers / System / Connections as `/settings/:section`. Old paths redirect
 (`/downloads`, `/history`, `/manage`, `/search`) and the push deep-links were
 updated to match. Books get `pages/Book.tsx` over `/library/books/{id}/detail`.
 
+## Book downloads via the Readarr fork (2026-09-23)
+
+Books can be downloaded from both clients without arrdeck mounting the
+library: our Readarr fork (`readarr-fork`, branch `feature/bookfile-download`)
+serves `GET /api/v1/bookfile/{id}/download` with e-book content types and Range
+support, and advertises it in `/system/status` as `forkFeatures:
+["bookFileDownload"]`. arrdeck's `ReadarrClient.fork_features()` (cached 5 min)
+gates `BookDetailOut.downloadable`, lists the book's files, and
+`GET /library/books/{book_id}/files/{file_id}` proxies the bytes with a streaming
+response and Range passthrough. Upstream Readarr never sets the flag, so it just
+shows no button. The iOS side is `FileDownloadModel` (URLSession with the shared
+cookie jar, lands in tmp/arrdeck-downloads) and a share sheet — "Copy to Books"
+is the point. The PWA renders a plain `<a download>` per file.
+
 ## Readarr / Books (2026-09-23)
 
 Backend first: `ReadarrClient` on `/api/v1`, registered like the other arrs;
