@@ -1,4 +1,4 @@
-// Controls both library lists use: profile select, delete confirmation, bulk bar.
+// The bulk bar the library grids share, and the profile select it embeds.
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import type { Options } from "../../../api/types";
+import type { LibraryKind, Options } from "../../../api/types";
 
 import {
   useBulkDeleteLibrary,
@@ -22,7 +22,7 @@ import {
 
 /* ---------------- libraries ---------------- */
 
-export function ProfileSelect({
+function ProfileSelect({
   value,
   options,
   disabled,
@@ -53,59 +53,13 @@ export function ProfileSelect({
   );
 }
 
-export function DeleteButtons({
-  pending,
-  onDelete,
-}: {
-  pending: boolean;
-  onDelete: (deleteFiles: boolean) => void;
-}) {
-  const { t } = useTranslation();
-  const [confirming, setConfirming] = useState(false);
-  if (!confirming)
-    return (
-      <Button
-        variant="secondary"
-        size="sm"
-        className="text-destructive"
-        onClick={() => setConfirming(true)}
-      >
-        {t("common.delete")}
-      </Button>
-    );
-  return (
-    <div className="flex gap-1.5">
-      <Button variant="destructive" size="sm" disabled={pending} onClick={() => onDelete(true)}>
-        {t("manage.plusFiles")}
-      </Button>
-      <Button
-        variant="secondary"
-        size="sm"
-        className="text-destructive"
-        disabled={pending}
-        onClick={() => onDelete(false)}
-      >
-        {t("manage.entryOnly")}
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        aria-label={t("common.cancel")}
-        onClick={() => setConfirming(false)}
-      >
-        ✕
-      </Button>
-    </div>
-  );
-}
-
 export function LibraryBulkBar({
   kind,
   selected,
   options,
   onDone,
 }: {
-  kind: "movies" | "series";
+  kind: LibraryKind;
   selected: Set<number>;
   options: Options | undefined;
   onDone: () => void;
@@ -114,7 +68,8 @@ export function LibraryBulkBar({
   const bulk = useBulkLibrary(kind);
   const bulkDelete = useBulkDeleteLibrary(kind);
   const bulkSearch = useBulkSearchLibrary(kind);
-  const { data: tags } = useTags(kind === "movies" ? "radarr" : "sonarr");
+  // Readarr has tags too, but the arrdeck tag route only knows the video arrs.
+  const { data: tags } = useTags(kind === "movies" ? "radarr" : "sonarr", kind !== "books");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [taggingOff, setTaggingOff] = useState(false);
   const ids = [...selected];

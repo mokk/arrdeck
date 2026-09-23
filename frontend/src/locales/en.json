@@ -1,10 +1,11 @@
 {
   "nav": {
-    "home": "Home",
-    "downloads": "Downloads",
-    "add": "Add",
-    "manage": "Manage",
-    "popular": "Popular"
+    "books": "Books",
+    "movies": "Movies",
+    "shows": "Shows",
+    "activity": "Activity",
+    "calendar": "Calendar",
+    "settings": "Settings"
   },
   "common": {
     "loading": "Loading…",
@@ -255,7 +256,8 @@
       "name": "Name",
       "protocol": "Protocol",
       "privacy": "Privacy",
-      "enable": "Enabled"
+      "enable": "Enabled",
+      "author": "Author"
     },
     "export": "Export settings",
     "import": "Import settings",
@@ -485,5 +487,37 @@
     "hint": "Newest releases from each indexer in the last 24 hours, ranked by how often the indexer says they were grabbed. Refreshed every hour.",
     "loading": "Building the first list — this takes about a minute, then it refreshes hourly on its own.",
     "generated": "Updated {{when}}"
+  },
+  "library": {
+    "searchMovies": "Search movies…",
+    "searchShows": "Search shows…",
+    "searchBooks": "Search books…",
+    "add": "Add",
+    "select": "Select…"
+  },
+  "activity": {
+    "downloads": "Downloads",
+    "queue": "Queue",
+    "history": "History"
+  },
+  "settings": {
+    "title": "Settings",
+    "more": "More",
+    "overview": "Overview",
+    "popular": "Popular releases",
+    "stats": "Statistics",
+    "wanted": "Wanted",
+    "services": "Services",
+    "indexers": "Indexers",
+    "system": "System",
+    "connections": "Connections",
+    "connectionsHint": "Where arrdeck finds each service. Changing these affects every screen."
+  },
+  "book": {
+    "pages": "{{count}} pages",
+    "released": "Released {{date}}",
+    "editions": "Editions",
+    "genres": "Genres",
+    "ebook": "ebook"
   }
 }

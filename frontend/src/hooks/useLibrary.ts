@@ -7,11 +7,14 @@ import { api } from "../api/client";
 import type {
   ArrApp,
   ArrRelease,
+  BookDetail,
   Collection,
   CollectionDetail,
   Credits,
   Diagnosis,
   Episode,
+  LibraryBook,
+  LibraryKind,
   LibraryMovie,
   LibrarySeries,
   MovieDetail,
@@ -72,7 +75,7 @@ export function useToggleCollection() {
   });
 }
 
-export const useTags = (app: "radarr" | "sonarr", enabled = true) =>
+export const useTags = (app: ArrApp, enabled = true) =>
   useQuery({
     queryKey: ["tags", app],
     queryFn: () => api.get<Tag[]>(`/tags/${app}`),
@@ -80,7 +83,7 @@ export const useTags = (app: "radarr" | "sonarr", enabled = true) =>
     staleTime: SLOW,
   });
 
-export function useBulkLibrary(kind: "movies" | "series") {
+export function useBulkLibrary(kind: LibraryKind) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: {
@@ -97,7 +100,7 @@ export function useBulkLibrary(kind: "movies" | "series") {
   });
 }
 
-export function useBulkDeleteLibrary(kind: "movies" | "series") {
+export function useBulkDeleteLibrary(kind: LibraryKind) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: { ids: number[]; delete_files: boolean }) =>
@@ -109,7 +112,7 @@ export function useBulkDeleteLibrary(kind: "movies" | "series") {
   });
 }
 
-export function useBulkSearchLibrary(kind: "movies" | "series") {
+export function useBulkSearchLibrary(kind: LibraryKind) {
   const { t } = useTranslation();
   return useMutation({
     mutationFn: (ids: number[]) =>
@@ -241,6 +244,19 @@ export const useLibrarySeries = () =>
     staleTime: 60_000,
   });
 
+export const useLibraryBooks = () =>
+  useQuery({
+    queryKey: ["library", "books"],
+    queryFn: () => api.get<LibraryBook[]>("/library/books"),
+    staleTime: 60_000,
+  });
+
+export const useBookDetail = (id: number) =>
+  useQuery({
+    queryKey: ["bookDetail", id],
+    queryFn: () => api.get<BookDetail>(`/library/books/${id}/detail`),
+  });
+
 export function useTriggerSearch() {
   const { t } = useTranslation();
   return useMutation({
@@ -250,7 +266,13 @@ export function useTriggerSearch() {
   });
 }
 
-export function useUpdateLibraryItem(kind: "movies" | "series") {
+const DETAIL_KEY: Record<LibraryKind, string> = {
+  movies: "movieDetail",
+  series: "seriesDetail",
+  books: "bookDetail",
+};
+
+export function useUpdateLibraryItem(kind: LibraryKind) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({
@@ -286,14 +308,12 @@ export function useUpdateLibraryItem(kind: "movies" | "series") {
       // The detail pages read their own query, not the list. Without this the
       // Monitor button kept its old label after a successful toggle, because
       // only the list cache was patched.
-      qc.invalidateQueries({
-        queryKey: [kind === "movies" ? "movieDetail" : "seriesDetail", id],
-      });
+      qc.invalidateQueries({ queryKey: [DETAIL_KEY[kind], id] });
     },
   });
 }
 
-export function useDeleteLibraryItem(kind: "movies" | "series") {
+export function useDeleteLibraryItem(kind: LibraryKind) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, deleteFiles }: { id: number; deleteFiles: boolean }) =>

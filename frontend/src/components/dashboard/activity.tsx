@@ -334,7 +334,7 @@ export function HistorySection({ configured }: { configured: Set<string> }) {
     <div className="mb-6">
       <div className="flex items-baseline justify-between">
         <SectionTitle>{t("dash.recentHistory")}</SectionTitle>
-        <Link to="/history" className="mb-2 text-xs font-semibold text-primary">
+        <Link to="/activity?tab=history" className="mb-2 text-xs font-semibold text-primary">
           {t("history.seeAll")} →
         </Link>
       </div>
@@ -356,7 +356,9 @@ export function HistorySection({ configured }: { configured: Set<string> }) {
                 ? () => navigate(`/movie/${h.movie_id}`)
                 : h.series_id
                   ? () => navigate(`/series/${h.series_id}`)
-                  : undefined
+                  : h.book_id
+                    ? () => navigate(`/book/${h.book_id}`)
+                    : undefined
             }
           >
             <div className="min-w-0 flex-1">

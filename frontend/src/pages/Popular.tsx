@@ -12,6 +12,7 @@ import {
   SectionTitle,
   StateBadge,
 } from "../components/Blocks";
+import { DetailHeader } from "../components/detail";
 import { useRegisterSubnav } from "../components/subnav";
 import { useGrabRelease, usePopular } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
@@ -45,6 +46,7 @@ export default function PopularPage() {
 
   return (
     <>
+      <DetailHeader title={t("settings.popular")} />
       {isFetching && !data && (
         <>
           {/* the fan-out queries every category on every indexer and takes

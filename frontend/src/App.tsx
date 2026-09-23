@@ -1,13 +1,4 @@
-import {
-  ArrowDownToLine,
-  ArrowUpDown,
-  Flame,
-  Home,
-  PlusCircle,
-  Search,
-  Settings2,
-  X,
-} from "lucide-react";
+import { ArrowUpDown, Plus, Search, X } from "lucide-react";
 import { lazy, type ReactNode, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
@@ -19,32 +10,46 @@ import { NotFound } from "./components/NotFound";
 import { PullToRefresh } from "./components/PullToRefresh";
 import { SubnavProvider, useSubnav } from "./components/subnav";
 import { useAuthState, useServices } from "./hooks/queries";
-// Dashboard is the landing route and stays in the entry chunk; everything else
-// is fetched on first visit, which keeps the initial download small. The PWA
-// precache globs **/*.js, so the split chunks are still available offline.
-import Dashboard from "./pages/Dashboard";
+// The library grids are the landing routes and stay in the entry chunk;
+// everything else is fetched on first visit, which keeps the initial download
+// small. The PWA precache globs **/*.js, so the split chunks are still
+// available offline.
+import { BooksPage, MoviesPage, ShowsPage } from "./pages/Library";
+import { tabsFor } from "./tabs";
 
+const Activity = lazy(() => import("./pages/Activity"));
 const Add = lazy(() => import("./pages/Add"));
-const PopularPage = lazy(() => import("./pages/Popular"));
-const Downloads = lazy(() => import("./pages/Downloads"));
-const HistoryPage = lazy(() => import("./pages/History"));
+const BookPage = lazy(() => import("./pages/Book"));
 const CalendarPage = lazy(() => import("./pages/Calendar"));
-const Manage = lazy(() => import("./pages/Manage"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 const MoviePage = lazy(() => import("./pages/Movie"));
-const StatsPage = lazy(() => import("./pages/Stats"));
+const PopularPage = lazy(() => import("./pages/Popular"));
 const SeriesPage = lazy(() => import("./pages/Series"));
+const Settings = lazy(() => import("./pages/Settings"));
+const StatsPage = lazy(() => import("./pages/Stats"));
 const WantedPage = lazy(() => import("./pages/Wanted"));
 
-/** With zero services configured, everything except Manage is empty —
- * send the user to the Services settings instead. */
+const configuredSet = (services: { service: string; configured: boolean }[] | undefined) =>
+  new Set((services ?? []).filter((s) => s.configured).map((s) => s.service as string));
+
+/** With zero services configured, everything except Settings is empty —
+ * send the user to the connection settings instead. */
 function RequireSetup({ children }: { children: ReactNode }) {
   const { data: services } = useServices();
   const location = useLocation();
   const nothingConfigured = services?.every((s) => !s.configured);
-  if (nothingConfigured && location.pathname !== "/manage") {
-    return <Navigate to="/manage" replace />;
+  if (nothingConfigured && !location.pathname.startsWith("/settings")) {
+    return <Navigate to="/settings/connections" replace />;
   }
   return <>{children}</>;
+}
+
+/** "/" opens the first tab. Which one that is depends on what is configured,
+ * so the redirect waits for /services rather than guessing Settings. */
+function Home() {
+  const { data: services } = useServices();
+  if (!services) return <RouteFallback />;
+  return <Navigate to={tabsFor(configuredSet(services))[0].to} replace />;
 }
 
 function RouteFallback() {
@@ -56,19 +61,15 @@ function RouteFallback() {
   );
 }
 
-const TABS = [
-  { to: "/", key: "nav.home", icon: Home, end: true },
-  { to: "/popular", key: "nav.popular", icon: Flame },
-  { to: "/downloads", key: "nav.downloads", icon: ArrowDownToLine },
-  { to: "/add", key: "nav.add", icon: PlusCircle },
-  { to: "/manage", key: "nav.manage", icon: Settings2 },
-];
-
 function Shell() {
   const { t } = useTranslation();
-  const { subnav, searchbar, sortButton } = useSubnav();
+  const { subnav, searchbar, sortButton, addButton } = useSubnav();
   const location = useLocation();
   const auth = useAuthState();
+  const { data: services } = useServices();
+  const tabs = tabsFor(configuredSet(services));
+  // the bar only appears once a service exists; Settings alone is not a bar
+  const showTabs = tabs.length > 1;
 
   // outside the LAN a passkey session is required for anything to load
   if (auth.data && !auth.data.lan && !auth.data.authenticated) {
@@ -80,13 +81,12 @@ function Shell() {
     );
   }
 
-  const isTabActive = (to: string, end?: boolean) =>
-    end ? location.pathname === to : location.pathname.startsWith(to);
+  const isTabActive = (to: string) => location.pathname.startsWith(to);
 
   /** Re-tapping the active tab returns the page to its entrypoint:
    * first subsection, cleared search, scrolled to the top. */
-  const onTabClick = (to: string, end: boolean | undefined, e: React.MouseEvent) => {
-    if (!isTabActive(to, end)) return;
+  const onTabClick = (to: string, e: React.MouseEvent) => {
+    if (!isTabActive(to)) return;
     e.preventDefault();
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (searchbar?.value) searchbar.onClear?.();
@@ -96,6 +96,8 @@ function Shell() {
         subnav.onChange(subnav.options[0].value);
     }
   };
+
+  const dock = searchbar || sortButton || addButton;
 
   return (
     <div className="min-h-screen">
@@ -107,7 +109,7 @@ function Shell() {
       <main
         className="mx-auto max-w-3xl px-4 pt-[calc(1.25rem+5px+env(safe-area-inset-top))] lg:max-w-5xl"
         style={{
-          paddingBottom: `calc(${5 + (subnav ? 3.2 : 0) + (searchbar || sortButton ? 3.8 : 0)}rem + env(safe-area-inset-bottom))`,
+          paddingBottom: `calc(${(showTabs ? 5 : 1) + (subnav ? 3.2 : 0) + (dock ? 3.8 : 0)}rem + env(safe-area-inset-bottom))`,
         }}
       >
         <RequireSetup>
@@ -115,18 +117,31 @@ function Shell() {
           <ErrorBoundary key={location.pathname}>
             <Suspense fallback={<RouteFallback />}>
               <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/popular" element={<PopularPage />} />
-                <Route path="/downloads" element={<Downloads />} />
-                <Route path="/add" element={<Add />} />
-                <Route path="/search" element={<Navigate to="/add" replace />} />
-                <Route path="/manage" element={<Manage />} />
-                <Route path="/series/:id" element={<SeriesPage />} />
-                <Route path="/history" element={<HistoryPage />} />
-                <Route path="/wanted" element={<WantedPage />} />
+                <Route path="/" element={<Home />} />
+                <Route path="/books" element={<BooksPage />} />
+                <Route path="/movies" element={<MoviesPage />} />
+                <Route path="/shows" element={<ShowsPage />} />
+                <Route path="/activity" element={<Activity />} />
                 <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/settings/:section" element={<Settings />} />
+                <Route path="/overview" element={<Dashboard />} />
+                <Route path="/popular" element={<PopularPage />} />
+                <Route path="/wanted" element={<WantedPage />} />
+                <Route path="/add" element={<Add />} />
+                <Route path="/book/:id" element={<BookPage />} />
                 <Route path="/movie/:id" element={<MoviePage />} />
+                <Route path="/series/:id" element={<SeriesPage />} />
                 <Route path="/stats" element={<StatsPage />} />
+                {/* the pre-redesign tabs; bookmarks and push deep-links still
+                    carry these paths */}
+                <Route path="/search" element={<Navigate to="/add" replace />} />
+                <Route path="/downloads" element={<Navigate to="/activity" replace />} />
+                <Route
+                  path="/history"
+                  element={<Navigate to="/activity?tab=history" replace />}
+                />
+                <Route path="/manage" element={<Navigate to="/settings" replace />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
@@ -134,7 +149,7 @@ function Shell() {
         </RequireSetup>
       </main>
       <div className="fixed inset-x-0 bottom-0 z-50">
-        {(searchbar || sortButton) && (
+        {dock && (
           <div className="pointer-events-none px-4 pb-2.5">
             <div
               className={cn(
@@ -142,6 +157,17 @@ function Shell() {
                 !searchbar && "justify-center",
               )}
             >
+              {sortButton && (
+                <button
+                  type="button"
+                  className="pointer-events-auto flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-card/90 text-muted-foreground shadow-2xl shadow-[color:var(--shadow-color)] backdrop-blur-xl active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                  onClick={sortButton.open}
+                  aria-label={t("common.sortBy")}
+                  title={t("common.sortBy")}
+                >
+                  <ArrowUpDown className="size-[18px]" />
+                </button>
+              )}
               {searchbar && (
                 <form
                   className="pointer-events-auto flex min-w-0 flex-1 items-center gap-2 rounded-full border border-border bg-card/90 px-4 shadow-2xl shadow-[color:var(--shadow-color)] backdrop-blur-xl"
@@ -164,6 +190,7 @@ function Shell() {
                     <button
                       type="button"
                       className="shrink-0 text-muted-foreground active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                      aria-label={t("common.clear")}
                       onClick={() => searchbar.onClear?.()}
                     >
                       <X className="size-4" />
@@ -171,14 +198,15 @@ function Shell() {
                   )}
                 </form>
               )}
-              {sortButton && (
+              {addButton && (
                 <button
                   type="button"
-                  className="pointer-events-auto flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-card/90 text-muted-foreground shadow-2xl shadow-[color:var(--shadow-color)] backdrop-blur-xl active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-                  onClick={sortButton.open}
-                  title={t("common.sortBy")}
+                  className="pointer-events-auto flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-2xl shadow-[color:var(--shadow-color)] active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                  onClick={addButton.onClick}
+                  aria-label={addButton.label}
+                  title={addButton.label}
                 >
-                  <ArrowUpDown className="size-[18px]" />
+                  <Plus className="size-5" />
                 </button>
               )}
             </div>
@@ -204,32 +232,33 @@ function Shell() {
             </div>
           </div>
         )}
-        <nav
-          className={cn(
-            "bg-card/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl",
-            subnav ? "border-t border-border/60" : "border-t border-border",
-          )}
-        >
-          <div className="mx-auto flex max-w-3xl">
-            {TABS.map(({ to, key, icon: Icon, end }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                onClick={(e) => onTabClick(to, end, e)}
-                className={({ isActive }) =>
-                  cn(
-                    "flex flex-1 flex-col items-center gap-0.5 pb-1 pt-2 text-[0.66rem] font-semibold text-muted-foreground active:opacity-60",
-                    isActive && "text-primary",
-                  )
-                }
-              >
-                <Icon className="size-[22px]" strokeWidth={2} />
-                {t(key)}
-              </NavLink>
-            ))}
-          </div>
-        </nav>
+        {showTabs && (
+          <nav
+            className={cn(
+              "bg-card/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl",
+              subnav ? "border-t border-border/60" : "border-t border-border",
+            )}
+          >
+            <div className="mx-auto flex max-w-3xl">
+              {tabs.map(({ to, key, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={(e) => onTabClick(to, e)}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex flex-1 flex-col items-center gap-0.5 pb-1 pt-2 text-[0.66rem] font-semibold text-muted-foreground active:opacity-60",
+                      isActive && "text-primary",
+                    )
+                  }
+                >
+                  <Icon className="size-[22px]" strokeWidth={2} />
+                  {t(key)}
+                </NavLink>
+              ))}
+            </div>
+          </nav>
+        )}
       </div>
     </div>
   );

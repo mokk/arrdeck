@@ -30,7 +30,7 @@ def webhook_event(app_name: str, payload: dict) -> Event | None:
     """Translate an arr webhook body into an Event, or None if we ignore it."""
     raw = payload.get("eventType", "")
     if raw == "Test":
-        return Event(key="test", app=app_name, title="Test notification", url="/manage")
+        return Event(key="test", app=app_name, title="Test notification", url="/settings")
     key = WEBHOOK_EVENTS.get(raw)
     if key is None:
         return None
@@ -44,7 +44,7 @@ def webhook_event(app_name: str, payload: dict) -> Event | None:
             key="health",
             app=app_name,
             title=message or app_name.title(),
-            url="/manage",
+            url="/settings",
             # distinct issues must not merge into a single "2 items" banner
             group=f"{app_name}:health:{hashlib.sha256(message.encode()).hexdigest()[:12]}",
             label="Health restored" if restored else f"{app_name.title()} health issue",
@@ -59,7 +59,7 @@ def webhook_event(app_name: str, payload: dict) -> Event | None:
             key=key,
             app=app_name,
             title=f"{name} ({year})" if year else name,
-            url=f"/movie/{movie_id}" if movie_id else "/history",
+            url=f"/movie/{movie_id}" if movie_id else "/activity?tab=history",
             tags=movie.get("tags") or [],
             # per movie: two unrelated films share no tag, so neither banner
             # replaces the other before it has been read
@@ -76,7 +76,7 @@ def webhook_event(app_name: str, payload: dict) -> Event | None:
         key=key,
         app=app_name,
         title=title,
-        url=f"/series/{series_id}" if series_id else "/history",
+        url=f"/series/{series_id}" if series_id else "/activity?tab=history",
         # merge per series, so one show's season pack is one notification
         group=f"sonarr:{key}:{series_id}",
         group_title=series.get("title") or "",
@@ -124,7 +124,7 @@ def history_event(app_name: str, rec: dict) -> Event | None:
             key=key,
             app=app_name,
             title=title,
-            url=f"/movie/{movie_id}" if movie_id else "/history",
+            url=f"/movie/{movie_id}" if movie_id else "/activity?tab=history",
             group=f"radarr:{key}:{movie_id}",
             tags=(rec.get("movie") or {}).get("tags") or [],
         )
@@ -133,7 +133,7 @@ def history_event(app_name: str, rec: dict) -> Event | None:
         key=key,
         app=app_name,
         title=title,
-        url=f"/series/{series_id}" if series_id else "/history",
+        url=f"/series/{series_id}" if series_id else "/activity?tab=history",
         group=f"sonarr:{key}:{series_id}",
         group_title=(rec.get("series") or {}).get("title") or "",
         tags=(rec.get("series") or {}).get("tags") or [],

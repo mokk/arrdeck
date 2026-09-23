@@ -60,7 +60,7 @@ export function GlobalSearch({ query }: { query: string }) {
                 key={`${tor.client}-${tor.id}`}
                 onClick={() => {
                   localStorage.setItem("downloads.name", JSON.stringify(query));
-                  navigate("/downloads");
+                  navigate("/activity");
                 }}
               >
                 <div className="min-w-0 flex-1">

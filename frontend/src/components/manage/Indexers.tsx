@@ -192,7 +192,7 @@ function AddIndexerSheet({ onClose }: { onClose: () => void }) {
             })
           }
         >
-          {addIndexer.isPending ? t("add.adding") : t("nav.add")}
+          {addIndexer.isPending ? t("add.adding") : t("library.add")}
         </Button>
       </div>
     </Sheet>

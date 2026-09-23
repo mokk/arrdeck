@@ -1,6 +1,6 @@
+import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import path from "node:path";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
@@ -30,9 +30,17 @@ export default defineConfig({
         // long-press the home-screen icon; honoured on Android and desktop,
         // ignored by iOS
         shortcuts: [
-          { name: "Downloads", url: "/downloads", icons: [{ src: "/pwa-192.png", sizes: "192x192" }] },
+          {
+            name: "Activity",
+            url: "/activity",
+            icons: [{ src: "/pwa-192.png", sizes: "192x192" }],
+          },
           { name: "Add", url: "/add", icons: [{ src: "/pwa-192.png", sizes: "192x192" }] },
-          { name: "Calendar", url: "/calendar", icons: [{ src: "/pwa-192.png", sizes: "192x192" }] },
+          {
+            name: "Calendar",
+            url: "/calendar",
+            icons: [{ src: "/pwa-192.png", sizes: "192x192" }],
+          },
         ],
       },
       injectManifest: {

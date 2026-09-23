@@ -1,6 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { clickable, cn } from "@/lib/utils";
@@ -213,7 +214,16 @@ export default function Add() {
   );
 
   const [storedTab, setTab] = usePersistentState<Tab>("add.tab", "movies");
-  const tab = tabs.includes(storedTab) ? storedTab : tabs[0];
+  // the library "+" buttons arrive with ?tab=movies|series so Add opens on
+  // the library the user was looking at
+  const [params] = useSearchParams();
+  const requested = params.get("tab") as Tab | null;
+  const tab =
+    requested && tabs.includes(requested)
+      ? requested
+      : tabs.includes(storedTab)
+        ? storedTab
+        : tabs[0];
   const [input, setInput] = useState("");
   const [query, setQuery] = useState("");
 

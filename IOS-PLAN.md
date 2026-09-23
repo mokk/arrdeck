@@ -366,6 +366,23 @@ and connection. The Home, Popular and Add tabs are gone; Add is a sheet from
 each library's + button. Later: Readarr in the backend, then Books is the
 same page with book fields.
 
+## PWA aligned with the app (2026-09-23)
+
+The PWA now carries the same shell: `tabsFor(configured)` in `frontend/src/tabs.ts`
+derives **Books · Movies · Shows · Activity · Calendar · Settings** from
+`/services`, the bar is hidden until a service exists, and `/` redirects to the
+first tab once `/services` has answered (guessing earlier sent everyone to
+Settings). Library pages are one grid (`pages/Library.tsx`) with search, sort
+and "+" docked at the bottom — sort · search · add, left to right, matching the
+iOS toolbar. Bulk editing hides behind the sort sheet ("Select…") so the grid
+itself has no buttons. `pages/Activity.tsx` owns the bottom subnav with
+Downloads / Queue / History segments, which is why the torrent actions and the
+blocklist toggle moved inline into their pages. Settings (`pages/Settings.tsx`)
+is the hub: Overview (the old dashboard), Popular, Statistics, Wanted, then
+Indexers / System / Connections as `/settings/:section`. Old paths redirect
+(`/downloads`, `/history`, `/manage`, `/search`) and the push deep-links were
+updated to match. Books get `pages/Book.tsx` over `/library/books/{id}/detail`.
+
 ## Readarr / Books (2026-09-23)
 
 Backend first: `ReadarrClient` on `/api/v1`, registered like the other arrs;

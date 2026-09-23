@@ -1,10 +1,11 @@
 {
   "nav": {
-    "home": "Hjem",
-    "downloads": "Downloads",
-    "add": "Tilføj",
-    "manage": "Administrér",
-    "popular": "Populære"
+    "books": "Bøger",
+    "movies": "Film",
+    "shows": "Serier",
+    "activity": "Aktivitet",
+    "calendar": "Kalender",
+    "settings": "Indstillinger"
   },
   "common": {
     "loading": "Indlæser…",
@@ -255,7 +256,8 @@
       "name": "Navn",
       "protocol": "Protokol",
       "privacy": "Privatliv",
-      "enable": "Aktiveret"
+      "enable": "Aktiveret",
+      "author": "Forfatter"
     },
     "export": "Eksportér indstillinger",
     "import": "Importér indstillinger",
@@ -485,5 +487,37 @@
     "hint": "Nyeste udgivelser fra hver indexer de sidste 24 timer, sorteret efter hvor ofte indexeren siger de er hentet. Opdateres hver time.",
     "loading": "Bygger den første liste — det tager cirka et minut, derefter opdateres den hver time af sig selv.",
     "generated": "Opdateret {{when}}"
+  },
+  "library": {
+    "searchMovies": "Søg i film…",
+    "searchShows": "Søg i serier…",
+    "searchBooks": "Søg i bøger…",
+    "add": "Tilføj",
+    "select": "Vælg…"
+  },
+  "activity": {
+    "downloads": "Downloads",
+    "queue": "Kø",
+    "history": "Historik"
+  },
+  "settings": {
+    "title": "Indstillinger",
+    "more": "Mere",
+    "overview": "Overblik",
+    "popular": "Populære udgivelser",
+    "stats": "Statistik",
+    "wanted": "Ønsket",
+    "services": "Tjenester",
+    "indexers": "Indexere",
+    "system": "System",
+    "connections": "Forbindelser",
+    "connectionsHint": "Hvor arrdeck finder hver tjeneste. Ændringer her påvirker alle skærme."
+  },
+  "book": {
+    "pages": "{{count}} sider",
+    "released": "Udgivet {{date}}",
+    "editions": "Udgaver",
+    "genres": "Genrer",
+    "ebook": "e-bog"
   }
 }

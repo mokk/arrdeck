@@ -18,6 +18,7 @@ import {
   VpnSection,
 } from "../components/dashboard/cards";
 import { GlobalSearch } from "../components/dashboard/search";
+import { DetailHeader } from "../components/detail";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { useRegisterSearchbar } from "../components/subnav";
 import { useServices } from "../hooks/queries";
@@ -39,8 +40,20 @@ export default function Dashboard() {
   const configured = new Set(
     (services ?? []).filter((s) => s.configured).map((s) => s.service as string),
   );
-  const hasArr = configured.has("radarr") || configured.has("sonarr");
-  if (query.trim().length > 1) return <GlobalSearch query={query} />;
+  const hasArr = ["radarr", "sonarr", "readarr"].some((s) => configured.has(s));
+  return (
+    <>
+      <DetailHeader title={t("settings.overview")} />
+      {query.trim().length > 1 ? (
+        <GlobalSearch query={query} />
+      ) : (
+        <DashboardCards configured={configured} hasArr={hasArr} />
+      )}
+    </>
+  );
+}
+
+function DashboardCards({ configured, hasArr }: { configured: Set<string>; hasArr: boolean }) {
   return (
     <>
       {/* each card is isolated: a malformed payload from one service degrades

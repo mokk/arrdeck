@@ -15,7 +15,7 @@ import { Card, EmptyNote, ErrorNote, ProgressBar, Row, StateBadge } from "../com
 import { SortSheet } from "../components/SortSheet";
 import { SwipeableRow } from "../components/SwipeableRow";
 import { useSort } from "../components/sortable";
-import { useRegisterSortButton, useRegisterSubnav } from "../components/subnav";
+import { useRegisterSortButton } from "../components/subnav";
 import { VirtualList } from "../components/VirtualList";
 import {
   useServices,
@@ -40,7 +40,6 @@ const SORT_KEYS = [
 ];
 
 import { AddTorrentSheet } from "../components/downloads/AddTorrentSheet";
-import { ArrQueue } from "../components/downloads/ArrQueue";
 import { BulkBar } from "../components/downloads/BulkBar";
 import { isPaused, TorrentSheet } from "../components/downloads/TorrentSheet";
 
@@ -92,34 +91,6 @@ export default function Downloads() {
   // otherwise a half-applied state reads as off. Tapping then releases both.
   const throttled = clientList.some((c) => speed?.[c] === true);
   useRegisterSortButton(() => setSortOpen(true));
-  useRegisterSubnav(
-    [
-      { value: "add", label: `+ ${t("dl.addTorrent")}` },
-      ...(clientList.length > 0
-        ? [{ value: "throttle", label: throttled ? t("dl.throttleOn") : t("dl.throttle") }]
-        : []),
-      { value: "select", label: selectMode ? t("dl.done") : t("dl.select") },
-    ],
-    selectMode ? "select" : throttled ? "throttle" : "",
-    (v) => {
-      if (v === "add") {
-        setAdding(true);
-      } else if (v === "throttle") {
-        setSpeed.mutate({ clients: [...clientList], enabled: !throttled });
-      } else {
-        setSelectMode(!selectMode);
-        setChecked(new Set());
-      }
-    },
-    // entrypoint reset: leave select mode, clear filters, close sheets
-    () => {
-      setSelectMode(false);
-      setChecked(new Set());
-      setSortOpen(false);
-      setNameFilter("");
-    },
-  );
-
   const toggleChecked = (key: string) => {
     const next = new Set(checked);
     if (next.has(key)) next.delete(key);
@@ -169,8 +140,46 @@ export default function Downloads() {
     </Button>
   );
 
+  const toggleSelect = () => {
+    setSelectMode(!selectMode);
+    setChecked(new Set());
+  };
+
   return (
     <>
+      {/* the page actions: they used to live in the bottom subnav, which the
+          Activity tab now uses for its segments */}
+      <div className="mb-3 flex flex-wrap gap-2">
+        {clientList.length > 0 && (
+          <>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="rounded-full"
+              onClick={() => setAdding(true)}
+            >
+              + {t("dl.addTorrent")}
+            </Button>
+            <Button
+              size="sm"
+              variant={throttled ? "default" : "secondary"}
+              className="rounded-full"
+              disabled={setSpeed.isPending}
+              onClick={() => setSpeed.mutate({ clients: [...clientList], enabled: !throttled })}
+            >
+              {throttled ? t("dl.throttleOn") : t("dl.throttle")}
+            </Button>
+          </>
+        )}
+        <Button
+          size="sm"
+          variant={selectMode ? "default" : "secondary"}
+          className="rounded-full"
+          onClick={toggleSelect}
+        >
+          {selectMode ? t("dl.done") : t("dl.select")}
+        </Button>
+      </div>
       {clientList.map((client) => {
         const block = data?.[client];
         return block && !block.ok && block.data == null ? (
@@ -293,7 +302,6 @@ export default function Downloads() {
       <div className="mb-6 mt-2 text-center text-xs text-muted-foreground">
         {t("dl.shownOfTotal", { shown: shown.length, total: all.length })}
       </div>
-      <ArrQueue />
       {selected && (
         <TorrentSheet
           torrent={selected.torrent}

@@ -112,7 +112,7 @@ def test_health_events_stay_separate_and_point_at_manage():
 
     one = webhook_event("sonarr", {"eventType": "Health", "message": "Indexer unavailable"})
     two = webhook_event("sonarr", {"eventType": "Health", "message": "No download client"})
-    assert one.url == "/manage"
+    assert one.url == "/settings"
     assert one.group != two.group  # distinct issues must not merge into a count
     restored = webhook_event("sonarr", {"eventType": "HealthRestored", "message": "back"})
     assert restored.label == "Health restored"
@@ -362,7 +362,7 @@ def test_a_test_webhook_skips_the_queue(tmp_path, monkeypatch):
     sent = _drive(db, [("radarr", {"eventType": "Test"})] * 2, monkeypatch)
     assert len(sent) == 2
     assert sent[0][0] == "Test notification"
-    assert sent[0][2] == "/manage"
+    assert sent[0][2] == "/settings"
 
 
 # --- per-device preferences ----------------------------------------------

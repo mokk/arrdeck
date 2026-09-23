@@ -1,0 +1,90 @@
+// The hub the iOS app calls Settings: links to the screens that used to be
+// tabs of their own (Overview, Popular, Wanted, Statistics), then the arr
+// management sections, then where each service lives.
+
+import type { LucideIcon } from "lucide-react";
+import {
+  Antenna,
+  BarChart3,
+  ChevronRight,
+  Cog,
+  Flame,
+  LayoutGrid,
+  Link2,
+  SearchCheck,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { Card, Row, SectionTitle } from "../components/Blocks";
+import { DetailHeader } from "../components/detail";
+import { Indexers } from "../components/manage/Indexers";
+import { ServiceSettingsTab } from "../components/manage/ServicesTab";
+import { SystemTab } from "../components/manage/System";
+import { useServices } from "../hooks/queries";
+
+type Section = "indexers" | "system" | "connections";
+const SECTIONS: Section[] = ["indexers", "system", "connections"];
+
+function LinkRow({ icon: Icon, label, to }: { icon: LucideIcon; label: string; to: string }) {
+  const navigate = useNavigate();
+  return (
+    <Row onClick={() => navigate(to)}>
+      <Icon className="size-5 shrink-0 text-muted-foreground" />
+      <span className="min-w-0 flex-1 truncate text-sm font-medium">{label}</span>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+    </Row>
+  );
+}
+
+export default function Settings() {
+  const { t } = useTranslation();
+  const { section } = useParams();
+  const { data: services } = useServices();
+  const configured = new Set(
+    (services ?? []).filter((s) => s.configured).map((s) => s.service as string),
+  );
+  const hasArr = ["radarr", "sonarr", "readarr"].some((s) => configured.has(s));
+  const hasProwlarr = configured.has("prowlarr");
+
+  if (section) {
+    if (!SECTIONS.includes(section as Section)) return <Navigate to="/settings" replace />;
+    return (
+      <>
+        <DetailHeader title={t(`settings.${section}`)} />
+        {section === "indexers" && <Indexers />}
+        {section === "system" && <SystemTab />}
+        {section === "connections" && <ServiceSettingsTab />}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <h1 className="mb-4 mt-1 text-2xl font-extrabold tracking-tight">
+        {t("settings.title")}
+      </h1>
+      <SectionTitle>{t("settings.more")}</SectionTitle>
+      <Card>
+        <LinkRow icon={LayoutGrid} label={t("settings.overview")} to="/overview" />
+        {hasProwlarr && <LinkRow icon={Flame} label={t("settings.popular")} to="/popular" />}
+        <LinkRow icon={BarChart3} label={t("settings.stats")} to="/stats" />
+        {hasArr && <LinkRow icon={SearchCheck} label={t("settings.wanted")} to="/wanted" />}
+      </Card>
+      {(hasProwlarr || hasArr) && (
+        <>
+          <SectionTitle>{t("settings.services")}</SectionTitle>
+          <Card>
+            {hasProwlarr && (
+              <LinkRow icon={Antenna} label={t("settings.indexers")} to="/settings/indexers" />
+            )}
+            <LinkRow icon={Cog} label={t("settings.system")} to="/settings/system" />
+          </Card>
+        </>
+      )}
+      <Card>
+        <LinkRow icon={Link2} label={t("settings.connections")} to="/settings/connections" />
+      </Card>
+      <p className="mx-1 mb-6 text-xs text-muted-foreground">{t("settings.connectionsHint")}</p>
+    </>
+  );
+}

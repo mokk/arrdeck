@@ -19,6 +19,12 @@ export interface SearchbarState {
   onClear?: () => void;
 }
 
+/** The "+" the library pages dock next to the search field. */
+export interface AddButtonState {
+  label: string;
+  onClick: () => void;
+}
+
 const SubnavContext = createContext<{
   subnav: SubnavState | null;
   setSubnav: (state: SubnavState | null) => void;
@@ -26,6 +32,8 @@ const SubnavContext = createContext<{
   setSearchbar: (state: SearchbarState | null) => void;
   sortButton: { open: () => void } | null;
   setSortButton: (state: { open: () => void } | null) => void;
+  addButton: AddButtonState | null;
+  setAddButton: (state: AddButtonState | null) => void;
 }>({
   subnav: null,
   setSubnav: () => {},
@@ -33,15 +41,27 @@ const SubnavContext = createContext<{
   setSearchbar: () => {},
   sortButton: null,
   setSortButton: () => {},
+  addButton: null,
+  setAddButton: () => {},
 });
 
 export function SubnavProvider({ children }: { children: ReactNode }) {
   const [subnav, setSubnav] = useState<SubnavState | null>(null);
   const [searchbar, setSearchbar] = useState<SearchbarState | null>(null);
   const [sortButton, setSortButton] = useState<{ open: () => void } | null>(null);
+  const [addButton, setAddButton] = useState<AddButtonState | null>(null);
   return (
     <SubnavContext.Provider
-      value={{ subnav, setSubnav, searchbar, setSearchbar, sortButton, setSortButton }}
+      value={{
+        subnav,
+        setSubnav,
+        searchbar,
+        setSearchbar,
+        sortButton,
+        setSortButton,
+        addButton,
+        setAddButton,
+      }}
     >
       {children}
     </SubnavContext.Provider>
@@ -125,4 +145,19 @@ export function useRegisterSortButton(open: () => void) {
     setSortButton({ open: () => openRef.current() });
     return () => setSortButton(null);
   }, [setSortButton]);
+}
+
+/** Pages call this to dock a "+" button right of the search bar; the page
+ * decides what adding means (usually navigating to the Add screen). */
+export function useRegisterAddButton(label: string, onClick: (() => void) | null) {
+  const { setAddButton } = useContext(SubnavContext);
+  const onClickRef = useRef(onClick);
+  onClickRef.current = onClick;
+  const enabled = onClick != null;
+
+  useEffect(() => {
+    if (!enabled) return;
+    setAddButton({ label, onClick: () => onClickRef.current?.() });
+    return () => setAddButton(null);
+  }, [label, enabled, setAddButton]);
 }

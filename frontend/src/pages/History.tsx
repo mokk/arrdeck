@@ -6,8 +6,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateTime, SERVICE_LABELS } from "../api/format";
 import type { HistoryItem } from "../api/types";
 import { Card, EmptyNote, Row, StateBadge } from "../components/Blocks";
-import { useRegisterSubnav } from "../components/subnav";
-import { useBlocklist, useBlocklistRemove, useHistoryPage } from "../hooks/queries";
+import {
+  useBlocklist,
+  useBlocklistRemove,
+  useHistoryPage,
+  useServices,
+} from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 
 const TYPE_CHIPS = ["fetched", "imported", "failed", "deleted"];
@@ -79,13 +83,9 @@ export default function HistoryPage() {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const { data, isFetching } = useHistoryPage(page);
   const [tab, setTab] = useState<"history" | "blocklist">("history");
-  useRegisterSubnav(
-    [
-      { value: "history", label: t("history.title") },
-      { value: "blocklist", label: t("history.blocklist") },
-    ],
-    tab,
-    (v) => setTab(v as "history" | "blocklist"),
+  const { data: services } = useServices();
+  const apps = (["radarr", "sonarr", "readarr"] as const).filter((app) =>
+    (services ?? []).some((s) => s.service === app && s.configured),
   );
 
   // Only `data` belongs here: firing on a `page` change as well would append
@@ -116,14 +116,36 @@ export default function HistoryPage() {
     </Button>
   );
 
-  if (tab === "blocklist") return <BlocklistView />;
+  // the blocklist toggle sits with the filters now that the Activity tab owns
+  // the bottom subnav
+  const blocklistChip = (
+    <Button
+      key="blocklist"
+      size="sm"
+      variant={tab === "blocklist" ? "default" : "secondary"}
+      className="shrink-0 rounded-full"
+      onClick={() => setTab(tab === "blocklist" ? "history" : "blocklist")}
+    >
+      {t("history.blocklist")}
+    </Button>
+  );
+
+  if (tab === "blocklist")
+    return (
+      <>
+        <div className="mb-4 flex gap-2 overflow-x-auto [scrollbar-width:none]">
+          {blocklistChip}
+        </div>
+        <BlocklistView />
+      </>
+    );
 
   return (
     <>
       <div className="mb-4 flex gap-2 overflow-x-auto [scrollbar-width:none]">
+        {blocklistChip}
         {chip(t("dl.all", { count: items.length }), "all")}
-        {chip("Radarr", "radarr")}
-        {chip("Sonarr", "sonarr")}
+        {apps.map((app) => chip(SERVICE_LABELS[app], app))}
         {TYPE_CHIPS.map((type) => (
           <Button
             key={type}
@@ -152,7 +174,9 @@ export default function HistoryPage() {
                 ? () => navigate(`/movie/${h.movie_id}`)
                 : h.series_id
                   ? () => navigate(`/series/${h.series_id}`)
-                  : undefined
+                  : h.book_id
+                    ? () => navigate(`/book/${h.book_id}`)
+                    : undefined
             }
           >
             <div className="min-w-0 flex-1">

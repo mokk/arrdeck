@@ -488,7 +488,7 @@ describe("recent history", () => {
     const { container } = render(<HistorySection configured={ARRS} />);
     expect(screen.getAllByText(/^Grab \d+$/)).toHaveLength(12);
     const hrefs = [...container.querySelectorAll("a")].map((a) => a.getAttribute("href"));
-    expect(hrefs).toContain("/history");
+    expect(hrefs).toContain("/activity?tab=history");
   });
 
   it("shows a badge per event so one release reads as one row", () => {
