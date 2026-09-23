@@ -719,5 +719,15 @@
     "enable": "Slå kataloget til",
     "hint": "Adressen indeholder en hemmelighed i stedet for en adgangskode, fordi læseapps ikke kan logge ind i arrdeck. Alle med adressen kan hente dine bøger — behandl den som en adgangskode.",
     "unavailable": "Kataloget kræver arrdecks udgave af Readarr, som kan udlevere bogfiler."
+  },
+  "globalSearch": {
+    "title": "Søg i alt",
+    "placeholder": "Film, serier, bøger, forfattere…",
+    "nothing": "Intet i dine biblioteker passer.",
+    "online": "Søg online efter “{{q}}”",
+    "movies": "Film",
+    "shows": "Serier",
+    "books": "Bøger",
+    "authors": "Forfattere"
   }
 }

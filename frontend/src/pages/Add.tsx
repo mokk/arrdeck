@@ -92,8 +92,9 @@ export default function Add() {
   useEffect(() => {
     if (tab && tab !== storedTab) setTab(tab);
   }, [tab, storedTab, setTab]);
-  const [input, setInput] = useState("");
-  const [query, setQuery] = useState("");
+  // ?q= arrives from global search's "Search online"
+  const [input, setInput] = useState(() => params.get("q") ?? "");
+  const [query, setQuery] = useState(() => params.get("q") ?? "");
 
   const searching = query.trim().length > 1;
   const canDiscover = configured.has("overseerr" as never);

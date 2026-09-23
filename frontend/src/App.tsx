@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { cn, focusRing } from "@/lib/utils";
 import { ConfirmProvider } from "./components/Confirm";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { GlobalSearch } from "./components/GlobalSearch";
 import { LoginScreen } from "./components/LoginScreen";
 import { NotFound } from "./components/NotFound";
 import { PullToRefresh } from "./components/PullToRefresh";
@@ -128,6 +129,7 @@ function Shell() {
   return (
     <div className="min-h-screen">
       <Toaster position="top-center" />
+      <GlobalSearch />
       <PullToRefresh />
       {/* opaque status-bar backdrop: scrolled content disappears cleanly
           behind it instead of showing blurred under the iOS clock/battery */}

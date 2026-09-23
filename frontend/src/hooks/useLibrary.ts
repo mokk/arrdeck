@@ -322,25 +322,28 @@ export const useOptions = (app: ArrApp) =>
     staleTime: SLOW,
   });
 
-export const useLibraryMovies = () =>
+export const useLibraryMovies = (enabled = true) =>
   useQuery({
     queryKey: ["library", "movies"],
     queryFn: () => api.get<LibraryMovie[]>("/library/movies"),
     staleTime: 60_000,
+    enabled,
   });
 
-export const useLibrarySeries = () =>
+export const useLibrarySeries = (enabled = true) =>
   useQuery({
     queryKey: ["library", "series"],
     queryFn: () => api.get<LibrarySeries[]>("/library/series"),
     staleTime: 60_000,
+    enabled,
   });
 
-export const useLibraryBooks = () =>
+export const useLibraryBooks = (enabled = true) =>
   useQuery({
     queryKey: ["library", "books"],
     queryFn: () => api.get<LibraryBook[]>("/library/books"),
     staleTime: 60_000,
+    enabled,
   });
 
 export const useBookShelf = (enabled: boolean) =>

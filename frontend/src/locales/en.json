@@ -719,5 +719,15 @@
     "enable": "Turn on the catalogue",
     "hint": "The address contains a secret instead of a password, since reading apps cannot sign in to arrdeck. Anyone with it can download your books — treat it like a password.",
     "unavailable": "The catalogue needs arrdeck's build of Readarr, which can serve book files."
+  },
+  "globalSearch": {
+    "title": "Search everything",
+    "placeholder": "Films, shows, books, authors…",
+    "nothing": "Nothing in your libraries matches.",
+    "online": "Search online for “{{q}}”",
+    "movies": "Movies",
+    "shows": "Shows",
+    "books": "Books",
+    "authors": "Authors"
   }
 }

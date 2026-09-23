@@ -1,6 +1,7 @@
 // The three library tabs: covers, a compact list or a detailed list, with
 // search, sort and add docked at the bottom. Configuration per library over one
 // view, the way the iOS LibraryPage does it.
+import { Search } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +18,7 @@ import type {
   WatchedItem,
 } from "../api/types";
 import { ErrorNote } from "../components/Blocks";
+import { openGlobalSearch } from "../components/GlobalSearch";
 import { CardMenu, type MenuTarget } from "../components/library/CardMenu";
 import { CollectionsList } from "../components/library/Collections";
 import { Cover } from "../components/library/Cover";
@@ -327,6 +329,18 @@ function LibraryView({
 
   return (
     <>
+      <button
+        type="button"
+        aria-label={t("globalSearch.title")}
+        title={`${t("globalSearch.title")} (⌘K)`}
+        onClick={openGlobalSearch}
+        className={cn(
+          focusRing,
+          "fixed right-3 top-[calc(env(safe-area-inset-top)+0.6rem)] z-40 flex size-9 items-center justify-center rounded-full border border-border bg-card/90 text-muted-foreground shadow-lg backdrop-blur-xl active:opacity-60",
+        )}
+      >
+        <Search className="size-4" />
+      </button>
       {selectMode && (
         <div className="mb-3 flex items-center justify-between">
           <span className="text-xs text-muted-foreground">
