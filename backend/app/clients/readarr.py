@@ -57,7 +57,16 @@ class ReadarrClient(ArrClient):
         )
         return await self.http.send(request, stream=True)
 
+    async def editions(self, book_id: int) -> list:
+        return await self.get("/edition", params={"bookId": book_id})
+
     async def update_book(self, book_id: int, payload: dict) -> dict:
+        # PUT /book maps the resource back with `editions.ToModel()`, and GET
+        # /book/{id} does not include them — sending the book back as fetched
+        # is a 500 (ArgumentNullException). Readarr's own UI always has them
+        # loaded; we fetch them when the caller has not.
+        if payload.get("editions") is None:
+            payload = {**payload, "editions": await self.editions(book_id)}
         return await self.request("PUT", f"/book/{book_id}", json=payload)
 
     async def delete_book(self, book_id: int, delete_files: bool) -> None:
