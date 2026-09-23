@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { tabsFor } from "./tabs";
+import { tabFor, tabsFor } from "./tabs";
 
 /** The bar is derived from the configured services, so a library tab for a
  * service that is not set up would be an empty page with no way to fill it. */
@@ -28,5 +28,31 @@ describe("tabsFor", () => {
       "/calendar",
       "/settings",
     ]);
+  });
+});
+
+describe("tabFor", () => {
+  it("lights the library a detail page belongs to", () => {
+    expect(tabFor("/movie/12")).toBe("/movies");
+    expect(tabFor("/series/3")).toBe("/shows");
+    expect(tabFor("/book/7")).toBe("/books");
+    expect(tabFor("/author/3")).toBe("/books");
+  });
+
+  it("lights the library Add was opened for", () => {
+    expect(tabFor("/add", "?tab=series")).toBe("/shows");
+    expect(tabFor("/add", "?tab=books")).toBe("/books");
+    expect(tabFor("/add")).toBe("/movies");
+  });
+
+  it("files the Settings sub-screens under Settings", () => {
+    expect(tabFor("/overview")).toBe("/settings");
+    expect(tabFor("/settings/connections")).toBe("/settings");
+    expect(tabFor("/wanted")).toBe("/settings");
+  });
+
+  it("leaves the tabs themselves alone", () => {
+    expect(tabFor("/activity")).toBe("/activity");
+    expect(tabFor("/calendar")).toBe("/calendar");
   });
 });

@@ -31,3 +31,36 @@ export function tabsFor(configured: Set<string>): AppTab[] {
   tabs.push({ to: "/settings", key: "nav.settings", icon: Settings2 });
   return tabs;
 }
+
+/** Which tab owns a location, so a movie page lights up Movies and the Add
+ * screen lights up the library it was opened for. Detail routes are singular
+ * (/movie/12) while the tabs are plural (/movies), hence the table. */
+export function tabFor(pathname: string, search = ""): string {
+  const first = `/${pathname.split("/")[1] ?? ""}`;
+  switch (first) {
+    case "/movie":
+      return "/movies";
+    case "/series":
+      return "/shows";
+    case "/book":
+    case "/author":
+      return "/books";
+    case "/add": {
+      const kind = new URLSearchParams(search).get("tab");
+      if (kind === "series") return "/shows";
+      if (kind === "books") return "/books";
+      return "/movies";
+    }
+    case "/downloads":
+    case "/history":
+      return "/activity";
+    case "/overview":
+    case "/popular":
+    case "/wanted":
+    case "/stats":
+    case "/manage":
+      return "/settings";
+    default:
+      return first;
+  }
+}

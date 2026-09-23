@@ -16,7 +16,7 @@ import { useLastSeen } from "./lib/lastSeen";
 // small. The PWA precache globs **/*.js, so the split chunks are still
 // available offline.
 import { BooksPage, MoviesPage, ShowsPage } from "./pages/Library";
-import { tabsFor } from "./tabs";
+import { tabFor, tabsFor } from "./tabs";
 
 const Activity = lazy(() => import("./pages/Activity"));
 const Add = lazy(() => import("./pages/Add"));
@@ -91,7 +91,8 @@ function Shell() {
     );
   }
 
-  const isTabActive = (to: string) => location.pathname.startsWith(to);
+  const activeTab = tabFor(location.pathname, location.search);
+  const isTabActive = (to: string) => activeTab === to;
 
   /** Re-tapping the active tab returns the page to its entrypoint:
    * first subsection, cleared search, scrolled to the top. */
@@ -256,10 +257,13 @@ function Shell() {
                   key={to}
                   to={to}
                   onClick={(e) => onTabClick(to, e)}
-                  className={({ isActive }) =>
+                  aria-current={isTabActive(to) ? "page" : undefined}
+                  className={() =>
                     cn(
                       "flex flex-1 flex-col items-center gap-0.5 pb-1 pt-2 text-[0.66rem] font-semibold text-muted-foreground active:opacity-60",
-                      isActive && "text-primary",
+                      // our own match: a movie page belongs to Movies, which
+                      // NavLink's prefix match would not know
+                      isTabActive(to) && "text-primary",
                     )
                   }
                 >
