@@ -287,6 +287,17 @@ pushed screen. Calendar: month grid / week strip / fortnight agenda over one
 `CalendarRange` (Monday-first weeks, the agenda always from today), grouped
 by local day, reached from the Upcoming card's "See all".
 
+**Manage done (2026-09-23).** A settings-style hub (the PWA's sub-tabs read
+worse on a phone) into: the two libraries as one `LibraryRow` shape with
+local filter/tag/sort and Plex watched dots; Indexers with enable toggle and
+test-as-verdict; System (reachability with flaky/update states, scheduled
+tasks key/all with overdue first, read-only quality profiles, service
+backups, logs per arr and level); Connections (per-service URL/key/user/pass
+forms — save, then test the *saved* connection). Not yet: add-indexer sheet,
+bulk select in the libraries, theme/language (device settings do that on
+iOS), security/notifications/import-lists/backup-transfer cards — the last
+four move to D and I.
+
 ## H. Localisation — Size S
 
 437 keys, en + da, to `.xcstrings`. Scriptable from the existing JSON;
@@ -325,7 +336,7 @@ operator needs their own build and Apple account, or you run the relay.
 | B2 localised push text | — | **done** — prerequisite for D |
 | C pairing and auth | M | Web view path needs no backend change |
 | F generated Swift client | — | **done** — see the two spec constraints above |
-| G port the screens | L | **Dashboard, Downloads, detail, Wanted, Calendar done**; next Manage, Add, Popular, History, Stats |
+| G port the screens | L | **Dashboard, Downloads, detail, Wanted, Calendar, Manage done**; next Add, Popular, History, Stats |
 | D APNs, operator-supplied | M | Includes the push-registration plumbing E1 would have had |
 | H localisation | S | Mechanical |
 | I widgets, Live Activity, Intents | M | The genuine payoff |
