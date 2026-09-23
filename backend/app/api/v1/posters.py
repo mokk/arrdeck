@@ -24,7 +24,9 @@ TMDB_POSTER_SIZE = "w500"
 # A cast headshot renders about 44px across. At w500 each one is ~81 KB against
 # ~14 KB at w185, and a credits list has a dozen of them.
 TMDB_HEADSHOT_SIZE = "w185"
-ALLOWED_TMDB_SIZES = {TMDB_HEADSHOT_SIZE, TMDB_POSTER_SIZE}
+# A detail header's backdrop: wide enough for a desktop column, a fifth of /original.
+TMDB_BACKDROP_SIZE = "w1280"
+ALLOWED_TMDB_SIZES = {TMDB_HEADSHOT_SIZE, TMDB_POSTER_SIZE, TMDB_BACKDROP_SIZE}
 
 
 def normalise_poster_url(url: str, size: str | None = None) -> str:

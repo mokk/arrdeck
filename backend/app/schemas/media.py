@@ -33,6 +33,24 @@ class LibraryMovieOut(BaseModel):
     imdb_id: str | None = None
     # when the arr started monitoring it; the libraries sort on this by default
     added: datetime | None = None
+    # The file's quality (WEBDL-2160p…), for the details layout and filters.
+    quality: str | None = None
+    genres: list[str] = []
+    rating: float | None = None  # IMDb, else TMDB, out of 10
+    runtime: int | None = None  # minutes
+
+
+class NextEpisodeOut(BaseModel):
+    season: int
+    episode: int
+    title: str | None = None
+    air_date: datetime | None = None
+
+
+class SeasonProgressOut(BaseModel):
+    number: int
+    have: int = 0  # episodes on disk
+    total: int = 0  # episodes in the season, aired or not
 
 
 class LibrarySeriesOut(BaseModel):
@@ -51,6 +69,16 @@ class LibrarySeriesOut(BaseModel):
     imdb_id: str | None = None
     # when the arr started monitoring it; the libraries sort on this by default
     added: datetime | None = None
+    tmdb_id: int | None = None
+    network: str | None = None
+    genres: list[str] = []
+    rating: float | None = None
+    next_airing: datetime | None = None
+    previous_airing: datetime | None = None
+    # The next episode on the calendar, for the "Up next" view.
+    next_episode: NextEpisodeOut | None = None
+    # The season "Up next" tracks: the next episode's, else the latest.
+    current_season: SeasonProgressOut | None = None
 
 
 class SeasonOut(BaseModel):
@@ -72,6 +100,7 @@ class SeriesDetailOut(BaseModel):
     year: int | None = None
     overview: str | None = None
     poster: str | None = None
+    fanart: str | None = None  # the wide backdrop behind the header
     status: str | None = None  # continuing | ended | upcoming
     runtime: int | None = None  # minutes per episode
     path: str | None = None
@@ -149,6 +178,7 @@ class MovieDetailOut(BaseModel):
     year: int | None = None
     overview: str | None = None
     poster: str | None = None
+    fanart: str | None = None  # the wide backdrop behind the header
     status: str | None = None
     runtime: int | None = None
     path: str | None = None

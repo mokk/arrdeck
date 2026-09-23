@@ -9,6 +9,7 @@ from ...clients.overseerr import OverseerrClient
 from ...deps import get_overseerr
 from ...schemas import (
     MediaRequestOut,
+    RequestStateOut,
     ServiceBlock,
 )
 from .posters import proxy_poster
@@ -67,6 +68,50 @@ async def media_requests(
         return await cached(f"requests:{filter}:{take}", 60, call)
 
     return await guarded(fetch(), f"requests:{filter}")
+
+
+# Open requests: waiting for approval, or approved and not yet on disk.
+OPEN_FILTERS = ("pending", "processing")
+MAP_TAKE = 100
+
+
+def request_keys(req: dict) -> list[str]:
+    """How a library card finds its request: movies by TMDB id, shows by TVDB id
+    and TMDB id both, since a Sonarr row may carry either. The kind prefix keeps
+    a film and a show that share a TMDB number apart."""
+    media = req.get("media") or {}
+    kind = req.get("type") or media.get("mediaType") or "movie"
+    keys = []
+    if media.get("tmdbId"):
+        keys.append(f"{kind}:tmdb:{media['tmdbId']}")
+    if kind == "tv" and media.get("tvdbId"):
+        keys.append(f"tv:tvdb:{media['tvdbId']}")
+    return keys
+
+
+@router.get("/requests/map", response_model=ServiceBlock[dict[str, RequestStateOut]])
+async def request_map(overseerr: OverseerrClient = Depends(get_overseerr)):
+    """Open requests keyed for the library badges. No titles, so no per-request
+    TMDB lookups: the card already knows what it is."""
+
+    async def fetch() -> dict[str, dict]:
+        async def call() -> dict[str, dict]:
+            pages = await asyncio.gather(*(overseerr.requests(f, MAP_TAKE) for f in OPEN_FILTERS))
+            out: dict[str, dict] = {}
+            for page in pages:
+                for req in page.get("results") or []:
+                    state = {
+                        "request_id": req.get("id", 0),
+                        "status": req.get("status", 0),
+                        "requested_by": (req.get("requestedBy") or {}).get("displayName") or "",
+                    }
+                    for key in request_keys(req):
+                        out.setdefault(key, state)
+            return out
+
+        return await cached("requests:map", 60, call)
+
+    return await guarded(fetch(), "requests:map")
 
 
 @router.post("/requests/{request_id}/{action}", status_code=204)

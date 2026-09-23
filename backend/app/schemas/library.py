@@ -333,6 +333,8 @@ class LibraryBookOut(BaseModel):
     foreign_book_id: str | None = None
     # when the arr started monitoring it; the libraries sort on this by default
     added: datetime | None = None
+    genres: list[str] = []
+    rating: float | None = None  # Goodreads, out of 5
 
 
 class BookFileOut(BaseModel):
@@ -357,12 +359,28 @@ class SeriesBookOut(BaseModel):
     title: str | None = None
     monitored: bool = False
     has_file: bool = False
+    poster: str | None = None
+    year: int | None = None
 
 
 class BookSeriesOut(BaseModel):
     id: int
     title: str | None = None
     books: list[SeriesBookOut] = []
+
+
+class ShelfSeriesOut(BookSeriesOut):
+    """A series on the bookshelf: every book in it, owned or not, so the gaps
+    show. Only series with at least one book in the library are listed."""
+
+    author: str | None = None
+    author_id: int | None = None
+
+
+class RequestStateOut(BaseModel):
+    request_id: int
+    status: int  # Overseerr's request status: 1 pending, 2 approved
+    requested_by: str = ""
 
 
 class AuthorOut(BaseModel):

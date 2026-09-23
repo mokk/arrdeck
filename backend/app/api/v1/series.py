@@ -1,8 +1,11 @@
 """The series library: listing, detail, seasons, episodes, editing, removal."""
 
+import asyncio
+from datetime import UTC, datetime, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException
 
-from ...cache import cache
+from ...cache import cache, cached
 from ...clients.sonarr import SonarrClient
 from ...deps import get_sonarr
 from ...schemas import (
@@ -15,14 +18,62 @@ from ...schemas import (
     SeasonOut,
     SeriesDetailOut,
 )
-from .discover import _poster
+from .discover import _fanart, _poster, _rating
 
 router = APIRouter(tags=["library"])
 
 
+UP_NEXT_DAYS = 120
+
+
+async def next_episodes(sonarr: SonarrClient) -> dict[int, dict]:
+    """The first upcoming episode per series, from one calendar call rather than
+    one episode list per show. Cached: the calendar barely moves in minutes."""
+
+    async def call() -> dict[int, dict]:
+        now = datetime.now(UTC)
+        end = now + timedelta(days=UP_NEXT_DAYS)
+        episodes = await sonarr.calendar(now.isoformat(), end.isoformat())
+        out: dict[int, dict] = {}
+        for ep in sorted(episodes, key=lambda e: e.get("airDateUtc") or ""):
+            series_id = ep.get("seriesId")
+            if series_id is None or series_id in out or not ep.get("airDateUtc"):
+                continue
+            out[series_id] = {
+                "season": ep.get("seasonNumber", 0),
+                "episode": ep.get("episodeNumber", 0),
+                "title": ep.get("title"),
+                "air_date": ep.get("airDateUtc"),
+            }
+        return out
+
+    try:
+        return await cached("sonarr:next_episodes", 900, call)
+    except Exception:  # noqa: BLE001 — "up next" is decoration on the library
+        return {}
+
+
+def current_season(series: dict, next_episode: dict | None) -> dict | None:
+    """The season worth a progress bar: the one the next episode is in, else
+    the latest real season (specials are season 0)."""
+    seasons = {s.get("seasonNumber"): s for s in series.get("seasons") or []}
+    number = (
+        next_episode["season"] if next_episode else max((n for n in seasons if n), default=None)
+    )
+    season = seasons.get(number)
+    if season is None:
+        return None
+    stats = season.get("statistics") or {}
+    return {
+        "number": number,
+        "have": stats.get("episodeFileCount", 0),
+        "total": stats.get("totalEpisodeCount", 0),
+    }
+
+
 @router.get("/library/series", response_model=list[LibrarySeriesOut])
 async def library_series(sonarr: SonarrClient = Depends(get_sonarr)) -> list[dict]:
-    items = await sonarr.series()
+    items, upcoming = await asyncio.gather(sonarr.series(), next_episodes(sonarr))
     return [
         {
             "id": s["id"],
@@ -39,6 +90,14 @@ async def library_series(sonarr: SonarrClient = Depends(get_sonarr)) -> list[dic
             "tags": s.get("tags") or [],
             "tvdb_id": s.get("tvdbId"),
             "imdb_id": s.get("imdbId"),
+            "tmdb_id": s.get("tmdbId"),
+            "network": s.get("network"),
+            "genres": s.get("genres") or [],
+            "rating": _rating(s.get("ratings")),
+            "next_airing": s.get("nextAiring"),
+            "previous_airing": s.get("previousAiring"),
+            "next_episode": upcoming.get(s["id"]),
+            "current_season": current_season(s, upcoming.get(s["id"])),
         }
         for s in sorted(items, key=lambda s: s.get("sortTitle", ""))
     ]
@@ -68,6 +127,7 @@ async def series_detail(
         year=series.get("year"),
         overview=series.get("overview"),
         poster=_poster(series.get("images")),
+        fanart=_fanart(series.get("images")),
         status=series.get("status"),
         runtime=series.get("runtime"),
         path=series.get("path"),

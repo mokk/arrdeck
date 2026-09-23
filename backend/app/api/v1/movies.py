@@ -13,9 +13,13 @@ from ...schemas import (
     MovieFileOut,
 )
 from .dashboard import EVENT_LABELS
-from .discover import _poster
+from .discover import _fanart, _poster, _rating
 
 router = APIRouter(tags=["library"])
+
+
+def movie_quality(movie: dict) -> str | None:
+    return (((movie.get("movieFile") or {}).get("quality") or {}).get("quality") or {}).get("name")
 
 
 @router.get("/library/movies", response_model=list[LibraryMovieOut])
@@ -35,6 +39,10 @@ async def library_movies(radarr: RadarrClient = Depends(get_radarr)) -> list[dic
             "tags": m.get("tags") or [],
             "tmdb_id": m.get("tmdbId"),
             "imdb_id": m.get("imdbId"),
+            "quality": movie_quality(m),
+            "genres": m.get("genres") or [],
+            "rating": _rating(m.get("ratings")),
+            "runtime": m.get("runtime") or None,
         }
         for m in sorted(items, key=lambda m: m.get("sortTitle", ""))
     ]
@@ -63,6 +71,7 @@ async def movie_detail(movie_id: int, radarr: RadarrClient = Depends(get_radarr)
         year=movie.get("year"),
         overview=movie.get("overview"),
         poster=_poster(movie.get("images")),
+        fanart=_fanart(movie.get("images")),
         status=movie.get("status"),
         runtime=movie.get("runtime"),
         path=movie.get("path"),

@@ -21,7 +21,7 @@ from ...schemas import (
     OptionsOut,
     SearchResultOut,
 )
-from .posters import proxy_poster
+from .posters import TMDB_BACKDROP_SIZE, proxy_poster
 
 router = APIRouter(tags=["discover"])
 
@@ -57,6 +57,25 @@ def _poster(images: list | None) -> str | None:
     for img in images or []:
         if img.get("coverType") == "poster":
             return proxy_poster(img.get("remoteUrl") or img.get("url"))
+    return None
+
+
+def _fanart(images: list | None) -> str | None:
+    for img in images or []:
+        if img.get("coverType") == "fanart":
+            return proxy_poster(img.get("remoteUrl") or img.get("url"), TMDB_BACKDROP_SIZE)
+    return None
+
+
+def _rating(ratings: dict | None) -> float | None:
+    """Radarr carries several sources, Sonarr a single one; IMDb first."""
+    ratings = ratings or {}
+    if "value" in ratings:
+        return ratings.get("value") or None
+    for source in ("imdb", "tmdb"):
+        value = (ratings.get(source) or {}).get("value")
+        if value:
+            return value
     return None
 
 
@@ -287,7 +306,6 @@ async def search_books(
     return [r for r in out if r is not None][:30]
 
 
-
 @router.get("/search/books/editions", response_model=list[EditionChoiceOut])
 async def book_editions(edition: str, readarr: ReadarrClient = Depends(get_readarr)) -> list[dict]:
     """Every edition of the work one edition belongs to, for the add sheet's
@@ -297,6 +315,7 @@ async def book_editions(edition: str, readarr: ReadarrClient = Depends(get_reada
     results = await readarr.lookup(f"edition:{edition}")
     editions = (results[0].get("editions") or []) if results else []
     return [edition_choice(e) for e in editions if e.get("foreignEditionId")]
+
 
 @router.get("/search/series", response_model=list[SearchResultOut])
 async def search_series(

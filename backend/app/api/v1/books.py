@@ -27,6 +27,7 @@ from ...schemas import (
     HistoryEventOut,
     LibraryBookOut,
     LibraryUpdateIn,
+    ShelfSeriesOut,
 )
 from .dashboard import EVENT_LABELS
 from .posters import proxy_poster
@@ -76,6 +77,8 @@ def book_row(book: dict, authors: dict[int, dict]) -> dict:
         "poster": book_cover(book.get("images")),
         "page_count": book.get("pageCount") or None,
         "foreign_book_id": book.get("foreignBookId"),
+        "genres": book.get("genres") or [],
+        "rating": (book.get("ratings") or {}).get("value") or None,
     }
 
 
@@ -326,6 +329,8 @@ def series_rows(series: list[dict], books_by_id: dict[int, dict]) -> list[dict]:
                     "title": book.get("title"),
                     "monitored": book.get("monitored", False),
                     "has_file": (stats.get("bookFileCount") or 0) > 0,
+                    "poster": book_cover(book.get("images")),
+                    "year": year_of(book.get("releaseDate")),
                     "_order": link.get("seriesPosition") or 0,
                 }
             )
@@ -344,6 +349,50 @@ async def author_series(readarr: ReadarrClient, author_id: int) -> list[dict]:
     series, books = await asyncio.gather(readarr.series(author_id), readarr.books())
     books_by_id = {b["id"]: b for b in books if b.get("authorId") == author_id}
     return series_rows(series, books_by_id)
+
+
+# Series lists change when an author is refreshed, which is rare; the shelf asks
+# for every library author at once, so each answer is kept for an hour.
+SHELF_SERIES_TTL = 3600
+SHELF_CONCURRENCY = 4
+
+
+def shelf_rows(
+    series_by_author: dict[int, list[dict]], books: list[dict], authors: dict[int, dict]
+) -> list[dict]:
+    """Every series with a book in the library, holding all its books so the
+    missing ones show as gaps. Sorted by author, then series title."""
+    books_by_id = {b["id"]: b for b in books}
+    out = []
+    for author_id, series in series_by_author.items():
+        name = (authors.get(author_id) or {}).get("authorName")
+        for row in series_rows(series, books_by_id):
+            if not any(in_library(b) for b in row["books"]):
+                continue
+            out.append({**row, "author": name, "author_id": author_id})
+    return sorted(out, key=lambda r: ((r["author"] or "").lower(), (r["title"] or "").lower()))
+
+
+@router.get("/library/books/shelf", response_model=list[ShelfSeriesOut])
+async def book_shelf(readarr: ReadarrClient = Depends(get_readarr)) -> list[dict]:
+    books, authors = await asyncio.gather(readarr.books(), author_map(readarr))
+    rows = [book_row(b, authors) for b in books]
+    author_ids = sorted({r["author_id"] for r in rows if r["author_id"] and in_library(r)})
+    gate = asyncio.Semaphore(SHELF_CONCURRENCY)
+
+    async def one(author_id: int) -> list[dict]:
+        async with gate:
+            try:
+                return await cached(
+                    f"readarr:series:{author_id}",
+                    SHELF_SERIES_TTL,
+                    lambda: readarr.series(author_id),
+                )
+            except Exception:  # noqa: BLE001 — one author's series must not sink the shelf
+                return []
+
+    series = await asyncio.gather(*(one(a) for a in author_ids))
+    return shelf_rows(dict(zip(author_ids, series, strict=True)), books, authors)
 
 
 @router.get("/library/authors", response_model=list[AuthorOut])

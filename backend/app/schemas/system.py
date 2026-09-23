@@ -54,6 +54,12 @@ class WatchedItemOut(BaseModel):
     # app.plex.tv/#!/server/{id} prefix, which was two thirds of a ~98 KB payload
     # across ~590 entries; the prefix now ships once as WatchedMapOut.base_url.
     key: str | None = None
+    last_viewed_at: int | None = None  # unix seconds, the cleanup assistant's clock
+
+
+class WatchedEpisodeOut(BaseModel):
+    season: int
+    episode: int
 
 
 class WatchedMapOut(BaseModel):

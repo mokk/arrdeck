@@ -2,7 +2,7 @@
 
 import asyncio
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from ...cache import cached, guarded
 from ...clients.plex import PlexClient
@@ -12,6 +12,7 @@ from ...deps import (
 from ...schemas import (
     PlaySessionOut,
     ServiceBlock,
+    WatchedEpisodeOut,
     WatchedMapOut,
 )
 
@@ -100,6 +101,7 @@ async def watched(plex: PlexClient = Depends(get_plex)):
                         "watched": is_watched,
                         "progress": progress,
                         "key": str(rating_key) if rating_key else None,
+                        "last_viewed_at": item.get("lastViewedAt"),
                     }
                     for key in _guid_keys(item):
                         out[key] = entry
@@ -116,6 +118,28 @@ async def watched(plex: PlexClient = Depends(get_plex)):
         return await cached("watched", 600, call)
 
     return await guarded(fetch(), "watched:block")
+
+
+@router.get("/watched/episodes", response_model=ServiceBlock[list[WatchedEpisodeOut]])
+async def watched_episodes(key: str, plex: PlexClient = Depends(get_plex)):
+    """The watched episodes of one show, by the rating key the watched map gives.
+    Spoiler protection needs this per episode; the map only has a ratio."""
+    if not key.isdigit():
+        raise HTTPException(422, "key must be a Plex rating key")
+
+    async def fetch() -> list[dict]:
+        async def call() -> list[dict]:
+            return [
+                {"season": e["parentIndex"], "episode": e["index"]}
+                for e in await plex.episodes(key)
+                if e.get("viewCount")
+                and e.get("parentIndex") is not None
+                and e.get("index") is not None
+            ]
+
+        return await cached(f"watched:episodes:{key}", 300, call)
+
+    return await guarded(fetch(), f"watched:episodes:{key}")
 
 
 @router.get("/sessions", response_model=ServiceBlock[list[PlaySessionOut]])

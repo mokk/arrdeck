@@ -48,6 +48,13 @@ class PlexClient(BaseClient):
         ).get("MediaContainer", {})
         return container.get("Metadata") or []
 
+    async def episodes(self, show_key: str) -> list:
+        """Every episode of a show, with its viewCount."""
+        container = (await self.get(f"/library/metadata/{show_key}/allLeaves")).get(
+            "MediaContainer", {}
+        )
+        return container.get("Metadata") or []
+
     async def sessions(self) -> list:
         container = (await self.get("/status/sessions")).get("MediaContainer", {})
         return container.get("Metadata") or []
