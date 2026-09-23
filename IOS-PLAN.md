@@ -344,8 +344,9 @@ per episode; per wanted row), rename card on both detail screens, add-torrent
 by magnet/URL, torrent limits / queue position / force start / category /
 tags in the detail sheet, and select mode with a bottom bulk bar on
 Downloads (pause/resume/delete per client) and in both libraries
-(monitor/profile/tags/search/delete). Still open: the add-indexer sheet
-(dynamic Prowlarr field schemas) and .torrent file upload (multipart).
+(monitor/profile/tags/search/delete), and the add-indexer sheet (Prowlarr's
+untyped definitions decoded by hand into typed fields: text, password,
+checkbox, select, number). Still open: .torrent file upload (multipart).
 
 ## H (original notes) — Size S
 
