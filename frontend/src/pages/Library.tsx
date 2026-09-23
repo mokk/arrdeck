@@ -220,7 +220,9 @@ function LibraryGrid({
             key={card.id}
             className={cn(
               focusRing,
-              "min-w-0 rounded-xl text-left [contain-intrinsic-size:auto_220px] [content-visibility:auto] active:opacity-70",
+              // no rounding and no paint containment on the card itself: both
+              // clipped the subtitle's descenders. The cover has its own corners.
+              "min-w-0 pb-1 text-left active:opacity-70",
             )}
             onClick={() =>
               selectMode ? toggleChecked(card.id) : navigate(`/${config.route}/${card.id}`)
