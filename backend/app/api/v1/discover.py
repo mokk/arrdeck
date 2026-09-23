@@ -248,8 +248,24 @@ def book_search_result(entry: dict, library: dict[int, dict]) -> SearchResultOut
         foreign_id=book.get("foreignBookId"),
         foreign_edition_id=(edition or {}).get("foreignEditionId") or book.get("foreignEditionId"),
         author=author.get("authorName"),
+        editions=[
+            edition_choice(e) for e in book.get("editions") or [] if e.get("foreignEditionId")
+        ],
         **library.get(fid or -1, {}),
     )
+
+
+def edition_choice(e: dict) -> dict:
+    release = e.get("releaseDate") or ""
+    return {
+        "foreign_edition_id": e["foreignEditionId"],
+        "title": e.get("title"),
+        "format": e.get("format"),
+        "language": e.get("language"),
+        "year": int(release[:4]) if release[:4].isdigit() else None,
+        "page_count": e.get("pageCount") or None,
+        "monitored": bool(e.get("monitored")),
+    }
 
 
 def _cover(book: dict) -> str | None:
@@ -442,6 +458,14 @@ def new_book_payload(book: dict, body: AddBookIn, metadata_profile_id: int | Non
     payload["author"] = author
     payload["monitored"] = body.monitored
     payload["addOptions"] = {"searchForNewBook": body.search_now}
+    # The picked edition is the one Readarr monitors (and names the book by);
+    # without a pick, Readarr's own choice stands.
+    if body.foreign_edition_id and any(
+        e.get("foreignEditionId") == body.foreign_edition_id for e in payload.get("editions") or []
+    ):
+        for e in payload["editions"]:
+            e["monitored"] = e.get("foreignEditionId") == body.foreign_edition_id
+        payload["foreignEditionId"] = body.foreign_edition_id
     return payload
 
 

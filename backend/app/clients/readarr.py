@@ -73,6 +73,10 @@ class ReadarrClient(ArrClient):
     async def get_author(self, author_id: int) -> dict:
         return await self.get(f"/author/{author_id}")
 
+    async def series(self, author_id: int) -> list:
+        """An author's book series, each with (bookId, position) links."""
+        return await self.get("/series", params={"authorId": author_id})
+
     async def update_author(self, author_id: int, payload: dict) -> dict:
         return await self.request("PUT", f"/author/{author_id}", json=payload)
 

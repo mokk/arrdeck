@@ -52,3 +52,47 @@ class BazarrClient(BaseClient):
         await self.request(
             "PATCH", "/movies", data={"radarrid": radarr_id, "action": "search-missing"}
         )
+
+    async def movie(self, radarr_id: int) -> dict | None:
+        """Bazarr's row for one Radarr movie: present and missing subtitles."""
+        data = await self.get("/movies", params={"start": 0, "length": -1, "radarrid[]": radarr_id})
+        rows = data.get("data") or []
+        return rows[0] if rows else None
+
+    async def series_episodes(self, series_id: int) -> list:
+        data = await self.get("/episodes", params={"seriesid[]": series_id})
+        return data.get("data") or []
+
+    async def download_movie_subtitle(
+        self, radarr_id: int, language: str, hi: bool = False, forced: bool = False
+    ) -> None:
+        """Search the providers for this language and download the best hit."""
+        await self.request(
+            "PATCH",
+            "/movies/subtitles",
+            params={
+                "radarrid": radarr_id,
+                "language": language,
+                "hi": _flag(hi),
+                "forced": _flag(forced),
+            },
+        )
+
+    async def download_episode_subtitle(
+        self, series_id: int, episode_id: int, language: str, hi: bool = False, forced: bool = False
+    ) -> None:
+        await self.request(
+            "PATCH",
+            "/episodes/subtitles",
+            params={
+                "seriesid": series_id,
+                "episodeid": episode_id,
+                "language": language,
+                "hi": _flag(hi),
+                "forced": _flag(forced),
+            },
+        )
+
+
+def _flag(value: bool) -> str:
+    return "true" if value else "false"

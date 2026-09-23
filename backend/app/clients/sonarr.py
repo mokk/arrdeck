@@ -56,7 +56,14 @@ class SonarrClient(ArrClient):
         return await self.get(f"/series/{series_id}")
 
     async def episodes(self, series_id: int) -> list:
-        return await self.get("/episode", params={"seriesId": series_id})
+        # includeEpisodeFile: quality and size per episode, and the file id the
+        # delete action needs, in one call instead of one per season.
+        return await self.get(
+            "/episode", params={"seriesId": series_id, "includeEpisodeFile": "true"}
+        )
+
+    async def delete_episode_file(self, file_id: int) -> None:
+        await self.request("DELETE", f"/episodefile/{file_id}")
 
     async def monitor_episodes(self, episode_ids: list[int], monitored: bool) -> None:
         await self.request(

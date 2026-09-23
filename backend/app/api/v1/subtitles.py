@@ -10,9 +10,12 @@ from ...deps import (
     get_bazarr,
 )
 from ...schemas import (
+    EpisodeSubtitlesOut,
     ServiceBlock,
+    SubtitleDownloadIn,
     SubtitleSearchIn,
     SubtitlesOut,
+    TitleSubtitlesOut,
 )
 
 router = APIRouter(tags=["subtitles"])
@@ -69,4 +72,68 @@ async def subtitle_search(
         if body.series_id is None:
             raise HTTPException(422, "episodes need a series_id")
         await bazarr.search_episode(body.series_id, body.id)
+    cache.set("subtitles", None)
+
+
+def _track(sub: dict) -> dict:
+    return {
+        "language": sub.get("name") or sub.get("code2") or "",
+        "code": sub.get("code2") or "",
+        "forced": bool(sub.get("forced")),
+        "hi": bool(sub.get("hi")),
+        "path": sub.get("path"),
+    }
+
+
+def title_subtitles(row: dict | None) -> dict:
+    """Bazarr's row for a movie or episode as present/missing tracks. A title
+    without a language profile has nothing to be missing, which is not the
+    same as complete — hence `tracked`."""
+    if row is None:
+        return {"tracked": False, "present": [], "missing": []}
+    return {
+        "tracked": True,
+        "present": [_track(x) for x in row.get("subtitles") or []],
+        "missing": [_track(x) for x in row.get("missing_subtitles") or []],
+    }
+
+
+@router.get("/subtitles/movie/{radarr_id}", response_model=TitleSubtitlesOut)
+async def movie_subtitles(radarr_id: int, bazarr: BazarrClient = Depends(get_bazarr)):
+    return title_subtitles(await bazarr.movie(radarr_id))
+
+
+@router.get("/subtitles/series/{series_id}", response_model=list[EpisodeSubtitlesOut])
+async def series_subtitles(series_id: int, bazarr: BazarrClient = Depends(get_bazarr)):
+    rows = await bazarr.series_episodes(series_id)
+    return [
+        {
+            "episode_id": r.get("sonarrEpisodeId", 0),
+            "season": r.get("season") or 0,
+            "episode": r.get("episode") or 0,
+            "subtitles": title_subtitles(r),
+        }
+        for r in rows
+        if r.get("sonarrEpisodeId")
+    ]
+
+
+@router.post("/subtitles/movie/{radarr_id}/download", status_code=204)
+async def movie_subtitle_download(
+    radarr_id: int, body: SubtitleDownloadIn, bazarr: BazarrClient = Depends(get_bazarr)
+) -> None:
+    await bazarr.download_movie_subtitle(radarr_id, body.language, body.hi, body.forced)
+    cache.set("subtitles", None)
+
+
+@router.post("/subtitles/series/{series_id}/episodes/{episode_id}/download", status_code=204)
+async def episode_subtitle_download(
+    series_id: int,
+    episode_id: int,
+    body: SubtitleDownloadIn,
+    bazarr: BazarrClient = Depends(get_bazarr),
+) -> None:
+    await bazarr.download_episode_subtitle(
+        series_id, episode_id, body.language, body.hi, body.forced
+    )
     cache.set("subtitles", None)

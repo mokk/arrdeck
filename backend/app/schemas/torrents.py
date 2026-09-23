@@ -20,6 +20,7 @@ class TorrentOut(BaseModel):
     ratio: float | None = None
     uploaded: int = 0  # bytes sent for this torrent, all time
     added_on: int | None = None  # unix seconds
+    completed_on: int | None = None  # unix seconds, when the download finished
     tracker: str | None = None  # tracker hostname, e.g. torrentleech.org
     error: str | None = None
     tags: list[str] = []  # qBittorrent only

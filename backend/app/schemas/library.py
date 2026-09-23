@@ -47,6 +47,8 @@ class SearchResultOut(BaseModel):
     foreign_id: str | None = None
     foreign_edition_id: str | None = None
     author: str | None = None
+    # every edition Readarr offers, so the add sheet can pick a language/format
+    editions: list["EditionChoiceOut"] = []
     poster: str | None = None
     in_library: bool = False
     # external references for links (IMDb / TMDB; remote_id covers TVDB)
@@ -88,6 +90,16 @@ class AddSeriesIn(BaseModel):
     monitored: bool = True
     season_folder: bool = True
     search_now: bool = True
+
+
+class EditionChoiceOut(BaseModel):
+    foreign_edition_id: str
+    title: str | None = None
+    format: str | None = None
+    language: str | None = None
+    year: int | None = None
+    page_count: int | None = None
+    monitored: bool = False  # Readarr's own pick
 
 
 class AddBookIn(BaseModel):
@@ -173,6 +185,25 @@ class ArrReleaseOut(BaseModel):
     age_days: float | None = None
     approved: bool = True
     rejections: list[str] = []
+
+
+class ActivityEventOut(BaseModel):
+    """One thing that happened since the client last looked."""
+
+    kind: Literal["imported", "failed", "fetched", "incomplete", "completed"]
+    app: str  # radarr | sonarr | readarr | qbittorrent | transmission
+    title: str
+    date: str  # ISO 8601, UTC
+    movie_id: int | None = None
+    series_id: int | None = None
+    book_id: int | None = None
+
+
+class ActivitySinceOut(BaseModel):
+    since: str
+    now: str
+    count: int
+    items: list[ActivityEventOut] = []
 
 
 class HistoryPageOut(BaseModel):
@@ -320,6 +351,49 @@ class BookEditionOut(BaseModel):
     page_count: int | None = None
 
 
+class SeriesBookOut(BaseModel):
+    book_id: int
+    position: str | None = None
+    title: str | None = None
+    monitored: bool = False
+    has_file: bool = False
+
+
+class BookSeriesOut(BaseModel):
+    id: int
+    title: str | None = None
+    books: list[SeriesBookOut] = []
+
+
+class AuthorOut(BaseModel):
+    id: int
+    name: str | None = None
+    monitored: bool = False
+    # Readarr: all | none | new — what happens to books it discovers later
+    monitor_new_items: str | None = None
+    poster: str | None = None
+    quality_profile_id: int | None = None
+    metadata_profile_id: int | None = None
+    book_count: int = 0  # books Readarr tracks for this author
+    available_count: int = 0  # of which are on disk
+    size_on_disk: int = 0
+
+
+class AuthorDetailOut(AuthorOut):
+    overview: str | None = None
+    # every book Readarr knows for this author, unmonitored ones included —
+    # this is where a hidden book gets monitored again
+    books: list[LibraryBookOut] = []
+    series: list[BookSeriesOut] = []
+
+
+class AuthorUpdateIn(BaseModel):
+    monitored: bool | None = None
+    monitor_new_items: Literal["all", "none", "new"] | None = None
+    quality_profile_id: int | None = None
+    metadata_profile_id: int | None = None
+
+
 class BookDetailOut(BaseModel):
     id: int
     title: str | None = None
@@ -346,3 +420,5 @@ class BookDetailOut(BaseModel):
     # True only when the connected Readarr is our fork, which serves the files
     # itself; upstream Readarr has no download endpoint.
     downloadable: bool = False
+    # the series this book is part of, with what you have of each
+    series: list[BookSeriesOut] = []

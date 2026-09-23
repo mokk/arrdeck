@@ -103,6 +103,10 @@ class EpisodeOut(BaseModel):
     air_date: str | None = None
     has_file: bool = False
     monitored: bool = False
+    # the file on disk, when there is one: what to show, and what to delete
+    file_id: int | None = None
+    quality: str | None = None
+    size: int | None = None
 
 
 class MonitorIn(BaseModel):

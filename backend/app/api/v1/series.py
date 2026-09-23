@@ -94,20 +94,32 @@ async def series_episodes(
     series_id: int, season: int | None = None, sonarr: SonarrClient = Depends(get_sonarr)
 ) -> list[EpisodeOut]:
     episodes = await sonarr.episodes(series_id)
-    out = [
-        EpisodeOut(
-            id=e["id"],
-            season=e.get("seasonNumber", 0),
-            episode=e.get("episodeNumber", 0),
-            title=e.get("title"),
-            air_date=e.get("airDateUtc"),
-            has_file=e.get("hasFile", False),
-            monitored=e.get("monitored", False),
-        )
-        for e in episodes
-        if season is None or e.get("seasonNumber") == season
-    ]
+    out = [episode_row(e) for e in episodes if season is None or e.get("seasonNumber") == season]
     return sorted(out, key=lambda e: (e.season, e.episode))
+
+
+def episode_row(e: dict) -> EpisodeOut:
+    episode_file = e.get("episodeFile") or {}
+    return EpisodeOut(
+        id=e["id"],
+        season=e.get("seasonNumber", 0),
+        episode=e.get("episodeNumber", 0),
+        title=e.get("title"),
+        air_date=e.get("airDateUtc"),
+        has_file=e.get("hasFile", False),
+        monitored=e.get("monitored", False),
+        file_id=episode_file.get("id") or e.get("episodeFileId") or None,
+        quality=((episode_file.get("quality") or {}).get("quality") or {}).get("name"),
+        size=episode_file.get("size"),
+    )
+
+
+@router.delete("/library/episodes/files/{file_id}", status_code=204)
+async def delete_episode_file(file_id: int, sonarr: SonarrClient = Depends(get_sonarr)) -> None:
+    """Drop one episode's file so a search can replace it; the episode itself
+    and its monitoring stay."""
+    await sonarr.delete_episode_file(file_id)
+    cache.set("library_map:series", None)
 
 
 @router.post("/library/series/{series_id}/seasons/{season}/monitor", status_code=204)

@@ -88,6 +88,7 @@ def _qbit_torrents(torrents: list, resolve) -> list[dict]:
                 ratio=t.get("ratio"),
                 uploaded=t.get("uploaded", 0),
                 added_on=t.get("added_on"),
+                completed_on=t.get("completion_on") if (t.get("completion_on") or 0) > 0 else None,
                 tracker=resolve(_tracker_host(t.get("tracker")), t.get("hash", "").upper()),
                 # qBittorrent sends tags as one comma-separated string
                 tags=[x.strip() for x in (t.get("tags") or "").split(",") if x.strip()],
@@ -115,6 +116,7 @@ def _tm_torrents(torrents: list, resolve) -> list[dict]:
                 ratio=t.get("uploadRatio"),
                 uploaded=t.get("uploadedEver", 0),
                 added_on=t.get("addedDate"),
+                completed_on=t.get("doneDate") if (t.get("doneDate") or 0) > 0 else None,
                 tracker=resolve(
                     _tracker_host((t.get("trackers") or [{}])[0].get("announce")),
                     (t.get("hashString") or "").upper(),

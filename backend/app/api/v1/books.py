@@ -17,9 +17,13 @@ from ...cache import cache, cached
 from ...clients.readarr import ReadarrClient
 from ...deps import get_readarr
 from ...schemas import (
+    AuthorDetailOut,
+    AuthorOut,
+    AuthorUpdateIn,
     BookDetailOut,
     BookEditionOut,
     BookFileOut,
+    BookSeriesOut,
     HistoryEventOut,
     LibraryBookOut,
     LibraryUpdateIn,
@@ -156,6 +160,10 @@ async def book_detail(book_id: int, readarr: ReadarrClient = Depends(get_readarr
     except Exception:  # noqa: BLE001 — the file list is decoration too
         files = []
     features = await fork_features(readarr)
+    try:
+        series = await author_series(readarr, book.get("authorId")) if book.get("authorId") else []
+    except Exception:  # noqa: BLE001 — series are decoration
+        series = []
     stats = book.get("statistics") or {}
     ratings = book.get("ratings") or {}
     goodreads = next(
@@ -198,6 +206,7 @@ async def book_detail(book_id: int, readarr: ReadarrClient = Depends(get_readarr
         ],
         files=[BookFileOut(**file_row(f)) for f in files],
         downloadable=DOWNLOAD_FEATURE in features and bool(files),
+        series=[BookSeriesOut(**x) for x in series_containing(book_id, series)],
         history=[
             HistoryEventOut(
                 type=EVENT_LABELS.get(h.get("eventType", ""), h.get("eventType", "")),
@@ -278,3 +287,101 @@ async def download_book_file(
         headers=headers,
         background=BackgroundTask(upstream.aclose),
     )
+
+
+# ---------------------------------------------------------------- authors
+
+
+def author_row(author: dict) -> dict:
+    stats = author.get("statistics") or {}
+    return {
+        "id": author["id"],
+        "name": author.get("authorName"),
+        "monitored": author.get("monitored", False),
+        "monitor_new_items": author.get("monitorNewItems"),
+        "poster": book_cover(author.get("images")),
+        "quality_profile_id": author.get("qualityProfileId"),
+        "metadata_profile_id": author.get("metadataProfileId"),
+        "book_count": stats.get("bookCount") or 0,
+        "available_count": stats.get("availableBookCount") or 0,
+        "size_on_disk": stats.get("sizeOnDisk") or 0,
+    }
+
+
+def series_rows(series: list[dict], books_by_id: dict[int, dict]) -> list[dict]:
+    """Readarr's series with their (bookId, position) links, joined with the
+    author's books so each entry says what you have. Sorted by position."""
+    out = []
+    for s in series:
+        entries = []
+        for link in s.get("links") or []:
+            book = books_by_id.get(link.get("bookId"))
+            if book is None:
+                continue
+            stats = book.get("statistics") or {}
+            entries.append(
+                {
+                    "book_id": link["bookId"],
+                    "position": link.get("position"),
+                    "title": book.get("title"),
+                    "monitored": book.get("monitored", False),
+                    "has_file": (stats.get("bookFileCount") or 0) > 0,
+                    "_order": link.get("seriesPosition") or 0,
+                }
+            )
+        entries.sort(key=lambda e: e["_order"])
+        for e in entries:
+            e.pop("_order")
+        out.append({"id": s["id"], "title": s.get("title"), "books": entries})
+    return out
+
+
+def series_containing(book_id: int, series: list[dict]) -> list[dict]:
+    return [s for s in series if any(b["book_id"] == book_id for b in s["books"])]
+
+
+async def author_series(readarr: ReadarrClient, author_id: int) -> list[dict]:
+    series, books = await asyncio.gather(readarr.series(author_id), readarr.books())
+    books_by_id = {b["id"]: b for b in books if b.get("authorId") == author_id}
+    return series_rows(series, books_by_id)
+
+
+@router.get("/library/authors", response_model=list[AuthorOut])
+async def library_authors(readarr: ReadarrClient = Depends(get_readarr)) -> list[dict]:
+    authors = await readarr.authors()
+    return sorted((author_row(a) for a in authors), key=lambda a: (a["name"] or "").lower())
+
+
+@router.get("/library/authors/{author_id}", response_model=AuthorDetailOut)
+async def author_detail(author_id: int, readarr: ReadarrClient = Depends(get_readarr)) -> dict:
+    author, books, series = await asyncio.gather(
+        readarr.get_author(author_id), readarr.books(), readarr.series(author_id)
+    )
+    mine = [b for b in books if b.get("authorId") == author_id]
+    row = author_row(author)
+    row["overview"] = author.get("overview")
+    row["books"] = sorted(
+        (book_row(b, {author_id: author}) for b in mine),
+        key=lambda b: ((b.get("year") or 0), (b.get("title") or "").lower()),
+    )
+    row["series"] = series_rows(series, {b["id"]: b for b in mine})
+    return row
+
+
+@router.patch("/library/authors/{author_id}", response_model=AuthorOut)
+async def update_author(
+    author_id: int, body: AuthorUpdateIn, readarr: ReadarrClient = Depends(get_readarr)
+) -> dict:
+    author = await readarr.get_author(author_id)
+    if body.monitored is not None:
+        author["monitored"] = body.monitored
+    if body.monitor_new_items is not None:
+        author["monitorNewItems"] = body.monitor_new_items
+    if body.quality_profile_id is not None:
+        author["qualityProfileId"] = body.quality_profile_id
+    if body.metadata_profile_id is not None:
+        author["metadataProfileId"] = body.metadata_profile_id
+    updated = await readarr.update_author(author_id, author)
+    cache.set("readarr:authors", None)
+    cache.set("library_map:book", None)
+    return author_row(updated)

@@ -93,6 +93,35 @@ class SubtitlesOut(BaseModel):
     items: list[SubtitleItemOut] = []
 
 
+class SubtitleTrackOut(BaseModel):
+    language: str  # Bazarr's display name, e.g. Danish
+    code: str  # two-letter code, what the download call takes
+    forced: bool = False
+    hi: bool = False  # hearing impaired
+    path: str | None = None  # present subtitles only
+
+
+class TitleSubtitlesOut(BaseModel):
+    # False when Bazarr does not track this title (no language profile, or not
+    # synced yet); the clients then say so instead of showing "nothing missing".
+    tracked: bool = True
+    present: list[SubtitleTrackOut] = []
+    missing: list[SubtitleTrackOut] = []
+
+
+class EpisodeSubtitlesOut(BaseModel):
+    episode_id: int
+    season: int = 0
+    episode: int = 0
+    subtitles: TitleSubtitlesOut
+
+
+class SubtitleDownloadIn(BaseModel):
+    language: str  # two-letter code
+    hi: bool = False
+    forced: bool = False
+
+
 class VpnStatusOut(BaseModel):
     status: str = ""  # running | stopped | ...
     public_ip: str = ""

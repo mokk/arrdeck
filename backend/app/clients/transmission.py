@@ -5,6 +5,7 @@ import httpx
 from .base import BaseClient, ServiceUnavailable
 
 TORRENT_FIELDS = [
+    "doneDate",
     "id",
     "hashString",
     "name",
