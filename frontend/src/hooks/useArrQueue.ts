@@ -125,9 +125,12 @@ export const useQueue = () =>
   useQuery({
     queryKey: ["queue"],
     queryFn: () =>
-      api.get<{ radarr: ServiceBlock<QueueItem[]>; sonarr: ServiceBlock<QueueItem[]> }>(
-        "/queue",
-      ),
+      api.get<{
+        radarr: ServiceBlock<QueueItem[]>;
+        sonarr: ServiceBlock<QueueItem[]>;
+        // optional: only present once Readarr is configured
+        readarr?: ServiceBlock<QueueItem[]>;
+      }>("/queue"),
     refetchInterval: (query) => (queueMoving(query.state.data) ? FAST : IDLE),
   });
 

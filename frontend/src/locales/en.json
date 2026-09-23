@@ -101,7 +101,7 @@
     "noMatch": "No torrents match the filters",
     "shownOfTotal": "{{shown}} of {{total}} torrents",
     "narrowFilters": " (narrow the filters to see more)",
-    "arrQueue": "Radarr / Sonarr queue",
+    "arrQueue": "Arr queue",
     "deleteWithFiles": "Delete torrent and files",
     "deleteOnly": "Delete torrent only",
     "deleteEllipsis": "Delete…",

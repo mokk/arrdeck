@@ -19,7 +19,11 @@ export function ArrQueue() {
   const retry = useBlocklistRetry();
   const forceImport = useForceImport();
   const [importing, setImporting] = useState<{ app: string; id: number } | null>(null);
-  const items = [...(data?.radarr?.data ?? []), ...(data?.sonarr?.data ?? [])];
+  const items = [
+    ...(data?.radarr?.data ?? []),
+    ...(data?.sonarr?.data ?? []),
+    ...(data?.readarr?.data ?? []),
+  ];
   if (items.length === 0) return null;
   return (
     <div className="mb-6">
@@ -34,52 +38,54 @@ export function ArrQueue() {
                 <StateBadge state={(q.errors ?? []).length ? "error" : q.status} />
                 {q.errors?.[0] ? <span className="truncate">{q.errors[0]}</span> : null}
               </div>
-            </div>
-            <div className="flex shrink-0 gap-1.5">
-              {q.app !== "readarr" &&
-                q.tracked_state?.startsWith("import") &&
-                q.tracked_state !== "imported" && (
+              {/* under the text, wrapping: beside it the four buttons ran over
+                  the title on a phone */}
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {q.app !== "readarr" &&
+                  q.tracked_state?.startsWith("import") &&
+                  q.tracked_state !== "imported" && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="text-primary"
+                      disabled={forceImport.isPending}
+                      onClick={() => forceImport.mutate({ app: q.app, id: q.id })}
+                    >
+                      {t("dl.forceImport")}
+                    </Button>
+                  )}
+                {(q.errors ?? []).length > 0 && (
                   <Button
                     variant="secondary"
                     size="sm"
-                    className="text-primary"
-                    disabled={forceImport.isPending}
-                    onClick={() => forceImport.mutate({ app: q.app, id: q.id })}
+                    className="text-warning"
+                    disabled={retry.isPending}
+                    onClick={() => retry.mutate({ app: q.app, id: q.id })}
                   >
-                    {t("dl.forceImport")}
+                    {t("dl.blocklistRetry")}
                   </Button>
                 )}
-              {(q.errors ?? []).length > 0 && (
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="text-warning"
-                  disabled={retry.isPending}
-                  onClick={() => retry.mutate({ app: q.app, id: q.id })}
+                  className="text-destructive"
+                  disabled={remove.isPending}
+                  onClick={() => remove.mutate({ app: q.app, id: q.id })}
                 >
-                  {t("dl.blocklistRetry")}
+                  {t("common.remove")}
                 </Button>
-              )}
-              <Button
-                variant="secondary"
-                size="sm"
-                className="text-destructive"
-                disabled={remove.isPending}
-                onClick={() => remove.mutate({ app: q.app, id: q.id })}
-              >
-                {t("common.remove")}
-              </Button>
-              {/* the arr couldn't place the files itself — same entry point as
+                {/* the arr couldn't place the files itself — same entry point as
                   the dashboard queue card */}
-              {(q.tracked_status === "warning" || q.tracked_status === "error") && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setImporting({ app: q.app, id: q.id })}
-                >
-                  {t("dl.manualImport")}
-                </Button>
-              )}
+                {(q.tracked_status === "warning" || q.tracked_status === "error") && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setImporting({ app: q.app, id: q.id })}
+                  >
+                    {t("dl.manualImport")}
+                  </Button>
+                )}
+              </div>
             </div>
           </Row>
         ))}

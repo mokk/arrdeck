@@ -101,7 +101,7 @@
     "noMatch": "Ingen torrents matcher filtrene",
     "shownOfTotal": "{{shown}} af {{total}} torrents",
     "narrowFilters": " (indsnævr filtrene for at se flere)",
-    "arrQueue": "Radarr / Sonarr-kø",
+    "arrQueue": "Arr-kø",
     "deleteWithFiles": "Slet torrent og filer",
     "deleteOnly": "Slet kun torrent",
     "deleteEllipsis": "Slet…",
