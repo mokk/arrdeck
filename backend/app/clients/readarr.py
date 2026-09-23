@@ -4,6 +4,8 @@ import httpx
 
 from .base import ArrClient
 
+SEARCH_TIMEOUT = 90.0
+
 
 class ReadarrClient(ArrClient):
     """Readarr speaks the arr dialect on /api/v1 rather than /api/v3. Books
@@ -81,7 +83,10 @@ class ReadarrClient(ArrClient):
         """The combined search: author entries and book entries, where each book
         carries its author and editions — what POST /book needs. /book/lookup
         returns books without either. Understands `edition:<id>` and friends."""
-        return await self.get("/search", params={"term": term})
+        # A fresh term makes Readarr ask its metadata server and fetch the
+        # editions of every hit, which takes over a minute on a slow metadata server, far past the 8 s the other arr
+        # calls get; a cached term answers in well under a second.
+        return await self.get("/search", params={"term": term}, timeout=SEARCH_TIMEOUT)
 
     async def add_book(self, payload: dict) -> dict:
         return await self.request("POST", "/book", json=payload)
