@@ -120,10 +120,21 @@ def content_disposition(filename: str) -> str:
     return f"attachment; filename=\"{fallback}\"; filename*=UTF-8''{quote(filename)}"
 
 
+def in_library(row: dict) -> bool:
+    """Adding an author makes Readarr list their whole bibliography, unmonitored.
+    The library is what you asked for or already have: monitored, or on disk."""
+    return bool(row.get("monitored")) or bool(row.get("has_file"))
+
+
 @router.get("/library/books", response_model=list[LibraryBookOut])
-async def library_books(readarr: ReadarrClient = Depends(get_readarr)) -> list[dict]:
+async def library_books(
+    readarr: ReadarrClient = Depends(get_readarr),
+    all: bool = False,
+) -> list[dict]:
     books, authors = await asyncio.gather(readarr.books(), author_map(readarr))
     rows = [book_row(b, authors) for b in books]
+    if not all:
+        rows = [r for r in rows if in_library(r)]
     return sorted(rows, key=lambda r: ((r["author"] or "").lower(), (r["title"] or "").lower()))
 
 

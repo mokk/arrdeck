@@ -11,6 +11,7 @@ from app.api.v1.books import (
     content_disposition,
     file_row,
     fork_features,
+    in_library,
     year_of,
 )
 from app.api.v1.dashboard import EVENT_LABELS, _consolidate_history, _queue_items
@@ -179,3 +180,9 @@ async def test_fork_features_come_from_status_and_default_to_none():
     assert await fork_features(StatusReadarr({"version": "0.4.0"})) == [], "upstream build"
     cache.clear()
     assert await fork_features(StatusReadarr(None)) == [], "unreachable is not an error here"
+
+
+def test_the_library_hides_an_authors_unmonitored_bibliography_but_keeps_files():
+    assert in_library({"monitored": True, "has_file": False})
+    assert in_library({"monitored": False, "has_file": True}), "downloaded, then unmonitored"
+    assert not in_library({"monitored": False, "has_file": False})
