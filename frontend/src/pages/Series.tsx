@@ -18,6 +18,7 @@ import {
 } from "../components/detail";
 import { ReleasesSheet } from "../components/ReleasesSheet";
 import { RenameCard } from "../components/RenameCard";
+import { RequestBanner } from "../components/Requests";
 import { SubtitleTracks } from "../components/Subtitles";
 import {
   useDeleteEpisodeFile,
@@ -340,6 +341,9 @@ export default function SeriesPage() {
           <Skeleton className="mb-3 h-16 w-full rounded-2xl" />
           <Skeleton className="mb-3 h-16 w-full rounded-2xl" />
         </>
+      )}
+      {data && (
+        <RequestBanner ids={{ kind: "tv", tmdb_id: data.tmdb_id, tvdb_id: data.tvdb_id }} />
       )}
       {data && <RenameCard app="sonarr" id={seriesId} />}
       {data && (

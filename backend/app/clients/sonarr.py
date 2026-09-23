@@ -95,11 +95,17 @@ class SonarrClient(ArrClient):
     async def bulk_edit(self, payload: dict) -> None:
         await self.request("PUT", "/series/editor", json=payload)
 
-    async def bulk_delete(self, series_ids: list[int], delete_files: bool) -> None:
+    async def bulk_delete(
+        self, series_ids: list[int], delete_files: bool, exclude: bool = False
+    ) -> None:
         await self.request(
             "DELETE",
             "/series/editor",
-            json={"seriesIds": series_ids, "deleteFiles": delete_files},
+            json={
+                "seriesIds": series_ids,
+                "deleteFiles": delete_files,
+                "addImportListExclusion": exclude,
+            },
         )
 
     async def delete_series(self, series_id: int, delete_files: bool) -> None:

@@ -7,6 +7,7 @@ from . import (
     arrqueue,
     auth,
     books,
+    cleanup,
     credits,
     dashboard,
     diagnose,
@@ -59,6 +60,7 @@ router.include_router(movies.router)
 router.include_router(series.router)
 router.include_router(credits.router)
 router.include_router(people.router)
+router.include_router(cleanup.router)
 router.include_router(wanted.router)
 router.include_router(arrmeta.router)
 router.include_router(settings.router)

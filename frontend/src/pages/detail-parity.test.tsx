@@ -55,6 +55,9 @@ vi.mock("../hooks/queries", () => {
     useMovieSubtitles: () => ({ data: undefined }),
     useSeriesSubtitles: () => ({ data: undefined }),
     useDeleteEpisodeFile: () => mutation,
+    useWatchedEpisodes: () => ({ data: undefined }),
+    useRequestMap: () => ({ data: undefined }),
+    useRequestAction: () => mutation,
   };
 });
 

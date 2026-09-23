@@ -167,6 +167,8 @@ class BulkEditIn(BaseModel):
 class BulkDeleteIn(BaseModel):
     ids: list[int]
     delete_files: bool = False
+    # keep the arr's import lists from adding them straight back
+    exclude: bool = False
 
 
 class MovieFileOut(BaseModel):
@@ -230,3 +232,26 @@ class PersonOut(BaseModel):
     known_for: str | None = None
     owned: list[PersonMovieOut] = []
     elsewhere: list[SearchResultOut] = []
+
+
+class CleanupItemOut(BaseModel):
+    kind: Literal["movie", "series"]
+    id: int
+    title: str | None = None
+    year: int | None = None
+    poster: str | None = None
+    size: int = 0
+    added: datetime | None = None
+    last_viewed_at: int | None = None  # unix seconds, from Plex
+    monitored: bool = False
+
+
+class CleanupOut(BaseModel):
+    """What could go to free space, in four lists. Nothing here deletes: the
+    client sends the chosen ids to the libraries' bulk delete."""
+
+    plex: bool = False  # without Plex the two watch-based lists stay empty
+    watched: list[CleanupItemOut] = []  # fully watched, last seen long ago
+    never_watched: list[CleanupItemOut] = []  # in Plex, never played, added long ago
+    largest: list[CleanupItemOut] = []
+    unmonitored: list[CleanupItemOut] = []  # nobody wants it, still on disk

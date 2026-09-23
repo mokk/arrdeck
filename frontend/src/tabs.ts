@@ -78,6 +78,7 @@ export function tabFor(pathname: string, search = ""): string {
     case "/popular":
     case "/wanted":
     case "/stats":
+    case "/cleanup":
     case "/manage":
       return "/settings";
     default:

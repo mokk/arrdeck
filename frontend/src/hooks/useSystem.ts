@@ -20,6 +20,7 @@ import type {
   PushEvents,
   PushRules,
   QualityProfiles,
+  RequestState,
   ScheduledTask,
   ServiceBlock,
   ServiceInfo,
@@ -405,6 +406,15 @@ export const useMediaRequests = (enabled: boolean) =>
     queryFn: () => api.get<ServiceBlock<MediaRequest[]>>("/requests?filter=pending"),
     enabled,
     refetchInterval: MEDIUM,
+  });
+
+/** Open Overseerr requests keyed for the library: "movie:tmdb:1", "tv:tvdb:2". */
+export const useRequestMap = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["requests", "map"],
+    queryFn: () => api.get<ServiceBlock<Record<string, RequestState>>>("/requests/map"),
+    enabled,
+    staleTime: 60_000,
   });
 
 export function useRequestAction() {

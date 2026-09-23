@@ -13,6 +13,7 @@ import type {
   LibraryKind,
   LibraryMovie,
   LibrarySeries,
+  RequestState,
   WatchedItem,
 } from "../api/types";
 import { ErrorNote } from "../components/Blocks";
@@ -23,6 +24,7 @@ import { LetterScrubber, letterAnchor, letterOf } from "../components/library/Le
 import { ShelfView } from "../components/library/Shelf";
 import { UpNextView } from "../components/library/UpNext";
 import { LibraryBulkBar } from "../components/manage/library/shared";
+import { RequestBadge, requestFor, useRequests } from "../components/Requests";
 import { SortSheet } from "../components/SortSheet";
 import { useSort } from "../components/sortable";
 import {
@@ -203,6 +205,7 @@ function LibraryView({
     // a show with several episodes in the queue shows the furthest along
     progress.set(id, Math.max(progress.get(id) ?? 0, done));
   }
+  const requests = useRequests();
   const [q, setQ] = usePersistentState(`library.${kind}.filter`, "");
   // Newest additions first, the way the app opens too. `added` is an ISO
   // timestamp, so string order is date order. A fresh storage key so the
@@ -267,6 +270,15 @@ function LibraryView({
         dimmed={unmonitored === "dim" && card.status === "unmonitored"}
         watched={watchedItem}
         progress={progress.get(card.id)}
+        request={
+          kind === "books"
+            ? undefined
+            : requestFor(requests, {
+                kind: kind === "movies" ? "movie" : "tv",
+                tmdb_id: card.tmdb_id,
+                tvdb_id: card.tvdb_id,
+              })
+        }
         checked={selectMode ? checked.has(card.id) : undefined}
         onOpen={() => {
           if (selectMode) return toggleChecked(card.id);
@@ -401,6 +413,7 @@ function LibraryItem({
   dimmed,
   watched,
   progress,
+  request,
   checked,
   onOpen,
   onMenu,
@@ -412,6 +425,7 @@ function LibraryItem({
   watched: WatchedItem | undefined;
   /** 0–1 while in the download queue */
   progress?: number;
+  request?: RequestState;
   /** undefined outside select mode */
   checked?: boolean;
   onOpen: () => void;
@@ -471,6 +485,11 @@ function LibraryItem({
         <div className={cn("relative", dimmed && "opacity-40")}>
           <Cover src={card.poster} title={card.title} subtitle={card.subtitle} />
           {bar && <div className="absolute inset-x-2 bottom-2">{bar}</div>}
+          {request && (
+            <div className="absolute left-1.5 top-1.5">
+              <RequestBadge request={request} />
+            </div>
+          )}
           {tick}
         </div>
         <div className="mt-1.5 flex items-center gap-1.5">
@@ -502,6 +521,7 @@ function LibraryItem({
         <div className="flex items-center gap-1.5">
           <span className="truncate text-sm font-medium">{card.title}</span>
           <WatchedDot item={watched} />
+          <RequestBadge request={request} />
         </div>
         <div className="truncate text-xs text-muted-foreground">{card.subtitle}</div>
         {bar && <div className="mt-1 max-w-48">{bar}</div>}

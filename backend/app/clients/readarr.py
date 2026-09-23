@@ -163,13 +163,15 @@ class ReadarrClient(ArrClient):
     async def bulk_edit(self, payload: dict) -> None:
         await self.request("PUT", "/book/editor", json=payload)
 
-    async def bulk_delete(self, book_ids: list[int], delete_files: bool) -> None:
+    async def bulk_delete(
+        self, book_ids: list[int], delete_files: bool, exclude: bool = False
+    ) -> None:
         await self.request(
             "DELETE",
             "/book/editor",
             json={
                 "bookIds": book_ids,
                 "deleteFiles": delete_files,
-                "addImportListExclusion": False,
+                "addImportListExclusion": exclude,
             },
         )

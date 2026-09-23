@@ -8,6 +8,7 @@ import type { StatsSample } from "../api/types";
 import { Segmented } from "../components/Blocks";
 import { useStatsHistory } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
+import { forecastFull } from "../lib/forecast";
 
 function Chart({
   label,
@@ -77,6 +78,33 @@ function Chart({
   );
 }
 
+/** "Full in about N weeks", at the pace of the window shown. */
+function ForecastCard({ samples }: { samples: StatsSample[] }) {
+  const { t } = useTranslation();
+  const f = forecastFull(samples);
+  if (f.kind === "unknown") return null;
+  const weeks = f.kind === "full" ? Math.round(f.days / 7) : 0;
+  return (
+    <div className="mb-4 rounded-2xl bg-card p-4">
+      <div className="text-xs text-muted-foreground">{t("stats.forecast")}</div>
+      {f.kind === "steady" ? (
+        <div className="text-base font-semibold">{t("stats.notShrinking")}</div>
+      ) : (
+        <>
+          <div className="text-base font-semibold">
+            {f.days < 14
+              ? t("stats.fullInDays", { count: Math.max(1, Math.round(f.days)) })
+              : t("stats.fullInWeeks", { count: weeks })}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {t("stats.perDay", { size: formatBytes(f.perDay) })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function StatsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -110,6 +138,7 @@ export default function StatsPage() {
       {isLoading && <Skeleton className="mb-4 h-40 w-full rounded-2xl" />}
       {data && data.length >= 2 ? (
         <>
+          <ForecastCard samples={data} />
           <Chart
             label={t("dash.librarySize")}
             samples={data}

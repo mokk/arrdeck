@@ -8,6 +8,7 @@ import {
   BarChart3,
   ChevronRight,
   Cog,
+  Eraser,
   Flame,
   LayoutGrid,
   Link2,
@@ -76,6 +77,7 @@ export default function Settings() {
         <LinkRow icon={LayoutGrid} label={t("settings.overview")} to="/overview" />
         {hasProwlarr && <LinkRow icon={Flame} label={t("settings.popular")} to="/popular" />}
         <LinkRow icon={BarChart3} label={t("settings.stats")} to="/stats" />
+        {hasArr && <LinkRow icon={Eraser} label={t("settings.cleanup")} to="/cleanup" />}
         {hasArr && <LinkRow icon={SearchCheck} label={t("settings.wanted")} to="/wanted" />}
       </Card>
       {(hasProwlarr || hasArr) && (

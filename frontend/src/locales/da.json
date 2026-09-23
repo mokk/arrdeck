@@ -418,7 +418,14 @@
     "days365": "1 år",
     "episodeFiles": "Episodefiler",
     "torrents": "Torrents",
-    "queries": "Forespørgsler"
+    "queries": "Forespørgsler",
+    "forecast": "Diskplads",
+    "notShrinking": "Den ledige plads bliver ikke mindre",
+    "fullInDays_one": "Fuld om cirka {{count}} dag",
+    "fullInDays_other": "Fuld om cirka {{count}} dage",
+    "fullInWeeks_one": "Fuld om cirka {{count}} uge",
+    "fullInWeeks_other": "Fuld om cirka {{count}} uger",
+    "perDay": "I periodens tempo: {{size}} om dagen"
   },
   "push": {
     "title": "Notifikationer",
@@ -555,7 +562,8 @@
     "connections": "Forbindelser",
     "connectionsHint": "Hvor arrdeck finder hver tjeneste. Ændringer her påvirker alle skærme.",
     "display": "Visning",
-    "notifications": "Notifikationer"
+    "notifications": "Notifikationer",
+    "cleanup": "Oprydning"
   },
   "book": {
     "pages": "{{count}} sider",
@@ -651,5 +659,43 @@
   "detail": {
     "previous": "Forrige titel",
     "next": "Næste titel"
+  },
+  "cleanup": {
+    "title": "Oprydning",
+    "intro": "Hvad der kan fjernes for at frigøre plads. Markér det, der skal væk; intet slettes, før du bekræfter.",
+    "list_watched": "Set",
+    "list_never_watched": "Aldrig set",
+    "list_largest": "Største",
+    "list_unmonitored": "Uovervågede",
+    "olderThan": "Sidst set for mere end",
+    "days_one": "{{count}} dag siden",
+    "days_other": "{{count}} dage siden",
+    "watchedOn": "Sidst set {{when}}",
+    "addedWhen": "Tilføjet {{when}}, aldrig afspillet",
+    "movie": "Film",
+    "show": "Serie",
+    "needsPlex": "Denne liste kræver Plex, som ved, hvad der er set.",
+    "nothing": "Intet her.",
+    "count_one": "{{count}} titel · {{size}}",
+    "count_other": "{{count}} titler · {{size}}",
+    "pickAll": "Vælg alle",
+    "pickNone": "Vælg ingen",
+    "pick": "Vælg {{title}}",
+    "reclaim_one": "Frigør {{size}} ({{count}} titel)",
+    "reclaim_other": "Frigør {{size}} ({{count}} titler)",
+    "confirmTitle_one": "Slet {{count}} titel?",
+    "confirmTitle_other": "Slet {{count}} titler?",
+    "confirmBody": "Filerne slettes fra disken, hvilket frigør omkring {{size}}. Det kan ikke fortrydes.",
+    "exclude": "Forhindr importlister i at tilføje dem igen",
+    "deleteNow": "Slet og frigør {{size}}"
+  },
+  "requests": {
+    "pending": "Ønske",
+    "requested": "Ønsket",
+    "by": "Ønsket af {{user}}",
+    "waiting": "Ønsket, venter på godkendelse",
+    "approvedWaiting": "Ønsket og godkendt, ikke her endnu",
+    "approve": "Godkend",
+    "decline": "Afvis"
   }
 }

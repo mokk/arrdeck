@@ -89,11 +89,17 @@ class RadarrClient(ArrClient):
     async def bulk_edit(self, payload: dict) -> None:
         await self.request("PUT", "/movie/editor", json=payload)
 
-    async def bulk_delete(self, movie_ids: list[int], delete_files: bool) -> None:
+    async def bulk_delete(
+        self, movie_ids: list[int], delete_files: bool, exclude: bool = False
+    ) -> None:
         await self.request(
             "DELETE",
             "/movie/editor",
-            json={"movieIds": movie_ids, "deleteFiles": delete_files, "addImportExclusion": False},
+            json={
+                "movieIds": movie_ids,
+                "deleteFiles": delete_files,
+                "addImportExclusion": exclude,
+            },
         )
 
     async def delete_movie(self, movie_id: int, delete_files: bool) -> None:

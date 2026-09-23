@@ -707,6 +707,10 @@ export type BulkDeleteIn = {
    */
   delete_files?: boolean;
   /**
+   * Exclude
+   */
+  exclude?: boolean;
+  /**
    * Ids
    */
   ids: Array<number>;
@@ -779,6 +783,77 @@ export type CalendarResponse = {
   radarr: ServiceBlockListCalendarItemOut;
   readarr?: ServiceBlockListCalendarItemOut | null;
   sonarr: ServiceBlockListCalendarItemOut;
+};
+
+/**
+ * CleanupItemOut
+ */
+export type CleanupItemOut = {
+  /**
+   * Added
+   */
+  added?: string | null;
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Kind
+   */
+  kind: "movie" | "series";
+  /**
+   * Last Viewed At
+   */
+  last_viewed_at?: number | null;
+  /**
+   * Monitored
+   */
+  monitored?: boolean;
+  /**
+   * Poster
+   */
+  poster?: string | null;
+  /**
+   * Size
+   */
+  size?: number;
+  /**
+   * Title
+   */
+  title?: string | null;
+  /**
+   * Year
+   */
+  year?: number | null;
+};
+
+/**
+ * CleanupOut
+ *
+ * What could go to free space, in four lists. Nothing here deletes: the
+ * client sends the chosen ids to the libraries' bulk delete.
+ */
+export type CleanupOut = {
+  /**
+   * Largest
+   */
+  largest?: Array<CleanupItemOut>;
+  /**
+   * Never Watched
+   */
+  never_watched?: Array<CleanupItemOut>;
+  /**
+   * Plex
+   */
+  plex?: boolean;
+  /**
+   * Unmonitored
+   */
+  unmonitored?: Array<CleanupItemOut>;
+  /**
+   * Watched
+   */
+  watched?: Array<CleanupItemOut>;
 };
 
 /**
@@ -4822,6 +4897,42 @@ export type CalendarApiV1CalendarGetResponses = {
 
 export type CalendarApiV1CalendarGetResponse =
   CalendarApiV1CalendarGetResponses[keyof CalendarApiV1CalendarGetResponses];
+
+export type CleanupApiV1CleanupGetData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Watched Days
+     */
+    watched_days?: number;
+    /**
+     * Never Days
+     */
+    never_days?: number;
+  };
+  url: "/api/v1/cleanup";
+};
+
+export type CleanupApiV1CleanupGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type CleanupApiV1CleanupGetError =
+  CleanupApiV1CleanupGetErrors[keyof CleanupApiV1CleanupGetErrors];
+
+export type CleanupApiV1CleanupGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: CleanupOut;
+};
+
+export type CleanupApiV1CleanupGetResponse =
+  CleanupApiV1CleanupGetResponses[keyof CleanupApiV1CleanupGetResponses];
 
 export type CollectionsApiV1CollectionsGetData = {
   body?: never;

@@ -16,6 +16,7 @@ import {
 import { BigButton } from "../components/media";
 import { ReleasesSheet } from "../components/ReleasesSheet";
 import { RenameCard } from "../components/RenameCard";
+import { RequestBanner } from "../components/Requests";
 import { SubtitleTracks } from "../components/Subtitles";
 import {
   useDeleteLibraryItem,
@@ -71,6 +72,7 @@ export default function MoviePage() {
       />
       {error && <ErrorNote>{(error as Error).message}</ErrorNote>}
       {isLoading && <Skeleton className="mb-4 h-40 w-full rounded-2xl" />}
+      {data && <RequestBanner ids={{ kind: "movie", tmdb_id: data.tmdb_id, tvdb_id: null }} />}
       {data && <RenameCard app="radarr" id={movieId} />}
       {data && (
         <>

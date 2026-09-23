@@ -66,7 +66,7 @@ async def library_bulk_delete(
     clients = {"movies": radarr, "series": sonarr, "books": readarr}
     if kind not in clients:
         raise HTTPException(404, f"unknown kind {kind!r}")
-    await clients[kind].bulk_delete(body.ids, body.delete_files)
+    await clients[kind].bulk_delete(body.ids, body.delete_files, body.exclude)
     cache.set(f"library_map:{'movie' if kind == 'movies' else 'series'}", None)
 
 

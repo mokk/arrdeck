@@ -61,6 +61,57 @@ def _guid_keys(item: dict) -> list[str]:
     return keys
 
 
+async def load_watched(plex: PlexClient) -> dict:
+    """The watched map, cached ten minutes: the endpoint and the cleanup
+    assistant both read it."""
+
+    async def call() -> dict:
+        identity, sections = await asyncio.gather(
+            plex.identity(), plex.sections(), return_exceptions=True
+        )
+        if isinstance(sections, BaseException):
+            raise sections
+        machine_id = (
+            "" if isinstance(identity, BaseException) else identity.get("machineIdentifier", "")
+        )
+        wanted = [s for s in sections if s.get("type") in ("movie", "show")]
+        results = await asyncio.gather(
+            *(plex.section_items(s["key"]) for s in wanted), return_exceptions=True
+        )
+        out: dict[str, dict] = {}
+        for section, items in zip(wanted, results, strict=False):
+            if isinstance(items, BaseException):
+                continue
+            for item in items:
+                if section.get("type") == "show":
+                    total = item.get("leafCount") or 0
+                    seen = item.get("viewedLeafCount") or 0
+                    progress = seen / total if total else 0.0
+                    is_watched = total > 0 and seen >= total
+                else:
+                    progress = 1.0 if item.get("viewCount") else 0.0
+                    is_watched = bool(item.get("viewCount"))
+                rating_key = item.get("ratingKey")
+                entry = {
+                    "watched": is_watched,
+                    "progress": progress,
+                    "key": str(rating_key) if rating_key else None,
+                    "last_viewed_at": item.get("lastViewedAt"),
+                }
+                for key in _guid_keys(item):
+                    out[key] = entry
+        return {
+            "base_url": (
+                f"https://app.plex.tv/desktop/#!/server/{machine_id}/details?key=/library/metadata/"
+                if machine_id
+                else None
+            ),
+            "items": out,
+        }
+
+    return await cached("watched", 600, call)
+
+
 @router.get("/watched", response_model=ServiceBlock[WatchedMapOut])
 async def watched(plex: PlexClient = Depends(get_plex)):
     """Watched state keyed by external id (tmdb:123, imdb:tt123, tvdb:123).
@@ -68,56 +119,7 @@ async def watched(plex: PlexClient = Depends(get_plex)):
     One call per library section rather than per title — the arrs hold the same
     ids, so the join happens client-side for free.
     """
-
-    async def fetch() -> dict:
-        async def call() -> dict:
-            identity, sections = await asyncio.gather(
-                plex.identity(), plex.sections(), return_exceptions=True
-            )
-            if isinstance(sections, BaseException):
-                raise sections
-            machine_id = (
-                "" if isinstance(identity, BaseException) else identity.get("machineIdentifier", "")
-            )
-            wanted = [s for s in sections if s.get("type") in ("movie", "show")]
-            results = await asyncio.gather(
-                *(plex.section_items(s["key"]) for s in wanted), return_exceptions=True
-            )
-            out: dict[str, dict] = {}
-            for section, items in zip(wanted, results, strict=False):
-                if isinstance(items, BaseException):
-                    continue
-                for item in items:
-                    if section.get("type") == "show":
-                        total = item.get("leafCount") or 0
-                        seen = item.get("viewedLeafCount") or 0
-                        progress = seen / total if total else 0.0
-                        is_watched = total > 0 and seen >= total
-                    else:
-                        progress = 1.0 if item.get("viewCount") else 0.0
-                        is_watched = bool(item.get("viewCount"))
-                    rating_key = item.get("ratingKey")
-                    entry = {
-                        "watched": is_watched,
-                        "progress": progress,
-                        "key": str(rating_key) if rating_key else None,
-                        "last_viewed_at": item.get("lastViewedAt"),
-                    }
-                    for key in _guid_keys(item):
-                        out[key] = entry
-            return {
-                "base_url": (
-                    f"https://app.plex.tv/desktop/#!/server/{machine_id}"
-                    "/details?key=/library/metadata/"
-                    if machine_id
-                    else None
-                ),
-                "items": out,
-            }
-
-        return await cached("watched", 600, call)
-
-    return await guarded(fetch(), "watched:block")
+    return await guarded(load_watched(plex), "watched:block")
 
 
 @router.get("/watched/episodes", response_model=ServiceBlock[list[WatchedEpisodeOut]])

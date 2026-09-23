@@ -6,6 +6,7 @@ import asyncio
 import pytest
 
 from app.api.v1.books import shelf_rows
+from app.api.v1.cleanup import build_cleanup
 from app.api.v1.discover import _fanart, _rating
 from app.api.v1.movies import movie_quality
 from app.api.v1.people import elsewhere_rows, index_credits, metadata_map
@@ -260,3 +261,57 @@ def test_elsewhere_keeps_released_films_not_in_the_library_most_popular_first():
     rows = elsewhere_rows(credits, in_library={1}, today="2026-09-23")
     assert [r["title"] for r in rows] == ["Famous", "Less known"]
     assert rows[0]["kind"] == "movie" and rows[0]["remote_id"] == 5 and rows[0]["year"] == 2021
+
+
+NOW = 1_790_139_600  # 2026-09-23
+OLD = "2025-01-01T00:00:00Z"
+RECENT = "2026-09-01T00:00:00Z"
+
+
+def movie(i: int, tmdb: int, size: int, added: str = OLD, monitored: bool = True) -> dict:
+    return {
+        "id": i,
+        "title": f"M{i}",
+        "tmdbId": tmdb,
+        "sizeOnDisk": size,
+        "added": added,
+        "monitored": monitored,
+    }
+
+
+def test_cleanup_sorts_titles_into_the_four_lists():
+    movies = [
+        movie(1, 11, 5, monitored=False),  # watched long ago, unmonitored
+        movie(2, 12, 9),  # in Plex, never played, added long ago
+        movie(3, 13, 7, added=RECENT),  # never played but new: not yet a candidate
+        movie(4, 14, 0),  # nothing on disk: never listed
+        movie(5, 15, 3),  # Plex has never heard of it
+    ]
+    series = [
+        {
+            "id": 9,
+            "title": "S",
+            "tvdbId": 99,
+            "added": OLD,
+            "monitored": True,
+            "statistics": {"sizeOnDisk": 20},
+        }
+    ]
+    watched = {
+        "tmdb:11": {"watched": True, "progress": 1.0, "last_viewed_at": NOW - 90 * 86_400},
+        "tmdb:12": {"watched": False, "progress": 0.0},
+        "tmdb:13": {"watched": False, "progress": 0.0},
+        "tvdb:99": {"watched": True, "progress": 1.0, "last_viewed_at": NOW - 86_400},
+    }
+    out = build_cleanup(movies, series, watched, watched_days=30, never_days=365, now=NOW)
+    assert out["plex"] is True
+    assert [r["id"] for r in out["watched"]] == [1], "the show was watched yesterday"
+    assert [r["id"] for r in out["never_watched"]] == [2]
+    assert [r["id"] for r in out["largest"]] == [9, 2, 3, 1, 5]
+    assert [r["id"] for r in out["unmonitored"]] == [1]
+
+
+def test_cleanup_without_plex_keeps_the_watch_lists_empty():
+    out = build_cleanup([movie(1, 11, 5)], [], None, 30, 365, NOW)
+    assert out["plex"] is False and out["watched"] == [] and out["never_watched"] == []
+    assert [r["id"] for r in out["largest"]] == [1]

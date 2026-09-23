@@ -10,6 +10,8 @@ import type {
   Author,
   AuthorDetail,
   BookDetail,
+  Cleanup,
+  CleanupItem,
   Collection,
   CollectionDetail,
   Credits,
@@ -113,6 +115,48 @@ export function useBulkDeleteLibrary(kind: LibraryKind) {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["library", kind] });
       qc.invalidateQueries({ queryKey: ["discover"] });
+    },
+  });
+}
+
+export const useCleanup = (watchedDays: number) =>
+  useQuery({
+    queryKey: ["cleanup", watchedDays],
+    queryFn: () => api.get<Cleanup>(`/cleanup?watched_days=${watchedDays}`),
+    staleTime: 60_000,
+  });
+
+/** Deletes the chosen titles with their files, films and shows each through
+ * their own arr; `exclude` stops the arrs' import lists adding them back. */
+export function useCleanupDelete() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ items, exclude }: { items: CleanupItem[]; exclude: boolean }) => {
+      const ids = (kind: CleanupItem["kind"]) =>
+        items.filter((i) => i.kind === kind).map((i) => i.id);
+      const calls = [];
+      if (ids("movie").length)
+        calls.push(
+          api.post<void>("/library/movies/bulk-delete", {
+            ids: ids("movie"),
+            delete_files: true,
+            exclude,
+          }),
+        );
+      if (ids("series").length)
+        calls.push(
+          api.post<void>("/library/series/bulk-delete", {
+            ids: ids("series"),
+            delete_files: true,
+            exclude,
+          }),
+        );
+      await Promise.all(calls);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["cleanup"] });
+      qc.invalidateQueries({ queryKey: ["library"] });
+      qc.invalidateQueries({ queryKey: ["disk"] });
     },
   });
 }

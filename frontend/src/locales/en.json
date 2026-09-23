@@ -418,7 +418,14 @@
     "days365": "1 year",
     "episodeFiles": "Episode files",
     "torrents": "Torrents",
-    "queries": "Queries"
+    "queries": "Queries",
+    "forecast": "Disk space",
+    "notShrinking": "Free space is not shrinking",
+    "fullInDays_one": "Full in about {{count}} day",
+    "fullInDays_other": "Full in about {{count}} days",
+    "fullInWeeks_one": "Full in about {{count}} week",
+    "fullInWeeks_other": "Full in about {{count}} weeks",
+    "perDay": "At the pace of this period: {{size}} a day"
   },
   "push": {
     "title": "Notifications",
@@ -555,7 +562,8 @@
     "connections": "Connections",
     "connectionsHint": "Where arrdeck finds each service. Changing these affects every screen.",
     "display": "Display",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "cleanup": "Cleanup"
   },
   "book": {
     "pages": "{{count}} pages",
@@ -651,5 +659,43 @@
   "detail": {
     "previous": "Previous title",
     "next": "Next title"
+  },
+  "cleanup": {
+    "title": "Cleanup",
+    "intro": "What could go to free space. Tick what to remove; nothing is deleted until you confirm.",
+    "list_watched": "Watched",
+    "list_never_watched": "Never watched",
+    "list_largest": "Largest",
+    "list_unmonitored": "Unmonitored",
+    "olderThan": "Last watched more than",
+    "days_one": "{{count}} day ago",
+    "days_other": "{{count}} days ago",
+    "watchedOn": "Last watched {{when}}",
+    "addedWhen": "Added {{when}}, never played",
+    "movie": "Film",
+    "show": "Show",
+    "needsPlex": "This list needs Plex, which knows what has been watched.",
+    "nothing": "Nothing here.",
+    "count_one": "{{count}} title · {{size}}",
+    "count_other": "{{count}} titles · {{size}}",
+    "pickAll": "Select all",
+    "pickNone": "Select none",
+    "pick": "Select {{title}}",
+    "reclaim_one": "Reclaim {{size}} ({{count}} title)",
+    "reclaim_other": "Reclaim {{size}} ({{count}} titles)",
+    "confirmTitle_one": "Delete {{count}} title?",
+    "confirmTitle_other": "Delete {{count}} titles?",
+    "confirmBody": "Their files are deleted from disk, freeing about {{size}}. This cannot be undone.",
+    "exclude": "Stop import lists adding them back",
+    "deleteNow": "Delete and free {{size}}"
+  },
+  "requests": {
+    "pending": "Request",
+    "requested": "Requested",
+    "by": "Requested by {{user}}",
+    "waiting": "Requested, waiting for approval",
+    "approvedWaiting": "Requested and approved, not here yet",
+    "approve": "Approve",
+    "decline": "Decline"
   }
 }
