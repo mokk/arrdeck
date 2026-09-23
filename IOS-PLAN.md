@@ -330,6 +330,15 @@ up dynamically with the raw state as the key. `test.sh`/CI fail when a new
 string has no Danish entry or the catalog is stale. 245 strings; the PWA's
 Danish reused where the wording matched.
 
+**Trap found on the way (2026-09-23):** xcodegen writes a project with no
+`Package.resolved`, so Xcode resolved every dependency afresh on each
+regeneration and picked up swift-collections 1.7.0 the evening it shipped —
+whose ContainersPreview needs a Swift runtime symbol (`swift_initBorrow`)
+the iOS 26.3 simulator lacks. The app died in dyld before `main`. Fixes:
+`App/generate.sh` copies the package's pins into the generated project, and
+Package.swift caps swift-collections below 1.7 until the simulator runtime
+catches up. Never run bare `xcodegen`.
+
 ## H (original notes) — Size S
 
 437 keys, en + da, to `.xcstrings`. Scriptable from the existing JSON;
