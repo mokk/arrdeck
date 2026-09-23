@@ -111,11 +111,12 @@ const gutter = "mr-5 sm:mr-0";
 const fileStatus = (row: { has_file?: boolean; monitored?: boolean }) =>
   row.has_file ? "downloaded" : row.monitored ? "wanted" : "unmonitored";
 
+// the theme's own status colours, so a palette recolours the dots too
 const DOT: Record<Card["status"], string> = {
-  downloaded: "bg-emerald-500",
-  ended: "bg-emerald-500",
-  continuing: "bg-sky-500",
-  wanted: "bg-amber-500",
+  downloaded: "bg-success",
+  ended: "bg-success",
+  continuing: "bg-primary",
+  wanted: "bg-warning",
   unmonitored: "bg-muted-foreground/50",
 };
 
