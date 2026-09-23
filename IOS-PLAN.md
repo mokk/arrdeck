@@ -298,6 +298,16 @@ bulk select in the libraries, theme/language (device settings do that on
 iOS), security/notifications/import-lists/backup-transfer cards — the last
 four move to D and I.
 
+**Add + Popular done (2026-09-23).** Add: debounced live search into
+Radarr/Sonarr (two characters minimum), Overseerr's popular grid while the
+box is empty (fetched once per screen life), Radarr collections with a
+per-collection sheet, raw Prowlarr releases on submit only, and one media
+sheet for both cases — add (profile + root folder, first of each as default)
+or edit (monitor, profile, search, delete). Popular: the 24h indexer
+snapshot ranked by grabs, filtered by kind, grab per row, with the "building
+the first list" note while the backend fans out. The tab bar is now the
+PWA's: Home, Popular, Downloads, Add, Manage.
+
 ## H. Localisation — Size S
 
 437 keys, en + da, to `.xcstrings`. Scriptable from the existing JSON;
@@ -336,7 +346,7 @@ operator needs their own build and Apple account, or you run the relay.
 | B2 localised push text | — | **done** — prerequisite for D |
 | C pairing and auth | M | Web view path needs no backend change |
 | F generated Swift client | — | **done** — see the two spec constraints above |
-| G port the screens | L | **Dashboard, Downloads, detail, Wanted, Calendar, Manage done**; next Add, Popular, History, Stats |
+| G port the screens | L | **Eight of ten done**; History and Stats remain |
 | D APNs, operator-supplied | M | Includes the push-registration plumbing E1 would have had |
 | H localisation | S | Mechanical |
 | I widgets, Live Activity, Intents | M | The genuine payoff |
