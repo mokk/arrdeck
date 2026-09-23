@@ -205,7 +205,10 @@
     "bookKind": "Bog",
     "metadataProfile": "Metadataprofil",
     "searchBooksHint": "Søg efter en bog i Readarr for at tilføje den",
-    "edition": "Udgave"
+    "edition": "Udgave",
+    "addMovie": "Tilføj film",
+    "addShow": "Tilføj serie",
+    "addBook": "Tilføj bog"
   },
   "manage": {
     "title": "Administrér",

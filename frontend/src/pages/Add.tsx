@@ -8,9 +8,10 @@ import { clickable, cn } from "@/lib/utils";
 import { formatBytes } from "../api/format";
 import type { Release, SearchResult } from "../api/types";
 import { Card, EmptyNote, ErrorNote, Row, SectionTitle } from "../components/Blocks";
+import { DetailHeader } from "../components/detail";
 import { MediaSheet, PosterGrid } from "../components/media";
 import { Sheet } from "../components/Sheet";
-import { useRegisterSearchbar, useRegisterSubnav } from "../components/subnav";
+import { useRegisterSearchbar } from "../components/subnav";
 import {
   useCollectionDetail,
   useCollections,
@@ -217,7 +218,9 @@ export default function Add() {
   const [storedTab, setTab] = usePersistentState<Tab>("add.tab", "movies");
   // the library "+" buttons arrive with ?tab=movies|series so Add opens on
   // the library the user was looking at
-  const [params, setParams] = useSearchParams();
+  // The library "+" opens Add for one kind (?tab=movies|series|books), like
+  // the app's fixed Add sheet; there is no bar to switch kinds here.
+  const [params] = useSearchParams();
   const requested = params.get("tab") as Tab | null;
   const tab =
     requested && tabs.includes(requested)
@@ -225,6 +228,9 @@ export default function Add() {
       : tabs.includes(storedTab)
         ? storedTab
         : tabs[0];
+  useEffect(() => {
+    if (tab && tab !== storedTab) setTab(tab);
+  }, [tab, storedTab, setTab]);
   const [input, setInput] = useState("");
   const [query, setQuery] = useState("");
 
@@ -245,15 +251,6 @@ export default function Add() {
   );
   const _collections = useCollections(tab === "collections");
 
-  const onTab = (t: Tab) => {
-    setTab(t);
-    setInput("");
-    setQuery("");
-    // ?tab= only picks the opening tab; left in place it won every render and
-    // the bar looked dead
-    if (params.has("tab")) setParams({}, { replace: true });
-  };
-
   // live search: debounce typing into the query (submit still works instantly);
   // raw releases stay submit-only (indexer fan-out is expensive)
   useEffect(() => {
@@ -262,15 +259,6 @@ export default function Add() {
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input, tab]);
-
-  useRegisterSubnav(
-    tabs.map((tb) => ({
-      value: tb,
-      label: tb === "collections" ? t("collections.title") : t(`add.${tb}`),
-    })),
-    tab ?? "movies",
-    (v) => onTab(v as Tab),
-  );
 
   const searchPlaceholder =
     tab === "releases"
@@ -298,8 +286,18 @@ export default function Add() {
     return <EmptyNote>{t("add.noServices")}</EmptyNote>;
   }
 
+  const heading =
+    tab === "series"
+      ? t("add.addShow")
+      : tab === "books"
+        ? t("add.addBook")
+        : tab === "movies"
+          ? t("add.addMovie")
+          : t("add.title");
+
   return (
     <>
+      <DetailHeader title={heading} />
       {search.error && searching && <ErrorNote>{(search.error as Error).message}</ErrorNote>}
 
       {tab === "collections" ? (

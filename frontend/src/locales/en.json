@@ -205,7 +205,10 @@
     "bookKind": "Book",
     "metadataProfile": "Metadata profile",
     "searchBooksHint": "Search Readarr for a book to add",
-    "edition": "Edition"
+    "edition": "Edition",
+    "addMovie": "Add movie",
+    "addShow": "Add show",
+    "addBook": "Add book"
   },
   "manage": {
     "title": "Manage",
