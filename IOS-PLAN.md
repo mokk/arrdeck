@@ -279,6 +279,14 @@ Found on the way: the PWA passed the *episode* id to `/diagnose/sonarr/…`,
 which keys on series id and 404s — fixed in the PWA the same day. Not yet:
 the interactive-search entry per row.
 
+**Tab bar + Calendar (2026-09-23).** The server now takes over the window
+with a TabView (Home, Downloads; Popular, Add, Manage arrive with their
+screens), each tab its own NavigationStack; the server list is a root switch
+rather than a stack above it, because a TabView does not belong inside a
+pushed screen. Calendar: month grid / week strip / fortnight agenda over one
+`CalendarRange` (Monday-first weeks, the agenda always from today), grouped
+by local day, reached from the Upcoming card's "See all".
+
 ## H. Localisation — Size S
 
 437 keys, en + da, to `.xcstrings`. Scriptable from the existing JSON;
@@ -317,7 +325,7 @@ operator needs their own build and Apple account, or you run the relay.
 | B2 localised push text | — | **done** — prerequisite for D |
 | C pairing and auth | M | Web view path needs no backend change |
 | F generated Swift client | — | **done** — see the two spec constraints above |
-| G port the screens | L | **Dashboard, Downloads, detail, Wanted done**; next Calendar, Manage, Add, Popular, History, Stats |
+| G port the screens | L | **Dashboard, Downloads, detail, Wanted, Calendar done**; next Manage, Add, Popular, History, Stats |
 | D APNs, operator-supplied | M | Includes the push-registration plumbing E1 would have had |
 | H localisation | S | Mechanical |
 | I widgets, Live Activity, Intents | M | The genuine payoff |
