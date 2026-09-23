@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { tabFor, tabsFor } from "./tabs";
+import { arrangeTabs, startTab, tabFor, tabsFor } from "./tabs";
 
 /** The bar is derived from the configured services, so a library tab for a
  * service that is not set up would be an empty page with no way to fill it. */
@@ -54,5 +54,37 @@ describe("tabFor", () => {
   it("leaves the tabs themselves alone", () => {
     expect(tabFor("/activity")).toBe("/activity");
     expect(tabFor("/calendar")).toBe("/calendar");
+  });
+});
+
+describe("arrangeTabs", () => {
+  const all = tabsFor(new Set(["radarr", "sonarr", "readarr", "qbittorrent"]));
+  const routes = (tabs: { to: string }[]) => tabs.map((t) => t.to);
+
+  it("follows the saved order and keeps unlisted tabs after it", () => {
+    expect(routes(arrangeTabs(all, ["/shows", "/movies"], []))).toEqual([
+      "/shows",
+      "/movies",
+      "/books",
+      "/activity",
+      "/calendar",
+      "/settings",
+    ]);
+  });
+
+  it("hides tabs but never Settings", () => {
+    expect(routes(arrangeTabs(all, [], ["/calendar", "/settings"]))).toEqual([
+      "/books",
+      "/movies",
+      "/shows",
+      "/activity",
+      "/settings",
+    ]);
+  });
+
+  it("starts on the chosen tab while it is there, else the first", () => {
+    expect(startTab(all, "/shows")).toBe("/shows");
+    expect(startTab(arrangeTabs(all, [], ["/shows"]), "/shows")).toBe("/books");
+    expect(startTab(all, "")).toBe("/books");
   });
 });

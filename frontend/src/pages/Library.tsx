@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, focusRing } from "@/lib/utils";
-import { formatBytes, formatRelative, watchedFor } from "../api/format";
+import { formatBytes, formatWhen, watchedFor } from "../api/format";
 import type {
   LibraryBook,
   LibraryKind,
@@ -473,7 +473,7 @@ function LibraryItem({
             )}
             {card.added && (
               <div className="truncate text-[11px] text-muted-foreground/80">
-                {t("library.addedAgo", { when: formatRelative(card.added) })}
+                {t("library.addedAgo", { when: formatWhen(card.added) })}
               </div>
             )}
           </>

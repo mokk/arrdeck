@@ -2,7 +2,7 @@
  * the movie page had a synopsis, badges, external links, a profile picker and
  * actions. These tests assert the two now carry the same furniture, so the gap
  * cannot quietly reopen when one page gains something. */
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("react-i18next", () => ({
@@ -209,17 +209,19 @@ describe("what each page shows that the other cannot", () => {
     expect(screen.queryByText(/series\.totalEpisodes/)).toBeNull();
   });
 
-  it("the series-level monitor toggle targets the series, not a season", () => {
+  // the actions pass through the confirm step, which resolves on a microtask
+  // even when the policy lets them through unasked
+  it("the series-level monitor toggle targets the series, not a season", async () => {
     render(<SeriesPage />);
     // The first toggle in the DOM is the series-level one, above the seasons.
     fireEvent.click(screen.getAllByText("add.unmonitor")[0]);
-    expect(mutate).toHaveBeenCalledWith({ id: 1, monitored: false });
+    await waitFor(() => expect(mutate).toHaveBeenCalledWith({ id: 1, monitored: false }));
   });
 
-  it("the series-level search targets sonarr and the series id", () => {
+  it("the series-level search targets sonarr and the series id", async () => {
     render(<SeriesPage />);
     fireEvent.click(screen.getByText("add.searchNow"));
-    expect(mutate).toHaveBeenCalledWith({ app: "sonarr", id: 1 });
+    await waitFor(() => expect(mutate).toHaveBeenCalledWith({ app: "sonarr", id: 1 }));
   });
 
   it("asks before deleting, and offers both variants", () => {

@@ -166,6 +166,7 @@ def episode_row(e: dict) -> EpisodeOut:
         season=e.get("seasonNumber", 0),
         episode=e.get("episodeNumber", 0),
         title=e.get("title"),
+        overview=e.get("overview") or None,
         air_date=e.get("airDateUtc"),
         has_file=e.get("hasFile", False),
         monitored=e.get("monitored", False),

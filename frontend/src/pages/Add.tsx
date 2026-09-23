@@ -8,7 +8,7 @@ import type { Release, SearchResult } from "../api/types";
 import { Card, EmptyNote, ErrorNote, Row, SectionTitle } from "../components/Blocks";
 import { DetailHeader } from "../components/detail";
 import { CollectionsList } from "../components/library/Collections";
-import { MediaSheet, PosterGrid } from "../components/media";
+import { PosterGrid } from "../components/media";
 import { useRegisterSearchbar } from "../components/subnav";
 import {
   useCollections,

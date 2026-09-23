@@ -10,6 +10,7 @@ import {
   useTriggerSearch,
   useUpdateLibraryItem,
 } from "../../hooks/queries";
+import { useConfirm } from "../Confirm";
 import { BigButton } from "../media";
 import { Sheet } from "../Sheet";
 
@@ -48,9 +49,14 @@ export function CardMenu({
   const webUrl = services?.find((s) => s.service === app)?.web_url;
   const arrUrl = webUrl && target.slug ? `${webUrl}/${ARR_PATH[kind]}/${target.slug}` : null;
 
+  const confirm = useConfirm();
   const done = (fn: () => void) => () => {
     fn();
     onClose();
+  };
+  const ask = (action: string, fn: () => void) => async () => {
+    onClose();
+    if (await confirm({ action, subject: target.title })) fn();
   };
 
   return (
@@ -83,11 +89,16 @@ export function CardMenu({
         <>
           <BigButton
             color="blue"
-            onClick={done(() => update.mutate({ id: target.id, monitored: !target.monitored }))}
+            onClick={ask(target.monitored ? t("add.unmonitor") : t("add.monitor"), () =>
+              update.mutate({ id: target.id, monitored: !target.monitored }),
+            )}
           >
             {target.monitored ? t("add.unmonitor") : t("add.monitor")}
           </BigButton>
-          <BigButton color="blue" onClick={done(() => search.mutate({ app, id: target.id }))}>
+          <BigButton
+            color="blue"
+            onClick={ask(t("add.searchNow"), () => search.mutate({ app, id: target.id }))}
+          >
             {t("add.searchNow")}
           </BigButton>
           {arrUrl && (

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { cn, focusRing } from "@/lib/utils";
+import { ConfirmProvider } from "./components/Confirm";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { LoginScreen } from "./components/LoginScreen";
 import { NotFound } from "./components/NotFound";
@@ -11,13 +12,14 @@ import { PullToRefresh } from "./components/PullToRefresh";
 import { SubnavProvider, useSubnav } from "./components/subnav";
 import { useActivitySince, useAuthState, useServices } from "./hooks/queries";
 import { useLastSeen } from "./lib/lastSeen";
+import { usePref } from "./lib/prefs";
 import { useScrollMemory } from "./lib/scrollMemory";
 // The library grids are the landing routes and stay in the entry chunk;
 // everything else is fetched on first visit, which keeps the initial download
 // small. The PWA precache globs **/*.js, so the split chunks are still
 // available offline.
 import { BooksPage, MoviesPage, ShowsPage } from "./pages/Library";
-import { tabFor, tabsFor } from "./tabs";
+import { arrangeTabs, startTab, tabFor, tabsFor } from "./tabs";
 
 const Activity = lazy(() => import("./pages/Activity"));
 const Add = lazy(() => import("./pages/Add"));
@@ -51,8 +53,18 @@ function RequireSetup({ children }: { children: ReactNode }) {
  * so the redirect waits for /services rather than guessing Settings. */
 function Home() {
   const { data: services } = useServices();
+  const tabs = useArrangedTabs();
+  const preferred = usePref("startTab");
   if (!services) return <RouteFallback />;
-  return <Navigate to={tabsFor(configuredSet(services))[0].to} replace />;
+  return <Navigate to={startTab(tabs, preferred)} replace />;
+}
+
+/** The configured tabs, in the order and selection chosen in Settings. */
+function useArrangedTabs() {
+  const { data: services } = useServices();
+  const order = usePref("tabOrder");
+  const hidden = usePref("hiddenTabs");
+  return arrangeTabs(tabsFor(configuredSet(services)), order, hidden);
 }
 
 function RouteFallback() {
@@ -70,8 +82,7 @@ function Shell() {
   const location = useLocation();
   useScrollMemory();
   const auth = useAuthState();
-  const { data: services } = useServices();
-  const tabs = tabsFor(configuredSet(services));
+  const tabs = useArrangedTabs();
   // the Activity badge: what happened since that tab was last opened
   const lastSeen = useLastSeen();
   const hasActivity = tabs.some((tab) => tab.to === "/activity");
@@ -295,7 +306,9 @@ function Shell() {
 export default function App() {
   return (
     <SubnavProvider>
-      <Shell />
+      <ConfirmProvider>
+        <Shell />
+      </ConfirmProvider>
     </SubnavProvider>
   );
 }

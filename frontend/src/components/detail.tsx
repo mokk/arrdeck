@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { formatDayTime } from "../api/format";
 import type { CreditPerson, Credits, HistoryEvent, Options, WatchedItem } from "../api/types";
 import { Card, Row, SectionTitle, StateBadge } from "./Blocks";
+import { useConfirm } from "./Confirm";
 import { BigButton } from "./media";
 import { WatchedDot } from "./WatchedDot";
 
@@ -157,6 +158,10 @@ export function DetailActions({
   extra?: ReactNode;
 }) {
   const { t } = useTranslation();
+  const confirm = useConfirm();
+  const ask = (action: string, run: () => void) => async () => {
+    if (await confirm({ action })) run();
+  };
   if (confirming)
     return (
       <>
@@ -173,10 +178,14 @@ export function DetailActions({
     );
   return (
     <>
-      <BigButton color="blue" disabled={busy} onClick={onToggleMonitor}>
+      <BigButton
+        color="blue"
+        disabled={busy}
+        onClick={ask(monitored ? t("add.unmonitor") : t("add.monitor"), onToggleMonitor)}
+      >
         {monitored ? t("add.unmonitor") : t("add.monitor")}
       </BigButton>
-      <BigButton color="blue" disabled={busy} onClick={onSearch}>
+      <BigButton color="blue" disabled={busy} onClick={ask(t("add.searchNow"), onSearch)}>
         {t("add.searchNow")}
       </BigButton>
       {extra}

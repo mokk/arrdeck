@@ -4,8 +4,9 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn, focusRing } from "@/lib/utils";
-import { formatRelative } from "../../api/format";
+import { formatWhen } from "../../api/format";
 import type { LibrarySeries } from "../../api/types";
+import { usePref } from "../../lib/prefs";
 import { Completion } from "./Completion";
 import { Cover } from "./Cover";
 
@@ -27,6 +28,9 @@ function splitUpNext(rows: LibrarySeries[]) {
 
 function UpNextRow({ show, onOpen }: { show: LibrarySeries; onOpen: () => void }) {
   const { t } = useTranslation();
+  // an episode that has not aired cannot have been watched, so any spoiler
+  // setting hides its title here
+  const spoilers = usePref("spoilers");
   const next = show.next_episode;
   const season = show.current_season;
   return (
@@ -48,7 +52,7 @@ function UpNextRow({ show, onOpen }: { show: LibrarySeries; onOpen: () => void }
             <span className="font-semibold text-foreground">
               {code(next.season, next.episode)}
             </span>
-            {next.title ? ` · ${next.title}` : ""}
+            {next.title && spoilers === "off" ? ` · ${next.title}` : ""}
           </div>
         ) : (
           <div className="truncate text-xs text-muted-foreground">
@@ -72,7 +76,7 @@ function UpNextRow({ show, onOpen }: { show: LibrarySeries; onOpen: () => void }
       </div>
       {next?.air_date && (
         <span className="shrink-0 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary">
-          {formatRelative(next.air_date)}
+          {formatWhen(next.air_date)}
         </span>
       )}
     </button>

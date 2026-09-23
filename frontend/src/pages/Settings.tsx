@@ -22,10 +22,11 @@ import { Indexers } from "../components/manage/Indexers";
 import { ServiceSettingsTab } from "../components/manage/ServicesTab";
 import { SystemTab } from "../components/manage/System";
 import { DisplaySettings } from "../components/manage/settings/display";
+import { NotificationsCard } from "../components/manage/settings/notifications";
 import { useServices } from "../hooks/queries";
 
-type Section = "display" | "indexers" | "system" | "connections";
-const SECTIONS: Section[] = ["display", "indexers", "system", "connections"];
+type Section = "display" | "notifications" | "indexers" | "system" | "connections";
+const SECTIONS: Section[] = ["display", "notifications", "indexers", "system", "connections"];
 
 function LinkRow({ icon: Icon, label, to }: { icon: LucideIcon; label: string; to: string }) {
   const navigate = useNavigate();
@@ -54,6 +55,7 @@ export default function Settings() {
       <>
         <DetailHeader title={t(`settings.${section}`)} />
         {section === "display" && <DisplaySettings configured={configured} />}
+        {section === "notifications" && <NotificationsCard />}
         {section === "indexers" && <Indexers />}
         {section === "system" && <SystemTab />}
         {section === "connections" && <ServiceSettingsTab />}

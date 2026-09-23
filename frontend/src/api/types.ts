@@ -63,6 +63,7 @@ export type MovieDetail = G.MovieDetailOut;
 export type HistoryEvent = G.HistoryEventOut;
 export type Credits = G.CreditsOut;
 export type WatchedMap = G.WatchedMapOut;
+export type WatchedEpisode = G.WatchedEpisodeOut;
 export type Diagnosis = G.DiagnosisOut;
 export type DiagnosisFinding = G.DiagnosisFindingOut;
 export type QualityProfiles = G.QualityProfilesOut;

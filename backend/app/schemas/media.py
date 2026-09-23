@@ -131,6 +131,8 @@ class EpisodeOut(BaseModel):
     season: int
     episode: int
     title: str | None = None
+    # what happens in it: behind spoiler protection when unwatched
+    overview: str | None = None
     air_date: str | None = None
     has_file: bool = False
     monitored: bool = False

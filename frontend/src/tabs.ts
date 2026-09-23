@@ -32,6 +32,25 @@ export function tabsFor(configured: Set<string>): AppTab[] {
   return tabs;
 }
 
+/** The tabs in the order and selection chosen under Settings → Display.
+ * Tabs missing from the saved order (a service configured since) keep their
+ * natural place after the ordered ones; Settings can never be hidden, or
+ * there would be no way back to the setting. */
+export function arrangeTabs(tabs: AppTab[], order: string[], hidden: string[]): AppTab[] {
+  const rank = (tab: AppTab) => {
+    const i = order.indexOf(tab.to);
+    return i === -1 ? order.length + tabs.indexOf(tab) : i;
+  };
+  return [...tabs]
+    .filter((tab) => tab.to === "/settings" || !hidden.includes(tab.to))
+    .sort((a, b) => rank(a) - rank(b));
+}
+
+/** Where "/" goes: the chosen start tab when it is still there, else the first. */
+export function startTab(tabs: AppTab[], preferred: string): string {
+  return tabs.find((tab) => tab.to === preferred)?.to ?? tabs[0].to;
+}
+
 /** Which tab owns a location, so a movie page lights up Movies and the Add
  * screen lights up the library it was opened for. Detail routes are singular
  * (/movie/12) while the tabs are plural (/movies), hence the table. */

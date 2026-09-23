@@ -30,6 +30,7 @@ import type {
   Subtitles,
   TitleSubtitles,
   VpnStatus,
+  WatchedEpisode,
   WatchedMap,
   WebhookApp,
   WebhookStatus,
@@ -133,6 +134,18 @@ export const useWatched = (enabled: boolean) =>
     queryKey: ["watched"],
     queryFn: () => api.get<ServiceBlock<WatchedMap>>("/watched"),
     enabled,
+    staleTime: SLOW,
+  });
+
+/** One show's watched episodes, by the Plex key the watched map gives. */
+export const useWatchedEpisodes = (key: string | null | undefined, enabled: boolean) =>
+  useQuery({
+    queryKey: ["watchedEpisodes", key],
+    queryFn: () =>
+      api.get<ServiceBlock<WatchedEpisode[]>>(
+        `/watched/episodes?key=${encodeURIComponent(key ?? "")}`,
+      ),
+    enabled: enabled && !!key,
     staleTime: SLOW,
   });
 

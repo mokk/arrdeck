@@ -1855,6 +1855,17 @@
             "title": "Monitored",
             "type": "boolean"
           },
+          "overview": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overview"
+          },
           "quality": {
             "anyOf": [
               {

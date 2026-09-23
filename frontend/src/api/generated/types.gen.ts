@@ -1042,6 +1042,10 @@ export type EpisodeOut = {
    */
   monitored?: boolean;
   /**
+   * Overview
+   */
+  overview?: string | null;
+  /**
    * Quality
    */
   quality?: string | null;

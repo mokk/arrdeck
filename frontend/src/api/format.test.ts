@@ -6,6 +6,7 @@ import {
   formatEta,
   formatRelative,
   formatSpeed,
+  formatWhen,
   watchedFor,
 } from "./format";
 import type { WatchedItem, WatchedMap } from "./types";
@@ -19,6 +20,11 @@ describe("formatBytes", () => {
     expect(formatBytes(1024)).toBe("1.0 KB");
     expect(formatBytes(1024 ** 3)).toBe("1.0 GB");
     expect(formatBytes(1_635_113_074_688)).toBe("1.5 TB");
+  });
+
+  it("steps by 1000 when decimal sizes are chosen", () => {
+    expect(formatBytes(1_500_000_000, "decimal")).toBe("1.5 GB");
+    expect(formatBytes(1_500_000_000, "binary")).toBe("1.4 GB");
   });
 
   it("stops at TB rather than inventing a unit", () => {
@@ -195,5 +201,15 @@ describe("formatDayTime", () => {
 
   it("leaves other days as they were", () => {
     expect(formatDayTime(new Date(2026, 7, 18, 13, 38).toISOString())).toMatch(/^Aug 18/);
+  });
+});
+
+describe("formatWhen", () => {
+  it("is relative by default and a date when absolute is chosen", () => {
+    const iso = new Date(Date.now() - 3 * 86400_000).toISOString();
+    expect(formatWhen(iso, "relative")).toBe(formatRelative(iso));
+    expect(formatWhen(iso, "absolute")).not.toBe(formatRelative(iso));
+    expect(formatWhen("2001-01-02T00:00:00Z", "absolute")).toContain("2001");
+    expect(formatWhen(null)).toBe("—");
   });
 });

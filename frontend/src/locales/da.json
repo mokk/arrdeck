@@ -553,7 +553,8 @@
     "system": "System",
     "connections": "Forbindelser",
     "connectionsHint": "Hvor arrdeck finder hver tjeneste. Ændringer her påvirker alle skærme.",
-    "display": "Visning"
+    "display": "Visning",
+    "notifications": "Notifikationer"
   },
   "book": {
     "pages": "{{count}} sider",
@@ -591,7 +592,32 @@
     "unmonitored_show": "Vis",
     "unmonitored_dim": "Nedton",
     "unmonitored_hide": "Skjul",
-    "hint": "Valgene gemmes kun på denne enhed."
+    "hint": "Valgene gemmes kun på denne enhed.",
+    "tabs": "Faner",
+    "startTab": "Åbn på",
+    "firstTab": "Den første fane",
+    "moveUp": "Flyt {{tab}} op",
+    "moveDown": "Flyt {{tab}} ned",
+    "hideTab": "Skjul {{tab}}",
+    "showTab": "Vis {{tab}}",
+    "formatting": "Formatering",
+    "dates": "Datoer",
+    "dates_relative": "Relative (for 3 dage siden)",
+    "dates_absolute": "Datoer (20. sep.)",
+    "sizes": "Størrelser",
+    "sizes_binary": "1 GB = 1024 MB",
+    "sizes_decimal": "1 GB = 1000 MB",
+    "behaviour": "Adfærd",
+    "spoilers": "Spoilerbeskyttelse",
+    "spoilers_off": "Fra",
+    "spoilers_unwatched": "Usete afsnit",
+    "spoilers_always": "Alle afsnit",
+    "confirm": "Spørg før",
+    "confirm_always": "Alle handlinger",
+    "confirm_deletes": "Kun sletning",
+    "confirm_never": "Aldrig",
+    "behaviourHint": "Spoilerbeskyttelse skjuler titler og resuméer på afsnit, Plex ikke har set dig se; tryk for at vise dem. Sletning af en titel spørger altid, om filerne skal beholdes.",
+    "notifications": "Notifikationer"
   },
   "upnext": {
     "ended": "Afsluttet",
@@ -607,5 +633,11 @@
     "books_one": "{{count}} bog",
     "books_other": "{{count}} bøger",
     "noSeries": "Ingen af dine bøger hører til en serie, Readarr kender."
+  },
+  "spoilers": {
+    "hidden": "Skjult — tryk for at vise"
+  },
+  "confirm": {
+    "title": "{{action}}?"
   }
 }

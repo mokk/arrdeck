@@ -1,3 +1,4 @@
+import { readPref } from "../lib/prefs";
 import type { WatchedItem, WatchedMap } from "./types";
 
 export const SERVICE_LABELS: Record<string, string> = {
@@ -14,11 +15,17 @@ export const SERVICE_LABELS: Record<string, string> = {
   prometheus: "Prometheus",
 };
 
-export function formatBytes(bytes: number | null | undefined): string {
+/** Sizes in steps of 1024 (what arrdeck always showed) or 1000 (how disks are
+ * sold, and what macOS and iOS show), per Settings → Display. */
+export function formatBytes(
+  bytes: number | null | undefined,
+  style = readPref("sizes"),
+): string {
   if (!bytes) return "0 B";
+  const base = style === "decimal" ? 1000 : 1024;
   const units = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-  return `${(bytes / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(base)), units.length - 1);
+  return `${(bytes / base ** i).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
 export function formatSpeed(bytesPerSec: number): string {
@@ -49,6 +56,20 @@ export function formatRelative(iso: string | null | undefined): string {
     if (Math.abs(ms) >= size) return rtf.format(Math.round(ms / size), unit);
   }
   return rtf.format(Math.round(ms / 1000), "second");
+}
+
+/** A moment as "3 days ago" or as a date, per Settings → Display. The year is
+ * added when it is not this year, since an absolute date loses its context. */
+export function formatWhen(iso: string | null | undefined, style = readPref("dates")): string {
+  if (!iso) return "—";
+  if (style === "relative") return formatRelative(iso);
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    ...(date.getFullYear() !== new Date().getFullYear() ? { year: "numeric" } : {}),
+  });
 }
 
 export function formatDate(iso: string | null | undefined): string {

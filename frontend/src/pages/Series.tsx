@@ -4,9 +4,11 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn, focusRing } from "@/lib/utils";
 import { formatBytes, formatDay, watchedFor } from "../api/format";
 import type { Season } from "../api/types";
 import { Card, ErrorNote, Row, SectionTitle, StateBadge } from "../components/Blocks";
+import { useConfirm } from "../components/Confirm";
 import {
   DetailActions,
   DetailHeader,
@@ -32,25 +34,47 @@ import {
   useTriggerSearch,
   useUpdateLibraryItem,
   useWatched,
+  useWatchedEpisodes,
 } from "../hooks/queries";
+import { usePref } from "../lib/prefs";
 
 type ReleaseTarget = { season?: number; episodeId?: number; title: string };
 
 function EpisodeList({
   seriesId,
   season,
+  plexKey,
   onReleases,
 }: {
   seriesId: number;
   season: number;
+  plexKey?: string | null;
   onReleases: (target: ReleaseTarget) => void;
 }) {
   const { t } = useTranslation();
   const { data, isLoading } = useSeriesEpisodes(seriesId, season);
+  // Spoiler protection: what an unwatched episode is called and is about stay
+  // hidden until tapped. "Unwatched" asks Plex; until it answers, or without
+  // Plex, everything counts as unwatched, which errs on the safe side.
+  const spoilers = usePref("spoilers");
+  const { data: watchedEpisodes } = useWatchedEpisodes(plexKey, spoilers === "unwatched");
+  const seen = new Set((watchedEpisodes?.data ?? []).map((w) => `${w.season}x${w.episode}`));
+  const [revealed, setRevealed] = useState<Set<number>>(new Set());
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const isHidden = (e: { id: number; season: number; episode: number }) =>
+    !revealed.has(e.id) &&
+    (spoilers === "always" ||
+      (spoilers === "unwatched" && !seen.has(`${e.season}x${e.episode}`)));
+  const toggle = (set: Set<number>, id: number) => {
+    const next = new Set(set);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    return next;
+  };
   const monitor = useEpisodeMonitor(seriesId);
   const search = useEpisodeSearch();
   const deleteFile = useDeleteEpisodeFile(seriesId);
-  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const confirm = useConfirm();
   const { data: services } = useServices();
   const hasBazarr = (services ?? []).some((sv) => sv.service === "bazarr" && sv.configured);
   // one Bazarr call per series, shared by every open season
@@ -75,8 +99,32 @@ function EpisodeList({
               <span className="font-mono text-xs text-muted-foreground">
                 E{String(e.episode).padStart(2, "0")}
               </span>{" "}
-              {e.title}
+              {isHidden(e) ? (
+                <button
+                  type="button"
+                  className={cn(focusRing, "rounded text-muted-foreground italic")}
+                  onClick={() => setRevealed(toggle(revealed, e.id))}
+                >
+                  {t("spoilers.hidden")}
+                </button>
+              ) : (
+                e.title
+              )}
             </div>
+            {e.overview && !isHidden(e) && (
+              <button
+                type="button"
+                aria-expanded={expanded.has(e.id)}
+                className={cn(
+                  focusRing,
+                  "mt-0.5 block text-left text-xs text-muted-foreground",
+                  !expanded.has(e.id) && "line-clamp-2",
+                )}
+                onClick={() => setExpanded(toggle(expanded, e.id))}
+              >
+                {e.overview}
+              </button>
+            )}
             <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
               {e.has_file ? (
                 <StateBadge state="downloaded" />
@@ -102,35 +150,34 @@ function EpisodeList({
             )}
           </div>
           <div className="flex shrink-0 gap-1">
-            {e.has_file &&
-              e.file_id != null &&
-              (confirmDelete === e.id ? (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  disabled={deleteFile.isPending}
-                  onClick={() => {
-                    deleteFile.mutate(e.file_id!);
-                    setConfirmDelete(null);
-                  }}
-                >
-                  {t("episode.confirmDelete")}
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-destructive"
-                  onClick={() => setConfirmDelete(e.id)}
-                >
-                  {t("episode.deleteFile")}
-                </Button>
-              ))}
+            {e.has_file && e.file_id != null && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive"
+                disabled={deleteFile.isPending}
+                onClick={async () => {
+                  const ok = await confirm({
+                    action: t("episode.deleteFile"),
+                    subject: `E${String(e.episode).padStart(2, "0")} ${isHidden(e) ? "" : (e.title ?? "")}`,
+                    destructive: true,
+                  });
+                  if (ok) deleteFile.mutate(e.file_id!);
+                }}
+              >
+                {t("episode.deleteFile")}
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
               disabled={monitor.isPending}
-              onClick={() => monitor.mutate({ ids: [e.id], monitored: !e.monitored })}
+              onClick={async () => {
+                if (
+                  await confirm({ action: e.monitored ? t("add.unmonitor") : t("add.monitor") })
+                )
+                  monitor.mutate({ ids: [e.id], monitored: !e.monitored });
+              }}
             >
               {e.monitored ? t("add.unmonitor") : t("add.monitor")}
             </Button>
@@ -139,7 +186,9 @@ function EpisodeList({
                 variant="ghost"
                 size="sm"
                 disabled={search.isPending}
-                onClick={() => search.mutate([e.id])}
+                onClick={async () => {
+                  if (await confirm({ action: t("common.search") })) search.mutate([e.id]);
+                }}
               >
                 {t("common.search")}
               </Button>
@@ -168,10 +217,12 @@ function EpisodeList({
 function SeasonCard({
   seriesId,
   season,
+  plexKey,
   onReleases,
 }: {
   seriesId: number;
   season: Season;
+  plexKey?: string | null;
   onReleases: (target: ReleaseTarget) => void;
 }) {
   const { t } = useTranslation();
@@ -229,7 +280,12 @@ function SeasonCard({
         </div>
       </Row>
       {open && (
-        <EpisodeList seriesId={seriesId} season={season.number} onReleases={onReleases} />
+        <EpisodeList
+          seriesId={seriesId}
+          season={season.number}
+          plexKey={plexKey}
+          onReleases={onReleases}
+        />
       )}
     </Card>
   );
@@ -357,6 +413,7 @@ export default function SeriesPage() {
               key={s.number}
               seriesId={seriesId}
               season={s}
+              plexKey={watched?.key}
               onReleases={setReleaseTarget}
             />
           ))}

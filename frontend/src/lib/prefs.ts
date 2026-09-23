@@ -16,14 +16,39 @@ export const LAYOUTS_FOR: Record<LibraryKind, Layout[]> = {
   books: ["posters", "list", "details", "shelf"],
 };
 export type Unmonitored = "show" | "dim" | "hide";
+/** Dates as "3 days ago" or "Sep 20". */
+export type DateStyle = "relative" | "absolute";
+/** 1 GB as 1024 MB (what arrdeck always showed) or 1000 MB, as disks are sold. */
+export type SizeStyle = "binary" | "decimal";
+/** Hide what unwatched episodes are about: never, until watched, or always. */
+export type Spoilers = "off" | "unwatched" | "always";
+/** Which actions ask first. Deleting a title always asks whether to keep the
+ * files, since that is a choice rather than a confirmation. */
+export type ConfirmPolicy = "always" | "deletes" | "never";
 
 type Prefs = {
   [K in `layout.${LibraryKind}`]: Layout;
 } & {
   [K in `unmonitored.${LibraryKind}`]: Unmonitored;
+} & {
+  /** a tab's route, or "" for the first tab */
+  startTab: string;
+  tabOrder: string[];
+  hiddenTabs: string[];
+  dates: DateStyle;
+  sizes: SizeStyle;
+  spoilers: Spoilers;
+  confirm: ConfirmPolicy;
 };
 
 const DEFAULTS: Prefs = {
+  startTab: "",
+  tabOrder: [],
+  hiddenTabs: [],
+  dates: "relative",
+  sizes: "binary",
+  spoilers: "off",
+  confirm: "deletes",
   "layout.movies": "posters",
   "layout.series": "posters",
   "layout.books": "posters",
@@ -35,10 +60,18 @@ const DEFAULTS: Prefs = {
 const PREFIX = "prefs.";
 const listeners = new Set<() => void>();
 
-function read<K extends keyof Prefs>(key: K): Prefs[K] {
+// Parsed values are cached per raw string: useSyncExternalStore compares
+// snapshots by identity, and an array preference parsed afresh on every read
+// would look changed every time.
+const parsed = new Map<string, unknown>();
+
+/** A preference outside React — the formatters read sizes and dates this way. */
+export function readPref<K extends keyof Prefs>(key: K): Prefs[K] {
   try {
     const raw = localStorage.getItem(PREFIX + key);
-    return raw != null ? (JSON.parse(raw) as Prefs[K]) : DEFAULTS[key];
+    if (raw == null) return DEFAULTS[key];
+    if (!parsed.has(raw)) parsed.set(raw, JSON.parse(raw));
+    return parsed.get(raw) as Prefs[K];
   } catch {
     return DEFAULTS[key];
   }
@@ -64,5 +97,5 @@ function subscribe(fn: () => void): () => void {
 }
 
 export function usePref<K extends keyof Prefs>(key: K): Prefs[K] {
-  return useSyncExternalStore(subscribe, () => read(key));
+  return useSyncExternalStore(subscribe, () => readPref(key));
 }

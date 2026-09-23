@@ -553,7 +553,8 @@
     "system": "System",
     "connections": "Connections",
     "connectionsHint": "Where arrdeck finds each service. Changing these affects every screen.",
-    "display": "Display"
+    "display": "Display",
+    "notifications": "Notifications"
   },
   "book": {
     "pages": "{{count}} pages",
@@ -591,7 +592,32 @@
     "unmonitored_show": "Show",
     "unmonitored_dim": "Dim",
     "unmonitored_hide": "Hide",
-    "hint": "These choices are kept on this device only."
+    "hint": "These choices are kept on this device only.",
+    "tabs": "Tabs",
+    "startTab": "Open on",
+    "firstTab": "The first tab",
+    "moveUp": "Move {{tab}} up",
+    "moveDown": "Move {{tab}} down",
+    "hideTab": "Hide {{tab}}",
+    "showTab": "Show {{tab}}",
+    "formatting": "Formatting",
+    "dates": "Dates",
+    "dates_relative": "Relative (3 days ago)",
+    "dates_absolute": "Dates (Sep 20)",
+    "sizes": "Sizes",
+    "sizes_binary": "1 GB = 1024 MB",
+    "sizes_decimal": "1 GB = 1000 MB",
+    "behaviour": "Behaviour",
+    "spoilers": "Spoiler protection",
+    "spoilers_off": "Off",
+    "spoilers_unwatched": "Unwatched episodes",
+    "spoilers_always": "All episodes",
+    "confirm": "Ask before",
+    "confirm_always": "Every action",
+    "confirm_deletes": "Deleting only",
+    "confirm_never": "Never",
+    "behaviourHint": "Spoiler protection hides the titles and summaries of episodes Plex has not seen you watch; tap one to show it. Deleting a title always asks whether to keep its files.",
+    "notifications": "Notifications"
   },
   "upnext": {
     "ended": "Ended",
@@ -607,5 +633,11 @@
     "books_one": "{{count}} book",
     "books_other": "{{count}} books",
     "noSeries": "None of your books belong to a series Readarr knows."
+  },
+  "spoilers": {
+    "hidden": "Hidden — tap to show"
+  },
+  "confirm": {
+    "title": "{{action}}?"
   }
 }
