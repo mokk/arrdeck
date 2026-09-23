@@ -204,7 +204,8 @@
     "searchBooks": "Search books…",
     "bookKind": "Book",
     "metadataProfile": "Metadata profile",
-    "searchBooksHint": "Search Readarr for a book to add"
+    "searchBooksHint": "Search Readarr for a book to add",
+    "edition": "Edition"
   },
   "manage": {
     "title": "Manage",
@@ -504,7 +505,11 @@
   "activity": {
     "downloads": "Downloads",
     "queue": "Queue",
-    "history": "History"
+    "history": "History",
+    "new": "New",
+    "sinceLabel": "Since {{time}}",
+    "nothingNew": "Nothing new since you last looked",
+    "newCount": "{{count}} new"
   },
   "settings": {
     "title": "Settings",
@@ -525,6 +530,28 @@
     "editions": "Editions",
     "genres": "Genres",
     "ebook": "ebook",
-    "download": "Download"
+    "download": "Download",
+    "seriesTitle": "Series: {{title}}"
+  },
+  "subtitles": {
+    "title": "Subtitles",
+    "untracked": "Bazarr does not track this title",
+    "none": "No subtitle languages wanted",
+    "get": "Get {{language}}",
+    "requested": "Subtitle search started"
+  },
+  "episode": {
+    "deleteFile": "Delete file",
+    "confirmDelete": "Delete file?",
+    "fileDeleted": "File deleted"
+  },
+  "author": {
+    "monitored": "Author monitored",
+    "newBooks": "New books",
+    "newBooks_all": "Monitor all",
+    "newBooks_new": "Monitor new",
+    "newBooks_none": "Do not monitor",
+    "books": "Books ({{count}})",
+    "have": "{{have}} of {{total}} books on disk"
   }
 }

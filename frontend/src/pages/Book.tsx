@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -58,7 +58,14 @@ export default function BookPage() {
                     data.has_file ? "downloaded" : data.monitored ? "wanted" : "unmonitored"
                   }
                 />
-                {data.author && <span>{data.author}</span>}
+                {data.author &&
+                  (data.author_id ? (
+                    <Link to={`/author/${data.author_id}`} className="text-primary">
+                      {data.author}
+                    </Link>
+                  ) : (
+                    <span>{data.author}</span>
+                  ))}
                 {data.series_title && <span>· {data.series_title}</span>}
                 {data.page_count ? (
                   <span>· {t("book.pages", { count: data.page_count })}</span>
@@ -165,6 +172,47 @@ export default function BookPage() {
               </Card>
             </>
           )}
+
+          {(data.series ?? []).map((series) => (
+            <div key={series.id}>
+              <SectionTitle>
+                {t("book.seriesTitle", { title: series.title ?? "" })}
+              </SectionTitle>
+              <Card>
+                {(series.books ?? []).map((entry) => (
+                  <Row
+                    key={entry.book_id}
+                    onClick={
+                      entry.book_id !== bookId
+                        ? () => navigate(`/book/${entry.book_id}`)
+                        : undefined
+                    }
+                  >
+                    <span className="w-8 shrink-0 font-mono text-xs text-muted-foreground">
+                      {entry.position ? `#${entry.position}` : ""}
+                    </span>
+                    <div
+                      className={cn(
+                        "min-w-0 flex-1 truncate text-sm",
+                        entry.book_id === bookId && "font-semibold",
+                      )}
+                    >
+                      {entry.title}
+                    </div>
+                    <StateBadge
+                      state={
+                        entry.has_file
+                          ? "downloaded"
+                          : entry.monitored
+                            ? "wanted"
+                            : "unmonitored"
+                      }
+                    />
+                  </Row>
+                ))}
+              </Card>
+            </div>
+          ))}
 
           {(data.genres?.length ?? 0) > 0 && (
             <>

@@ -16,10 +16,12 @@ import {
 import { BigButton } from "../components/media";
 import { ReleasesSheet } from "../components/ReleasesSheet";
 import { RenameCard } from "../components/RenameCard";
+import { SubtitleTracks } from "../components/Subtitles";
 import {
   useDeleteLibraryItem,
   useMovieCredits,
   useMovieDetail,
+  useMovieSubtitles,
   useOptions,
   useServices,
   useTriggerSearch,
@@ -39,6 +41,8 @@ export default function MoviePage() {
   const { data: watchedMap } = useWatched(
     (services ?? []).some((sv) => sv.service === "plex" && sv.configured),
   );
+  const hasBazarr = (services ?? []).some((sv) => sv.service === "bazarr" && sv.configured);
+  const subtitles = useMovieSubtitles(movieId, hasBazarr && !!data?.has_file);
   const update = useUpdateLibraryItem("movies");
   const remove = useDeleteLibraryItem("movies");
   const search = useTriggerSearch();
@@ -134,6 +138,20 @@ export default function MoviePage() {
               </Row>
             )}
           </Card>
+
+          {hasBazarr && (
+            <>
+              <SectionTitle>{t("subtitles.title")}</SectionTitle>
+              <Card>
+                <Row>
+                  <SubtitleTracks
+                    subtitles={subtitles.data}
+                    target={{ kind: "movie", id: movieId }}
+                  />
+                </Row>
+              </Card>
+            </>
+          )}
 
           <DetailCredits credits={credits} />
 

@@ -47,6 +47,9 @@ vi.mock("../hooks/queries", () => {
     useSeasonSearch: () => mutation,
     useRenamePreview: () => ({ data: [], isLoading: false }),
     useRename: () => mutation,
+    useMovieSubtitles: () => ({ data: undefined }),
+    useSeriesSubtitles: () => ({ data: undefined }),
+    useDeleteEpisodeFile: () => mutation,
   };
 });
 

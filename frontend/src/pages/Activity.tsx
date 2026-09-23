@@ -3,13 +3,14 @@
 // is configured; a bare download client still gets its torrent list.
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
+import { SinceLastLook } from "../components/activity/SinceLastLook";
 import { ArrQueue } from "../components/downloads/ArrQueue";
 import { useRegisterSubnav } from "../components/subnav";
 import { useServices } from "../hooks/queries";
 import Downloads from "./Downloads";
 import HistoryPage from "./History";
 
-type Segment = "downloads" | "queue" | "history";
+type Segment = "new" | "downloads" | "queue" | "history";
 
 export default function Activity() {
   const { t } = useTranslation();
@@ -21,6 +22,7 @@ export default function Activity() {
   const hasClient = configured.has("qbittorrent") || configured.has("transmission");
   const hasArr = ["radarr", "sonarr", "readarr"].some((s) => configured.has(s));
   const segments: Segment[] = [
+    "new",
     ...(hasClient ? (["downloads"] as Segment[]) : []),
     ...(hasArr ? (["queue", "history"] as Segment[]) : []),
   ];
@@ -34,6 +36,7 @@ export default function Activity() {
     () => setParams({}, { replace: true }),
   );
 
+  if (segment === "new") return <SinceLastLook />;
   if (segment === "downloads") return <Downloads />;
   if (segment === "queue") return <ArrQueue />;
   if (segment === "history") return <HistoryPage />;

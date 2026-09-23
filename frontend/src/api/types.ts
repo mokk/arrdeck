@@ -38,6 +38,14 @@ export type LibrarySeries = G.LibrarySeriesOut;
 export type LibraryBook = G.LibraryBookOut;
 export type BookDetail = G.BookDetailOut;
 export type BookEdition = G.BookEditionOut;
+export type Author = G.AuthorOut;
+export type AuthorDetail = G.AuthorDetailOut;
+export type BookSeries = G.BookSeriesOut;
+export type EditionChoice = G.EditionChoiceOut;
+export type TitleSubtitles = G.TitleSubtitlesOut;
+export type EpisodeSubtitles = G.EpisodeSubtitlesOut;
+export type ActivitySince = G.ActivitySinceOut;
+export type ActivityEvent = G.ActivityEventOut;
 /** The three libraries the shared list/bulk hooks address by URL segment. */
 export type LibraryKind = "movies" | "series" | "books";
 export type SeriesDetail = G.SeriesDetailOut;

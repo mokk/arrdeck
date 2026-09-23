@@ -7,11 +7,14 @@ import { api } from "../api/client";
 import type {
   ArrApp,
   ArrRelease,
+  Author,
+  AuthorDetail,
   BookDetail,
   Collection,
   CollectionDetail,
   Credits,
   Diagnosis,
+  EditionChoice,
   Episode,
   LibraryBook,
   LibraryKind,
@@ -309,6 +312,7 @@ export function useUpdateLibraryItem(kind: LibraryKind) {
       // Monitor button kept its old label after a successful toggle, because
       // only the list cache was patched.
       qc.invalidateQueries({ queryKey: [DETAIL_KEY[kind], id] });
+      if (kind === "books") qc.invalidateQueries({ queryKey: ["author"] });
     },
   });
 }
@@ -334,3 +338,51 @@ export function useSeasonMonitor(seriesId: number) {
     onSettled: () => qc.invalidateQueries({ queryKey: ["seriesDetail", seriesId] }),
   });
 }
+
+export function useDeleteEpisodeFile(seriesId: number) {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (fileId: number) => api.delete<void>(`/library/episodes/files/${fileId}`),
+    onSuccess: () => toast.success(t("episode.fileDeleted")),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["seriesEpisodes", seriesId] });
+      qc.invalidateQueries({ queryKey: ["seriesDetail", seriesId] });
+    },
+  });
+}
+
+export const useAuthor = (id: number) =>
+  useQuery({
+    queryKey: ["author", id],
+    queryFn: () => api.get<AuthorDetail>(`/library/authors/${id}`),
+  });
+
+export function useUpdateAuthor(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      monitored?: boolean;
+      monitor_new_items?: "all" | "none" | "new";
+      quality_profile_id?: number;
+      metadata_profile_id?: number;
+    }) => api.patch<Author>(`/library/authors/${id}`, input),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["author", id] });
+      qc.invalidateQueries({ queryKey: ["library", "books"] });
+    },
+  });
+}
+
+/** Every edition of the work one edition belongs to; empty against upstream
+ * Readarr, whose lookup carries none. */
+export const useBookEditions = (editionId: string | null | undefined, enabled: boolean) =>
+  useQuery({
+    queryKey: ["bookEditions", editionId],
+    queryFn: () =>
+      api.get<EditionChoice[]>(
+        `/search/books/editions?edition=${encodeURIComponent(editionId ?? "")}`,
+      ),
+    enabled: enabled && !!editionId,
+    staleTime: SLOW,
+  });

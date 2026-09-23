@@ -16,7 +16,9 @@ import {
 } from "../components/detail";
 import { ReleasesSheet } from "../components/ReleasesSheet";
 import { RenameCard } from "../components/RenameCard";
+import { SubtitleTracks } from "../components/Subtitles";
 import {
+  useDeleteEpisodeFile,
   useDeleteLibraryItem,
   useEpisodeMonitor,
   useEpisodeSearch,
@@ -25,6 +27,7 @@ import {
   useSeasonSearch,
   useSeriesDetail,
   useSeriesEpisodes,
+  useSeriesSubtitles,
   useServices,
   useTriggerSearch,
   useUpdateLibraryItem,
@@ -46,6 +49,14 @@ function EpisodeList({
   const { data, isLoading } = useSeriesEpisodes(seriesId, season);
   const monitor = useEpisodeMonitor(seriesId);
   const search = useEpisodeSearch();
+  const deleteFile = useDeleteEpisodeFile(seriesId);
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const { data: services } = useServices();
+  const hasBazarr = (services ?? []).some((sv) => sv.service === "bazarr" && sv.configured);
+  // one Bazarr call per series, shared by every open season
+  const { data: subtitleRows } = useSeriesSubtitles(seriesId, hasBazarr);
+  const subtitlesFor = (episodeId: number) =>
+    subtitleRows?.find((r) => r.episode_id === episodeId)?.subtitles;
 
   if (isLoading)
     return (
@@ -73,9 +84,48 @@ function EpisodeList({
                 <StateBadge state={e.monitored ? "wanted" : "paused"} />
               )}
               {formatDay(e.air_date)}
+              {e.has_file && (e.quality || e.size) && (
+                <span>
+                  ·{" "}
+                  {[e.quality, e.size ? formatBytes(e.size) : null].filter(Boolean).join(" · ")}
+                </span>
+              )}
             </div>
+            {hasBazarr && e.has_file && (
+              <div className="mt-1">
+                <SubtitleTracks
+                  compact
+                  subtitles={subtitlesFor(e.id)}
+                  target={{ kind: "episode", id: e.id, series_id: seriesId }}
+                />
+              </div>
+            )}
           </div>
           <div className="flex shrink-0 gap-1">
+            {e.has_file &&
+              e.file_id != null &&
+              (confirmDelete === e.id ? (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={deleteFile.isPending}
+                  onClick={() => {
+                    deleteFile.mutate(e.file_id!);
+                    setConfirmDelete(null);
+                  }}
+                >
+                  {t("episode.confirmDelete")}
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive"
+                  onClick={() => setConfirmDelete(e.id)}
+                >
+                  {t("episode.deleteFile")}
+                </Button>
+              ))}
             <Button
               variant="ghost"
               size="sm"

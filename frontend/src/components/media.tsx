@@ -15,6 +15,7 @@ import { formatBytes } from "../api/format";
 import type { SearchResult } from "../api/types";
 import {
   useAddMedia,
+  useBookEditions,
   useDeleteLibraryItem,
   useOptions,
   useTriggerSearch,
@@ -145,6 +146,18 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
   const [profileId, setProfileId] = useState<number | null>(null);
   const [metadataProfileId, setMetadataProfileId] = useState<number | null>(null);
   const [rootPath, setRootPath] = useState<string | null>(null);
+  const [editionId, setEditionId] = useState<string | null>(null);
+  // the search result carries Readarr's pick; the fork's lookup has them all
+  const editionsQuery = useBookEditions(
+    result.foreign_edition_id,
+    result.kind === "book" && !result.in_library,
+  );
+  const editions =
+    editionsQuery.data && editionsQuery.data.length > 0
+      ? editionsQuery.data
+      : (result.editions ?? []);
+  const edition =
+    editionId ?? result.foreign_edition_id ?? editions[0]?.foreign_edition_id ?? null;
 
   if (showReleases && result.library_id) {
     return (
@@ -193,6 +206,25 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
           {t("add.qualityProfile")}
         </Label>
         {profileSelect(profile, setProfileId)}
+        {result.kind === "book" && editions.length > 1 && (
+          <>
+            <Label className="mb-1.5 mt-3 text-xs text-muted-foreground">
+              {t("add.edition")}
+            </Label>
+            <Select value={edition ?? undefined} onValueChange={setEditionId}>
+              <SelectTrigger className="w-full bg-secondary">
+                <SelectValue placeholder={t("add.edition")} />
+              </SelectTrigger>
+              <SelectContent>
+                {editions.map((e) => (
+                  <SelectItem key={e.foreign_edition_id} value={e.foreign_edition_id}>
+                    {[e.title, e.format, e.language, e.year].filter(Boolean).join(" · ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
         {result.kind === "book" && (options?.metadata_profiles?.length ?? 0) > 0 && (
           <>
             {/* Readarr matches a new author against a metadata profile too */}
@@ -251,7 +283,7 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
                   quality_profile_id: profile!,
                   root_folder_path: root!,
                   foreign_id: result.foreign_id,
-                  foreign_edition_id: result.foreign_edition_id,
+                  foreign_edition_id: edition,
                   metadata_profile_id: metadataProfile,
                 },
                 { onSuccess: onClose },

@@ -9,7 +9,8 @@ import { LoginScreen } from "./components/LoginScreen";
 import { NotFound } from "./components/NotFound";
 import { PullToRefresh } from "./components/PullToRefresh";
 import { SubnavProvider, useSubnav } from "./components/subnav";
-import { useAuthState, useServices } from "./hooks/queries";
+import { useActivitySince, useAuthState, useServices } from "./hooks/queries";
+import { useLastSeen } from "./lib/lastSeen";
 // The library grids are the landing routes and stay in the entry chunk;
 // everything else is fetched on first visit, which keeps the initial download
 // small. The PWA precache globs **/*.js, so the split chunks are still
@@ -19,6 +20,7 @@ import { tabsFor } from "./tabs";
 
 const Activity = lazy(() => import("./pages/Activity"));
 const Add = lazy(() => import("./pages/Add"));
+const AuthorPage = lazy(() => import("./pages/Author"));
 const BookPage = lazy(() => import("./pages/Book"));
 const CalendarPage = lazy(() => import("./pages/Calendar"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -68,6 +70,14 @@ function Shell() {
   const auth = useAuthState();
   const { data: services } = useServices();
   const tabs = tabsFor(configuredSet(services));
+  // the Activity badge: what happened since that tab was last opened
+  const lastSeen = useLastSeen();
+  const hasActivity = tabs.some((tab) => tab.to === "/activity");
+  const since = useActivitySince(
+    lastSeen,
+    hasActivity && !location.pathname.startsWith("/activity"),
+  );
+  const newCount = since.data?.count ?? 0;
   // the bar only appears once a service exists; Settings alone is not a bar
   const showTabs = tabs.length > 1;
 
@@ -129,6 +139,7 @@ function Shell() {
                 <Route path="/popular" element={<PopularPage />} />
                 <Route path="/wanted" element={<WantedPage />} />
                 <Route path="/add" element={<Add />} />
+                <Route path="/author/:id" element={<AuthorPage />} />
                 <Route path="/book/:id" element={<BookPage />} />
                 <Route path="/movie/:id" element={<MoviePage />} />
                 <Route path="/series/:id" element={<SeriesPage />} />
@@ -252,7 +263,18 @@ function Shell() {
                     )
                   }
                 >
-                  <Icon className="size-[22px]" strokeWidth={2} />
+                  <span className="relative">
+                    <Icon className="size-[22px]" strokeWidth={2} />
+                    {to === "/activity" && newCount > 0 && (
+                      <span
+                        role="status"
+                        className="absolute -right-2.5 -top-1.5 min-w-4 rounded-full bg-primary px-1 text-center text-[0.6rem] font-bold leading-4 text-primary-foreground"
+                        aria-label={t("activity.newCount", { count: newCount })}
+                      >
+                        {newCount > 99 ? "99+" : newCount}
+                      </span>
+                    )}
+                  </span>
                   {t(key)}
                 </NavLink>
               ))}

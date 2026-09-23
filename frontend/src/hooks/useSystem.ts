@@ -5,8 +5,10 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { api } from "../api/client";
 import type {
+  ActivitySince,
   ArrBackup,
   DiskSpace,
+  EpisodeSubtitles,
   HealthWarning,
   ImportList,
   Indexer,
@@ -26,6 +28,7 @@ import type {
   Session,
   StatsSample,
   Subtitles,
+  TitleSubtitles,
   VpnStatus,
   WatchedMap,
   WebhookApp,
@@ -326,6 +329,53 @@ export function useDeletePasskey() {
     onSettled: () => qc.invalidateQueries({ queryKey: ["passkeys"] }),
   });
 }
+
+/** Bazarr's view of one movie, or of every episode of a series. */
+export const useMovieSubtitles = (radarrId: number, enabled: boolean) =>
+  useQuery({
+    queryKey: ["titleSubtitles", "movie", radarrId],
+    queryFn: () => api.get<TitleSubtitles>(`/subtitles/movie/${radarrId}`),
+    enabled,
+    staleTime: 60_000,
+  });
+
+export const useSeriesSubtitles = (seriesId: number, enabled: boolean) =>
+  useQuery({
+    queryKey: ["titleSubtitles", "series", seriesId],
+    queryFn: () => api.get<EpisodeSubtitles[]>(`/subtitles/series/${seriesId}`),
+    enabled,
+    staleTime: 60_000,
+  });
+
+export function useSubtitleDownload() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (input: {
+      kind: "movie" | "episode";
+      id: number;
+      series_id?: number;
+      language: string;
+    }) =>
+      input.kind === "movie"
+        ? api.post<void>(`/subtitles/movie/${input.id}/download`, { language: input.language })
+        : api.post<void>(`/subtitles/series/${input.series_id}/episodes/${input.id}/download`, {
+            language: input.language,
+          }),
+    onSuccess: () => toast.success(t("subtitles.requested")),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["titleSubtitles"] }),
+  });
+}
+
+/** What happened since the client last looked; polled for the tab badge. */
+export const useActivitySince = (since: string, enabled = true) =>
+  useQuery({
+    queryKey: ["activitySince", since],
+    queryFn: () => api.get<ActivitySince>(`/activity/since?since=${encodeURIComponent(since)}`),
+    enabled,
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  });
 
 export function useSubtitleSearch() {
   const qc = useQueryClient();

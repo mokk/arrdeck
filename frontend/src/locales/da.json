@@ -204,7 +204,8 @@
     "searchBooks": "Søg bøger…",
     "bookKind": "Bog",
     "metadataProfile": "Metadataprofil",
-    "searchBooksHint": "Søg efter en bog i Readarr for at tilføje den"
+    "searchBooksHint": "Søg efter en bog i Readarr for at tilføje den",
+    "edition": "Udgave"
   },
   "manage": {
     "title": "Administrér",
@@ -504,7 +505,11 @@
   "activity": {
     "downloads": "Downloads",
     "queue": "Kø",
-    "history": "Historik"
+    "history": "Historik",
+    "new": "Nyt",
+    "sinceLabel": "Siden {{time}}",
+    "nothingNew": "Intet nyt siden du sidst kiggede",
+    "newCount": "{{count}} nye"
   },
   "settings": {
     "title": "Indstillinger",
@@ -525,6 +530,28 @@
     "editions": "Udgaver",
     "genres": "Genrer",
     "ebook": "e-bog",
-    "download": "Download"
+    "download": "Download",
+    "seriesTitle": "Serie: {{title}}"
+  },
+  "subtitles": {
+    "title": "Undertekster",
+    "untracked": "Bazarr følger ikke denne titel",
+    "none": "Ingen ønskede undertekstsprog",
+    "get": "Hent {{language}}",
+    "requested": "Søgning efter undertekster startet"
+  },
+  "episode": {
+    "deleteFile": "Slet fil",
+    "confirmDelete": "Slet fil?",
+    "fileDeleted": "Fil slettet"
+  },
+  "author": {
+    "monitored": "Forfatter overvåget",
+    "newBooks": "Nye bøger",
+    "newBooks_all": "Overvåg alle",
+    "newBooks_new": "Overvåg nye",
+    "newBooks_none": "Overvåg ikke",
+    "books": "Bøger ({{count}})",
+    "have": "{{have}} af {{total}} bøger på disken"
   }
 }
