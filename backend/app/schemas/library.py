@@ -286,6 +286,14 @@ class LibraryBookOut(BaseModel):
     added: datetime | None = None
 
 
+class BookFileOut(BaseModel):
+    id: int
+    name: str | None = None
+    size: int = 0
+    # Readarr's quality name doubles as the format: EPUB, MOBI, AZW3, PDF…
+    format: str | None = None
+
+
 class BookEditionOut(BaseModel):
     title: str | None = None
     format: str | None = None
@@ -316,3 +324,7 @@ class BookDetailOut(BaseModel):
     goodreads_url: str | None = None
     editions: list[BookEditionOut] = []
     history: list[HistoryEventOut] = []
+    files: list[BookFileOut] = []
+    # True only when the connected Readarr is our fork, which serves the files
+    # itself; upstream Readarr has no download endpoint.
+    downloadable: bool = False

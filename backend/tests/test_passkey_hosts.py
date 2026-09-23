@@ -81,7 +81,7 @@ def login_options_against(tmp_path, creds: list[tuple[str, str | None]]) -> dict
 
 
 def test_the_challenge_names_the_host_when_nothing_matches(tmp_path):
-    """"No passkeys registered yet" was the message even when several were — it
+    """ "No passkeys registered yet" was the message even when several were — it
     just could not use any of them here. Naming the host makes it diagnosable."""
     out = login_options_against(tmp_path, [("lan-key", "10.0.0.154")])
     assert out["status"] == 400

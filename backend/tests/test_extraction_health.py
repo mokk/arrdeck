@@ -11,7 +11,12 @@ from app.api.v1.system import _download_client_warnings, _unpackerr_warnings
 
 class FakePrometheus:
     def __init__(self, gauges=None, counters=None, fetch=None, fail=False):
-        self._gauges, self._counters, self._fetch, self._fail = gauges or {}, counters or {}, fetch or {}, fail
+        self._gauges, self._counters, self._fetch, self._fail = (
+            gauges or {},
+            counters or {},
+            fetch or {},
+            fail,
+        )
 
     async def scalars(self, expr, label="name"):
         if self._fail:
@@ -113,19 +118,23 @@ def test_a_missing_prometheus_yields_no_warnings_rather_than_failing():
 
 
 def test_an_arr_with_no_enabled_client_is_an_error():
-    out = asyncio.run(_download_client_warnings(
-        FakeArr([{"name": "rTorrent", "enable": False}]),
-        FakeArr([{"name": "qBittorrent", "enable": True}]),
-    ))
+    out = asyncio.run(
+        _download_client_warnings(
+            FakeArr([{"name": "rTorrent", "enable": False}]),
+            FakeArr([{"name": "qBittorrent", "enable": True}]),
+        )
+    )
     assert len(out) == 1
     assert out[0]["app"] == "radarr" and out[0]["level"] == "error"
 
 
 def test_one_enabled_client_among_several_is_fine():
-    out = asyncio.run(_download_client_warnings(
-        FakeArr([{"enable": True}, {"enable": False}]),
-        FakeArr([{"enable": True}]),
-    ))
+    out = asyncio.run(
+        _download_client_warnings(
+            FakeArr([{"enable": True}, {"enable": False}]),
+            FakeArr([{"enable": True}]),
+        )
+    )
     assert out == []
 
 

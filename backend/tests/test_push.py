@@ -149,9 +149,7 @@ def test_single_event_renders_title_and_label():
 def test_burst_of_episodes_collapses_under_the_series():
     from app.push import Event, _Slot, render
 
-    event = Event(
-        key="imported", app="sonarr", title="The Bear S03E01", group_title="The Bear"
-    )
+    event = Event(key="imported", app="sonarr", title="The Bear S03E01", group_title="The Bear")
     slot = _Slot(event=event, due=0.0, count=8)
     note = render(slot)
     assert (note.title, note.body) == ("The Bear", "Downloaded · 8 episodes")
@@ -313,7 +311,9 @@ def test_a_season_pack_arrives_as_one_notification(tmp_path, monkeypatch):
         for n in range(1, 9)
     ]
     sent = _drive(db, payloads, monkeypatch)
-    assert sent == [("The Bear", "Downloaded · 8 episodes", "/series/12", "arrdeck:sonarr:imported:12")]
+    assert sent == [
+        ("The Bear", "Downloaded · 8 episodes", "/series/12", "arrdeck:sonarr:imported:12")
+    ]
 
 
 def test_two_shows_stay_separate(tmp_path, monkeypatch):
@@ -451,7 +451,9 @@ def test_a_test_banner_ignores_every_preference(tmp_path, monkeypatch):
     db = _two_devices(tmp_path)
     push.set_enabled_events(db, [])  # nothing enabled anywhere
     delivered = []
-    monkeypatch.setattr(push.delivery, "webpush", lambda sub, *a, **kw: delivered.append(sub["endpoint"]))
+    monkeypatch.setattr(
+        push.delivery, "webpush", lambda sub, *a, **kw: delivered.append(sub["endpoint"])
+    )
     push.ensure_vapid(db)
 
     assert asyncio.run(push.send_test(db)) == 2
@@ -544,8 +546,15 @@ def test_rules_round_trip_and_reject_junk(tmp_path):
 
     db = SettingsDB(str(tmp_path / "rules.db"))
     assert get_rules(db)["quiet_start"] == ""
-    set_rules(db, {"quiet_start": "23:00", "quiet_end": "07:00",
-                   "timezone": "Europe/Copenhagen", "tags": {"radarr": [1, "x"], "bogus": [2]}})
+    set_rules(
+        db,
+        {
+            "quiet_start": "23:00",
+            "quiet_end": "07:00",
+            "timezone": "Europe/Copenhagen",
+            "tags": {"radarr": [1, "x"], "bogus": [2]},
+        },
+    )
     saved = get_rules(db)
     assert saved["quiet_start"] == "23:00"
     assert saved["timezone"] == "Europe/Copenhagen"

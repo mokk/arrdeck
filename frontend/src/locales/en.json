@@ -519,6 +519,7 @@
     "released": "Released {{date}}",
     "editions": "Editions",
     "genres": "Genres",
-    "ebook": "ebook"
+    "ebook": "ebook",
+    "download": "Download"
   }
 }

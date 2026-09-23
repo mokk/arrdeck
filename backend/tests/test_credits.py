@@ -154,9 +154,7 @@ def test_the_proxy_leaves_non_tmdb_urls_alone():
 async def test_a_person_holding_two_credits_is_listed_once():
     """Screenplay + Story is a common pair, and listing the name twice reads as
     a bug. Jobs are in priority order, so the first mention wins."""
-    radarr = FakeRadarr(
-        [crew_row("Eric Pearson", "Screenplay"), crew_row("Eric Pearson", "Story")]
-    )
+    radarr = FakeRadarr([crew_row("Eric Pearson", "Screenplay"), crew_row("Eric Pearson", "Story")])
     out = await movie_credits(13, radarr)
     assert [(p.name, p.role) for p in out.crew] == [("Eric Pearson", "Screenplay")]
 

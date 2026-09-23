@@ -48,11 +48,11 @@ def _query_categories(indexer: dict) -> list[int]:
     out: list[int] = []
     for category in (indexer.get("capabilities") or {}).get("categories") or []:
         root = category.get("id")
-        if not isinstance(root, int) or not (
-            MOVIE_ROOT <= root < 3000 or TV_ROOT <= root < 6000
-        ):
+        if not isinstance(root, int) or not (MOVIE_ROOT <= root < 3000 or TV_ROOT <= root < 6000):
             continue
-        subs = [s.get("id") for s in category.get("subCategories") or [] if isinstance(s.get("id"), int)]
+        subs = [
+            s.get("id") for s in category.get("subCategories") or [] if isinstance(s.get("id"), int)
+        ]
         out.extend(subs or [root])
     return out
 

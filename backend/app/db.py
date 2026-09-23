@@ -5,8 +5,17 @@ from pathlib import Path
 from typing import ClassVar
 
 SERVICES = [
-    "radarr", "sonarr", "readarr", "prowlarr", "qbittorrent", "transmission", "overseerr", "gluetun",
-    "bazarr", "plex", "prometheus",
+    "radarr",
+    "sonarr",
+    "readarr",
+    "prowlarr",
+    "qbittorrent",
+    "transmission",
+    "overseerr",
+    "gluetun",
+    "bazarr",
+    "plex",
+    "prometheus",
 ]
 EMPTY = {"url": "", "api_key": "", "username": "", "password": ""}
 
@@ -133,8 +142,15 @@ class SettingsDB:
             self._conn.commit()
 
     STATS_COLUMNS: ClassVar[list[str]] = [
-        "ts", "movies", "series", "episode_files", "library_bytes",
-        "torrents_qbit", "torrents_tm", "indexer_grabs", "indexer_queries",
+        "ts",
+        "movies",
+        "series",
+        "episode_files",
+        "library_bytes",
+        "torrents_qbit",
+        "torrents_tm",
+        "indexer_grabs",
+        "indexer_queries",
         "disk_free_bytes",
     ]
 
@@ -204,7 +220,13 @@ class SettingsDB:
             "services": self.all(),
             "kv": self.kv_all(),
             "credentials": [
-                dict(zip(("credential_id", "public_key", "sign_count", "name", "created"), r, strict=False))
+                dict(
+                    zip(
+                        ("credential_id", "public_key", "sign_count", "name", "created"),
+                        r,
+                        strict=False,
+                    )
+                )
                 for r in creds
             ],
             "push_subscriptions": [
@@ -413,9 +435,7 @@ class SettingsDB:
 
     def session_delete_others(self, keep_hash: str) -> int:
         with self._lock:
-            cur = self._conn.execute(
-                "DELETE FROM sessions WHERE token_hash != ?", (keep_hash,)
-            )
+            cur = self._conn.execute("DELETE FROM sessions WHERE token_hash != ?", (keep_hash,))
             self._conn.commit()
             return cur.rowcount
 
@@ -436,7 +456,4 @@ class SettingsDB:
 
     def is_empty(self) -> bool:
         with self._lock:
-            return (
-                self._conn.execute("SELECT COUNT(*) FROM service_settings").fetchone()[0]
-                == 0
-            )
+            return self._conn.execute("SELECT COUNT(*) FROM service_settings").fetchone()[0] == 0

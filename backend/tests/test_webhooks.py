@@ -260,7 +260,9 @@ async def test_an_arr_with_no_webhook_schema_is_reported_not_crashed(db):
     type looks like. It has to surface as a per-app message on the settings
     page rather than a 500 that hides which app failed."""
     radarr = FakeArr(schemas=[DISCORD_SCHEMA])
-    rows = await webhooks.install(db, FakeRegistry(radarr=radarr, sonarr=FakeArr()), "http://a:3500")
+    rows = await webhooks.install(
+        db, FakeRegistry(radarr=radarr, sonarr=FakeArr()), "http://a:3500"
+    )
     assert row_for(rows, "radarr")["installed"] is False
     assert "Webhook" in row_for(rows, "radarr")["error"]
     assert radarr.added == []

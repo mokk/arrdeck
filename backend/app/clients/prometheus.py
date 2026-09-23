@@ -18,9 +18,7 @@ class PrometheusClient(BaseClient):
         self.base_url = base_url.rstrip("/")
 
     async def query(self, expr: str) -> list[dict]:
-        resp = await self._request(
-            "GET", f"{self.base_url}/api/v1/query", params={"query": expr}
-        )
+        resp = await self._request("GET", f"{self.base_url}/api/v1/query", params={"query": expr})
         resp.raise_for_status()
         payload = resp.json()
         if payload.get("status") != "success":

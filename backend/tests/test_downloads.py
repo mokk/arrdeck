@@ -59,7 +59,9 @@ def test_transmission_takes_the_value_directly():
 
 def test_an_unknown_client_is_a_404():
     with pytest.raises(HTTPException) as exc:
-        asyncio.run(set_speed_limit("deluge", SpeedLimitIn(enabled=True), FakeQbit(False), FakeTm()))
+        asyncio.run(
+            set_speed_limit("deluge", SpeedLimitIn(enabled=True), FakeQbit(False), FakeTm())
+        )
     assert exc.value.status_code == 404
 
 

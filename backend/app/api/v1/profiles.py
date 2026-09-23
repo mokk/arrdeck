@@ -57,10 +57,7 @@ def _items(profile: dict) -> list[QualityItemOut]:
                 )
             )
             continue
-        members = [
-            (m.get("quality") or {}).get("name") or ""
-            for m in item.get("items") or []
-        ]
+        members = [(m.get("quality") or {}).get("name") or "" for m in item.get("items") or []]
         out.append(
             QualityItemOut(
                 name=item.get("name") or "",

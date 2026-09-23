@@ -36,7 +36,9 @@ def test_no_request_id_key_outside_a_request():
 def test_structured_extras_are_promoted_to_fields():
     out = json.loads(
         JsonFormatter().format(
-            record(method="GET", path="/api/v1/queue", status=502, duration_ms=12.5, service="radarr")
+            record(
+                method="GET", path="/api/v1/queue", status=502, duration_ms=12.5, service="radarr"
+            )
         )
     )
     assert out["method"] == "GET" and out["path"] == "/api/v1/queue"

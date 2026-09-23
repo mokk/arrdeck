@@ -22,9 +22,7 @@ CREW_PER_JOB = 2
 
 
 @router.get("/library/movies/{movie_id}/credits", response_model=CreditsOut)
-async def movie_credits(
-    movie_id: int, radarr: RadarrClient = Depends(get_radarr)
-) -> CreditsOut:
+async def movie_credits(movie_id: int, radarr: RadarrClient = Depends(get_radarr)) -> CreditsOut:
     """Top-billed cast and the crew worth naming.
 
     Kept off the detail response on purpose: credits are ~60 rows per film and

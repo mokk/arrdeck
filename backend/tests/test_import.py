@@ -111,8 +111,9 @@ def _assign(app, files, candidates=None):
     client = FakeArr(candidates if candidates is not None else [CANDIDATE])
     body = ManualImportAssignIn(item_id=1, files=files)
     asyncio.run(
-        manual_import_assign(app, body, client if app == "radarr" else None,
-                             client if app == "sonarr" else None)
+        manual_import_assign(
+            app, body, client if app == "radarr" else None, client if app == "sonarr" else None
+        )
     )
     return client.commands
 

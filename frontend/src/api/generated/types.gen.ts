@@ -321,9 +321,17 @@ export type BookDetailOut = {
    */
   author_id?: number | null;
   /**
+   * Downloadable
+   */
+  downloadable?: boolean;
+  /**
    * Editions
    */
   editions?: Array<BookEditionOut>;
+  /**
+   * Files
+   */
+  files?: Array<BookFileOut>;
   /**
    * Genres
    */
@@ -422,6 +430,28 @@ export type BookEditionOut = {
    * Title
    */
   title?: string | null;
+};
+
+/**
+ * BookFileOut
+ */
+export type BookFileOut = {
+  /**
+   * Format
+   */
+  format?: string | null;
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Name
+   */
+  name?: string | null;
+  /**
+   * Size
+   */
+  size?: number;
 };
 
 /**
@@ -4701,6 +4731,42 @@ export type BookDetailApiV1LibraryBooksBookIdDetailGetResponses = {
 
 export type BookDetailApiV1LibraryBooksBookIdDetailGetResponse =
   BookDetailApiV1LibraryBooksBookIdDetailGetResponses[keyof BookDetailApiV1LibraryBooksBookIdDetailGetResponses];
+
+export type DownloadBookFileApiV1LibraryBooksBookIdFilesFileIdGetData = {
+  body?: never;
+  path: {
+    /**
+     * Book Id
+     */
+    book_id: number;
+    /**
+     * File Id
+     */
+    file_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/books/{book_id}/files/{file_id}";
+};
+
+export type DownloadBookFileApiV1LibraryBooksBookIdFilesFileIdGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type DownloadBookFileApiV1LibraryBooksBookIdFilesFileIdGetError =
+  DownloadBookFileApiV1LibraryBooksBookIdFilesFileIdGetErrors[keyof DownloadBookFileApiV1LibraryBooksBookIdFilesFileIdGetErrors];
+
+export type DownloadBookFileApiV1LibraryBooksBookIdFilesFileIdGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: Blob | File;
+};
+
+export type DownloadBookFileApiV1LibraryBooksBookIdFilesFileIdGetResponse =
+  DownloadBookFileApiV1LibraryBooksBookIdFilesFileIdGetResponses[keyof DownloadBookFileApiV1LibraryBooksBookIdFilesFileIdGetResponses];
 
 export type EpisodesMonitorApiV1LibraryEpisodesMonitorPatchData = {
   body: EpisodeMonitorIn;

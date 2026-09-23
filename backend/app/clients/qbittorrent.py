@@ -27,9 +27,7 @@ class QbittorrentClient(BaseClient):
 
     async def _login(self) -> None:
         if not self.username:
-            raise ServiceUnavailable(
-                self.name, "403 Forbidden and no credentials configured"
-            )
+            raise ServiceUnavailable(self.name, "403 Forbidden and no credentials configured")
         async with self._login_lock:
             resp = await self._request(
                 "POST",
@@ -63,9 +61,7 @@ class QbittorrentClient(BaseClient):
         return resp.json()
 
     async def trackers(self, torrent_hash: str) -> list:
-        resp = await self.request(
-            "GET", "/api/v2/torrents/trackers", params={"hash": torrent_hash}
-        )
+        resp = await self.request("GET", "/api/v2/torrents/trackers", params={"hash": torrent_hash})
         return resp.json()
 
     async def categories(self) -> dict:
@@ -116,7 +112,9 @@ class QbittorrentClient(BaseClient):
 
     async def set_category(self, hashes: list[str], category: str) -> None:
         await self.request(
-            "POST", "/api/v2/torrents/setCategory", data={"hashes": "|".join(hashes), "category": category}
+            "POST",
+            "/api/v2/torrents/setCategory",
+            data={"hashes": "|".join(hashes), "category": category},
         )
 
     async def tags(self) -> list:

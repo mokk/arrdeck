@@ -102,9 +102,7 @@ def _availability_findings(movie: dict) -> list[DiagnosisFindingOut]:
     return out
 
 
-def _blocklist_findings(
-    entries: list[dict], item_id: int, app: str
-) -> list[DiagnosisFindingOut]:
+def _blocklist_findings(entries: list[dict], item_id: int, app: str) -> list[DiagnosisFindingOut]:
     """A release that was grabbed and rejected will not be tried again.
 
     The arr's raw blocklist record carries movieId / seriesId, so this is an exact

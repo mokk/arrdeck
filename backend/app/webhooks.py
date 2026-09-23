@@ -140,8 +140,13 @@ async def _build_payload(client, url: str) -> dict:
 async def status(db: SettingsDB, registry: Registry) -> list[dict]:
     out = []
     for app_name in HOOK_APPS:
-        row = {"app": app_name, "configured": registry.is_configured(app_name),
-               "installed": False, "url": "", "error": ""}
+        row = {
+            "app": app_name,
+            "configured": registry.is_configured(app_name),
+            "installed": False,
+            "url": "",
+            "error": "",
+        }
         if row["configured"]:
             try:
                 existing = _find_existing(await registry.get(app_name).notifications())

@@ -50,7 +50,15 @@ QBIT_STATE_MAP = {
     "error": "error",
     "missingFiles": "error",
 }
-TM_STATUS_MAP = {0: "paused", 1: "queued", 2: "checking", 3: "queued", 4: "downloading", 5: "queued", 6: "seeding"}
+TM_STATUS_MAP = {
+    0: "paused",
+    1: "queued",
+    2: "checking",
+    3: "queued",
+    4: "downloading",
+    5: "queued",
+    6: "seeding",
+}
 
 
 def _tracker_host(url: str | None) -> str | None:
@@ -80,9 +88,7 @@ def _qbit_torrents(torrents: list, resolve) -> list[dict]:
                 ratio=t.get("ratio"),
                 uploaded=t.get("uploaded", 0),
                 added_on=t.get("added_on"),
-                tracker=resolve(
-                    _tracker_host(t.get("tracker")), t.get("hash", "").upper()
-                ),
+                tracker=resolve(_tracker_host(t.get("tracker")), t.get("hash", "").upper()),
                 # qBittorrent sends tags as one comma-separated string
                 tags=[x.strip() for x in (t.get("tags") or "").split(",") if x.strip()],
             ).model_dump()
@@ -307,7 +313,8 @@ async def torrents_summary(
 
     def summarize(client: str, mapped: list[dict], dl: int, ul: int) -> dict:
         active = [
-            t for t in mapped
+            t
+            for t in mapped
             if t["state"] == "downloading" or t["dl_speed"] > 0 or t["ul_speed"] > 0
         ]
         active.sort(key=lambda t: -(t["dl_speed"] + t["ul_speed"]))

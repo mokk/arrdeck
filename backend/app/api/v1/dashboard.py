@@ -53,7 +53,15 @@ QBIT_STATE_MAP = {
     "missingFiles": "error",
 }
 
-TM_STATUS_MAP = {0: "paused", 1: "queued", 2: "checking", 3: "queued", 4: "downloading", 5: "queued", 6: "seeding"}
+TM_STATUS_MAP = {
+    0: "paused",
+    1: "queued",
+    2: "checking",
+    3: "queued",
+    4: "downloading",
+    5: "queued",
+    6: "seeding",
+}
 
 
 def release_info(movie: dict, start: str, end: str) -> tuple[str | None, str | None]:
@@ -80,7 +88,9 @@ def _queue_items(app: str, payload: dict) -> list[QueueItemOut]:
             book = (rec.get("book") or {}).get("title") or title
             author = (rec.get("author") or {}).get("authorName")
             title = f"{author} — {book}" if author else book
-        errors = [m.get("messages", [""])[0] for m in rec.get("statusMessages", []) if m.get("messages")]
+        errors = [
+            m.get("messages", [""])[0] for m in rec.get("statusMessages", []) if m.get("messages")
+        ]
         items.append(
             QueueItemOut(
                 app=app,
@@ -269,9 +279,7 @@ def _consolidate_history(app: str, payload: dict, limit: int = 15) -> list[dict]
         # chronological tags, one per event type (keep each type's first occurrence)
         g["events"].sort(key=lambda e: e["date"])
         seen: set[str] = set()
-        g["events"] = [
-            e for e in g["events"] if not (e["type"] in seen or seen.add(e["type"]))
-        ]
+        g["events"] = [e for e in g["events"] if not (e["type"] in seen or seen.add(e["type"]))]
     return [HistoryItemOut(**g).model_dump() for g in result]
 
 
@@ -358,7 +366,8 @@ async def recent(
                         {
                             "app": "readarr",
                             "title": book.get("title", ""),
-                            "subtitle": book.get("authorTitle", "").split(" ", 1)[0].rstrip(",") or None,
+                            "subtitle": book.get("authorTitle", "").split(" ", 1)[0].rstrip(",")
+                            or None,
                             "date": rec.get("date", ""),
                             "poster": book_cover(book.get("images")),
                             "library_id": book["id"],

@@ -46,7 +46,9 @@ async def _describe_request(overseerr: OverseerrClient, req: dict) -> dict:
         "poster": poster,
         "requested_by": (req.get("requestedBy") or {}).get("displayName") or "",
         "created_at": req.get("createdAt"),
-        "seasons": [s.get("seasonNumber") for s in (req.get("seasons") or []) if s.get("seasonNumber")],
+        "seasons": [
+            s.get("seasonNumber") for s in (req.get("seasons") or []) if s.get("seasonNumber")
+        ],
     }
 
 
@@ -60,9 +62,7 @@ async def media_requests(
         async def call() -> list[dict]:
             payload = await overseerr.requests(filter, take)
             results = payload.get("results") or []
-            return list(
-                await asyncio.gather(*(_describe_request(overseerr, r) for r in results))
-            )
+            return list(await asyncio.gather(*(_describe_request(overseerr, r) for r in results)))
 
         return await cached(f"requests:{filter}:{take}", 60, call)
 

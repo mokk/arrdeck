@@ -1,5 +1,7 @@
 from typing import Any
 
+import httpx
+
 from .base import ArrClient
 
 
@@ -32,6 +34,26 @@ class ReadarrClient(ArrClient):
 
     async def get_book(self, book_id: int) -> dict:
         return await self.get(f"/book/{book_id}")
+
+    async def book_files(self, book_id: int) -> list:
+        return await self.get("/bookfile", params={"bookId": book_id})
+
+    async def fork_features(self) -> list[str]:
+        """Capabilities only our Readarr fork advertises (system/status
+        `forkFeatures`); empty against an upstream build."""
+        status = await self.status()
+        return list(status.get("forkFeatures") or [])
+
+    async def open_book_file(self, file_id: int, range_header: str | None = None) -> httpx.Response:
+        """Start streaming a book file from the fork's download endpoint. The
+        caller owns the response and must close it."""
+        headers = {"X-Api-Key": self.api_key}
+        if range_header:
+            headers["Range"] = range_header
+        request = self.http.build_request(
+            "GET", f"{self.base_url}{self.api_prefix}/bookfile/{file_id}/download", headers=headers
+        )
+        return await self.http.send(request, stream=True)
 
     async def update_book(self, book_id: int, payload: dict) -> dict:
         return await self.request("PUT", f"/book/{book_id}", json=payload)
@@ -116,5 +138,9 @@ class ReadarrClient(ArrClient):
         await self.request(
             "DELETE",
             "/book/editor",
-            json={"bookIds": book_ids, "deleteFiles": delete_files, "addImportListExclusion": False},
+            json={
+                "bookIds": book_ids,
+                "deleteFiles": delete_files,
+                "addImportListExclusion": False,
+            },
         )

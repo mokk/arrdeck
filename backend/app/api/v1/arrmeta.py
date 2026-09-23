@@ -47,7 +47,8 @@ async def import_lists(
                     "app": app,
                     "id": entry.get("id", 0),
                     "name": entry.get("name", ""),
-                    "implementation": entry.get("implementationName") or entry.get("implementation", ""),
+                    "implementation": entry.get("implementationName")
+                    or entry.get("implementation", ""),
                     "enabled": bool(entry.get("enabled")),
                     "enable_auto": bool(entry.get("enableAuto") or entry.get("enableAutomaticAdd")),
                     "monitor": entry.get("monitor"),

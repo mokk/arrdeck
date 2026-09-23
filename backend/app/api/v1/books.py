@@ -6,8 +6,12 @@ author's name and profile, and a profile change goes to the author.
 """
 
 import asyncio
+import os
+from urllib.parse import quote
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import StreamingResponse
+from starlette.background import BackgroundTask
 
 from ...cache import cache, cached
 from ...clients.readarr import ReadarrClient
@@ -15,6 +19,7 @@ from ...deps import get_readarr
 from ...schemas import (
     BookDetailOut,
     BookEditionOut,
+    BookFileOut,
     HistoryEventOut,
     LibraryBookOut,
     LibraryUpdateIn,
@@ -70,6 +75,51 @@ def book_row(book: dict, authors: dict[int, dict]) -> dict:
     }
 
 
+DOWNLOAD_FEATURE = "bookFileDownload"
+
+# Headers the fork sets that the client needs verbatim: the type, the length,
+# the range answer. Everything else (server, cookies…) stays with Readarr.
+PASSTHROUGH_HEADERS = (
+    "content-type",
+    "content-length",
+    "content-range",
+    "accept-ranges",
+    "last-modified",
+    "etag",
+)
+
+
+async def fork_features(readarr: ReadarrClient) -> list[str]:
+    """What the connected Readarr can do beyond upstream; empty when it is an
+    upstream build or unreachable. Cached: it is asked on every book page."""
+
+    async def call() -> list[str]:
+        try:
+            return await readarr.fork_features()
+        except Exception:  # noqa: BLE001 — a missing feature list is "no features"
+            return []
+
+    return await cached("readarr:fork_features", 300, call)
+
+
+def file_row(bookfile: dict) -> dict:
+    quality = ((bookfile.get("quality") or {}).get("quality") or {}).get("name")
+    path = bookfile.get("path") or ""
+    return {
+        "id": bookfile["id"],
+        "name": os.path.basename(path) or None,
+        "size": bookfile.get("size") or 0,
+        "format": quality,
+    }
+
+
+def content_disposition(filename: str) -> str:
+    """An attachment header that survives non-ASCII titles: the plain
+    `filename` is the ASCII fallback, `filename*` carries the real name."""
+    fallback = filename.encode("ascii", "replace").decode("ascii").replace('"', "'")
+    return f"attachment; filename=\"{fallback}\"; filename*=UTF-8''{quote(filename)}"
+
+
 @router.get("/library/books", response_model=list[LibraryBookOut])
 async def library_books(readarr: ReadarrClient = Depends(get_readarr)) -> list[dict]:
     books, authors = await asyncio.gather(readarr.books(), author_map(readarr))
@@ -90,6 +140,11 @@ async def book_detail(book_id: int, readarr: ReadarrClient = Depends(get_readarr
         history = await readarr.history_book(book_id)
     except Exception:  # noqa: BLE001 — history is decoration
         history = []
+    try:
+        files = await readarr.book_files(book_id)
+    except Exception:  # noqa: BLE001 — the file list is decoration too
+        files = []
+    features = await fork_features(readarr)
     stats = book.get("statistics") or {}
     ratings = book.get("ratings") or {}
     goodreads = next(
@@ -130,6 +185,8 @@ async def book_detail(book_id: int, readarr: ReadarrClient = Depends(get_readarr
             )
             for e in book.get("editions") or []
         ],
+        files=[BookFileOut(**file_row(f)) for f in files],
+        downloadable=DOWNLOAD_FEATURE in features and bool(files),
         history=[
             HistoryEventOut(
                 type=EVENT_LABELS.get(h.get("eventType", ""), h.get("eventType", "")),
@@ -168,3 +225,45 @@ async def delete_book(
     book_id: int, delete_files: bool = False, readarr: ReadarrClient = Depends(get_readarr)
 ) -> None:
     await readarr.delete_book(book_id, delete_files)
+
+
+@router.get(
+    "/library/books/{book_id}/files/{file_id}",
+    response_class=StreamingResponse,
+    responses={
+        200: {
+            "content": {
+                "application/octet-stream": {"schema": {"type": "string", "format": "binary"}}
+            }
+        }
+    },
+)
+async def download_book_file(
+    book_id: int, file_id: int, request: Request, readarr: ReadarrClient = Depends(get_readarr)
+) -> StreamingResponse:
+    """Proxy a book file from our Readarr fork, which serves it from its own
+    library mount — arrdeck never touches the files itself. Range requests
+    pass through so a client can resume."""
+    if DOWNLOAD_FEATURE not in await fork_features(readarr):
+        raise HTTPException(404, "this Readarr cannot serve files")
+    files = await readarr.book_files(book_id)
+    match = next((f for f in files if f.get("id") == file_id), None)
+    if match is None:
+        raise HTTPException(404, "no such file on this book")
+    upstream = await readarr.open_book_file(file_id, request.headers.get("range"))
+    if upstream.status_code >= 400:
+        await upstream.aclose()
+        raise HTTPException(
+            upstream.status_code if upstream.status_code in (404, 416) else 502,
+            f"Readarr answered HTTP {upstream.status_code}",
+        )
+    headers = {k: upstream.headers[k] for k in PASSTHROUGH_HEADERS if k in upstream.headers}
+    headers["content-disposition"] = content_disposition(
+        os.path.basename(match.get("path") or "") or f"book-{book_id}-{file_id}"
+    )
+    return StreamingResponse(
+        upstream.aiter_raw(),
+        status_code=upstream.status_code,
+        headers=headers,
+        background=BackgroundTask(upstream.aclose),
+    )

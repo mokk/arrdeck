@@ -15,7 +15,14 @@ from .clients.transmission import TransmissionClient
 from .db import SERVICES
 
 NEEDS_API_KEY = {
-    "radarr", "sonarr", "readarr", "prowlarr", "overseerr", "gluetun", "bazarr", "plex",
+    "radarr",
+    "sonarr",
+    "readarr",
+    "prowlarr",
+    "overseerr",
+    "gluetun",
+    "bazarr",
+    "plex",
 }
 
 

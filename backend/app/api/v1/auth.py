@@ -88,9 +88,7 @@ def _check_throttle(request: Request) -> None:
         return
     remaining = _lockout_remaining(request.app.state.db)
     if remaining > 0:
-        raise HTTPException(
-            429, f"too many failed attempts — try again in {math.ceil(remaining)}s"
-        )
+        raise HTTPException(429, f"too many failed attempts — try again in {math.ceil(remaining)}s")
 
 
 def _record_failure(db) -> None:
@@ -110,9 +108,7 @@ def has_session(request: Request) -> bool:
     token = request.cookies.get(SESSION_COOKIE)
     if not token:
         return False
-    return request.app.state.db.session_valid(
-        _token_hash(token), int(time.time()), SESSION_MAX_AGE
-    )
+    return request.app.state.db.session_valid(_token_hash(token), int(time.time()), SESSION_MAX_AGE)
 
 
 def is_request_allowed(request: Request) -> bool:
@@ -199,7 +195,9 @@ def register_options(request: Request, body: RegisterOptionsIn | None = None) ->
     _check_throttle(request)
     if not (is_request_allowed(request) or _code_ok(request, body.code if body else "")):
         _record_failure(request.app.state.db)
-        raise HTTPException(403, "passkeys can only be added with the setup code or a signed-in session")
+        raise HTTPException(
+            403, "passkeys can only be added with the setup code or a signed-in session"
+        )
     options = generate_registration_options(
         rp_id=_rp_id(request),
         rp_name="arrdeck",
@@ -266,8 +264,7 @@ def login_options(request: Request) -> Response:
     options = generate_authentication_options(
         rp_id=rp_id,
         allow_credentials=[
-            PublicKeyCredentialDescriptor(id=base64url_to_bytes(c["credential_id"]))
-            for c in creds
+            PublicKeyCredentialDescriptor(id=base64url_to_bytes(c["credential_id"])) for c in creds
         ],
         user_verification=UserVerificationRequirement.PREFERRED,
     )
@@ -343,7 +340,9 @@ def revoke_other_sessions(request: Request) -> dict:
     if not is_request_allowed(request):
         raise HTTPException(401, "unauthorized")
     token = request.cookies.get(SESSION_COOKIE) or ""
-    return {"revoked": request.app.state.db.session_delete_others(_token_hash(token) if token else "")}
+    return {
+        "revoked": request.app.state.db.session_delete_others(_token_hash(token) if token else "")
+    }
 
 
 @router.delete("/sessions/{session_id}", status_code=204)

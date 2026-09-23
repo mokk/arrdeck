@@ -16,6 +16,7 @@ from ...schemas import (
 
 router = APIRouter(tags=["indexers"])
 
+
 class AddIndexerIn(BaseModel):
     schema_name: str
     display_name: str = ""
@@ -104,9 +105,7 @@ async def test_new_indexer(
 
 
 @router.post("/indexers", status_code=201)
-async def add_indexer(
-    body: AddIndexerIn, prowlarr: ProwlarrClient = Depends(get_prowlarr)
-) -> dict:
+async def add_indexer(body: AddIndexerIn, prowlarr: ProwlarrClient = Depends(get_prowlarr)) -> dict:
     payload = await _build_indexer_payload(prowlarr, body)
     try:
         created = await prowlarr.add_indexer(payload)

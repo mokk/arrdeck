@@ -156,7 +156,7 @@ def set_rules(db: SettingsDB, rules: dict) -> dict:
 
 
 def _parse_hhmm(value: str) -> int | None:
-    """"23:00" -> minutes since midnight, or None when unusable."""
+    """ "23:00" -> minutes since midnight, or None when unusable."""
     parts = value.split(":")
     if len(parts) != 2:
         return None
@@ -204,6 +204,5 @@ def wants_event(db: SettingsDB, key: str) -> bool:
         return True
     default = enabled_events(db)
     return any(
-        key in (default if events is None else events)
-        for _raw, events, _lang in db.push_targets()
+        key in (default if events is None else events) for _raw, events, _lang in db.push_targets()
     )

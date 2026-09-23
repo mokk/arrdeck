@@ -67,9 +67,7 @@ async def status(request: Request) -> list[ServiceStatus]:
         try:
             version = await probe_version(name, registry.get(name))
             pending = (
-                await _pending_update(name, registry.get(name))
-                if name in UPDATE_APPS
-                else None
+                await _pending_update(name, registry.get(name)) if name in UPDATE_APPS else None
             )
             return ServiceStatus(
                 service=name,
@@ -83,9 +81,7 @@ async def status(request: Request) -> list[ServiceStatus]:
                 service=name, ok=False, error=exc.message, retries=retry_count(name)
             )
         except Exception as exc:  # noqa: BLE001
-            return ServiceStatus(
-                service=name, ok=False, error=str(exc), retries=retry_count(name)
-            )
+            return ServiceStatus(service=name, ok=False, error=str(exc), retries=retry_count(name))
 
     return list(await asyncio.gather(*(probe(n) for n in names)))
 
@@ -220,33 +216,39 @@ async def _unpackerr_warnings(prometheus: PrometheusClient) -> list[dict]:
     if isinstance(gauges, dict):
         for key in UNPACKERR_FAILURE_GAUGES:
             if gauges.get(key, 0) > 0:
-                warnings.append({
-                    "app": "unpackerr",
-                    "level": "error",
-                    "message": f"{int(gauges[key])} extraction(s) failed",
-                    "source": "Unpackerr",
-                })
+                warnings.append(
+                    {
+                        "app": "unpackerr",
+                        "level": "error",
+                        "message": f"{int(gauges[key])} extraction(s) failed",
+                        "source": "Unpackerr",
+                    }
+                )
     if isinstance(counters, dict):
         for key in UNPACKERR_FAILURE_COUNTERS:
             if counters.get(key, 0) >= 1:
-                warnings.append({
-                    "app": "unpackerr",
-                    "level": "warning",
-                    "message": f"{int(counters[key])} {key.replace('_', ' ')} in the last hour",
-                    "source": "Unpackerr",
-                })
+                warnings.append(
+                    {
+                        "app": "unpackerr",
+                        "level": "warning",
+                        "message": f"{int(counters[key])} {key.replace('_', ' ')} in the last hour",
+                        "source": "Unpackerr",
+                    }
+                )
     if isinstance(fetch_errors, dict):
         for app_name, count in sorted(fetch_errors.items()):
             if count >= QUEUE_FETCH_THRESHOLD:
-                warnings.append({
-                    "app": "unpackerr",
-                    "level": "warning",
-                    "message": (
-                        f"cannot read {app_name or 'an arr'}'s queue "
-                        f"({int(count)} errors in the last hour)"
-                    ),
-                    "source": "Unpackerr",
-                })
+                warnings.append(
+                    {
+                        "app": "unpackerr",
+                        "level": "warning",
+                        "message": (
+                            f"cannot read {app_name or 'an arr'}'s queue "
+                            f"({int(count)} errors in the last hour)"
+                        ),
+                        "source": "Unpackerr",
+                    }
+                )
     return warnings
 
 
@@ -262,12 +264,14 @@ async def _download_client_warnings(radarr, sonarr) -> list[dict]:
             continue
         enabled = [c for c in result if c.get("enable")]
         if not enabled:
-            warnings.append({
-                "app": app,
-                "level": "error",
-                "message": "no download client is enabled",
-                "source": "DownloadClient",
-            })
+            warnings.append(
+                {
+                    "app": app,
+                    "level": "error",
+                    "message": "no download client is enabled",
+                    "source": "DownloadClient",
+                }
+            )
     return warnings
 
 
@@ -282,9 +286,7 @@ async def health(
 
     async def fetch() -> list[dict]:
         async def call() -> list[dict]:
-            results = await asyncio.gather(
-                radarr.health(), sonarr.health(), return_exceptions=True
-            )
+            results = await asyncio.gather(radarr.health(), sonarr.health(), return_exceptions=True)
             warnings: list[dict] = []
             for app, result in zip(("radarr", "sonarr"), results, strict=False):
                 if isinstance(result, BaseException):

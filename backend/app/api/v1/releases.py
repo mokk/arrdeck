@@ -17,7 +17,9 @@ router = APIRouter(tags=["releases"])
 
 
 @router.get("/search/releases", response_model=list[ReleaseOut])
-async def search_releases(q: str, prowlarr: ProwlarrClient = Depends(get_prowlarr)) -> list[ReleaseOut]:
+async def search_releases(
+    q: str, prowlarr: ProwlarrClient = Depends(get_prowlarr)
+) -> list[ReleaseOut]:
     results = await prowlarr.search(q)
     return [
         ReleaseOut(

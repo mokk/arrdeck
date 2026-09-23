@@ -5,7 +5,9 @@ from app.db import SettingsDB
 
 def populated(path):
     db = SettingsDB(str(path))
-    db.upsert("radarr", {"url": "http://arr:7878", "api_key": "KEY", "username": "", "password": ""})
+    db.upsert(
+        "radarr", {"url": "http://arr:7878", "api_key": "KEY", "username": "", "password": ""}
+    )
     db.kv_set("vapid_private_pem", "-----BEGIN PRIVATE KEY-----x")
     db.kv_set("push_rules", json.dumps({"quiet_start": "23:00"}))
     db.cred_add("credid", "pubkey", "phone", 1000)

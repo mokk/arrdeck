@@ -47,8 +47,8 @@ def test_reading_an_entry_protects_it_from_eviction():
     c = TTLCache(max_entries=3)
     for key in ("health", "b", "c"):
         c.set(key, key)
-    c.get("health", ttl=60)          # a dashboard poll
-    c.set("calendar:1", 1)           # someone steps a week
+    c.get("health", ttl=60)  # a dashboard poll
+    c.set("calendar:1", 1)  # someone steps a week
     assert c.get("health", ttl=60) == "health"
     assert c.get_stale("b") is None  # "b" was the least recently used
 

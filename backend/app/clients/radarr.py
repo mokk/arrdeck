@@ -9,9 +9,7 @@ class RadarrClient(ArrClient):
     async def queue(self) -> dict:
         # includeUnknownMovieItems: without it Radarr omits anything it couldn't
         # match to a movie, which is precisely what needs a manual import
-        return await self.get(
-            "/queue", params={"pageSize": 50, "includeUnknownMovieItems": "true"}
-        )
+        return await self.get("/queue", params={"pageSize": 50, "includeUnknownMovieItems": "true"})
 
     async def calendar(self, start: str, end: str) -> list:
         return await self.get("/calendar", params={"start": start, "end": end})

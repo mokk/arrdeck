@@ -108,11 +108,7 @@ async def manual_import_run(
     client = radarr if app == "radarr" else sonarr
     candidates = await client.manual_import(await _queue_download_id(client, body.item_id))
     wanted = set(body.paths)
-    files = [
-        f
-        for f in (_import_file(app, c) for c in candidates if c.get("path") in wanted)
-        if f
-    ]
+    files = [f for f in (_import_file(app, c) for c in candidates if c.get("path") in wanted) if f]
     if not files:
         raise HTTPException(409, "none of the selected files could be mapped")
     await client.command({"name": "ManualImport", "files": files, "importMode": body.mode})

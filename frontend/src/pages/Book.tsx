@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
+import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { formatBytes, formatDay } from "../api/format";
 import { Card, ErrorNote, Row, SectionTitle, StateBadge } from "../components/Blocks";
 import {
@@ -95,20 +97,46 @@ export default function BookPage() {
 
           <SectionTitle>{t("movie.file")}</SectionTitle>
           <Card>
-            <Row>
-              <div className="min-w-0 flex-1">
+            {(data.files ?? []).map((file) => (
+              <Row key={file.id}>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">{file.name ?? data.title}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">
+                    {[file.format, formatBytes(file.size)].filter(Boolean).join(" · ")}
+                  </div>
+                </div>
+                {/* only our Readarr fork serves files; upstream has no such
+                    endpoint, so the button waits for the capability */}
+                {data.downloadable && (
+                  <a
+                    href={`/api/v1/library/books/${bookId}/files/${file.id}`}
+                    download={file.name ?? undefined}
+                    className={cn(
+                      buttonVariants({ variant: "secondary", size: "sm" }),
+                      "shrink-0 text-primary",
+                    )}
+                  >
+                    {t("book.download")}
+                  </a>
+                )}
+              </Row>
+            ))}
+            {(data.files?.length ?? 0) === 0 && (
+              <Row>
                 {data.has_file ? (
                   <div className="text-sm font-medium">{formatBytes(data.size_on_disk)}</div>
                 ) : (
                   <span className="text-sm text-muted-foreground">{t("movie.noFile")}</span>
                 )}
-                {data.release_date && (
-                  <div className="mt-0.5 text-xs text-muted-foreground">
-                    {t("book.released", { date: formatDay(data.release_date) })}
-                  </div>
-                )}
-              </div>
-            </Row>
+              </Row>
+            )}
+            {data.release_date && (
+              <Row>
+                <div className="text-xs text-muted-foreground">
+                  {t("book.released", { date: formatDay(data.release_date) })}
+                </div>
+              </Row>
+            )}
           </Card>
 
           {(data.editions?.length ?? 0) > 0 && (

@@ -148,7 +148,9 @@ async def discover_series(
                 "tvdb_id": tvdb,
                 "imdb_id": external.get("imdbId"),
                 "tmdb_id": t.get("id"),
-                "poster": proxy_poster(f"{TMDB_IMG}{t['posterPath']}") if t.get("posterPath") else None,
+                "poster": proxy_poster(f"{TMDB_IMG}{t['posterPath']}")
+                if t.get("posterPath")
+                else None,
             }
 
         resolved = await asyncio.gather(*(resolve(t) for t in results or []))
@@ -173,7 +175,9 @@ async def discover_series(
 
 
 @router.get("/search/movies", response_model=list[SearchResultOut])
-async def search_movies(q: str, radarr: RadarrClient = Depends(get_radarr)) -> list[SearchResultOut]:
+async def search_movies(
+    q: str, radarr: RadarrClient = Depends(get_radarr)
+) -> list[SearchResultOut]:
     results, library = await asyncio.gather(radarr.lookup(q), _library_map(radarr, "movie"))
     return [
         SearchResultOut(
@@ -193,7 +197,9 @@ async def search_movies(q: str, radarr: RadarrClient = Depends(get_radarr)) -> l
 
 
 @router.get("/search/series", response_model=list[SearchResultOut])
-async def search_series(q: str, sonarr: SonarrClient = Depends(get_sonarr)) -> list[SearchResultOut]:
+async def search_series(
+    q: str, sonarr: SonarrClient = Depends(get_sonarr)
+) -> list[SearchResultOut]:
     results, library = await asyncio.gather(sonarr.lookup(q), _library_map(sonarr, "series"))
     return [
         SearchResultOut(

@@ -55,9 +55,7 @@ class OverseerrClient(BaseClient):
         return resp.json() if resp.content else None
 
     async def requests(self, filter_: str = "pending", take: int = 20) -> dict:
-        return await self.get(
-            "/request", params={"filter": filter_, "take": take, "sort": "added"}
-        )
+        return await self.get("/request", params={"filter": filter_, "take": take, "sort": "added"})
 
     async def request_action(self, request_id: int, action: str) -> dict:
         # action: "approve" | "decline"

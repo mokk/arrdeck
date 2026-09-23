@@ -29,9 +29,7 @@ class ProwlarrClient(ArrClient):
         return await self.get("/search", params=params, timeout=90.0)
 
     async def grab(self, guid: str, indexer_id: int) -> dict:
-        return await self.request(
-            "POST", "/search", json={"guid": guid, "indexerId": indexer_id}
-        )
+        return await self.request("POST", "/search", json={"guid": guid, "indexerId": indexer_id})
 
     async def indexer_schemas(self) -> list:
         return await self.get("/indexer/schema")

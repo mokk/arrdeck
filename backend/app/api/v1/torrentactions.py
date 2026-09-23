@@ -27,10 +27,13 @@ from ...schemas import (
 
 router = APIRouter(tags=["torrents"])
 
+
 class AddTorrentIn(BaseModel):
     url: str
     category: str = ""
     paused: bool = False
+
+
 QBIT_PRIORITY = {
     "top": "topPrio",
     "bottom": "bottomPrio",
@@ -62,17 +65,23 @@ async def qbit_delete(body: TorrentDeleteIn, qbit: QbittorrentClient = Depends(g
 
 
 @router.post("/torrents/transmission/pause", status_code=204)
-async def tm_pause(body: TorrentActionIn, tm: TransmissionClient = Depends(get_transmission)) -> None:
+async def tm_pause(
+    body: TorrentActionIn, tm: TransmissionClient = Depends(get_transmission)
+) -> None:
     await tm.stop(_tm_ids(body.ids))
 
 
 @router.post("/torrents/transmission/resume", status_code=204)
-async def tm_resume(body: TorrentActionIn, tm: TransmissionClient = Depends(get_transmission)) -> None:
+async def tm_resume(
+    body: TorrentActionIn, tm: TransmissionClient = Depends(get_transmission)
+) -> None:
     await tm.start(_tm_ids(body.ids))
 
 
 @router.post("/torrents/transmission/delete", status_code=204)
-async def tm_delete(body: TorrentDeleteIn, tm: TransmissionClient = Depends(get_transmission)) -> None:
+async def tm_delete(
+    body: TorrentDeleteIn, tm: TransmissionClient = Depends(get_transmission)
+) -> None:
     await tm.remove(_tm_ids(body.ids), body.delete_data)
 
 
@@ -113,9 +122,7 @@ async def add_torrent_file(
             paused=paused,
         )
     elif client == "transmission":
-        await tm.add_torrent(
-            metainfo_b64=base64.b64encode(content).decode(), paused=paused
-        )
+        await tm.add_torrent(metainfo_b64=base64.b64encode(content).decode(), paused=paused)
     else:
         raise HTTPException(404, f"unknown client {client!r}")
 
@@ -172,7 +179,9 @@ async def torrent_details(
                     size=f.get("length", 0),
                     progress=(f.get("bytesCompleted", 0) / f["length"]) if f.get("length") else 0.0,
                     index=i,
-                    wanted=bool((detail.get("fileStats") or [{}] * len(files))[i].get("wanted", True)),
+                    wanted=bool(
+                        (detail.get("fileStats") or [{}] * len(files))[i].get("wanted", True)
+                    ),
                 )
                 for i, f in enumerate(files)
             ],
@@ -276,9 +285,7 @@ async def qbit_tags(qbit: QbittorrentClient = Depends(get_qbit)) -> list[str]:
 
 
 @router.post("/torrents/qbittorrent/tags", status_code=204)
-async def qbit_set_tags(
-    body: TorrentTagsIn, qbit: QbittorrentClient = Depends(get_qbit)
-) -> None:
+async def qbit_set_tags(body: TorrentTagsIn, qbit: QbittorrentClient = Depends(get_qbit)) -> None:
     if body.remove:
         await qbit.remove_tags(body.ids, body.tags)
     else:

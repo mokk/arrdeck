@@ -169,9 +169,7 @@ async def webhook_status(request: Request) -> dict:
 async def webhook_install(body: WebhookInstallIn, request: Request) -> list[dict]:
     if not body.base_url.strip():
         raise HTTPException(422, "a base URL is required")
-    return await webhooks.install(
-        request.app.state.db, request.app.state.registry, body.base_url
-    )
+    return await webhooks.install(request.app.state.db, request.app.state.registry, body.base_url)
 
 
 @router.post("/push/webhook/uninstall", response_model=list[WebhookAppOut])
