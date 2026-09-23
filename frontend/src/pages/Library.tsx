@@ -68,9 +68,7 @@ const CONFIG = {
     route: "book",
     placeholder: "library.searchBooks",
     sortKeys: ["added", "author", "title", "year", "status", "size_on_disk"],
-    // Readarr's lookup returns no author or edition data yet, so there is
-    // nothing to build an add flow on.
-    addTab: null,
+    addTab: "books",
   },
 } as const;
 

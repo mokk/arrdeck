@@ -77,6 +77,15 @@ class ReadarrClient(ArrClient):
     async def lookup(self, term: str) -> list:
         return await self.get("/book/lookup", params={"term": term})
 
+    async def search(self, term: str) -> list:
+        """The combined search: author entries and book entries, where each book
+        carries its author and editions — what POST /book needs. /book/lookup
+        returns books without either. Understands `edition:<id>` and friends."""
+        return await self.get("/search", params={"term": term})
+
+    async def add_book(self, payload: dict) -> dict:
+        return await self.request("POST", "/book", json=payload)
+
     async def quality_profiles(self) -> list:
         return await self.get("/qualityprofile")
 

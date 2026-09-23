@@ -1,6 +1,7 @@
 """Finding and adding titles: discovery, search, collections, quality options."""
 
 import asyncio
+import copy
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -11,6 +12,7 @@ from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
 from ...deps import get_overseerr, get_radarr, get_readarr, get_sonarr
 from ...schemas import (
+    AddBookIn,
     AddMovieIn,
     AddSeriesIn,
     CollectionDetailOut,
@@ -196,6 +198,78 @@ async def search_movies(
     ]
 
 
+async def _book_library_map(readarr: ReadarrClient) -> dict[int, dict]:
+    """Numeric foreign book id -> library summary, for the in_library badge on
+    book search results. Readarr's own foreign ids are numeric strings."""
+    key = "library_map:book"
+    hit = cache.get(key, 60)
+    if hit is not None:
+        return hit
+    out: dict[int, dict] = {}
+    for b in await readarr.books():
+        fid = _numeric(b.get("foreignBookId"))
+        if fid is None:
+            continue
+        stats = b.get("statistics") or {}
+        out[fid] = {
+            "library_id": b["id"],
+            "monitored": b.get("monitored", False),
+            "has_file": (stats.get("bookFileCount") or 0) > 0,
+        }
+    cache.set(key, out)
+    return out
+
+
+def _numeric(value: str | None) -> int | None:
+    return int(value) if value and value.isdigit() else None
+
+
+def book_search_result(entry: dict, library: dict[int, dict]) -> SearchResultOut | None:
+    """One combined-search entry as a search result; author-only entries give
+    None. The monitored edition is the one Readarr would add."""
+    book = entry.get("book")
+    if not book:
+        return None
+    author = book.get("author") or {}
+    edition = (
+        next((e for e in book.get("editions") or [] if e.get("monitored")), None)
+        or ((book.get("editions") or [None])[0])
+    )
+    fid = _numeric(book.get("foreignBookId"))
+    release = book.get("releaseDate") or ""
+    return SearchResultOut(
+        kind="book",
+        title=book.get("title", ""),
+        year=int(release[:4]) if release[:4].isdigit() else None,
+        overview=book.get("overview") or (edition or {}).get("overview"),
+        remote_id=fid or 0,
+        poster=_cover(book),
+        in_library=fid in library,
+        foreign_id=book.get("foreignBookId"),
+        foreign_edition_id=(edition or {}).get("foreignEditionId") or book.get("foreignEditionId"),
+        author=author.get("authorName"),
+        **library.get(fid or -1, {}),
+    )
+
+
+def _cover(book: dict) -> str | None:
+    if book.get("remoteCover"):
+        return proxy_poster(book["remoteCover"])
+    for img in book.get("images") or []:
+        if img.get("coverType") in ("cover", "poster"):
+            return proxy_poster(img.get("remoteUrl") or img.get("url"))
+    return None
+
+
+@router.get("/search/books", response_model=list[SearchResultOut])
+async def search_books(
+    q: str, readarr: ReadarrClient = Depends(get_readarr)
+) -> list[SearchResultOut]:
+    results, library = await asyncio.gather(readarr.search(q), _book_library_map(readarr))
+    out = [book_search_result(entry, library) for entry in results]
+    return [r for r in out if r is not None][:30]
+
+
 @router.get("/search/series", response_model=list[SearchResultOut])
 async def search_series(
     q: str, sonarr: SonarrClient = Depends(get_sonarr)
@@ -341,4 +415,57 @@ async def add_series(body: AddSeriesIn, sonarr: SonarrClient = Depends(get_sonar
     }
     created = await sonarr.add_series(payload)
     cache.set("library_map:series", None)
+    return {"id": created.get("id"), "title": created.get("title")}
+
+
+def new_book_payload(book: dict, body: AddBookIn, metadata_profile_id: int | None) -> dict:
+    """Shape a combined-search book into what POST /book wants, the way
+    Readarr's own Add dialog does: a new author gets the profiles, the root
+    folder and "monitor just this book"; an existing author is left alone."""
+    payload = copy.deepcopy(book)
+    author = payload.get("author") or {}
+    if not author.get("id"):
+        author.update(
+            {
+                "monitored": True,
+                "monitorNewItems": "none",
+                "qualityProfileId": body.quality_profile_id,
+                "metadataProfileId": metadata_profile_id,
+                "rootFolderPath": body.root_folder_path,
+                "tags": [],
+                "addOptions": {
+                    "searchForMissingBooks": False,
+                    "booksToMonitor": [payload.get("foreignBookId")],
+                },
+            }
+        )
+    payload["author"] = author
+    payload["monitored"] = body.monitored
+    payload["addOptions"] = {"searchForNewBook": body.search_now}
+    return payload
+
+
+@router.post("/books", status_code=201)
+async def add_book(body: AddBookIn, readarr: ReadarrClient = Depends(get_readarr)) -> dict:
+    # Look the book up again by edition: the search result only carried ids,
+    # and Readarr needs the whole resource with author and editions.
+    term = f"edition:{body.foreign_edition_id}" if body.foreign_edition_id else body.title
+    entries = await readarr.search(term)
+    book = next(
+        (
+            e["book"]
+            for e in entries
+            if e.get("book") and e["book"].get("foreignBookId") == body.foreign_book_id
+        ),
+        None,
+    )
+    if book is None:
+        raise HTTPException(404, "Readarr no longer finds that book")
+    metadata_profile_id = body.metadata_profile_id
+    if metadata_profile_id is None and not (book.get("author") or {}).get("id"):
+        profiles = await readarr.metadata_profiles()
+        metadata_profile_id = profiles[0]["id"] if profiles else None
+    created = await readarr.add_book(new_book_payload(book, body, metadata_profile_id))
+    cache.set("library_map:book", None)
+    cache.set("readarr:authors", None)
     return {"id": created.get("id"), "title": created.get("title")}

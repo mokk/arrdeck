@@ -68,7 +68,7 @@ export const useDiscover = (kind: "movies" | "series", enabled: boolean) =>
     staleTime: 600_000,
   });
 
-export const useSearch = (kind: "movies" | "series" | "releases", q: string) =>
+export const useSearch = (kind: "movies" | "series" | "books" | "releases", q: string) =>
   useQuery<Release[] | SearchResult[]>({
     queryKey: ["search", kind, q],
     queryFn: () =>
@@ -85,11 +85,15 @@ export function useAddMedia() {
   return useMutation({
     onSuccess: () => toast.success(t("toast.added")),
     mutationFn: (input: {
-      kind: "movie" | "series";
+      kind: "movie" | "series" | "book";
       remote_id: number;
       title: string;
       quality_profile_id: number;
       root_folder_path: string;
+      // books: Readarr's foreign ids, and the author's metadata profile
+      foreign_id?: string | null;
+      foreign_edition_id?: string | null;
+      metadata_profile_id?: number | null;
     }) =>
       input.kind === "movie"
         ? api.post("/movies", {
@@ -98,12 +102,21 @@ export function useAddMedia() {
             quality_profile_id: input.quality_profile_id,
             root_folder_path: input.root_folder_path,
           })
-        : api.post("/series", {
-            tvdb_id: input.remote_id,
-            title: input.title,
-            quality_profile_id: input.quality_profile_id,
-            root_folder_path: input.root_folder_path,
-          }),
+        : input.kind === "series"
+          ? api.post("/series", {
+              tvdb_id: input.remote_id,
+              title: input.title,
+              quality_profile_id: input.quality_profile_id,
+              root_folder_path: input.root_folder_path,
+            })
+          : api.post("/books", {
+              foreign_book_id: input.foreign_id,
+              foreign_edition_id: input.foreign_edition_id,
+              title: input.title,
+              quality_profile_id: input.quality_profile_id,
+              metadata_profile_id: input.metadata_profile_id,
+              root_folder_path: input.root_folder_path,
+            }),
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["search"] });
       qc.invalidateQueries({ queryKey: ["discover"] });

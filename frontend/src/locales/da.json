@@ -199,7 +199,12 @@
     "deleteFromDisk": "Slet fra bibliotek og disk",
     "removeFromLibrary": "Fjern kun fra bibliotek",
     "noServices": "Ingen tjenester konfigureret — opsæt Radarr, Sonarr eller Prowlarr under Administrér → Tjenester.",
-    "configureOverseerr": "Konfigurér Overseerr under Administrér → Tjenester for at se populære titler."
+    "configureOverseerr": "Konfigurér Overseerr under Administrér → Tjenester for at se populære titler.",
+    "books": "Bøger",
+    "searchBooks": "Søg bøger…",
+    "bookKind": "Bog",
+    "metadataProfile": "Metadataprofil",
+    "searchBooksHint": "Søg efter en bog i Readarr for at tilføje den"
   },
   "manage": {
     "title": "Administrér",

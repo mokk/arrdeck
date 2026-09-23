@@ -54,7 +54,12 @@ function MediaHead({ result }: { result: SearchResult }) {
           {result.overview || t("add.noDescription")}
         </div>
         <div className="mt-1.5 text-xs text-muted-foreground">
-          {result.kind === "movie" ? t("add.movie") : t("add.seriesKind")}
+          {result.kind === "movie"
+            ? t("add.movie")
+            : result.kind === "series"
+              ? t("add.seriesKind")
+              : t("add.bookKind")}
+          {result.author ? ` · ${result.author}` : ""}
           {result.year ? ` · ${result.year}` : ""}
           {result.in_library
             ? ` · ${
@@ -118,8 +123,18 @@ export function BigButton({
 export function MediaSheet({ result, onClose }: { result: SearchResult; onClose: () => void }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const kind = result.kind === "movie" ? ("movies" as const) : ("series" as const);
-  const app = result.kind === "movie" ? ("radarr" as const) : ("sonarr" as const);
+  const kind =
+    result.kind === "movie"
+      ? ("movies" as const)
+      : result.kind === "series"
+        ? ("series" as const)
+        : ("books" as const);
+  const app =
+    result.kind === "movie"
+      ? ("radarr" as const)
+      : result.kind === "series"
+        ? ("sonarr" as const)
+        : ("readarr" as const);
   const { data: options } = useOptions(app);
   const add = useAddMedia();
   const update = useUpdateLibraryItem(kind);
@@ -128,13 +143,18 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [showReleases, setShowReleases] = useState(false);
   const [profileId, setProfileId] = useState<number | null>(null);
+  const [metadataProfileId, setMetadataProfileId] = useState<number | null>(null);
   const [rootPath, setRootPath] = useState<string | null>(null);
 
   if (showReleases && result.library_id) {
     return (
       <ReleasesSheet
-        app="radarr"
-        params={{ movieId: result.library_id }}
+        app={app}
+        params={
+          result.kind === "book"
+            ? { bookId: result.library_id }
+            : { movieId: result.library_id }
+        }
         title={result.title}
         onClose={onClose}
       />
@@ -164,6 +184,7 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
 
   if (!result.in_library) {
     const profile = profileId ?? options?.quality_profiles[0]?.id;
+    const metadataProfile = metadataProfileId ?? options?.metadata_profiles?.[0]?.id;
     const root = rootPath ?? options?.root_folders[0]?.path;
     return (
       <Sheet title={title} onClose={onClose}>
@@ -172,6 +193,29 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
           {t("add.qualityProfile")}
         </Label>
         {profileSelect(profile, setProfileId)}
+        {result.kind === "book" && (options?.metadata_profiles?.length ?? 0) > 0 && (
+          <>
+            {/* Readarr matches a new author against a metadata profile too */}
+            <Label className="mb-1.5 mt-3 text-xs text-muted-foreground">
+              {t("add.metadataProfile")}
+            </Label>
+            <Select
+              value={metadataProfile != null ? String(metadataProfile) : undefined}
+              onValueChange={(v) => setMetadataProfileId(Number(v))}
+            >
+              <SelectTrigger className="w-full bg-secondary">
+                <SelectValue placeholder={t("add.metadataProfile")} />
+              </SelectTrigger>
+              <SelectContent>
+                {(options?.metadata_profiles ?? []).map((p) => (
+                  <SelectItem key={p.id} value={String(p.id)}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
         <Label className="mb-1.5 mt-3 text-xs text-muted-foreground">
           {t("add.rootFolder")}
         </Label>
@@ -206,6 +250,9 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
                   title: result.title,
                   quality_profile_id: profile!,
                   root_folder_path: root!,
+                  foreign_id: result.foreign_id,
+                  foreign_edition_id: result.foreign_edition_id,
+                  metadata_profile_id: metadataProfile,
                 },
                 { onSuccess: onClose },
               )
@@ -267,13 +314,13 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
           >
             {t("add.searchNow")}
           </BigButton>
-          {result.kind === "movie" ? (
-            <BigButton color="blue" onClick={() => setShowReleases(true)}>
-              {t("releases.interactive")}
-            </BigButton>
-          ) : (
+          {result.kind === "series" ? (
             <BigButton color="blue" onClick={() => navigate(`/series/${id}`)}>
               {t("series.manageSeasons")}
+            </BigButton>
+          ) : (
+            <BigButton color="blue" onClick={() => setShowReleases(true)}>
+              {t("releases.interactive")}
             </BigButton>
           )}
           <BigButton color="red" onClick={() => setConfirmingDelete(true)}>

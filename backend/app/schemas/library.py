@@ -37,11 +37,16 @@ class HistoryItemOut(BaseModel):
 
 
 class SearchResultOut(BaseModel):
-    kind: Literal["movie", "series"]
+    kind: Literal["movie", "series", "book"]
     title: str
     year: int | None = None
     overview: str | None = None
-    remote_id: int  # tmdbId for movies, tvdbId for series
+    remote_id: int  # tmdbId for movies, tvdbId for series, the numeric foreign id for books
+    # Books: Readarr's foreign (Goodreads-style) ids, and who wrote it. The
+    # edition id is what the add call looks the book up by.
+    foreign_id: str | None = None
+    foreign_edition_id: str | None = None
+    author: str | None = None
     poster: str | None = None
     in_library: bool = False
     # external references for links (IMDb / TMDB; remote_id covers TVDB)
@@ -82,6 +87,19 @@ class AddSeriesIn(BaseModel):
     root_folder_path: str
     monitored: bool = True
     season_folder: bool = True
+    search_now: bool = True
+
+
+class AddBookIn(BaseModel):
+    foreign_book_id: str
+    foreign_edition_id: str | None = None
+    title: str
+    quality_profile_id: int
+    # Readarr keeps quality and metadata profiles on the author; a new author is
+    # created with these, an existing one keeps their own.
+    metadata_profile_id: int | None = None
+    root_folder_path: str
+    monitored: bool = True
     search_now: bool = True
 
 

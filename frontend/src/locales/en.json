@@ -199,7 +199,12 @@
     "deleteFromDisk": "Delete from library and disk",
     "removeFromLibrary": "Remove from library only",
     "noServices": "No services configured — set up Radarr, Sonarr or Prowlarr under Manage → Services.",
-    "configureOverseerr": "Configure Overseerr under Manage → Services to browse popular titles."
+    "configureOverseerr": "Configure Overseerr under Manage → Services to browse popular titles.",
+    "books": "Books",
+    "searchBooks": "Search books…",
+    "bookKind": "Book",
+    "metadataProfile": "Metadata profile",
+    "searchBooksHint": "Search Readarr for a book to add"
   },
   "manage": {
     "title": "Manage",

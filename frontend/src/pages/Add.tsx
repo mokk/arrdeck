@@ -22,7 +22,7 @@ import {
 } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 
-type Tab = "movies" | "series" | "releases" | "collections";
+type Tab = "movies" | "series" | "books" | "releases" | "collections";
 
 function ReleaseList({ releases }: { releases: Release[] }) {
   const { t } = useTranslation();
@@ -199,6 +199,7 @@ function CollectionsList({ filter }: { filter: string }) {
 const TAB_SERVICE: Record<Tab, string> = {
   movies: "radarr",
   series: "sonarr",
+  books: "readarr",
   releases: "prowlarr",
   collections: "radarr",
 };
@@ -209,8 +210,8 @@ export default function Add() {
   const configured = new Set(
     (services ?? []).filter((s) => s.configured).map((s) => s.service),
   );
-  const tabs = (["movies", "series", "collections", "releases"] as Tab[]).filter((tab) =>
-    configured.has(TAB_SERVICE[tab] as never),
+  const tabs = (["movies", "series", "books", "collections", "releases"] as Tab[]).filter(
+    (tab) => configured.has(TAB_SERVICE[tab] as never),
   );
 
   const [storedTab, setTab] = usePersistentState<Tab>("add.tab", "movies");
@@ -235,7 +236,12 @@ export default function Add() {
   );
   const discover = useDiscover(
     tab === "series" ? "series" : "movies",
-    tab != null && tab !== "releases" && tab !== "collections" && !searching && canDiscover,
+    tab != null &&
+      tab !== "releases" &&
+      tab !== "collections" &&
+      tab !== "books" &&
+      !searching &&
+      canDiscover,
   );
   const _collections = useCollections(tab === "collections");
 
@@ -268,9 +274,11 @@ export default function Add() {
       ? t("add.searchReleases")
       : tab === "series"
         ? t("add.searchSeries")
-        : tab === "collections"
-          ? t("dl.filterByName")
-          : t("add.searchMovies");
+        : tab === "books"
+          ? t("add.searchBooks")
+          : tab === "collections"
+            ? t("dl.filterByName")
+            : t("add.searchMovies");
 
   useRegisterSearchbar(
     searchPlaceholder,
@@ -303,6 +311,9 @@ export default function Add() {
         search.data ? (
           <PosterGrid results={search.data as SearchResult[]} />
         ) : null
+      ) : tab === "books" ? (
+        // Overseerr knows nothing about books, so there is no popular list
+        <EmptyNote>{t("add.searchBooksHint")}</EmptyNote>
       ) : canDiscover ? (
         <>
           <SectionTitle>
