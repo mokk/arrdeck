@@ -6,6 +6,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Antenna,
   BarChart3,
+  BookOpen,
   ChevronRight,
   Cog,
   Eraser,
@@ -24,10 +25,18 @@ import { ServiceSettingsTab } from "../components/manage/ServicesTab";
 import { SystemTab } from "../components/manage/System";
 import { DisplaySettings } from "../components/manage/settings/display";
 import { NotificationsCard } from "../components/manage/settings/notifications";
+import { OpdsSettings } from "../components/manage/settings/opds";
 import { useServices } from "../hooks/queries";
 
-type Section = "display" | "notifications" | "indexers" | "system" | "connections";
-const SECTIONS: Section[] = ["display", "notifications", "indexers", "system", "connections"];
+type Section = "display" | "notifications" | "opds" | "indexers" | "system" | "connections";
+const SECTIONS: Section[] = [
+  "display",
+  "notifications",
+  "opds",
+  "indexers",
+  "system",
+  "connections",
+];
 
 function LinkRow({ icon: Icon, label, to }: { icon: LucideIcon; label: string; to: string }) {
   const navigate = useNavigate();
@@ -57,6 +66,7 @@ export default function Settings() {
         <DetailHeader title={t(`settings.${section}`)} />
         {section === "display" && <DisplaySettings configured={configured} />}
         {section === "notifications" && <NotificationsCard />}
+        {section === "opds" && <OpdsSettings />}
         {section === "indexers" && <Indexers />}
         {section === "system" && <SystemTab />}
         {section === "connections" && <ServiceSettingsTab />}
@@ -88,6 +98,9 @@ export default function Settings() {
               <LinkRow icon={Antenna} label={t("settings.indexers")} to="/settings/indexers" />
             )}
             <LinkRow icon={Cog} label={t("settings.system")} to="/settings/system" />
+            {configured.has("readarr") && (
+              <LinkRow icon={BookOpen} label={t("settings.opds")} to="/settings/opds" />
+            )}
           </Card>
         </>
       )}

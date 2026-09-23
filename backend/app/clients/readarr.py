@@ -40,6 +40,10 @@ class ReadarrClient(ArrClient):
     async def book_files(self, book_id: int) -> list:
         return await self.get("/bookfile", params={"bookId": book_id})
 
+    async def author_book_files(self, author_id: int) -> list:
+        """Every file of one author's books, in one call."""
+        return await self.get("/bookfile", params={"authorId": author_id})
+
     async def fork_features(self) -> list[str]:
         """Capabilities only our Readarr fork advertises (system/status
         `forkFeatures`); empty against an upstream build."""

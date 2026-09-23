@@ -443,3 +443,14 @@ class BookDetailOut(BaseModel):
     downloadable: bool = False
     # the series this book is part of, with what you have of each
     series: list[BookSeriesOut] = []
+
+
+class ReadingOut(BaseModel):
+    status: Literal["to_read", "reading", "read"]
+    finished_at: int | None = None  # unix seconds, set when marked read
+    updated_at: int = 0
+
+
+class ReadingIn(BaseModel):
+    # None clears it: the book goes back to having no reading status
+    status: Literal["to_read", "reading", "read"] | None = None

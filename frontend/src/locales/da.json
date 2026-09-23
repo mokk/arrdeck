@@ -563,7 +563,8 @@
     "connectionsHint": "Hvor arrdeck finder hver tjeneste. Ændringer her påvirker alle skærme.",
     "display": "Visning",
     "notifications": "Notifikationer",
-    "cleanup": "Oprydning"
+    "cleanup": "Oprydning",
+    "opds": "Læseapps (OPDS)"
   },
   "book": {
     "pages": "{{count}} sider",
@@ -697,5 +698,26 @@
     "approvedWaiting": "Ønsket og godkendt, ikke her endnu",
     "approve": "Godkend",
     "decline": "Afvis"
+  },
+  "reading": {
+    "label": "Læsestatus",
+    "to_read": "Skal læses",
+    "reading": "Læser",
+    "read": "Læst",
+    "any": "Alle",
+    "finished": "Færdig {{when}}",
+    "now": "Læser nu"
+  },
+  "opds": {
+    "intro": "E-bogsapps som KOReader, Moon+ Reader eller Thorium kan gennemse bøgerne på disken her og hente dem. Tilføj adressen i appen som et OPDS-katalog.",
+    "address": "Katalogets adresse",
+    "copy": "Kopiér",
+    "copied": "Kopieret",
+    "regenerate": "Ny adresse",
+    "regenerateHint": "Den gamle adresse holder op med at virke; alle læseapps skal have den nye.",
+    "disable": "Slå fra",
+    "enable": "Slå kataloget til",
+    "hint": "Adressen indeholder en hemmelighed i stedet for en adgangskode, fordi læseapps ikke kan logge ind i arrdeck. Alle med adressen kan hente dine bøger — behandl den som en adgangskode.",
+    "unavailable": "Kataloget kræver arrdecks udgave af Readarr, som kan udlevere bogfiler."
   }
 }

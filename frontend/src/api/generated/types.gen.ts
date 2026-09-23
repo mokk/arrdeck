@@ -1966,6 +1966,24 @@ export type NextEpisodeOut = {
 };
 
 /**
+ * OpdsSettingsOut
+ */
+export type OpdsSettingsOut = {
+  /**
+   * Available
+   */
+  available?: boolean;
+  /**
+   * Enabled
+   */
+  enabled?: boolean;
+  /**
+   * Token
+   */
+  token?: string | null;
+};
+
+/**
  * OptionsOut
  */
 export type OptionsOut = {
@@ -2499,6 +2517,34 @@ export type QueueResponse = {
   radarr: ServiceBlockListQueueItemOut;
   readarr?: ServiceBlockListQueueItemOut | null;
   sonarr: ServiceBlockListQueueItemOut;
+};
+
+/**
+ * ReadingIn
+ */
+export type ReadingIn = {
+  /**
+   * Status
+   */
+  status?: "to_read" | "reading" | "read" | null;
+};
+
+/**
+ * ReadingOut
+ */
+export type ReadingOut = {
+  /**
+   * Finished At
+   */
+  finished_at?: number | null;
+  /**
+   * Status
+   */
+  status: "to_read" | "reading" | "read";
+  /**
+   * Updated At
+   */
+  updated_at?: number;
 };
 
 /**
@@ -5624,6 +5670,27 @@ export type LibraryBooksApiV1LibraryBooksGetResponses = {
 export type LibraryBooksApiV1LibraryBooksGetResponse =
   LibraryBooksApiV1LibraryBooksGetResponses[keyof LibraryBooksApiV1LibraryBooksGetResponses];
 
+export type ReadingApiV1LibraryBooksReadingGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/library/books/reading";
+};
+
+export type ReadingApiV1LibraryBooksReadingGetResponses = {
+  /**
+   * Response Reading Api V1 Library Books Reading Get
+   *
+   * Successful Response
+   */
+  200: {
+    [key: string]: ReadingOut;
+  };
+};
+
+export type ReadingApiV1LibraryBooksReadingGetResponse =
+  ReadingApiV1LibraryBooksReadingGetResponses[keyof ReadingApiV1LibraryBooksReadingGetResponses];
+
 export type BookShelfApiV1LibraryBooksShelfGetData = {
   body?: never;
   path?: never;
@@ -5783,6 +5850,42 @@ export type DownloadBookFileApiV1LibraryBooksBookIdFilesFileIdGetResponses = {
 
 export type DownloadBookFileApiV1LibraryBooksBookIdFilesFileIdGetResponse =
   DownloadBookFileApiV1LibraryBooksBookIdFilesFileIdGetResponses[keyof DownloadBookFileApiV1LibraryBooksBookIdFilesFileIdGetResponses];
+
+export type SetReadingApiV1LibraryBooksBookIdReadingPutData = {
+  body: ReadingIn;
+  path: {
+    /**
+     * Book Id
+     */
+    book_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/books/{book_id}/reading";
+};
+
+export type SetReadingApiV1LibraryBooksBookIdReadingPutErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type SetReadingApiV1LibraryBooksBookIdReadingPutError =
+  SetReadingApiV1LibraryBooksBookIdReadingPutErrors[keyof SetReadingApiV1LibraryBooksBookIdReadingPutErrors];
+
+export type SetReadingApiV1LibraryBooksBookIdReadingPutResponses = {
+  /**
+   * Response Set Reading Api V1 Library Books  Book Id  Reading Put
+   *
+   * Successful Response
+   */
+  200: {
+    [key: string]: ReadingOut;
+  };
+};
+
+export type SetReadingApiV1LibraryBooksBookIdReadingPutResponse =
+  SetReadingApiV1LibraryBooksBookIdReadingPutResponses[keyof SetReadingApiV1LibraryBooksBookIdReadingPutResponses];
 
 export type DeleteEpisodeFileApiV1LibraryEpisodesFilesFileIdDeleteData = {
   body?: never;
@@ -6600,6 +6703,57 @@ export type AddMovieApiV1MoviesPostResponses = {
 
 export type AddMovieApiV1MoviesPostResponse =
   AddMovieApiV1MoviesPostResponses[keyof AddMovieApiV1MoviesPostResponses];
+
+export type OpdsSettingsApiV1OpdsSettingsGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/opds/settings";
+};
+
+export type OpdsSettingsApiV1OpdsSettingsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: OpdsSettingsOut;
+};
+
+export type OpdsSettingsApiV1OpdsSettingsGetResponse =
+  OpdsSettingsApiV1OpdsSettingsGetResponses[keyof OpdsSettingsApiV1OpdsSettingsGetResponses];
+
+export type OpdsDisableApiV1OpdsSettingsTokenDeleteData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/opds/settings/token";
+};
+
+export type OpdsDisableApiV1OpdsSettingsTokenDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  200: OpdsSettingsOut;
+};
+
+export type OpdsDisableApiV1OpdsSettingsTokenDeleteResponse =
+  OpdsDisableApiV1OpdsSettingsTokenDeleteResponses[keyof OpdsDisableApiV1OpdsSettingsTokenDeleteResponses];
+
+export type OpdsNewTokenApiV1OpdsSettingsTokenPostData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/opds/settings/token";
+};
+
+export type OpdsNewTokenApiV1OpdsSettingsTokenPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: OpdsSettingsOut;
+};
+
+export type OpdsNewTokenApiV1OpdsSettingsTokenPostResponse =
+  OpdsNewTokenApiV1OpdsSettingsTokenPostResponses[keyof OpdsNewTokenApiV1OpdsSettingsTokenPostResponses];
 
 export type OptionsApiV1OptionsAppGetData = {
   body?: never;

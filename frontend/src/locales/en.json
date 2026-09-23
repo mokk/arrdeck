@@ -563,7 +563,8 @@
     "connectionsHint": "Where arrdeck finds each service. Changing these affects every screen.",
     "display": "Display",
     "notifications": "Notifications",
-    "cleanup": "Cleanup"
+    "cleanup": "Cleanup",
+    "opds": "Reading apps (OPDS)"
   },
   "book": {
     "pages": "{{count}} pages",
@@ -697,5 +698,26 @@
     "approvedWaiting": "Requested and approved, not here yet",
     "approve": "Approve",
     "decline": "Decline"
+  },
+  "reading": {
+    "label": "Reading status",
+    "to_read": "To read",
+    "reading": "Reading",
+    "read": "Read",
+    "any": "Any status",
+    "finished": "Finished {{when}}",
+    "now": "Currently reading"
+  },
+  "opds": {
+    "intro": "E-reader apps such as KOReader, Moon+ Reader or Thorium can browse the books on disk here and download them. Add this address to the app as an OPDS catalogue.",
+    "address": "Catalogue address",
+    "copy": "Copy",
+    "copied": "Copied",
+    "regenerate": "New address",
+    "regenerateHint": "The old address stops working; every reading app needs the new one.",
+    "disable": "Turn off",
+    "enable": "Turn on the catalogue",
+    "hint": "The address contains a secret instead of a password, since reading apps cannot sign in to arrdeck. Anyone with it can download your books — treat it like a password.",
+    "unavailable": "The catalogue needs arrdeck's build of Readarr, which can serve book files."
   }
 }

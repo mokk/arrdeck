@@ -20,6 +20,7 @@ from .config import get_settings
 from .db import SettingsDB
 from .logging_setup import HEADER, REQUEST_ID, RequestIdMiddleware
 from .logging_setup import configure as configure_logging
+from .opds import router as opds_router
 from .push import flush_loop, push_loop
 from .registry import Registry
 from .stats import sampler_loop
@@ -101,6 +102,8 @@ app.add_middleware(
 
 app.add_middleware(RequestIdMiddleware)
 app.include_router(v1_router)
+# the OPDS feed: outside /api, guarded by the secret in its path
+app.include_router(opds_router)
 
 
 OPEN_PREFIXES = ("/api/v1/auth/", "/api/v1/hooks/")

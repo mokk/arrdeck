@@ -2,17 +2,21 @@
 badges, ratings and backdrops."""
 
 import asyncio
+import xml.etree.ElementTree as ET
 
 import pytest
+from fastapi import HTTPException
 
 from app.api.v1.books import shelf_rows
 from app.api.v1.cleanup import build_cleanup
 from app.api.v1.discover import _fanart, _rating
 from app.api.v1.movies import movie_quality
 from app.api.v1.people import elsewhere_rows, index_credits, metadata_map
+from app.api.v1.reading import apply as apply_reading
 from app.api.v1.requests import request_keys
 from app.api.v1.series import current_season, next_episodes
 from app.cache import cache
+from app.opds import book_entry, check_token
 
 
 @pytest.fixture(autouse=True)
@@ -315,3 +319,52 @@ def test_cleanup_without_plex_keeps_the_watch_lists_empty():
     out = build_cleanup([movie(1, 11, 5)], [], None, 30, 365, NOW)
     assert out["plex"] is False and out["watched"] == [] and out["never_watched"] == []
     assert [r["id"] for r in out["largest"]] == [1]
+
+
+def test_reading_status_stamps_and_forgets_the_finish_date():
+    s = apply_reading({}, 5, "reading", now=100)
+    assert s["5"] == {"status": "reading", "finished_at": None, "updated_at": 100}
+    s = apply_reading(s, 5, "read", now=200)
+    assert s["5"]["finished_at"] == 200
+    s = apply_reading(s, 5, "read", now=300)
+    assert s["5"]["finished_at"] == 200, "marking read again keeps the first date"
+    s = apply_reading(s, 5, "to_read", now=400)
+    assert s["5"]["finished_at"] is None
+    assert apply_reading(s, 5, None, now=500) == {}
+
+
+def test_opds_entry_escapes_and_links_each_file():
+    book = {
+        "id": 3,
+        "authorId": 1,
+        "title": 'Tom & "Jerry" <1>',
+        "added": "2026-01-01T00:00:00Z",
+        "images": [{"coverType": "cover", "remoteUrl": "https://covers.test/x.jpg"}],
+    }
+    files = [
+        {"id": 8, "path": "/books/Tom/Tom & Jerry.epub"},
+        {"id": 9, "path": "/books/Tom/t.azw3"},
+    ]
+    xml = book_entry("http://h/opds/T", book, files, {1: {"authorName": "A & B"}})
+    ET.fromstring(
+        f'<feed xmlns="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/terms/">{xml}</feed>'
+    )
+    assert "Tom &amp; &quot;Jerry&quot; &lt;1&gt;" in xml or 'Tom &amp; "Jerry" &lt;1&gt;' in xml
+    assert 'href="http://h/opds/T/download/3/8" type="application/epub+zip"' in xml
+    assert 'type="application/vnd.amazon.ebook"' in xml
+    assert "http://h/opds/T/cover/3" in xml
+
+
+def test_opds_token_is_checked_and_a_disabled_feed_is_a_404():
+    class Req:
+        class app:
+            class state:
+                db = FakeDB()
+
+    Req.app.state.db.kv_set("opds.token", "secret")
+    check_token(Req, "secret")
+    with pytest.raises(HTTPException):
+        check_token(Req, "wrong")
+    Req.app.state.db.kv_set("opds.token", "")
+    with pytest.raises(HTTPException):
+        check_token(Req, "")

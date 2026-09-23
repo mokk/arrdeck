@@ -268,13 +268,20 @@ async def download_book_file(
     """Proxy a book file from our Readarr fork, which serves it from its own
     library mount — arrdeck never touches the files itself. Range requests
     pass through so a client can resume."""
+    return await stream_book_file(readarr, book_id, file_id, request.headers.get("range"))
+
+
+async def stream_book_file(
+    readarr: ReadarrClient, book_id: int, file_id: int, range_header: str | None
+) -> StreamingResponse:
+    """The download itself, shared with the OPDS feed."""
     if DOWNLOAD_FEATURE not in await fork_features(readarr):
         raise HTTPException(404, "this Readarr cannot serve files")
     files = await readarr.book_files(book_id)
     match = next((f for f in files if f.get("id") == file_id), None)
     if match is None:
         raise HTTPException(404, "no such file on this book")
-    upstream = await readarr.open_book_file(file_id, request.headers.get("range"))
+    upstream = await readarr.open_book_file(file_id, range_header)
     if upstream.status_code >= 400:
         await upstream.aclose()
         raise HTTPException(

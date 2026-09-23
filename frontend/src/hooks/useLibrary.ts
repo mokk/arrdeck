@@ -23,8 +23,10 @@ import type {
   LibraryMovie,
   LibrarySeries,
   MovieDetail,
+  OpdsSettings,
   Options,
   Person,
+  Reading,
   SeriesDetail,
   ShelfSeries,
   Tag,
@@ -116,6 +118,40 @@ export function useBulkDeleteLibrary(kind: LibraryKind) {
       qc.invalidateQueries({ queryKey: ["library", kind] });
       qc.invalidateQueries({ queryKey: ["discover"] });
     },
+  });
+}
+
+export type ReadingStatus = Reading["status"];
+
+/** Reading status for every book that has one, keyed by book id. */
+export const useReading = (enabled = true) =>
+  useQuery({
+    queryKey: ["reading"],
+    queryFn: () => api.get<Record<string, Reading>>("/library/books/reading"),
+    enabled,
+    staleTime: 60_000,
+  });
+
+export function useSetReading() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: number; status: ReadingStatus | null }) =>
+      api.put<Record<string, Reading>>(`/library/books/${id}/reading`, { status }),
+    onSuccess: (map) => qc.setQueryData(["reading"], map),
+  });
+}
+
+export const useOpdsSettings = () =>
+  useQuery({ queryKey: ["opds"], queryFn: () => api.get<OpdsSettings>("/opds/settings") });
+
+export function useOpdsToken() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (enable: boolean) =>
+      enable
+        ? api.post<OpdsSettings>("/opds/settings/token")
+        : api.delete<OpdsSettings>("/opds/settings/token"),
+    onSuccess: (data) => qc.setQueryData(["opds"], data),
   });
 }
 

@@ -344,3 +344,11 @@ class DiagnosisOut(BaseModel):
     id: int
     title: str | None = None
     findings: list[DiagnosisFindingOut] = []
+
+
+class OpdsSettingsOut(BaseModel):
+    enabled: bool = False
+    # the secret path segment; the client builds the URL from its own origin
+    token: str | None = None
+    # the feed serves files through the Readarr fork; without it there is nothing to offer
+    available: bool = False

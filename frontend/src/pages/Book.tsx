@@ -14,6 +14,7 @@ import {
   DetailProfileSelect,
   type ExternalLink,
 } from "../components/detail";
+import { ReadingControl } from "../components/library/Reading";
 import { BigButton } from "../components/media";
 import { ReleasesSheet } from "../components/ReleasesSheet";
 import {
@@ -80,6 +81,8 @@ export default function BookPage() {
               </>
             }
           />
+
+          <ReadingControl bookId={bookId} />
 
           <div className="mb-5">
             <div className="mb-2 flex items-center gap-2">

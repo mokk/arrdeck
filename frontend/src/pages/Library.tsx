@@ -21,6 +21,7 @@ import { CardMenu, type MenuTarget } from "../components/library/CardMenu";
 import { CollectionsList } from "../components/library/Collections";
 import { Cover } from "../components/library/Cover";
 import { LetterScrubber, letterAnchor, letterOf } from "../components/library/LetterScrubber";
+import { READING } from "../components/library/Reading";
 import { ShelfView } from "../components/library/Shelf";
 import { UpNextView } from "../components/library/UpNext";
 import { LibraryBulkBar } from "../components/manage/library/shared";
@@ -39,6 +40,7 @@ import {
   useLibrarySeries,
   useOptions,
   useQueue,
+  useReading,
   useServices,
   useWatched,
 } from "../hooks/queries";
@@ -62,6 +64,8 @@ interface Card {
   monitored?: boolean;
   slug?: string | null;
   status: "downloaded" | "wanted" | "unmonitored" | "continuing" | "ended";
+  /** books: the reading status, when one is set */
+  reading?: string | null;
   size_on_disk?: number;
   episode_file_count?: number;
   tmdb_id?: number | null;
@@ -156,19 +160,29 @@ export function ShowsPage() {
 }
 
 export function BooksPage() {
+  const { t } = useTranslation();
   const { data, error, isLoading } = useLibraryBooks();
+  const { data: reading } = useReading();
   return (
     <LibraryView
       kind="books"
       error={error}
       loading={isLoading}
-      cards={data?.map((b: LibraryBook) => ({
-        ...b,
-        title: b.title ?? "",
-        subtitle: joined(b.author, b.year),
-        detail: joined(b.series_title, size(b.size_on_disk)),
-        status: fileStatus(b),
-      }))}
+      cards={data?.map((b: LibraryBook) => {
+        const status = reading?.[String(b.id)]?.status;
+        return {
+          ...b,
+          title: b.title ?? "",
+          subtitle: joined(b.author, b.year),
+          detail: joined(
+            status && t(`reading.${status}`),
+            b.series_title,
+            size(b.size_on_disk),
+          ),
+          status: fileStatus(b),
+          reading: status ?? null,
+        };
+      })}
     />
   );
 }
@@ -207,6 +221,11 @@ function LibraryView({
   }
   const requests = useRequests();
   const [q, setQ] = usePersistentState(`library.${kind}.filter`, "");
+  // books only: narrow to one reading status
+  const [readingFilter, setReadingFilter] = usePersistentState<string>(
+    "library.books.reading",
+    "",
+  );
   // Newest additions first, the way the app opens too. `added` is an ISO
   // timestamp, so string order is date order. A fresh storage key so the
   // default reaches people who already had "title" persisted.
@@ -226,8 +245,12 @@ function LibraryView({
 
   const needle = q.trim().toLowerCase();
   const visible = (cards ?? []).filter(
-    (c) => unmonitored !== "hide" || c.status !== "unmonitored",
+    (c) =>
+      (unmonitored !== "hide" || c.status !== "unmonitored") &&
+      (kind !== "books" || !readingFilter || c.reading === readingFilter),
   );
+  const nowReading =
+    kind === "books" && !needle ? (cards ?? []).filter((c) => c.reading === "reading") : [];
   const shown = sort.sortRows(
     visible.filter(
       (c) =>
@@ -314,6 +337,26 @@ function LibraryView({
           </Button>
         </div>
       )}
+      {nowReading.length > 0 && layout !== "shelf" && (
+        <section className="mb-5">
+          <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {t("reading.now")}
+          </h2>
+          <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+            {nowReading.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => navigate(`/book/${c.id}`)}
+                className={cn(focusRing, "w-24 shrink-0 text-left active:opacity-70")}
+              >
+                <Cover src={c.poster} title={c.title} subtitle={c.author} />
+                <div className="mt-1 truncate text-xs font-medium">{c.title}</div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
       {loading && !cards && <LoadingView layout={layout} />}
       {layout === "upnext" ? (
         <UpNextView
@@ -388,6 +431,21 @@ function LibraryView({
             </div>
           }
         >
+          {kind === "books" && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {["", ...READING].map((status) => (
+                <Button
+                  key={status || "any"}
+                  size="sm"
+                  variant={readingFilter === status ? "default" : "secondary"}
+                  className="rounded-full"
+                  onClick={() => setReadingFilter(status)}
+                >
+                  {status ? t(`reading.${status}`) : t("reading.any")}
+                </Button>
+              ))}
+            </div>
+          )}
           {/* bulk editing lives behind the sort sheet so the grid itself stays
               free of buttons */}
           <Button
