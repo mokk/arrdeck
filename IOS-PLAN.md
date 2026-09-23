@@ -366,6 +366,20 @@ and connection. The Home, Popular and Add tabs are gone; Add is a sheet from
 each library's + button. Later: Readarr in the backend, then Books is the
 same page with book fields.
 
+## Readarr / Books (2026-09-23)
+
+Backend first: `ReadarrClient` on `/api/v1`, registered like the other arrs;
+`/library/books` (rows join the author — Readarr keeps the quality profile on
+the author, so that is the book's profile and a change goes to the author),
+`/library/books/{id}/detail`, PATCH/DELETE, `/releases/book/{id}`, and a
+readarr branch in search, bulk, wanted, queue actions, options (with metadata
+profiles) and the queue / calendar / history / recent aggregates as an
+*optional* block. Feature flag `books`. In the app: Books is the shared
+library page with author-first sort, a book detail with editions and
+ratings, and book cases wherever a MediaRef is resolved. Not possible yet:
+adding a book from search — the fork's `/book/lookup` returns no author or
+edition data, and Readarr's add call needs both.
+
 ## H (original notes) — Size S
 
 437 keys, en + da, to `.xcstrings`. Scriptable from the existing JSON;
