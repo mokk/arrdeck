@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { LibraryKind } from "../../../api/types";
-import { type Layout, setPref, type Unmonitored, usePref } from "../../../lib/prefs";
+import { LAYOUTS_FOR, setPref, type Unmonitored, usePref } from "../../../lib/prefs";
 import { Card, Row, SectionTitle } from "../../Blocks";
 
 const KINDS: { kind: LibraryKind; service: string; label: string }[] = [
@@ -18,7 +18,6 @@ const KINDS: { kind: LibraryKind; service: string; label: string }[] = [
   { kind: "movies", service: "radarr", label: "nav.movies" },
   { kind: "series", service: "sonarr", label: "nav.shows" },
 ];
-const LAYOUTS: Layout[] = ["posters", "list", "details"];
 const UNMONITORED: Unmonitored[] = ["show", "dim", "hide"];
 
 function Choice<T extends string>({
@@ -64,7 +63,7 @@ function LibraryPrefs({ kind, label }: { kind: LibraryKind; label: string }) {
         <Choice
           label={t("display.layout")}
           value={layout}
-          options={LAYOUTS}
+          options={LAYOUTS_FOR[kind]}
           optionLabel={(o) => t(`library.layout.${o}`)}
           onChange={(v) => setPref(`layout.${kind}`, v)}
         />

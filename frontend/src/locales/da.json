@@ -397,7 +397,8 @@
     "nextDays": "Næste {{count}} dage",
     "itemCount": "{{count}} planlagt",
     "previous": "Forrige {{unit}}",
-    "next": "Næste {{unit}}"
+    "next": "Næste {{unit}}",
+    "hideDownloaded": "Skjul hentede"
   },
   "movie": {
     "file": "Fil",
@@ -512,7 +513,10 @@
     "layout": {
       "posters": "Plakater",
       "list": "Liste",
-      "details": "Detaljer"
+      "details": "Detaljer",
+      "upnext": "Næste afsnit",
+      "shelf": "Bogreol",
+      "collections": "Samlinger"
     },
     "empty": {
       "movies": "Ingen film endnu.",
@@ -588,5 +592,20 @@
     "unmonitored_dim": "Nedton",
     "unmonitored_hide": "Skjul",
     "hint": "Valgene gemmes kun på denne enhed."
+  },
+  "upnext": {
+    "ended": "Afsluttet",
+    "nothingScheduled": "Intet planlagt",
+    "season": "S{{number}} · {{have}}/{{total}}",
+    "noneAiring": "Intet i kalenderen de næste fire måneder.",
+    "idle": "Sendes ikke ({{count}})"
+  },
+  "shelf": {
+    "by_series": "Serier",
+    "by_authors": "Forfattere",
+    "missing": "Mangler: {{title}}",
+    "books_one": "{{count}} bog",
+    "books_other": "{{count}} bøger",
+    "noSeries": "Ingen af dine bøger hører til en serie, Readarr kender."
   }
 }

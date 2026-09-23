@@ -27,9 +27,12 @@ export const useCalendarRange = (startDate: string, days: number) =>
   useQuery({
     queryKey: ["calendarRange", startDate, days],
     queryFn: () =>
-      api.get<{ radarr: ServiceBlock<CalendarItem[]>; sonarr: ServiceBlock<CalendarItem[]> }>(
-        `/calendar?days=${days}&start_date=${startDate}`,
-      ),
+      api.get<{
+        radarr: ServiceBlock<CalendarItem[]>;
+        sonarr: ServiceBlock<CalendarItem[]>;
+        // only when Readarr is configured
+        readarr?: ServiceBlock<CalendarItem[]>;
+      }>(`/calendar?days=${days}&start_date=${startDate}`),
     staleTime: 300_000,
   });
 

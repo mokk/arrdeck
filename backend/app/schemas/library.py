@@ -16,6 +16,8 @@ class CalendarItemOut(BaseModel):
     has_file: bool = False
     extra: str | None = None  # e.g. S01E02 episode title
     release_type: str | None = None  # cinema | digital | physical (movies)
+    # The library id to open: the movie, the episode's series, the book.
+    item_id: int | None = None
 
 
 class HistoryEventOut(BaseModel):

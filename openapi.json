@@ -1359,6 +1359,17 @@
             "title": "Has File",
             "type": "boolean"
           },
+          "item_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Id"
+          },
           "release_type": {
             "anyOf": [
               {

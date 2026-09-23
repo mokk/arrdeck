@@ -397,7 +397,8 @@
     "nextDays": "Next {{count}} days",
     "itemCount": "{{count}} scheduled",
     "previous": "Previous {{unit}}",
-    "next": "Next {{unit}}"
+    "next": "Next {{unit}}",
+    "hideDownloaded": "Hide downloaded"
   },
   "movie": {
     "file": "File",
@@ -512,7 +513,10 @@
     "layout": {
       "posters": "Posters",
       "list": "List",
-      "details": "Details"
+      "details": "Details",
+      "upnext": "Up next",
+      "shelf": "Bookshelf",
+      "collections": "Collections"
     },
     "empty": {
       "movies": "No movies yet.",
@@ -588,5 +592,20 @@
     "unmonitored_dim": "Dim",
     "unmonitored_hide": "Hide",
     "hint": "These choices are kept on this device only."
+  },
+  "upnext": {
+    "ended": "Ended",
+    "nothingScheduled": "Nothing scheduled",
+    "season": "S{{number}} · {{have}}/{{total}}",
+    "noneAiring": "Nothing on the calendar for the next four months.",
+    "idle": "Not airing ({{count}})"
+  },
+  "shelf": {
+    "by_series": "Series",
+    "by_authors": "Authors",
+    "missing": "Missing: {{title}}",
+    "books_one": "{{count}} book",
+    "books_other": "{{count}} books",
+    "noSeries": "None of your books belong to a series Readarr knows."
   }
 }

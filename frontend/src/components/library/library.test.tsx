@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { setPref, usePref } from "../../lib/prefs";
 import { Cover } from "./Cover";
 import { letterOf } from "./LetterScrubber";
+import { UpNextView } from "./UpNext";
 
 describe("letterOf", () => {
   it("takes the first letter, upper-cased", () => {
@@ -40,5 +41,26 @@ describe("prefs", () => {
     act(() => setPref("layout.movies", "details"));
     expect(result.current).toBe("details");
     expect(localStorage.getItem("prefs.layout.movies")).toBe('"details"');
+  });
+});
+
+describe("UpNextView", () => {
+  it("lists airing shows soonest first and folds the rest away", () => {
+    const ep = (air_date: string) => ({ season: 1, episode: 1, air_date });
+    const { container } = render(
+      <UpNextView
+        onOpen={() => {}}
+        rows={[
+          { id: 1, title: "Zeta" },
+          { id: 2, title: "Later", next_episode: ep("2026-10-20T00:00:00Z") },
+          { id: 3, title: "Alpha" },
+          { id: 4, title: "Sooner", next_episode: ep("2026-09-25T00:00:00Z") },
+        ]}
+      />,
+    );
+    const titles = [
+      ...container.querySelectorAll(".font-medium.truncate, .truncate.font-medium"),
+    ].map((el) => el.textContent);
+    expect(titles).toEqual(["Sooner", "Later"]);
   });
 });

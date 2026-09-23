@@ -45,6 +45,18 @@ function range(view: View, offset: number): { start: Date; days: number } {
   return { start: now, days: AGENDA_DAYS };
 }
 
+const ROUTE: Record<CalendarItem["app"], string> = {
+  radarr: "movie",
+  sonarr: "series",
+  readarr: "book",
+};
+
+const APP_LABEL: Record<CalendarItem["app"], string> = {
+  radarr: "nav.movies",
+  sonarr: "nav.shows",
+  readarr: "nav.books",
+};
+
 export default function CalendarPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -69,13 +81,29 @@ export default function CalendarPage() {
   const { start, days } = range(view, offset);
   const { data } = useCalendarRange(isoDay(start), days);
 
+  // Which apps to show and whether to leave out what is already on disk; both
+  // survive a reload, because a calendar is usually opened for one question.
+  const [hiddenApps, setHiddenApps] = usePersistentState<string[]>("cal.hiddenApps", []);
+  const [hideDownloaded, setHideDownloaded] = usePersistentState("cal.hideDownloaded", false);
+  const apps = (["radarr", "sonarr", "readarr"] as const).filter((app) => data?.[app]);
+
   const items = useMemo(
     () =>
-      [...(data?.radarr?.data ?? []), ...(data?.sonarr?.data ?? [])]
+      [
+        ...(data?.radarr?.data ?? []),
+        ...(data?.sonarr?.data ?? []),
+        ...(data?.readarr?.data ?? []),
+      ]
         .filter((c) => c.date)
+        .filter((c) => !hiddenApps.includes(c.app) && !(hideDownloaded && c.has_file))
         .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? "")),
-    [data],
+    [data, hiddenApps, hideDownloaded],
   );
+
+  const open = (c: CalendarItem) => {
+    if (c.item_id == null) return;
+    navigate(`/${ROUTE[c.app]}/${c.item_id}`);
+  };
 
   const byDay = useMemo(() => {
     const map = new Map<string, CalendarItem[]>();
@@ -142,7 +170,10 @@ export default function CalendarPage() {
   };
 
   const row = (c: CalendarItem, i: number, showDate: boolean) => (
-    <Row key={`${c.title}-${c.date}-${i}`}>
+    <Row
+      key={`${c.title}-${c.date}-${i}`}
+      onClick={c.item_id != null ? () => open(c) : undefined}
+    >
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium">{c.title}</div>
         <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
@@ -203,6 +234,27 @@ export default function CalendarPage() {
         )}
       </div>
 
+      <div className="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]">
+        {apps.length > 1 &&
+          apps.map((app) => {
+            const on = !hiddenApps.includes(app);
+            return (
+              <Chip
+                key={app}
+                on={on}
+                onClick={() =>
+                  setHiddenApps(on ? [...hiddenApps, app] : hiddenApps.filter((a) => a !== app))
+                }
+              >
+                {t(APP_LABEL[app])}
+              </Chip>
+            );
+          })}
+        <Chip on={hideDownloaded} onClick={() => setHideDownloaded(!hideDownloaded)}>
+          {t("cal.hideDownloaded")}
+        </Chip>
+      </div>
+
       {view === "month" && (
         <div className="mb-4 grid grid-cols-7 gap-1">
           {Array.from({ length: (start.getDay() + 6) % 7 }, (_, i) => (
@@ -249,5 +301,30 @@ export default function CalendarPage() {
         </Card>
       )}
     </>
+  );
+}
+
+function Chip({
+  on,
+  onClick,
+  children,
+}: {
+  on: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={cn(
+        focusRing,
+        "shrink-0 rounded-full px-3 py-1 text-xs font-semibold",
+        on ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground",
+      )}
+    >
+      {children}
+    </button>
   );
 }

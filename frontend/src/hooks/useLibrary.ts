@@ -23,6 +23,7 @@ import type {
   MovieDetail,
   Options,
   SeriesDetail,
+  ShelfSeries,
   Tag,
   WantedPage,
 } from "../api/types";
@@ -252,6 +253,14 @@ export const useLibraryBooks = () =>
     queryKey: ["library", "books"],
     queryFn: () => api.get<LibraryBook[]>("/library/books"),
     staleTime: 60_000,
+  });
+
+export const useBookShelf = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["library", "books", "shelf"],
+    queryFn: () => api.get<ShelfSeries[]>("/library/books/shelf"),
+    enabled,
+    staleTime: 5 * 60_000,
   });
 
 export const useBookDetail = (id: number) =>

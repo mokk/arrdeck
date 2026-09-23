@@ -179,6 +179,7 @@ async def calendar(
                     date=picked_date,
                     release_type=picked_type,
                     has_file=m.get("hasFile", False),
+                    item_id=m.get("id"),
                 ).model_dump()
             )
         return out
@@ -195,6 +196,7 @@ async def calendar(
                 date=e.get("airDateUtc"),
                 has_file=e.get("hasFile", False),
                 extra=f"S{e.get('seasonNumber', 0):02d}E{e.get('episodeNumber', 0):02d} {e.get('title', '')}",
+                item_id=e.get("seriesId"),
             ).model_dump()
             for e in items
         ]
@@ -211,6 +213,7 @@ async def calendar(
                 date=b.get("releaseDate"),
                 has_file=((b.get("statistics") or {}).get("bookFileCount") or 0) > 0,
                 extra=(b.get("author") or {}).get("authorName"),
+                item_id=b.get("id"),
             ).model_dump()
             for b in items
         ]

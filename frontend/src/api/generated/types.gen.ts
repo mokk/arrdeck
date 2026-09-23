@@ -759,6 +759,10 @@ export type CalendarItemOut = {
    */
   has_file?: boolean;
   /**
+   * Item Id
+   */
+  item_id?: number | null;
+  /**
    * Release Type
    */
   release_type?: string | null;

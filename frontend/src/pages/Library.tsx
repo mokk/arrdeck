@@ -17,8 +17,11 @@ import type {
 } from "../api/types";
 import { ErrorNote } from "../components/Blocks";
 import { CardMenu, type MenuTarget } from "../components/library/CardMenu";
+import { CollectionsList } from "../components/library/Collections";
 import { Cover } from "../components/library/Cover";
 import { LetterScrubber, letterAnchor, letterOf } from "../components/library/LetterScrubber";
+import { ShelfView } from "../components/library/Shelf";
+import { UpNextView } from "../components/library/UpNext";
 import { LibraryBulkBar } from "../components/manage/library/shared";
 import { SortSheet } from "../components/SortSheet";
 import { useSort } from "../components/sortable";
@@ -38,7 +41,7 @@ import {
 } from "../hooks/queries";
 import { useLongPress } from "../hooks/useLongPress";
 import { usePersistentState } from "../hooks/usePersistentState";
-import { type Layout, setPref, usePref } from "../lib/prefs";
+import { LAYOUTS_FOR, type Layout, setPref, usePref } from "../lib/prefs";
 
 /** One card. Each library maps its row onto this so the view stays generic;
  * `status` is derived here because the sort sheet offers it. */
@@ -89,7 +92,9 @@ const CONFIG = {
 
 // the sorts a letter index makes sense for
 const LETTER_SORTS = new Set(["title", "author"]);
-const LAYOUTS: Layout[] = ["posters", "list", "details"];
+// the views that bring their own grouping and order, so sort and the letter
+// strip do not apply to them
+const OWN_ORDER = new Set<Layout>(["upnext", "shelf", "collections"]);
 // room for the letter strip on a phone, where the content reaches the edge
 const gutter = "mr-5 sm:mr-0";
 
@@ -217,7 +222,8 @@ function LibraryView({
   ) as unknown as Card[];
 
   // The first card of each letter carries the anchor the scrubber jumps to.
-  const byLetter = LETTER_SORTS.has(sort.sortKey);
+  const ownOrder = OWN_ORDER.has(layout);
+  const byLetter = LETTER_SORTS.has(sort.sortKey) && !ownOrder;
   const anchors = new Map<number, string>();
   if (byLetter) {
     for (const card of shown) {
@@ -278,7 +284,20 @@ function LibraryView({
         </div>
       )}
       {loading && !cards && <LoadingView layout={layout} />}
-      {layout === "posters" ? (
+      {layout === "upnext" ? (
+        <UpNextView
+          rows={shown as unknown as LibrarySeries[]}
+          onOpen={(id) => navigate(`/series/${id}`)}
+        />
+      ) : layout === "shelf" ? (
+        <ShelfView
+          books={shown as unknown as LibraryBook[]}
+          needle={needle}
+          onOpen={(id) => navigate(`/book/${id}`)}
+        />
+      ) : layout === "collections" ? (
+        <CollectionsList filter={needle} />
+      ) : layout === "posters" ? (
         <div
           data-testid="library-grid"
           className={cn(
@@ -298,7 +317,7 @@ function LibraryView({
           </div>
         )
       )}
-      {cards && shown.length === 0 && (
+      {cards && shown.length === 0 && layout !== "collections" && (
         <EmptyState
           kind={kind}
           searching={needle !== ""}
@@ -322,12 +341,11 @@ function LibraryView({
           sort={sort}
           onClose={() => setSortOpen(false)}
           view={
-            <div className="flex gap-2">
-              {LAYOUTS.map((l) => (
+            <div className="grid grid-cols-2 gap-2">
+              {LAYOUTS_FOR[kind].map((l) => (
                 <Button
                   key={l}
                   variant={layout === l ? "default" : "secondary"}
-                  className="flex-1"
                   onClick={() => setPref(`layout.${kind}`, l)}
                 >
                   {t(`library.layout.${l}`)}
