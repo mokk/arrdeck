@@ -348,6 +348,24 @@ Downloads (pause/resume/delete per client) and in both libraries
 untyped definitions decoded by hand into typed fields: text, password,
 checkbox, select, number). Still open: .torrent file upload (multipart).
 
+## Navigation redesign (2026-09-23)
+
+Decided with mockups (`arrdeck-ios/Design/navigation-mockup.html`): the bar is
+**Books · Movies · Shows · Activity · Calendar · Settings**, each tab only
+while its service is configured (Books needs Readarr, so it stays hidden until
+the backend supports it). Full-width bar — iOS 26's system tab bar is a
+floating capsule with no switch, so the chrome is a custom view over a
+TabView that keeps each stack alive. Movies and Shows are the library as
+cards with sort · search · add in the bar and nothing else; a dot marks
+downloaded / wanted / unmonitored and a bar under the poster is a live
+download (from the queue the dashboard already polls). Activity owns
+downloads: Downloading (arr queue + moving torrents), Queue (the full
+torrent list), History (with the blocklist). Settings is the Manage hub plus
+Popular, Statistics, Wanted, the old dashboard as Overview, server switch
+and connection. The Home, Popular and Add tabs are gone; Add is a sheet from
+each library's + button. Later: Readarr in the backend, then Books is the
+same page with book fields.
+
 ## H (original notes) — Size S
 
 437 keys, en + da, to `.xcstrings`. Scriptable from the existing JSON;
