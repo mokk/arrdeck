@@ -9,12 +9,13 @@ from .clients.prometheus import PrometheusClient
 from .clients.prowlarr import ProwlarrClient
 from .clients.qbittorrent import QbittorrentClient
 from .clients.radarr import RadarrClient
+from .clients.readarr import ReadarrClient
 from .clients.sonarr import SonarrClient
 from .clients.transmission import TransmissionClient
 from .db import SERVICES
 
 NEEDS_API_KEY = {
-    "radarr", "sonarr", "prowlarr", "overseerr", "gluetun", "bazarr", "plex",
+    "radarr", "sonarr", "readarr", "prowlarr", "overseerr", "gluetun", "bazarr", "plex",
 }
 
 
@@ -58,6 +59,8 @@ class Registry:
             self._clients[name] = RadarrClient(self._arr_http, conf["url"], conf["api_key"])
         elif name == "sonarr":
             self._clients[name] = SonarrClient(self._arr_http, conf["url"], conf["api_key"])
+        elif name == "readarr":
+            self._clients[name] = ReadarrClient(self._arr_http, conf["url"], conf["api_key"])
         elif name == "prowlarr":
             self._clients[name] = ProwlarrClient(self._arr_http, conf["url"], conf["api_key"])
         elif name == "overseerr":
@@ -93,7 +96,7 @@ class Registry:
 
 async def probe_version(name: str, client) -> str:
     """Return the service's version string (raises ServiceUnavailable if down)."""
-    if name in ("radarr", "sonarr", "prowlarr", "overseerr"):
+    if name in ("radarr", "sonarr", "readarr", "prowlarr", "overseerr"):
         return (await client.status()).get("version", "?")
     if name == "qbittorrent":
         return await client.version()

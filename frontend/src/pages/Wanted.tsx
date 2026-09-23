@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatDate } from "../api/format";
-import type { WantedItem } from "../api/types";
+import { formatDate, SERVICE_LABELS } from "../api/format";
+import type { ArrApp, WantedItem } from "../api/types";
 import { Card, EmptyNote, Row } from "../components/Blocks";
 import { DiagnoseSheet } from "../components/DiagnoseSheet";
 import { ReleasesSheet } from "../components/ReleasesSheet";
@@ -21,7 +21,7 @@ import { usePersistentState } from "../hooks/usePersistentState";
 
 type Kind = "missing" | "cutoff";
 
-function WantedList({ app, kind }: { app: "radarr" | "sonarr"; kind: Kind }) {
+function WantedList({ app, kind }: { app: ArrApp; kind: Kind }) {
   const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<WantedItem[]>([]);
@@ -97,9 +97,9 @@ function WantedList({ app, kind }: { app: "radarr" | "sonarr"; kind: Kind }) {
                 size="sm"
                 disabled={movieSearch.isPending || episodeSearch.isPending}
                 onClick={() =>
-                  w.app === "radarr"
-                    ? movieSearch.mutate({ app: "radarr", id: w.id })
-                    : episodeSearch.mutate([w.id])
+                  w.app === "sonarr"
+                    ? episodeSearch.mutate([w.id])
+                    : movieSearch.mutate({ app: w.app, id: w.id })
                 }
               >
                 {t("common.search")}
@@ -144,7 +144,9 @@ function WantedList({ app, kind }: { app: "radarr" | "sonarr"; kind: Kind }) {
           params={
             releaseTarget.app === "radarr"
               ? { movieId: releaseTarget.library_id }
-              : { seriesId: releaseTarget.library_id, episodeId: releaseTarget.id }
+              : releaseTarget.app === "readarr"
+                ? { bookId: releaseTarget.id }
+                : { seriesId: releaseTarget.library_id, episodeId: releaseTarget.id }
           }
           title={`${releaseTarget.title} ${releaseTarget.subtitle ?? ""}`}
           onClose={() => setReleaseTarget(null)}
@@ -172,9 +174,9 @@ export default function WantedPage() {
   const configured = new Set(
     (services ?? []).filter((s) => s.configured).map((s) => s.service as string),
   );
-  const apps = (["radarr", "sonarr"] as const).filter((a) => configured.has(a));
+  const apps = (["radarr", "sonarr", "readarr"] as const).filter((a) => configured.has(a));
   const [kind, setKind] = usePersistentState<Kind>("wanted.kind", "missing");
-  const [storedApp, setApp] = usePersistentState<"radarr" | "sonarr">("wanted.app", "radarr");
+  const [storedApp, setApp] = usePersistentState<ArrApp>("wanted.app", "radarr");
   const app = apps.includes(storedApp) ? storedApp : apps[0];
 
   useRegisterSubnav(
@@ -210,7 +212,7 @@ export default function WantedPage() {
                 className="rounded-full"
                 onClick={() => setApp(a)}
               >
-                {a === "radarr" ? "Radarr" : "Sonarr"}
+                {SERVICE_LABELS[a]}
               </Button>
             ))}
         </div>

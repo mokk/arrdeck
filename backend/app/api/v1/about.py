@@ -31,6 +31,7 @@ FEATURE_ROUTES: dict[str, str] = {
     "popular": "/api/v1/popular",
     "calendar": "/api/v1/calendar",
     "wanted": "/api/v1/wanted/{app}",
+    "books": "/api/v1/library/books",
     "manual_import": "/api/v1/manual-import/{app}",
     "interactive_search": "/api/v1/releases/movie/{movie_id}",
     "subtitles": "/api/v1/subtitles",

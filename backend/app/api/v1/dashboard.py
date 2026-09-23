@@ -2,15 +2,17 @@ import asyncio
 import re
 from datetime import date, timedelta
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 
 from ...cache import cached, guarded
 from ...clients.prowlarr import ProwlarrClient
 from ...clients.radarr import RadarrClient
+from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
 from ...deps import (
     get_prowlarr,
     get_radarr,
+    get_readarr,
     get_sonarr,
 )
 from ...schemas import (
@@ -72,6 +74,12 @@ def _queue_items(app: str, payload: dict) -> list[QueueItemOut]:
         title = rec.get("title") or ""
         if app == "sonarr" and rec.get("series"):
             title = f"{rec['series'].get('title', '')} — {title}"
+        if app == "readarr" and (rec.get("book") or rec.get("author")):
+            # The release name is what Readarr calls the item; the book and
+            # author are what a person recognises.
+            book = (rec.get("book") or {}).get("title") or title
+            author = (rec.get("author") or {}).get("authorName")
+            title = f"{author} — {book}" if author else book
         errors = [m.get("messages", [""])[0] for m in rec.get("statusMessages", []) if m.get("messages")]
         items.append(
             QueueItemOut(
@@ -88,6 +96,7 @@ def _queue_items(app: str, payload: dict) -> list[QueueItemOut]:
                 movie_id=rec.get("movieId"),
                 series_id=rec.get("seriesId"),
                 episode_id=rec.get("episodeId"),
+                book_id=rec.get("bookId"),
             )
         )
     return items
@@ -95,8 +104,10 @@ def _queue_items(app: str, payload: dict) -> list[QueueItemOut]:
 
 @router.get("/queue", response_model=QueueResponse)
 async def queue(
+    request: Request,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ):
     async def fetch(app: str, client) -> list[dict]:
         return [i.model_dump() for i in _queue_items(app, await client.queue())]
@@ -105,7 +116,16 @@ async def queue(
         guarded(fetch("radarr", radarr), "queue:radarr"),
         guarded(fetch("sonarr", sonarr), "queue:sonarr"),
     )
-    return {"radarr": r, "sonarr": s}
+    out = {"radarr": r, "sonarr": s}
+    # Readarr is optional in the response: a stack without it sends nothing
+    # rather than a permanent "not configured" block.
+    if _has(request, "readarr"):
+        out["readarr"] = await guarded(fetch("readarr", readarr), "queue:readarr")
+    return out
+
+
+def _has(request: Request, name: str) -> bool:
+    return request.app.state.registry.is_configured(name)
 
 
 # Rolling window of transfer-speed samples per client. Instantaneous speeds
@@ -121,10 +141,12 @@ async def queue(
 
 @router.get("/calendar", response_model=CalendarResponse)
 async def calendar(
+    request: Request,
     days: int = 14,
     start_date: str | None = None,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ):
     base = date.fromisoformat(start_date) if start_date else date.today()
     start = base.isoformat()
@@ -167,10 +189,29 @@ async def calendar(
             for e in items
         ]
 
+    async def fetch_readarr() -> list[dict]:
+        async def call():
+            return await readarr.calendar(start, end)
+
+        items = await cached(f"calendar:readarr:{start}:{end}", 60, call)
+        return [
+            CalendarItemOut(
+                app="readarr",
+                title=b.get("title", ""),
+                date=b.get("releaseDate"),
+                has_file=((b.get("statistics") or {}).get("bookFileCount") or 0) > 0,
+                extra=(b.get("author") or {}).get("authorName"),
+            ).model_dump()
+            for b in items
+        ]
+
     r, s = await asyncio.gather(
         guarded(fetch_radarr(), "calendar:radarr"), guarded(fetch_sonarr(), "calendar:sonarr")
     )
-    return {"radarr": r, "sonarr": s}
+    out = {"radarr": r, "sonarr": s}
+    if _has(request, "readarr"):
+        out["readarr"] = await guarded(fetch_readarr(), "calendar:readarr")
+    return out
 
 
 # Friendly labels for arr history eventTypes; unknown types pass through as-is.
@@ -183,6 +224,12 @@ EVENT_LABELS = {
     "episodeFileDeleted": "deleted",
     "movieFileRenamed": "renamed",
     "episodeFileRenamed": "renamed",
+    # Readarr's names for the same events
+    "bookFileImported": "imported",
+    "bookImportIncomplete": "incomplete",
+    "bookFileDeleted": "deleted",
+    "bookFileRenamed": "renamed",
+    "bookFileRetagged": "renamed",
 }
 
 
@@ -204,10 +251,12 @@ def _consolidate_history(app: str, payload: dict, limit: int = 15) -> list[dict]
                 "events": [],
                 "movie_id": None,
                 "series_id": None,
+                "book_id": None,
             },
         )
         g["movie_id"] = g["movie_id"] or rec.get("movieId")
         g["series_id"] = g["series_id"] or rec.get("seriesId")
+        g["book_id"] = g["book_id"] or rec.get("bookId")
         if not g["title"]:
             g["title"] = rec.get("sourceTitle") or ""
         g["date"] = max(g["date"], date)
@@ -228,8 +277,10 @@ def _consolidate_history(app: str, payload: dict, limit: int = 15) -> list[dict]
 
 @router.get("/history", response_model=HistoryResponse)
 async def history(
+    request: Request,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ):
     async def fetch(app: str, client) -> list[dict]:
         payload = await client.history(page_size=50)
@@ -239,7 +290,10 @@ async def history(
         guarded(fetch("radarr", radarr), "history:radarr"),
         guarded(fetch("sonarr", sonarr), "history:sonarr"),
     )
-    return {"radarr": r, "sonarr": s}
+    out = {"radarr": r, "sonarr": s}
+    if _has(request, "readarr"):
+        out["readarr"] = await guarded(fetch("readarr", readarr), "history:readarr")
+    return out
 
 
 EPISODE_RE = re.compile(r"S(\d+)E(\d+)", re.IGNORECASE)
@@ -247,8 +301,10 @@ EPISODE_RE = re.compile(r"S(\d+)E(\d+)", re.IGNORECASE)
 
 @router.get("/dashboard/recent", response_model=list[RecentItemOut])
 async def recent(
+    request: Request,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ):
     """Recently imported items, poster-enriched, newest first."""
     out: list[dict] = []
@@ -289,6 +345,27 @@ async def recent(
                 )
     except Exception:  # noqa: BLE001
         pass
+    if _has(request, "readarr"):
+        try:
+            from .books import book_cover
+
+            books = {b["id"]: b for b in await readarr.books()}
+            hist = await readarr.history(page_size=40)
+            for rec in hist.get("records", []):
+                book = books.get(rec.get("bookId"))
+                if rec.get("eventType") == "bookFileImported" and book:
+                    out.append(
+                        {
+                            "app": "readarr",
+                            "title": book.get("title", ""),
+                            "subtitle": book.get("authorTitle", "").split(" ", 1)[0].rstrip(",") or None,
+                            "date": rec.get("date", ""),
+                            "poster": book_cover(book.get("images")),
+                            "library_id": book["id"],
+                        }
+                    )
+        except Exception:  # noqa: BLE001
+            pass
     # newest first, one entry per title
     out.sort(key=lambda r: r["date"], reverse=True)
     seen: set = set()
@@ -303,14 +380,19 @@ async def recent(
 
 @router.get("/history/all", response_model=HistoryPageOut)
 async def history_all(
+    request: Request,
     page: int = 1,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ):
-    """Merged, consolidated history across both apps, paged 50/app."""
+    """Merged, consolidated history across the arrs, paged 50/app."""
     items: list[dict] = []
     has_more = False
-    for app, client in (("radarr", radarr), ("sonarr", sonarr)):
+    clients = [("radarr", radarr), ("sonarr", sonarr)]
+    if _has(request, "readarr"):
+        clients.append(("readarr", readarr))
+    for app, client in clients:
         try:
             payload = await client.history(page_size=50, page=page)
         except Exception:  # noqa: BLE001 — one app down shouldn't kill the page

@@ -38,7 +38,7 @@ class TorrentGroupOut(BaseModel):
 
 
 class QueueItemOut(BaseModel):
-    app: Literal["radarr", "sonarr"]
+    app: Literal["radarr", "sonarr", "readarr"]
     id: int
     title: str
     status: str
@@ -52,6 +52,7 @@ class QueueItemOut(BaseModel):
     movie_id: int | None = None
     series_id: int | None = None
     episode_id: int | None = None
+    book_id: int | None = None
 
 
 class TorrentActionIn(BaseModel):
@@ -66,6 +67,7 @@ class TorrentDeleteIn(BaseModel):
 class QueueResponse(BaseModel):
     radarr: ServiceBlock[list[QueueItemOut]]
     sonarr: ServiceBlock[list[QueueItemOut]]
+    readarr: ServiceBlock[list[QueueItemOut]] | None = None
 
 
 class TorrentsResponse(BaseModel):

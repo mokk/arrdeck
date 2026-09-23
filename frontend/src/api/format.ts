@@ -3,6 +3,7 @@ import type { WatchedItem, WatchedMap } from "./types";
 export const SERVICE_LABELS: Record<string, string> = {
   radarr: "Radarr",
   sonarr: "Sonarr",
+  readarr: "Readarr",
   prowlarr: "Prowlarr",
   qbittorrent: "qBittorrent",
   transmission: "Transmission",

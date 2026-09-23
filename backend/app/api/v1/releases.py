@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from ...clients.prowlarr import ProwlarrClient
 from ...clients.radarr import RadarrClient
+from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_prowlarr, get_radarr, get_sonarr
+from ...deps import get_prowlarr, get_radarr, get_readarr, get_sonarr
 from ...schemas import (
     ArrReleaseOut,
     GrabIn,
@@ -83,16 +84,27 @@ async def series_releases(
     return _sort_releases([_arr_release(r) for r in rows])
 
 
+@router.get("/releases/book/{book_id}", response_model=list[ArrReleaseOut])
+async def book_releases(
+    book_id: int, readarr: ReadarrClient = Depends(get_readarr)
+) -> list[ArrReleaseOut]:
+    rows = await readarr.releases(bookId=book_id)
+    return _sort_releases([_arr_release(r) for r in rows])
+
+
 @router.post("/releases/{app}/grab", status_code=204)
 async def grab_arr_release(
     app: str,
     body: GrabIn,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ) -> None:
     if app == "radarr":
         await radarr.grab_release(body.guid, body.indexer_id)
     elif app == "sonarr":
         await sonarr.grab_release(body.guid, body.indexer_id)
+    elif app == "readarr":
+        await readarr.grab_release(body.guid, body.indexer_id)
     else:
         raise HTTPException(404, f"unknown app {app!r}")

@@ -6,8 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from ...clients.prowlarr import ProwlarrClient
 from ...clients.radarr import RadarrClient
+from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_prowlarr, get_radarr, get_sonarr
+from ...deps import get_prowlarr, get_radarr, get_readarr, get_sonarr
 from ...schemas import (
     BlocklistPageOut,
     ImportListOut,
@@ -94,10 +95,11 @@ async def logs(
     prowlarr: ProwlarrClient = Depends(get_prowlarr),
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ) -> list[dict]:
     """The arrs' own logs, so a failed grab doesn't mean opening three tabs.
     Prowlarr is included: its failures are the least visible elsewhere."""
-    clients = {"radarr": radarr, "sonarr": sonarr, "prowlarr": prowlarr}
+    clients = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr, "prowlarr": prowlarr}
     if app not in clients:
         raise HTTPException(404, f"unknown app {app!r}")
     payload = await clients[app].logs(page=page, level=level)

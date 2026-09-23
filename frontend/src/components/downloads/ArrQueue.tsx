@@ -36,17 +36,19 @@ export function ArrQueue() {
               </div>
             </div>
             <div className="flex shrink-0 gap-1.5">
-              {q.tracked_state?.startsWith("import") && q.tracked_state !== "imported" && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="text-primary"
-                  disabled={forceImport.isPending}
-                  onClick={() => forceImport.mutate({ app: q.app, id: q.id })}
-                >
-                  {t("dl.forceImport")}
-                </Button>
-              )}
+              {q.app !== "readarr" &&
+                q.tracked_state?.startsWith("import") &&
+                q.tracked_state !== "imported" && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="text-primary"
+                    disabled={forceImport.isPending}
+                    onClick={() => forceImport.mutate({ app: q.app, id: q.id })}
+                  >
+                    {t("dl.forceImport")}
+                  </Button>
+                )}
               {(q.errors ?? []).length > 0 && (
                 <Button
                   variant="secondary"

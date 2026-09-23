@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { api } from "../api/client";
 import type {
+  ArrApp,
   ArrRelease,
   Collection,
   CollectionDetail,
@@ -21,7 +22,7 @@ import type {
 } from "../api/types";
 import { SLOW } from "./shared";
 
-export const useWanted = (app: "radarr" | "sonarr", kind: "missing" | "cutoff", page: number) =>
+export const useWanted = (app: ArrApp, kind: "missing" | "cutoff", page: number) =>
   useQuery({
     queryKey: ["wanted", app, kind, page],
     queryFn: () => api.get<WantedPage>(`/wanted/${app}?kind=${kind}&page=${page}`),
@@ -31,7 +32,7 @@ export const useWanted = (app: "radarr" | "sonarr", kind: "missing" | "cutoff", 
 export function useWantedSearchAll() {
   const { t } = useTranslation();
   return useMutation({
-    mutationFn: ({ app, kind }: { app: "radarr" | "sonarr"; kind: string }) =>
+    mutationFn: ({ app, kind }: { app: ArrApp; kind: string }) =>
       api.post<void>(`/wanted/${app}/search-all?kind=${kind}`),
     onSuccess: () => toast.success(t("toast.searchStarted")),
   });
@@ -186,14 +187,21 @@ export function useEpisodeSearch() {
 }
 
 export const useArrReleases = (
-  app: "radarr" | "sonarr",
-  params: { movieId?: number; seriesId?: number; season?: number; episodeId?: number },
+  app: ArrApp,
+  params: {
+    movieId?: number;
+    seriesId?: number;
+    season?: number;
+    episodeId?: number;
+    bookId?: number;
+  },
   enabled: boolean,
 ) =>
   useQuery({
     queryKey: ["arrReleases", app, params],
     queryFn: () => {
       if (app === "radarr") return api.get<ArrRelease[]>(`/releases/movie/${params.movieId}`);
+      if (app === "readarr") return api.get<ArrRelease[]>(`/releases/book/${params.bookId}`);
       const qs =
         params.episodeId != null ? `episode_id=${params.episodeId}` : `season=${params.season}`;
       return api.get<ArrRelease[]>(`/releases/series/${params.seriesId}?${qs}`);
@@ -203,7 +211,7 @@ export const useArrReleases = (
     retry: false,
   });
 
-export function useGrabArrRelease(app: "radarr" | "sonarr") {
+export function useGrabArrRelease(app: ArrApp) {
   const { t } = useTranslation();
   return useMutation({
     mutationFn: (input: { guid: string; indexer_id: number }) =>
@@ -212,7 +220,7 @@ export function useGrabArrRelease(app: "radarr" | "sonarr") {
   });
 }
 
-export const useOptions = (app: "radarr" | "sonarr") =>
+export const useOptions = (app: ArrApp) =>
   useQuery({
     queryKey: ["options", app],
     queryFn: () => api.get<Options>(`/options/${app}`),
@@ -236,7 +244,7 @@ export const useLibrarySeries = () =>
 export function useTriggerSearch() {
   const { t } = useTranslation();
   return useMutation({
-    mutationFn: ({ app, id }: { app: "radarr" | "sonarr"; id: number }) =>
+    mutationFn: ({ app, id }: { app: ArrApp; id: number }) =>
       api.post<void>(`/library/${app}/${id}/search`),
     onSuccess: () => toast.success(t("toast.searchStarted")),
   });

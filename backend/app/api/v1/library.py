@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from ...cache import cache
 from ...clients.radarr import RadarrClient
+from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_radarr, get_sonarr
+from ...deps import get_radarr, get_readarr, get_sonarr
 from ...schemas import BulkDeleteIn, BulkEditIn
 
 router = APIRouter(tags=["library"])
@@ -17,11 +18,14 @@ async def trigger_search(
     item_id: int,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ) -> None:
     if app == "radarr":
         await radarr.command({"name": "MoviesSearch", "movieIds": [item_id]})
     elif app == "sonarr":
         await sonarr.command({"name": "SeriesSearch", "seriesId": item_id})
+    elif app == "readarr":
+        await readarr.command({"name": "BookSearch", "bookIds": [item_id]})
     else:
         raise HTTPException(404, f"unknown app {app!r}")
 
@@ -32,10 +36,12 @@ async def library_bulk_edit(
     body: BulkEditIn,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ) -> None:
-    if kind not in ("movies", "series"):
+    ids_key = {"movies": "movieIds", "series": "seriesIds", "books": "bookIds"}.get(kind)
+    if ids_key is None:
         raise HTTPException(404, f"unknown kind {kind!r}")
-    payload: dict = {("movieIds" if kind == "movies" else "seriesIds"): body.ids}
+    payload: dict = {ids_key: body.ids}
     if body.monitored is not None:
         payload["monitored"] = body.monitored
     if body.quality_profile_id is not None:
@@ -43,9 +49,10 @@ async def library_bulk_edit(
     if body.tags is not None:
         payload["tags"] = body.tags
         payload["applyTags"] = body.apply_tags
-    client = radarr if kind == "movies" else sonarr
+    client = {"movies": radarr, "series": sonarr, "books": readarr}[kind]
     await client.bulk_edit(payload)
     cache.set(f"library_map:{'movie' if kind == 'movies' else 'series'}", None)
+    cache.set("readarr:authors", None)
 
 
 @router.post("/library/{kind}/bulk-delete", status_code=204)
@@ -54,11 +61,12 @@ async def library_bulk_delete(
     body: BulkDeleteIn,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ) -> None:
-    if kind not in ("movies", "series"):
+    clients = {"movies": radarr, "series": sonarr, "books": readarr}
+    if kind not in clients:
         raise HTTPException(404, f"unknown kind {kind!r}")
-    client = radarr if kind == "movies" else sonarr
-    await client.bulk_delete(body.ids, body.delete_files)
+    await clients[kind].bulk_delete(body.ids, body.delete_files)
     cache.set(f"library_map:{'movie' if kind == 'movies' else 'series'}", None)
 
 
@@ -68,11 +76,14 @@ async def library_bulk_search(
     body: BulkDeleteIn,  # only ids used
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ) -> None:
     if kind == "movies":
         await radarr.command({"name": "MoviesSearch", "movieIds": body.ids})
     elif kind == "series":
         for series_id in body.ids:
             await sonarr.command({"name": "SeriesSearch", "seriesId": series_id})
+    elif kind == "books":
+        await readarr.command({"name": "BookSearch", "bookIds": body.ids})
     else:
         raise HTTPException(404, f"unknown kind {kind!r}")

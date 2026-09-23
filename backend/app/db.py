@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import ClassVar
 
 SERVICES = [
-    "radarr", "sonarr", "prowlarr", "qbittorrent", "transmission", "overseerr", "gluetun",
+    "radarr", "sonarr", "readarr", "prowlarr", "qbittorrent", "transmission", "overseerr", "gluetun",
     "bazarr", "plex", "prometheus",
 ]
 EMPTY = {"url": "", "api_key": "", "username": "", "password": ""}

@@ -9,7 +9,7 @@ from .system import HealthItemOut
 
 
 class CalendarItemOut(BaseModel):
-    app: Literal["radarr", "sonarr"]
+    app: Literal["radarr", "sonarr", "readarr"]
     title: str
     date: str | None = None
     has_file: bool = False
@@ -25,13 +25,14 @@ class HistoryEventOut(BaseModel):
 class HistoryItemOut(BaseModel):
     """One release/torrent with every history event that happened to it."""
 
-    app: Literal["radarr", "sonarr"]
+    app: Literal["radarr", "sonarr", "readarr"]
     title: str
     date: str  # most recent event date (sort key)
     quality: str | None = None
     events: list[HistoryEventOut] = []
     movie_id: int | None = None
     series_id: int | None = None
+    book_id: int | None = None
 
 
 class SearchResultOut(BaseModel):
@@ -91,11 +92,14 @@ class GrabIn(BaseModel):
 class CalendarResponse(BaseModel):
     radarr: ServiceBlock[list[CalendarItemOut]]
     sonarr: ServiceBlock[list[CalendarItemOut]]
+    # Optional: older clients never asked, and a stack without Readarr has nothing to say.
+    readarr: ServiceBlock[list[CalendarItemOut]] | None = None
 
 
 class HistoryResponse(BaseModel):
     radarr: ServiceBlock[list[HistoryItemOut]]
     sonarr: ServiceBlock[list[HistoryItemOut]]
+    readarr: ServiceBlock[list[HistoryItemOut]] | None = None
 
 
 class IndexerStatOut(BaseModel):
@@ -126,6 +130,8 @@ class RootFolderOut(BaseModel):
 class OptionsOut(BaseModel):
     quality_profiles: list[QualityProfileOut]
     root_folders: list[RootFolderOut]
+    # Readarr only: which metadata source/profile an author is matched with.
+    metadata_profiles: list[QualityProfileOut] = []
 
 
 class IndexerOut(BaseModel):
@@ -156,7 +162,7 @@ class HistoryPageOut(BaseModel):
 
 
 class RecentItemOut(BaseModel):
-    app: Literal["radarr", "sonarr"]
+    app: Literal["radarr", "sonarr", "readarr"]
     title: str
     subtitle: str | None = None
     date: str
@@ -165,7 +171,7 @@ class RecentItemOut(BaseModel):
 
 
 class WantedItemOut(BaseModel):
-    app: Literal["radarr", "sonarr"]
+    app: Literal["radarr", "sonarr", "readarr"]
     id: int  # movieId for radarr, episodeId for sonarr
     library_id: int  # movieId / seriesId (for interactive search + navigation)
     title: str
@@ -249,7 +255,7 @@ class PopularSnapshotOut(BaseModel):
 
 
 class ImportListOut(BaseModel):
-    app: Literal["radarr", "sonarr"]
+    app: Literal["radarr", "sonarr", "readarr"]
     id: int
     name: str = ""
     implementation: str = ""
@@ -259,3 +265,52 @@ class ImportListOut(BaseModel):
     quality_profile_id: int | None = None
     root_folder: str | None = None
 
+
+
+class LibraryBookOut(BaseModel):
+    id: int
+    title: str | None = None
+    author: str | None = None
+    author_id: int | None = None
+    year: int | None = None
+    series_title: str | None = None
+    monitored: bool = False
+    has_file: bool = False
+    size_on_disk: int = 0
+    # The author's — Readarr keeps quality on the author, not the book.
+    quality_profile_id: int | None = None
+    poster: str | None = None
+    page_count: int | None = None
+    foreign_book_id: str | None = None
+
+
+class BookEditionOut(BaseModel):
+    title: str | None = None
+    format: str | None = None
+    is_ebook: bool | None = None
+    monitored: bool = False
+    page_count: int | None = None
+
+
+class BookDetailOut(BaseModel):
+    id: int
+    title: str | None = None
+    author: str | None = None
+    author_id: int | None = None
+    overview: str | None = None
+    poster: str | None = None
+    release_date: str | None = None
+    year: int | None = None
+    page_count: int | None = None
+    genres: list[str] = []
+    series_title: str | None = None
+    monitored: bool = False
+    has_file: bool = False
+    size_on_disk: int = 0
+    quality_profile_id: int | None = None
+    metadata_profile_id: int | None = None
+    rating: float | None = None
+    rating_votes: int | None = None
+    goodreads_url: str | None = None
+    editions: list[BookEditionOut] = []
+    history: list[HistoryEventOut] = []

@@ -8,6 +8,7 @@ from .clients.prometheus import PrometheusClient
 from .clients.prowlarr import ProwlarrClient
 from .clients.qbittorrent import QbittorrentClient
 from .clients.radarr import RadarrClient
+from .clients.readarr import ReadarrClient
 from .clients.sonarr import SonarrClient
 from .clients.transmission import TransmissionClient
 
@@ -21,6 +22,10 @@ def get_radarr(request: Request) -> RadarrClient:
 
 def get_sonarr(request: Request) -> SonarrClient:
     return request.app.state.registry.get("sonarr")
+
+
+def get_readarr(request: Request) -> ReadarrClient:
+    return request.app.state.registry.get("readarr")
 
 
 def get_prowlarr(request: Request) -> ProwlarrClient:

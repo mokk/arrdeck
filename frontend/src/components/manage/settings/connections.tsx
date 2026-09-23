@@ -31,6 +31,7 @@ import { Card } from "../../Blocks";
 const SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password")[]> = {
   radarr: ["url", "api_key"],
   sonarr: ["url", "api_key"],
+  readarr: ["url", "api_key"],
   prowlarr: ["url", "api_key"],
   overseerr: ["url", "api_key"],
   qbittorrent: ["url", "username", "password"],

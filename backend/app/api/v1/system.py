@@ -31,7 +31,7 @@ router = APIRouter(tags=["system"])
 
 
 # Only the arrs publish a release feed with installed/latest flags.
-UPDATE_APPS = ("radarr", "sonarr", "prowlarr")
+UPDATE_APPS = ("radarr", "sonarr", "readarr", "prowlarr")
 # Checked once an hour, not once per poll: the arrs run their own
 # ApplicationCheckUpdate task every six hours, so anything finer is wasted.
 UPDATE_TTL = 3600

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { api } from "../api/client";
 import type {
+  ArrApp,
   BlocklistPage,
   ImportCandidate,
   QueueItem,
@@ -17,7 +18,7 @@ export function useForceImport() {
   const qc = useQueryClient();
   const { t } = useTranslation();
   return useMutation({
-    mutationFn: ({ app, id }: { app: "radarr" | "sonarr"; id: number }) =>
+    mutationFn: ({ app, id }: { app: ArrApp; id: number }) =>
       api.post<void>(`/queue/${app}/${id}/force-import`),
     onSuccess: () => toast.success(t("toast.importStarted")),
     onSettled: () => qc.invalidateQueries({ queryKey: ["queue"] }),
@@ -113,7 +114,7 @@ export function useBlocklistRetry() {
   const qc = useQueryClient();
   const { t } = useTranslation();
   return useMutation({
-    mutationFn: ({ app, id }: { app: "radarr" | "sonarr"; id: number }) =>
+    mutationFn: ({ app, id }: { app: ArrApp; id: number }) =>
       api.post<void>(`/queue/${app}/${id}/blocklist-retry`),
     onSuccess: () => toast.success(t("toast.retried")),
     onSettled: () => qc.invalidateQueries({ queryKey: ["queue"] }),
@@ -137,7 +138,7 @@ export const useQueue = () =>
 export function useQueueRemove() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ app, id }: { app: "radarr" | "sonarr"; id: number }) =>
+    mutationFn: ({ app, id }: { app: ArrApp; id: number }) =>
       api.delete<void>(`/queue/${app}/${id}?remove_from_client=true`),
     onSettled: () => qc.invalidateQueries({ queryKey: ["queue"] }),
   });

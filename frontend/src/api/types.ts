@@ -4,6 +4,8 @@
 import type * as G from "./generated";
 
 export type ServiceStatus = G.ServiceStatus;
+/** The arrs a library row can belong to. */
+export type ArrApp = "radarr" | "sonarr" | "readarr";
 export type ServiceInfo = G.ServiceInfoOut;
 export type ServiceSettings = G.ServiceSettingsOut;
 

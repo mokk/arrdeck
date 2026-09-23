@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { formatBytes } from "../api/format";
+import type { ArrApp } from "../api/types";
 import { useArrReleases, useGrabArrRelease } from "../hooks/queries";
 import { Sheet } from "./Sheet";
 
@@ -14,8 +15,14 @@ export function ReleasesSheet({
   title,
   onClose,
 }: {
-  app: "radarr" | "sonarr";
-  params: { movieId?: number; seriesId?: number; season?: number; episodeId?: number };
+  app: ArrApp;
+  params: {
+    movieId?: number;
+    seriesId?: number;
+    season?: number;
+    episodeId?: number;
+    bookId?: number;
+  };
   title: string;
   onClose: () => void;
 }) {

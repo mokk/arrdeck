@@ -7,8 +7,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from ...cache import cache
 from ...clients.overseerr import OverseerrClient
 from ...clients.radarr import RadarrClient
+from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_overseerr, get_radarr, get_sonarr
+from ...deps import get_overseerr, get_radarr, get_readarr, get_sonarr
 from ...schemas import (
     AddMovieIn,
     AddSeriesIn,
@@ -280,10 +281,12 @@ async def options(
     app: str,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ):
-    if app not in ("radarr", "sonarr"):
+    clients = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}
+    if app not in clients:
         raise HTTPException(404, f"unknown app {app!r}")
-    client = radarr if app == "radarr" else sonarr
+    client = clients[app]
     key = f"options:{app}"
     hit = cache.get(key, 300)
     if hit is not None:
@@ -295,6 +298,11 @@ async def options(
             {"id": f["id"], "path": f["path"], "free_space": f.get("freeSpace")} for f in folders
         ],
     }
+    if app == "readarr":
+        # Readarr matches authors against a metadata profile as well.
+        data["metadata_profiles"] = [
+            {"id": p["id"], "name": p["name"]} for p in await readarr.metadata_profiles()
+        ]
     cache.set(key, data)
     return data
 
