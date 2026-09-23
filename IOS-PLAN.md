@@ -383,6 +383,24 @@ Indexers / System / Connections as `/settings/:section`. Old paths redirect
 (`/downloads`, `/history`, `/manage`, `/search`) and the push deep-links were
 updated to match. Books get `pages/Book.tsx` over `/library/books/{id}/detail`.
 
+## Adding books, and .torrent uploads in the app (2026-09-23)
+
+Adding books needed no fork change after all: Readarr's `/book/lookup` returns
+books without author or editions, but its combined `/search` carries both, so
+`GET /search/books` and `POST /books` go through that (`ReadarrClient.search`,
+`new_book_payload` mirrors Readarr's own Add dialog: a new author gets the
+profiles, the root folder and "monitor just this book"). Two timeouts matter:
+a fresh search term made Readarr's metadata server take 68 s, and adding a new
+author pulls their bibliography, so both calls get 90 s instead of the usual
+8 s. Cached terms answer in under a second. Both clients offer Books on Add
+with a metadata profile picker, and the Books library's "+" opens it.
+
+The iOS app uploads `.torrent` files with a hand-built multipart body
+(`MultipartForm`, `LiveAPI.addTorrentFile`) because the generated client has
+no body type for that operation; `LiveAPI` now keeps its base URL and session
+for such calls. The sheet uses `fileImporter` and reads the security-scoped
+URL once, on pick.
+
 ## Book downloads via the Readarr fork (2026-09-23)
 
 Books can be downloaded from both clients without arrdeck mounting the
