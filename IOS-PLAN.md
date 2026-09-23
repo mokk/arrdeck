@@ -268,8 +268,16 @@ what posters and history rows link to; one `navigationDestination` on the
 dashboard resolves it. Shared `DetailModelBase` carries options, Plex watched
 state (only asked when Plex is configured), monitor/profile/search/delete;
 delete pops the screen. Series expands seasons on demand and caches episodes
-per season. Not yet: rename card, interactive-search (releases) sheet, the
-diagnosis sheet — each is its own screen.
+per season. Not yet: rename card, interactive-search (releases) sheet — each
+is its own screen.
+
+**Wanted + diagnose done (2026-09-23).** Missing/Upgrades per arr, paged with
+append, search per row (movie search for Radarr, episode search for Sonarr),
+search-all, rows link into the title, and the "Why hasn't this arrived?"
+sheet with the finding codes worded in `DiagnosisText` (English until H).
+Found on the way: the PWA passed the *episode* id to `/diagnose/sonarr/…`,
+which keys on series id and 404s — fixed in the PWA the same day. Not yet:
+the interactive-search entry per row.
 
 ## H. Localisation — Size S
 
@@ -309,7 +317,7 @@ operator needs their own build and Apple account, or you run the relay.
 | B2 localised push text | — | **done** — prerequisite for D |
 | C pairing and auth | M | Web view path needs no backend change |
 | F generated Swift client | — | **done** — see the two spec constraints above |
-| G port the screens | L | **Dashboard, Downloads, Movie/Series detail done**; next Wanted + diagnose |
+| G port the screens | L | **Dashboard, Downloads, detail, Wanted done**; next Calendar, Manage, Add, Popular, History, Stats |
 | D APNs, operator-supplied | M | Includes the push-registration plumbing E1 would have had |
 | H localisation | S | Mechanical |
 | I widgets, Live Activity, Intents | M | The genuine payoff |

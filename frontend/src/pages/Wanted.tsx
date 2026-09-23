@@ -153,7 +153,10 @@ function WantedList({ app, kind }: { app: "radarr" | "sonarr"; kind: Kind }) {
       {diagnosing && (
         <DiagnoseSheet
           app={diagnosing.app}
-          id={diagnosing.id}
+          // The diagnosis is per library title: the backend matches the queue
+          // on movie_id / series_id and 404s for an episode id, which is what
+          // a Sonarr wanted row's `id` is.
+          id={diagnosing.library_id}
           title={diagnosing.title ?? ""}
           onClose={() => setDiagnosing(null)}
         />
