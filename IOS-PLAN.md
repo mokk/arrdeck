@@ -308,6 +308,15 @@ snapshot ranked by grabs, filtered by kind, grab per row, with the "building
 the first list" note while the backend fans out. The tab bar is now the
 PWA's: Home, Popular, Downloads, Add, Manage.
 
+**History + Stats done — phase G complete (2026-09-23).** History: the merged
+pages with append, local app/event filters, rows into the title, and the
+blocklist segment with unblock and clear-per-arr. Stats: the eight metrics
+over 30/90/365 days as sparklines with first→last delta and min/max, from the
+Trends card's "See all". Every PWA page now has a native counterpart; what
+each still lacks is listed under its own entry above (add-indexer, bulk
+select, rename card, interactive-search sheet, torrent limits/tags/category,
+add-torrent).
+
 ## H. Localisation — Size S
 
 437 keys, en + da, to `.xcstrings`. Scriptable from the existing JSON;
@@ -346,14 +355,14 @@ operator needs their own build and Apple account, or you run the relay.
 | B2 localised push text | — | **done** — prerequisite for D |
 | C pairing and auth | M | Web view path needs no backend change |
 | F generated Swift client | — | **done** — see the two spec constraints above |
-| G port the screens | L | **Eight of ten done**; History and Stats remain |
+| G port the screens | — | **done** — per-screen leftovers listed above |
 | D APNs, operator-supplied | M | Includes the push-registration plumbing E1 would have had |
 | H localisation | S | Mechanical |
 | I widgets, Live Activity, Intents | M | The genuine payoff |
 
-**A → C → F → G (Dashboard) → G (rest) → D → H → I** — E1/E2 superseded by the
-native-first decision above; C is done (2026-09-22), with pairing native except
-the sign-in web view.
+**A → C → F → G → D → H → I** — E1/E2 superseded by the native-first decision
+above. A, C, F and G are done (2026-09-23); D (APNs) is next, then H
+(localisation) and I (widgets, Live Activity, Intents).
 
 Repo layout decided: **two repos, no shared repo.** `arrdeck` keeps the backend
 and the PWA; `arrdeck-ios` pins `arrdeck` as a submodule and reads the tokens,
