@@ -17,6 +17,7 @@ from ...schemas import (
     AddSeriesIn,
     CollectionDetailOut,
     CollectionOut,
+    EditionChoiceOut,
     OptionsOut,
     SearchResultOut,
 )
@@ -285,6 +286,17 @@ async def search_books(
     out = [book_search_result(entry, library) for entry in results]
     return [r for r in out if r is not None][:30]
 
+
+
+@router.get("/search/books/editions", response_model=list[EditionChoiceOut])
+async def book_editions(edition: str, readarr: ReadarrClient = Depends(get_readarr)) -> list[dict]:
+    """Every edition of the work one edition belongs to, for the add sheet's
+    language/format picker. Needs our Readarr fork (bookLookupDetails):
+    upstream's lookup carries no editions, so this comes back empty there and
+    the sheet keeps the single edition the search result had."""
+    results = await readarr.lookup(f"edition:{edition}")
+    editions = (results[0].get("editions") or []) if results else []
+    return [edition_choice(e) for e in editions if e.get("foreignEditionId")]
 
 @router.get("/search/series", response_model=list[SearchResultOut])
 async def search_series(

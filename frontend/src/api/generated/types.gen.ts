@@ -6820,6 +6820,38 @@ export type SearchBooksApiV1SearchBooksGetResponses = {
 
 export type SearchBooksApiV1SearchBooksGetResponse = SearchBooksApiV1SearchBooksGetResponses[keyof SearchBooksApiV1SearchBooksGetResponses];
 
+export type BookEditionsApiV1SearchBooksEditionsGetData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Edition
+         */
+        edition: string;
+    };
+    url: '/api/v1/search/books/editions';
+};
+
+export type BookEditionsApiV1SearchBooksEditionsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type BookEditionsApiV1SearchBooksEditionsGetError = BookEditionsApiV1SearchBooksEditionsGetErrors[keyof BookEditionsApiV1SearchBooksEditionsGetErrors];
+
+export type BookEditionsApiV1SearchBooksEditionsGetResponses = {
+    /**
+     * Response Book Editions Api V1 Search Books Editions Get
+     *
+     * Successful Response
+     */
+    200: Array<EditionChoiceOut>;
+};
+
+export type BookEditionsApiV1SearchBooksEditionsGetResponse = BookEditionsApiV1SearchBooksEditionsGetResponses[keyof BookEditionsApiV1SearchBooksEditionsGetResponses];
+
 export type SearchMoviesApiV1SearchMoviesGetData = {
     body?: never;
     path?: never;

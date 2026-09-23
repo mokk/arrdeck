@@ -11152,6 +11152,53 @@
         ]
       }
     },
+    "/api/v1/search/books/editions": {
+      "get": {
+        "description": "Every edition of the work one edition belongs to, for the add sheet's\nlanguage/format picker. Needs our Readarr fork (bookLookupDetails):\nupstream's lookup carries no editions, so this comes back empty there and\nthe sheet keeps the single edition the search result had.",
+        "operationId": "book_editions_api_v1_search_books_editions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "edition",
+            "required": true,
+            "schema": {
+              "title": "Edition",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EditionChoiceOut"
+                  },
+                  "title": "Response Book Editions Api V1 Search Books Editions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Book Editions",
+        "tags": [
+          "discover"
+        ]
+      }
+    },
     "/api/v1/search/movies": {
       "get": {
         "operationId": "search_movies_api_v1_search_movies_get",
