@@ -217,7 +217,7 @@ export default function Add() {
   const [storedTab, setTab] = usePersistentState<Tab>("add.tab", "movies");
   // the library "+" buttons arrive with ?tab=movies|series so Add opens on
   // the library the user was looking at
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const requested = params.get("tab") as Tab | null;
   const tab =
     requested && tabs.includes(requested)
@@ -249,6 +249,9 @@ export default function Add() {
     setTab(t);
     setInput("");
     setQuery("");
+    // ?tab= only picks the opening tab; left in place it won every render and
+    // the bar looked dead
+    if (params.has("tab")) setParams({}, { replace: true });
   };
 
   // live search: debounce typing into the query (submit still works instantly);
