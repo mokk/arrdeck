@@ -9,7 +9,7 @@ import { BrowserRouter } from "react-router-dom";
 import { toast } from "sonner";
 import App from "./App";
 import { ApiError } from "./api/client";
-import { watchSystemTheme } from "./lib/theme";
+import { refreshTheme, watchSystemTheme } from "./lib/theme";
 import "./i18n";
 import "./index.css";
 
@@ -19,6 +19,7 @@ registerSW({ immediate: true });
 // index.html already set data-theme before paint; this only keeps "system" in
 // step when the OS switches appearance while the app is open.
 watchSystemTheme();
+refreshTheme();
 
 const DAY = 24 * 60 * 60 * 1000;
 

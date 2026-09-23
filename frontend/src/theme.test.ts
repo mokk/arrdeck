@@ -85,3 +85,54 @@ describe("light palette", () => {
     expect(missing).toEqual([]);
   });
 });
+
+// The editor palettes: every block, in every mode it has. Text holds AA
+// everywhere; badge colours hold AA in light blocks and 3:1 in dark ones, the
+// bars arrdeck's own two themes meet.
+const PALETTE_BLOCKS = [
+  ...css.matchAll(/:root\[data-palette="([\w-]+)"\](\[data-theme="light"\])?\s*\{/g),
+].map((m) => ({
+  label: `${m[1]} ${m[2] ? "light" : "dark"}`,
+  selector: m[0].slice(0, -1).trim(),
+  light: !!m[2],
+}));
+
+describe("editor palettes", () => {
+  it("are all there", () => {
+    expect(PALETTE_BLOCKS.length).toBeGreaterThanOrEqual(15);
+  });
+
+  it.each(PALETTE_BLOCKS)("$label clears the contrast bars", ({ selector, light: isLight }) => {
+    const p = palette(selector);
+    for (const bg of ["background", "card", "secondary"]) {
+      expect(contrast(p.foreground, p[bg]), `foreground on ${bg}`).toBeGreaterThanOrEqual(4.5);
+    }
+    for (const bg of ["background", "card"]) {
+      expect(contrast(p["muted-foreground"], p[bg]), `muted on ${bg}`).toBeGreaterThanOrEqual(
+        4.5,
+      );
+    }
+    const badge = isLight ? 4.5 : 3;
+    for (const token of ["primary", "destructive", "success", "warning"]) {
+      expect(contrast(p[token], p.secondary), `${token} badge`).toBeGreaterThanOrEqual(badge);
+      expect(contrast(p[token], p.card), `${token} dot`).toBeGreaterThanOrEqual(3);
+    }
+    expect(
+      contrast(p["primary-foreground"], p.primary),
+      "primary button",
+    ).toBeGreaterThanOrEqual(4.5);
+    expect(
+      contrast(p["destructive-foreground"], p.destructive),
+      "delete button",
+    ).toBeGreaterThanOrEqual(4.5);
+    expect(luminance(p.background) > 0.4, "light blocks are light").toBe(isLight);
+  });
+
+  it.each(PALETTE_BLOCKS)("$label defines every token", ({ selector }) => {
+    const p = palette(selector);
+    const missing = Object.keys(dark)
+      .filter((name) => name !== "radius")
+      .filter((name) => !(name in p));
+    expect(missing).toEqual([]);
+  });
+});

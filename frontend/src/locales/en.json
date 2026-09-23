@@ -627,7 +627,11 @@
     "confirm_deletes": "Deleting only",
     "confirm_never": "Never",
     "behaviourHint": "Spoiler protection hides the titles and summaries of episodes Plex has not seen you watch; tap one to show it. Deleting a title always asks whether to keep its files.",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "theme": "Theme",
+    "darkOnly": "Dark only",
+    "lightAndDark": "Light · Dark",
+    "darkOnlyHint": "{{name}} has no light variant, so it always shows dark."
   },
   "upnext": {
     "ended": "Ended",

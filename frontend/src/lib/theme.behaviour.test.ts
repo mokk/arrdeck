@@ -1,7 +1,8 @@
 /** The switching logic, which is the part a screenshot would have shown. */
+
 import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { readPreference, setPreference, watchSystemTheme } from "./theme";
+import { DARK_ONLY, readPreference, setPreference, watchSystemTheme } from "./theme";
 
 type Listener = () => void;
 
@@ -125,8 +126,13 @@ describe("the boot script in index.html", () => {
   // first paint — so pin the parts that would silently drift.
   const html = readFileSync("index.html", "utf8");
 
-  it("uses the same storage key as the module", () => {
+  it("uses the same storage keys as the module", () => {
     expect(html).toContain('localStorage.getItem("arrdeck.theme")');
+    expect(html).toContain('localStorage.getItem("arrdeck.palette")');
+  });
+
+  it("pins dark for the palettes without a light variant", () => {
+    for (const palette of DARK_ONLY) expect(html).toContain(`palette !== "${palette}"`);
   });
 
   it("sets data-theme and the matching theme-color before the app loads", () => {

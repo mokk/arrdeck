@@ -26,6 +26,7 @@ import {
 } from "../../../lib/prefs";
 import { arrangeTabs, tabsFor } from "../../../tabs";
 import { Card, Row, SectionTitle } from "../../Blocks";
+import { PalettePicker } from "./themes";
 
 const KINDS: { kind: LibraryKind; service: string; label: string }[] = [
   { kind: "books", service: "readarr", label: "nav.books" },
@@ -230,6 +231,7 @@ export function DisplaySettings({ configured }: { configured: Set<string> }) {
   const navigate = useNavigate();
   return (
     <>
+      <PalettePicker />
       <TabPrefs configured={configured} />
       {KINDS.filter((k) => configured.has(k.service)).map((k) => (
         <LibraryPrefs key={k.kind} kind={k.kind} label={k.label} />

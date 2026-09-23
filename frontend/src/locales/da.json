@@ -627,7 +627,11 @@
     "confirm_deletes": "Kun sletning",
     "confirm_never": "Aldrig",
     "behaviourHint": "Spoilerbeskyttelse skjuler titler og resuméer på afsnit, Plex ikke har set dig se; tryk for at vise dem. Sletning af en titel spørger altid, om filerne skal beholdes.",
-    "notifications": "Notifikationer"
+    "notifications": "Notifikationer",
+    "theme": "Tema",
+    "darkOnly": "Kun mørk",
+    "lightAndDark": "Lys · Mørk",
+    "darkOnlyHint": "{{name}} har ingen lys udgave, så det vises altid mørkt."
   },
   "upnext": {
     "ended": "Afsluttet",

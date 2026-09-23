@@ -21,12 +21,21 @@
       // cold start is worse than the duplication. Keep them in step.
       (() => {
         const stored = localStorage.getItem("arrdeck.theme");
+        const palette = localStorage.getItem("arrdeck.palette");
+        // Dracula has no light variant (DARK_ONLY in theme.ts)
         const light =
-          stored === "light" ||
-          (stored !== "dark" && window.matchMedia?.("(prefers-color-scheme: light)").matches);
+          palette !== "dracula" &&
+          (stored === "light" ||
+            (stored !== "dark" && window.matchMedia?.("(prefers-color-scheme: light)").matches));
         document.documentElement.dataset.theme = light ? "light" : "dark";
-        if (light) {
-          document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#f4f6fa");
+        if (palette) document.documentElement.dataset.palette = palette;
+        // the palette's own background once the stylesheet is in; arrdeck's
+        // light one otherwise (the dark one is the tag's default)
+        const background =
+          getComputedStyle(document.documentElement).getPropertyValue("--background").trim() ||
+          (light ? "#f4f6fa" : "");
+        if (background) {
+          document.querySelector('meta[name="theme-color"]')?.setAttribute("content", background);
         }
       })();
     </script>
