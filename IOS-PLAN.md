@@ -339,6 +339,14 @@ the iOS 26.3 simulator lacks. The app died in dyld before `main`. Fixes:
 Package.swift caps swift-collections below 1.7 until the simulator runtime
 catches up. Never run bare `xcodegen`.
 
+**G leftovers (2026-09-23):** interactive-search sheet (movie; per season and
+per episode; per wanted row), rename card on both detail screens, add-torrent
+by magnet/URL, torrent limits / queue position / force start / category /
+tags in the detail sheet, and select mode with a bottom bulk bar on
+Downloads (pause/resume/delete per client) and in both libraries
+(monitor/profile/tags/search/delete). Still open: the add-indexer sheet
+(dynamic Prowlarr field schemas) and .torrent file upload (multipart).
+
 ## H (original notes) — Size S
 
 437 keys, en + da, to `.xcstrings`. Scriptable from the existing JSON;
