@@ -10,16 +10,27 @@ export function SortSheet({
   options,
   sort,
   onClose,
+  view,
   children,
 }: {
   options: { key: string; label: string }[];
   sort: ReturnType<typeof useSort>;
   onClose: () => void;
+  /** how the page shows its rows — layout switches and the like */
+  view?: ReactNode;
   children?: ReactNode;
 }) {
   const { t } = useTranslation();
   return (
     <Sheet title={t("common.sortBy")} onClose={onClose}>
+      {view && (
+        <>
+          {view}
+          <div className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {t("common.sortBy")}
+          </div>
+        </>
+      )}
       <div className="mb-3 flex gap-2">
         <Button
           variant={sort.sortDir === "asc" ? "default" : "secondary"}

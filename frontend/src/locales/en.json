@@ -503,7 +503,30 @@
     "searchShows": "Search shows…",
     "searchBooks": "Search books…",
     "add": "Add",
-    "select": "Select…"
+    "select": "Select…",
+    "jumpTo": "Jump to letter",
+    "jumpToLetter": "Jump to {{letter}}",
+    "openIn": "Open in {{app}}",
+    "addedAgo": "Added {{when}}",
+    "view": "View",
+    "layout": {
+      "posters": "Posters",
+      "list": "List",
+      "details": "Details"
+    },
+    "empty": {
+      "movies": "No movies yet.",
+      "series": "No shows yet.",
+      "books": "No books yet.",
+      "add": {
+        "movies": "Add a movie",
+        "series": "Add a show",
+        "books": "Add a book"
+      },
+      "allUnmonitored": "Everything here is unmonitored, and unmonitored titles are hidden.",
+      "showUnmonitored": "Show unmonitored",
+      "clearSearch": "Clear search"
+    }
   },
   "activity": {
     "downloads": "Downloads",
@@ -525,7 +548,8 @@
     "indexers": "Indexers",
     "system": "System",
     "connections": "Connections",
-    "connectionsHint": "Where arrdeck finds each service. Changing these affects every screen."
+    "connectionsHint": "Where arrdeck finds each service. Changing these affects every screen.",
+    "display": "Display"
   },
   "book": {
     "pages": "{{count}} pages",
@@ -556,5 +580,13 @@
     "newBooks_none": "Do not monitor",
     "books": "Books ({{count}})",
     "have": "{{have}} of {{total}} books on disk"
+  },
+  "display": {
+    "layout": "Layout",
+    "unmonitored": "Unmonitored titles",
+    "unmonitored_show": "Show",
+    "unmonitored_dim": "Dim",
+    "unmonitored_hide": "Hide",
+    "hint": "These choices are kept on this device only."
   }
 }

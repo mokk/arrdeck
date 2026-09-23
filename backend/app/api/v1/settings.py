@@ -55,10 +55,25 @@ def _check_name(name: str) -> None:
         raise HTTPException(404, f"unknown service {name!r}")
 
 
+# The apps a title can be opened in. Their address is the one arrdeck talks to,
+# which on a home network is the one a phone can open too.
+WEB_UI_SERVICES = ("radarr", "sonarr", "readarr")
+
+
 @router.get("/services", response_model=list[ServiceInfoOut])
 def services(request: Request) -> list[dict]:
     registry = request.app.state.registry
-    return [{"service": n, "configured": registry.is_configured(n)} for n in SERVICES]
+    conf = request.app.state.db.all()
+    return [
+        {
+            "service": n,
+            "configured": registry.is_configured(n),
+            "web_url": (conf.get(n) or {}).get("url", "").rstrip("/") or None
+            if n in WEB_UI_SERVICES and registry.is_configured(n)
+            else None,
+        }
+        for n in SERVICES
+    ]
 
 
 @router.get("/settings/services", response_model=dict[str, ServiceSettingsOut])

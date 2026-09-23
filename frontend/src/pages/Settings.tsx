@@ -11,6 +11,7 @@ import {
   Flame,
   LayoutGrid,
   Link2,
+  Palette,
   SearchCheck,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -20,10 +21,11 @@ import { DetailHeader } from "../components/detail";
 import { Indexers } from "../components/manage/Indexers";
 import { ServiceSettingsTab } from "../components/manage/ServicesTab";
 import { SystemTab } from "../components/manage/System";
+import { DisplaySettings } from "../components/manage/settings/display";
 import { useServices } from "../hooks/queries";
 
-type Section = "indexers" | "system" | "connections";
-const SECTIONS: Section[] = ["indexers", "system", "connections"];
+type Section = "display" | "indexers" | "system" | "connections";
+const SECTIONS: Section[] = ["display", "indexers", "system", "connections"];
 
 function LinkRow({ icon: Icon, label, to }: { icon: LucideIcon; label: string; to: string }) {
   const navigate = useNavigate();
@@ -51,6 +53,7 @@ export default function Settings() {
     return (
       <>
         <DetailHeader title={t(`settings.${section}`)} />
+        {section === "display" && <DisplaySettings configured={configured} />}
         {section === "indexers" && <Indexers />}
         {section === "system" && <SystemTab />}
         {section === "connections" && <ServiceSettingsTab />}
@@ -63,6 +66,9 @@ export default function Settings() {
       <h1 className="mb-4 mt-1 text-2xl font-extrabold tracking-tight">
         {t("settings.title")}
       </h1>
+      <Card>
+        <LinkRow icon={Palette} label={t("settings.display")} to="/settings/display" />
+      </Card>
       <SectionTitle>{t("settings.more")}</SectionTitle>
       <Card>
         <LinkRow icon={LayoutGrid} label={t("settings.overview")} to="/overview" />

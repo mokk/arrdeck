@@ -503,7 +503,30 @@
     "searchShows": "Søg i serier…",
     "searchBooks": "Søg i bøger…",
     "add": "Tilføj",
-    "select": "Vælg…"
+    "select": "Vælg…",
+    "jumpTo": "Hop til bogstav",
+    "jumpToLetter": "Hop til {{letter}}",
+    "openIn": "Åbn i {{app}}",
+    "addedAgo": "Tilføjet {{when}}",
+    "view": "Visning",
+    "layout": {
+      "posters": "Plakater",
+      "list": "Liste",
+      "details": "Detaljer"
+    },
+    "empty": {
+      "movies": "Ingen film endnu.",
+      "series": "Ingen serier endnu.",
+      "books": "Ingen bøger endnu.",
+      "add": {
+        "movies": "Tilføj en film",
+        "series": "Tilføj en serie",
+        "books": "Tilføj en bog"
+      },
+      "allUnmonitored": "Alt her er uovervåget, og uovervågede titler er skjult.",
+      "showUnmonitored": "Vis uovervågede",
+      "clearSearch": "Ryd søgning"
+    }
   },
   "activity": {
     "downloads": "Downloads",
@@ -525,7 +548,8 @@
     "indexers": "Indexere",
     "system": "System",
     "connections": "Forbindelser",
-    "connectionsHint": "Hvor arrdeck finder hver tjeneste. Ændringer her påvirker alle skærme."
+    "connectionsHint": "Hvor arrdeck finder hver tjeneste. Ændringer her påvirker alle skærme.",
+    "display": "Visning"
   },
   "book": {
     "pages": "{{count}} sider",
@@ -556,5 +580,13 @@
     "newBooks_none": "Overvåg ikke",
     "books": "Bøger ({{count}})",
     "have": "{{have}} af {{total}} bøger på disken"
+  },
+  "display": {
+    "layout": "Layout",
+    "unmonitored": "Uovervågede titler",
+    "unmonitored_show": "Vis",
+    "unmonitored_dim": "Nedton",
+    "unmonitored_hide": "Skjul",
+    "hint": "Valgene gemmes kun på denne enhed."
   }
 }

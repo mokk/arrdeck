@@ -11,6 +11,7 @@ import { PullToRefresh } from "./components/PullToRefresh";
 import { SubnavProvider, useSubnav } from "./components/subnav";
 import { useActivitySince, useAuthState, useServices } from "./hooks/queries";
 import { useLastSeen } from "./lib/lastSeen";
+import { useScrollMemory } from "./lib/scrollMemory";
 // The library grids are the landing routes and stay in the entry chunk;
 // everything else is fetched on first visit, which keeps the initial download
 // small. The PWA precache globs **/*.js, so the split chunks are still
@@ -67,6 +68,7 @@ function Shell() {
   const { t } = useTranslation();
   const { subnav, searchbar, sortButton, addButton } = useSubnav();
   const location = useLocation();
+  useScrollMemory();
   const auth = useAuthState();
   const { data: services } = useServices();
   const tabs = tabsFor(configuredSet(services));

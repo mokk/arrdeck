@@ -335,6 +335,7 @@ class LibraryBookOut(BaseModel):
     added: datetime | None = None
     genres: list[str] = []
     rating: float | None = None  # Goodreads, out of 5
+    slug: str | None = None
 
 
 class BookFileOut(BaseModel):

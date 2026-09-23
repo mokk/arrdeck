@@ -78,6 +78,7 @@ def book_row(book: dict, authors: dict[int, dict]) -> dict:
         "page_count": book.get("pageCount") or None,
         "foreign_book_id": book.get("foreignBookId"),
         "genres": book.get("genres") or [],
+        "slug": book.get("titleSlug"),
         "rating": (book.get("ratings") or {}).get("value") or None,
     }
 

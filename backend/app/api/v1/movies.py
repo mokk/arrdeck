@@ -43,6 +43,7 @@ async def library_movies(radarr: RadarrClient = Depends(get_radarr)) -> list[dic
             "genres": m.get("genres") or [],
             "rating": _rating(m.get("ratings")),
             "runtime": m.get("runtime") or None,
+            "slug": m.get("titleSlug"),
         }
         for m in sorted(items, key=lambda m: m.get("sortTitle", ""))
     ]

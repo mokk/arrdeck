@@ -46,6 +46,7 @@ class ServiceStatus(BaseModel):
 class ServiceInfoOut(BaseModel):
     service: str
     configured: bool
+    web_url: str | None = None  # the app's own UI, for "Open in Radarr"
 
 
 class ServiceSettingsOut(BaseModel):

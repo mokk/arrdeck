@@ -38,6 +38,7 @@ class LibraryMovieOut(BaseModel):
     genres: list[str] = []
     rating: float | None = None  # IMDb, else TMDB, out of 10
     runtime: int | None = None  # minutes
+    slug: str | None = None  # the arr's own URL segment, for "Open in Radarr"
 
 
 class NextEpisodeOut(BaseModel):
@@ -74,6 +75,7 @@ class LibrarySeriesOut(BaseModel):
     genres: list[str] = []
     rating: float | None = None
     next_airing: datetime | None = None
+    slug: str | None = None
     previous_airing: datetime | None = None
     # The next episode on the calendar, for the "Up next" view.
     next_episode: NextEpisodeOut | None = None

@@ -2571,6 +2571,17 @@
             "title": "Size On Disk",
             "type": "integer"
           },
+          "slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
+          },
           "title": {
             "anyOf": [
               {
@@ -2706,6 +2717,17 @@
             "default": 0,
             "title": "Size On Disk",
             "type": "integer"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
           },
           "tags": {
             "default": [],
@@ -2899,6 +2921,17 @@
             "default": 0,
             "title": "Size On Disk",
             "type": "integer"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
           },
           "status": {
             "anyOf": [
@@ -6058,6 +6091,17 @@
           "service": {
             "title": "Service",
             "type": "string"
+          },
+          "web_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Web Url"
           }
         },
         "required": [

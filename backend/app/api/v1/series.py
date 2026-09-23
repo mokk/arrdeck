@@ -95,6 +95,7 @@ async def library_series(sonarr: SonarrClient = Depends(get_sonarr)) -> list[dic
             "genres": s.get("genres") or [],
             "rating": _rating(s.get("ratings")),
             "next_airing": s.get("nextAiring"),
+            "slug": s.get("titleSlug"),
             "previous_airing": s.get("previousAiring"),
             "next_episode": upcoming.get(s["id"]),
             "current_season": current_season(s, upcoming.get(s["id"])),
