@@ -185,10 +185,25 @@ export const useCleanup = (watchedDays: number) =>
 export function useCleanupDelete() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ items, exclude }: { items: CleanupItem[]; exclude: boolean }) => {
+    mutationFn: async ({
+      items,
+      exclude,
+      seasons = new Map(),
+    }: {
+      items: CleanupItem[];
+      exclude: boolean;
+      /** shows losing only some seasons: series id → season numbers */
+      seasons?: Map<number, number[]>;
+    }) => {
       const ids = (kind: CleanupItem["kind"]) =>
-        items.filter((i) => i.kind === kind).map((i) => i.id);
-      const calls = [];
+        items
+          .filter((i) => i.kind === kind && !(kind === "series" && seasons.has(i.id)))
+          .map((i) => i.id);
+      const calls: Promise<unknown>[] = [...seasons.entries()]
+        .filter(([, numbers]) => numbers.length > 0)
+        .map(([id, numbers]) =>
+          api.post(`/library/series/${id}/seasons/remove`, { seasons: numbers }),
+        );
       if (ids("movie").length)
         calls.push(
           api.post<void>("/library/movies/bulk-delete", {

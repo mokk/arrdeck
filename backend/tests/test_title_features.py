@@ -205,3 +205,82 @@ def test_series_payload_picked_seasons_preset_and_default():
 
     default = series_payload(AddSeriesIn(**base), [])
     assert default["addOptions"] == {"searchForMissingEpisodes": True} and "seasons" not in default
+
+
+def test_cleanup_lists_the_seasons_with_files():
+    from app.api.v1.cleanup import cleanup_row
+
+    series = {
+        "id": 62,
+        "title": "Reacher",
+        "statistics": {"sizeOnDisk": 30},
+        "seasons": [
+            {
+                "seasonNumber": 4,
+                "monitored": True,
+                "statistics": {"sizeOnDisk": 25, "episodeFileCount": 8},
+            },
+            {
+                "seasonNumber": 1,
+                "monitored": False,
+                "statistics": {"sizeOnDisk": 5, "episodeFileCount": 8},
+            },
+            {"seasonNumber": 2, "monitored": False, "statistics": {"sizeOnDisk": 0}},
+        ],
+    }
+    row = cleanup_row("series", series, None)
+    assert [s["number"] for s in row["seasons"]] == [1, 4]
+    assert row["seasons"][1] == {"number": 4, "size": 25, "files": 8, "monitored": True}
+    assert cleanup_row("movie", {"id": 1, "sizeOnDisk": 3}, None)["seasons"] == []
+
+
+async def test_removing_seasons_unmonitors_before_deleting_only_their_files():
+    import httpx
+
+    from app.api.v1.cleanup import remove_seasons
+    from app.clients.sonarr import SonarrClient
+    from app.schemas import SeasonRemoveIn
+
+    calls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        import json
+
+        body = json.loads(request.content) if request.content else None
+        calls.append((request.method, request.url.path, body))
+        if request.method == "GET" and request.url.path.endswith("/series/62"):
+            return httpx.Response(
+                200,
+                json={
+                    "id": 62,
+                    "seasons": [
+                        {"seasonNumber": 1, "monitored": True},
+                        {"seasonNumber": 2, "monitored": True},
+                    ],
+                },
+            )
+        if request.method == "GET" and request.url.path.endswith("/episodefile"):
+            return httpx.Response(
+                200,
+                json=[
+                    {"id": 10, "seasonNumber": 1},
+                    {"id": 11, "seasonNumber": 1},
+                    {"id": 20, "seasonNumber": 2},
+                ],
+            )
+        return httpx.Response(200, json={})
+
+    sonarr = SonarrClient(
+        httpx.AsyncClient(transport=httpx.MockTransport(handler)), "http://s", "k"
+    )
+    out = await remove_seasons(62, SeasonRemoveIn(seasons=[1]), sonarr)
+    assert out == {"deleted_files": 2}
+    methods = [(m, p.rsplit("/", 1)[-1]) for m, p, _ in calls]
+    assert methods.index(("PUT", "62")) < methods.index(("DELETE", "bulk")), "unmonitor first"
+    put = next(b for m, p, b in calls if m == "PUT")
+    assert put["seasons"] == [
+        {"seasonNumber": 1, "monitored": False},
+        {"seasonNumber": 2, "monitored": True},
+    ]
+    delete = next(b for m, p, b in calls if m == "DELETE")
+    assert delete == {"episodeFileIds": [10, 11]}

@@ -62,6 +62,12 @@ class SonarrClient(ArrClient):
             "/episode", params={"seriesId": series_id, "includeEpisodeFile": "true"}
         )
 
+    async def episode_files(self, series_id: int) -> list:
+        return await self.get("/episodefile", params={"seriesId": series_id})
+
+    async def delete_episode_files(self, file_ids: list[int]) -> None:
+        await self.request("DELETE", "/episodefile/bulk", json={"episodeFileIds": file_ids})
+
     async def delete_episode_file(self, file_id: int) -> None:
         await self.request("DELETE", f"/episodefile/{file_id}")
 

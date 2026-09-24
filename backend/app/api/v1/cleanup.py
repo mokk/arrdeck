@@ -12,11 +12,12 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, Request
 
+from ...cache import cache
 from ...clients.plex import PlexClient
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
 from ...deps import get_plex, get_radarr, get_sonarr
-from ...schemas import CleanupOut
+from ...schemas import CleanupOut, SeasonRemoveIn, SeasonRemoveOut
 from .dashboard import _has
 from .discover import _poster
 from .plex import load_watched
@@ -43,7 +44,24 @@ def cleanup_row(kind: str, item: dict, watched: dict | None) -> dict:
         "added": item.get("added"),
         "last_viewed_at": (watched or {}).get("last_viewed_at"),
         "monitored": item.get("monitored", False),
+        "seasons": season_rows(item) if kind == "series" else [],
     }
+
+
+def season_rows(series: dict) -> list[dict]:
+    rows = []
+    for season in series.get("seasons") or []:
+        stats = season.get("statistics") or {}
+        if stats.get("sizeOnDisk"):
+            rows.append(
+                {
+                    "number": season.get("seasonNumber", 0),
+                    "size": stats.get("sizeOnDisk", 0),
+                    "files": stats.get("episodeFileCount", 0),
+                    "monitored": season.get("monitored", False),
+                }
+            )
+    return sorted(rows, key=lambda r: r["number"])
 
 
 def watched_entry(kind: str, item: dict, items: dict) -> dict | None:
@@ -137,3 +155,28 @@ async def cleanup(
         except Exception:  # noqa: BLE001 — without Plex the watch lists stay empty
             watched_items = None
     return build_cleanup(movies, series, watched_items, watched_days, never_days, time.time())
+
+
+def unmonitor_seasons(series: dict, numbers: set[int]) -> dict:
+    for season in series.get("seasons") or []:
+        if season.get("seasonNumber") in numbers:
+            season["monitored"] = False
+    return series
+
+
+@router.post("/library/series/{series_id}/seasons/remove", response_model=SeasonRemoveOut)
+async def remove_seasons(
+    series_id: int, body: SeasonRemoveIn, sonarr: SonarrClient = Depends(get_sonarr)
+) -> dict:
+    """Some seasons of a show instead of all of it: unmonitored first, so an
+    RSS sync does not grab them straight back, then their files deleted."""
+    numbers = set(body.seasons)
+    series = await sonarr.get_series(series_id)
+    await sonarr.update_series(series_id, unmonitor_seasons(series, numbers))
+    files = [
+        f["id"] for f in await sonarr.episode_files(series_id) if f.get("seasonNumber") in numbers
+    ]
+    if files:
+        await sonarr.delete_episode_files(files)
+    cache.set("library_map:series", None)
+    return {"deleted_files": len(files)}

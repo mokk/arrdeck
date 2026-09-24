@@ -9,7 +9,7 @@ imports back.
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .library import HistoryEventOut, SearchResultOut
 
@@ -236,6 +236,13 @@ class PersonOut(BaseModel):
     elsewhere: list[SearchResultOut] = []
 
 
+class CleanupSeasonOut(BaseModel):
+    number: int
+    size: int = 0
+    files: int = 0
+    monitored: bool = False
+
+
 class CleanupItemOut(BaseModel):
     kind: Literal["movie", "series"]
     id: int
@@ -246,6 +253,16 @@ class CleanupItemOut(BaseModel):
     added: datetime | None = None
     last_viewed_at: int | None = None  # unix seconds, from Plex
     monitored: bool = False
+    # shows: the seasons with files, so some can go instead of the whole show
+    seasons: list[CleanupSeasonOut] = []
+
+
+class SeasonRemoveIn(BaseModel):
+    seasons: list[int] = Field(min_length=1)
+
+
+class SeasonRemoveOut(BaseModel):
+    deleted_files: int = 0
 
 
 class CleanupOut(BaseModel):

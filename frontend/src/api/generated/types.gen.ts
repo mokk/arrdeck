@@ -840,6 +840,10 @@ export type CleanupItemOut = {
    */
   poster?: string | null;
   /**
+   * Seasons
+   */
+  seasons?: Array<CleanupSeasonOut>;
+  /**
    * Size
    */
   size?: number;
@@ -880,6 +884,28 @@ export type CleanupOut = {
    * Watched
    */
   watched?: Array<CleanupItemOut>;
+};
+
+/**
+ * CleanupSeasonOut
+ */
+export type CleanupSeasonOut = {
+  /**
+   * Files
+   */
+  files?: number;
+  /**
+   * Monitored
+   */
+  monitored?: boolean;
+  /**
+   * Number
+   */
+  number: number;
+  /**
+   * Size
+   */
+  size?: number;
 };
 
 /**
@@ -3193,6 +3219,26 @@ export type SeasonProgressOut = {
    * Total
    */
   total?: number;
+};
+
+/**
+ * SeasonRemoveIn
+ */
+export type SeasonRemoveIn = {
+  /**
+   * Seasons
+   */
+  seasons: Array<number>;
+};
+
+/**
+ * SeasonRemoveOut
+ */
+export type SeasonRemoveOut = {
+  /**
+   * Deleted Files
+   */
+  deleted_files?: number;
 };
 
 /**
@@ -6961,6 +7007,38 @@ export type SeriesEpisodesApiV1LibrarySeriesSeriesIdEpisodesGetResponses = {
 
 export type SeriesEpisodesApiV1LibrarySeriesSeriesIdEpisodesGetResponse =
   SeriesEpisodesApiV1LibrarySeriesSeriesIdEpisodesGetResponses[keyof SeriesEpisodesApiV1LibrarySeriesSeriesIdEpisodesGetResponses];
+
+export type RemoveSeasonsApiV1LibrarySeriesSeriesIdSeasonsRemovePostData = {
+  body: SeasonRemoveIn;
+  path: {
+    /**
+     * Series Id
+     */
+    series_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/series/{series_id}/seasons/remove";
+};
+
+export type RemoveSeasonsApiV1LibrarySeriesSeriesIdSeasonsRemovePostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type RemoveSeasonsApiV1LibrarySeriesSeriesIdSeasonsRemovePostError =
+  RemoveSeasonsApiV1LibrarySeriesSeriesIdSeasonsRemovePostErrors[keyof RemoveSeasonsApiV1LibrarySeriesSeriesIdSeasonsRemovePostErrors];
+
+export type RemoveSeasonsApiV1LibrarySeriesSeriesIdSeasonsRemovePostResponses = {
+  /**
+   * Successful Response
+   */
+  200: SeasonRemoveOut;
+};
+
+export type RemoveSeasonsApiV1LibrarySeriesSeriesIdSeasonsRemovePostResponse =
+  RemoveSeasonsApiV1LibrarySeriesSeriesIdSeasonsRemovePostResponses[keyof RemoveSeasonsApiV1LibrarySeriesSeriesIdSeasonsRemovePostResponses];
 
 export type SeasonMonitorApiV1LibrarySeriesSeriesIdSeasonsSeasonMonitorPostData = {
   body: MonitorIn;

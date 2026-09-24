@@ -33,10 +33,26 @@ export default function CleanupPage() {
   const [picked, setPicked] = useState<Map<string, CleanupItem>>(new Map());
   const [confirming, setConfirming] = useState(false);
   const [exclude, setExclude] = useState(true);
+  // shows losing only some seasons; absent means the whole show goes
+  const [seasonPicks, setSeasonPicks] = useState<Map<string, Set<number>>>(new Map());
 
   const rows = data?.[list] ?? [];
+  const seasonsOf = (item: CleanupItem) =>
+    seasonPicks.get(keyOf(item)) ?? new Set((item.seasons ?? []).map((s) => s.number));
+  const partial = (item: CleanupItem) =>
+    item.kind === "series" &&
+    (item.seasons ?? []).length > 1 &&
+    seasonsOf(item).size < (item.seasons ?? []).length;
+  const sizeOf = (item: CleanupItem) =>
+    partial(item)
+      ? (item.seasons ?? [])
+          .filter((s) => seasonsOf(item).has(s.number))
+          .reduce((sum, s) => sum + (s.size ?? 0), 0)
+      : (item.size ?? 0);
   const total = (items: CleanupItem[]) => items.reduce((sum, i) => sum + (i.size ?? 0), 0);
   const chosen = [...picked.values()];
+  const reclaim = chosen.reduce((sum, i) => sum + sizeOf(i), 0);
+  const partials = chosen.filter(partial);
   const toggle = (item: CleanupItem) =>
     setPicked((current) => {
       const next = new Map(current);
@@ -44,6 +60,22 @@ export default function CleanupPage() {
       else next.set(keyOf(item), item);
       return next;
     });
+  const toggleSeason = (item: CleanupItem, number: number) => {
+    const next = new Set(seasonsOf(item));
+    if (next.has(number)) next.delete(number);
+    else next.add(number);
+    // unticking the last season is unticking the show
+    if (next.size === 0) {
+      toggle(item);
+      setSeasonPicks((m) => {
+        const copy = new Map(m);
+        copy.delete(keyOf(item));
+        return copy;
+      });
+      return;
+    }
+    setSeasonPicks((m) => new Map(m).set(keyOf(item), next));
+  };
   const allPicked = rows.length > 0 && rows.every((r) => picked.has(keyOf(r)));
   const pickAll = () => {
     const next = new Map(picked);
@@ -138,7 +170,7 @@ export default function CleanupPage() {
               return (
                 <div
                   key={keyOf(item)}
-                  className="flex items-center gap-3 border-t border-border px-3 py-2 first:border-t-0"
+                  className="flex flex-wrap items-center gap-3 border-t border-border px-3 py-2 first:border-t-0"
                 >
                   <input
                     type="checkbox"
@@ -170,9 +202,38 @@ export default function CleanupPage() {
                       </div>
                     </div>
                     <span className="shrink-0 text-sm font-semibold">
-                      {formatBytes(item.size)}
+                      {formatBytes(on ? sizeOf(item) : item.size)}
                     </span>
                   </button>
+                  {on && item.kind === "series" && (item.seasons ?? []).length > 1 && (
+                    <div className="flex basis-full flex-wrap gap-1.5 pb-1 pl-8">
+                      {(item.seasons ?? []).map((season) => {
+                        const kept = !seasonsOf(item).has(season.number);
+                        return (
+                          <button
+                            className={cn(
+                              focusRing,
+                              "rounded-full px-2.5 py-1 text-[11px] font-semibold active:opacity-60",
+                              kept
+                                ? "bg-secondary text-muted-foreground line-through"
+                                : "bg-destructive/15 text-destructive",
+                            )}
+                            type="button"
+                            key={season.number}
+                            aria-pressed={!kept}
+                            onClick={() => toggleSeason(item, season.number)}
+                          >
+                            {season.number === 0
+                              ? t("add.specials")
+                              : t("cleanup.seasonSize", {
+                                  n: season.number,
+                                  size: formatBytes(season.size),
+                                })}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -186,16 +247,28 @@ export default function CleanupPage() {
             variant="destructive"
             onClick={() => setConfirming(true)}
           >
-            {t("cleanup.reclaim", { size: formatBytes(total(chosen)), count: chosen.length })}
+            {t("cleanup.reclaim", { size: formatBytes(reclaim), count: chosen.length })}
           </Button>
         </div>
       )}
       {confirming && (
         <Sheet
           title={t("cleanup.confirmTitle", { count: chosen.length })}
-          subtitle={t("cleanup.confirmBody", { size: formatBytes(total(chosen)) })}
+          subtitle={t("cleanup.confirmBody", { size: formatBytes(reclaim) })}
           onClose={() => setConfirming(false)}
         >
+          {partials.length > 0 && (
+            <ul className="mb-3 rounded-xl bg-background/50 px-3 py-2.5 text-sm">
+              {partials.map((item) => (
+                <li key={keyOf(item)}>
+                  {t("cleanup.onlySeasons", {
+                    title: item.title,
+                    seasons: [...seasonsOf(item)].sort((a, b) => a - b).join(", "),
+                  })}
+                </li>
+              ))}
+            </ul>
+          )}
           <label className="mb-3 flex items-center gap-3 rounded-xl bg-background/50 px-3 py-2.5 text-sm">
             <input
               type="checkbox"
@@ -210,17 +283,24 @@ export default function CleanupPage() {
             disabled={remove.isPending}
             onClick={() =>
               remove.mutate(
-                { items: chosen, exclude },
+                {
+                  items: chosen,
+                  exclude,
+                  seasons: new Map(
+                    partials.map((i) => [i.id, [...seasonsOf(i)].sort((a, b) => a - b)]),
+                  ),
+                },
                 {
                   onSuccess: () => {
                     setPicked(new Map());
+                    setSeasonPicks(new Map());
                     setConfirming(false);
                   },
                 },
               )
             }
           >
-            {t("cleanup.deleteNow", { size: formatBytes(total(chosen)) })}
+            {t("cleanup.deleteNow", { size: formatBytes(reclaim) })}
           </BigButton>
           <BigButton color="muted" onClick={() => setConfirming(false)}>
             {t("common.cancel")}

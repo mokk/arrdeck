@@ -1535,6 +1535,14 @@
             ],
             "title": "Poster"
           },
+          "seasons": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CleanupSeasonOut"
+            },
+            "title": "Seasons",
+            "type": "array"
+          },
           "size": {
             "default": 0,
             "title": "Size",
@@ -1612,6 +1620,34 @@
           }
         },
         "title": "CleanupOut",
+        "type": "object"
+      },
+      "CleanupSeasonOut": {
+        "properties": {
+          "files": {
+            "default": 0,
+            "title": "Files",
+            "type": "integer"
+          },
+          "monitored": {
+            "default": false,
+            "title": "Monitored",
+            "type": "boolean"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "size": {
+            "default": 0,
+            "title": "Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "number"
+        ],
+        "title": "CleanupSeasonOut",
         "type": "object"
       },
       "CollectionDetailOut": {
@@ -5832,6 +5868,34 @@
           "number"
         ],
         "title": "SeasonProgressOut",
+        "type": "object"
+      },
+      "SeasonRemoveIn": {
+        "properties": {
+          "seasons": {
+            "items": {
+              "type": "integer"
+            },
+            "minItems": 1,
+            "title": "Seasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "seasons"
+        ],
+        "title": "SeasonRemoveIn",
+        "type": "object"
+      },
+      "SeasonRemoveOut": {
+        "properties": {
+          "deleted_files": {
+            "default": 0,
+            "title": "Deleted Files",
+            "type": "integer"
+          }
+        },
+        "title": "SeasonRemoveOut",
         "type": "object"
       },
       "SeriesBookOut": {
@@ -11566,6 +11630,59 @@
           }
         },
         "summary": "Series Episodes",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/v1/library/series/{series_id}/seasons/remove": {
+      "post": {
+        "description": "Some seasons of a show instead of all of it: unmonitored first, so an\nRSS sync does not grab them straight back, then their files deleted.",
+        "operationId": "remove_seasons_api_v1_library_series__series_id__seasons_remove_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "series_id",
+            "required": true,
+            "schema": {
+              "title": "Series Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeasonRemoveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeasonRemoveOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Seasons",
         "tags": [
           "library"
         ]

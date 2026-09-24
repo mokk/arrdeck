@@ -146,7 +146,11 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
   const search = useTriggerSearch();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [showReleases, setShowReleases] = useState(false);
-  const [profileId, setProfileId] = useState<number | null>(null);
+  // the profile picked for a new title stays the default for the next one
+  const [profileId, setProfileId] = usePersistentState<number | null>(
+    `add.qualityProfile.${app}`,
+    null,
+  );
   const [metadataProfileId, setMetadataProfileId] = useState<number | null>(null);
   const [rootPath, setRootPath] = useState<string | null>(null);
   const [editionId, setEditionId] = useState<string | null>(null);
@@ -208,7 +212,8 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
   );
 
   if (!result.in_library) {
-    const profile = profileId ?? options?.quality_profiles[0]?.id;
+    const known = options?.quality_profiles.some((p) => p.id === profileId);
+    const profile = (known ? profileId : null) ?? options?.quality_profiles[0]?.id;
     const metadataProfile = metadataProfileId ?? options?.metadata_profiles?.[0]?.id;
     const root = rootPath ?? options?.root_folders[0]?.path;
     return (

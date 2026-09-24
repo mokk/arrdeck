@@ -759,7 +759,9 @@
     "confirmTitle_other": "Slet {{count}} titler?",
     "confirmBody": "Filerne slettes fra disken, hvilket frigør omkring {{size}}. Det kan ikke fortrydes.",
     "exclude": "Forhindr importlister i at tilføje dem igen",
-    "deleteNow": "Slet og frigør {{size}}"
+    "deleteNow": "Slet og frigør {{size}}",
+    "seasonSize": "S{{n}} · {{size}}",
+    "onlySeasons": "{{title}}: kun sæson {{seasons}} — overvåges ikke længere, så de ikke hentes igen; serien bliver."
   },
   "requests": {
     "pending": "Ønske",

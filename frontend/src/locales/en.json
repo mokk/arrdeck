@@ -759,7 +759,9 @@
     "confirmTitle_other": "Delete {{count}} titles?",
     "confirmBody": "Their files are deleted from disk, freeing about {{size}}. This cannot be undone.",
     "exclude": "Stop import lists adding them back",
-    "deleteNow": "Delete and free {{size}}"
+    "deleteNow": "Delete and free {{size}}",
+    "seasonSize": "S{{n}} · {{size}}",
+    "onlySeasons": "{{title}}: only seasons {{seasons}} — unmonitored so they are not fetched again; the show stays."
   },
   "requests": {
     "pending": "Request",
