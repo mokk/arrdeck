@@ -759,6 +759,10 @@ export type CalendarItemOut = {
    */
   extra?: string | null;
   /**
+   * Finale Type
+   */
+  finale_type?: string | null;
+  /**
    * Has File
    */
   has_file?: boolean;
@@ -766,6 +770,10 @@ export type CalendarItemOut = {
    * Item Id
    */
   item_id?: number | null;
+  /**
+   * Poster
+   */
+  poster?: string | null;
   /**
    * Release Type
    */
@@ -1104,6 +1112,10 @@ export type EpisodeOut = {
    * File Id
    */
   file_id?: number | null;
+  /**
+   * Finale Type
+   */
+  finale_type?: string | null;
   /**
    * Has File
    */
@@ -1955,6 +1967,10 @@ export type NextEpisodeOut = {
    * Episode
    */
   episode: number;
+  /**
+   * Finale Type
+   */
+  finale_type?: string | null;
   /**
    * Season
    */

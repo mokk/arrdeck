@@ -46,6 +46,7 @@ class NextEpisodeOut(BaseModel):
     episode: int
     title: str | None = None
     air_date: datetime | None = None
+    finale_type: str | None = None  # season | series | midseason
 
 
 class SeasonProgressOut(BaseModel):
@@ -133,6 +134,7 @@ class EpisodeOut(BaseModel):
     title: str | None = None
     # what happens in it: behind spoiler protection when unwatched
     overview: str | None = None
+    finale_type: str | None = None  # season | series | midseason
     air_date: str | None = None
     has_file: bool = False
     monitored: bool = False

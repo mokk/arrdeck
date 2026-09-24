@@ -44,6 +44,7 @@ async def next_episodes(sonarr: SonarrClient) -> dict[int, dict]:
                 "episode": ep.get("episodeNumber", 0),
                 "title": ep.get("title"),
                 "air_date": ep.get("airDateUtc"),
+                "finale_type": ep.get("finaleType"),
             }
         return out
 
@@ -167,6 +168,7 @@ def episode_row(e: dict) -> EpisodeOut:
         episode=e.get("episodeNumber", 0),
         title=e.get("title"),
         overview=e.get("overview") or None,
+        finale_type=e.get("finaleType"),
         air_date=e.get("airDateUtc"),
         has_file=e.get("hasFile", False),
         monitored=e.get("monitored", False),

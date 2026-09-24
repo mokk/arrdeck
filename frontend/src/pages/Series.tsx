@@ -111,6 +111,11 @@ function EpisodeList({
               ) : (
                 e.title
               )}
+              {e.finale_type && (
+                <span className="ml-1.5 rounded-md bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                  {t(`cal.finale_${e.finale_type}`)}
+                </span>
+              )}
             </div>
             {e.overview && !isHidden(e) && (
               <button

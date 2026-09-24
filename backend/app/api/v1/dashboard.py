@@ -180,6 +180,7 @@ async def calendar(
                     release_type=picked_type,
                     has_file=m.get("hasFile", False),
                     item_id=m.get("id"),
+                    poster=_poster(m.get("images")),
                 ).model_dump()
             )
         return out
@@ -197,11 +198,16 @@ async def calendar(
                 has_file=e.get("hasFile", False),
                 extra=f"S{e.get('seasonNumber', 0):02d}E{e.get('episodeNumber', 0):02d} {e.get('title', '')}",
                 item_id=e.get("seriesId"),
+                poster=_poster((e.get("series") or {}).get("images")),
+                finale_type=e.get("finaleType"),
             ).model_dump()
             for e in items
         ]
 
     async def fetch_readarr() -> list[dict]:
+        # books.py imports this module for its history labels
+        from .books import book_cover
+
         async def call():
             return await readarr.calendar(start, end)
 
@@ -214,6 +220,7 @@ async def calendar(
                 has_file=((b.get("statistics") or {}).get("bookFileCount") or 0) > 0,
                 extra=(b.get("author") or {}).get("authorName"),
                 item_id=b.get("id"),
+                poster=book_cover(b.get("images")),
             ).model_dump()
             for b in items
         ]

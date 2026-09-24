@@ -1,19 +1,23 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useMemo, useState } from "react";
+// The calendar as one list: two weeks back, two months ahead, opened at today.
+// Days carry a big date and how far away they are, months a divider, and each
+// entry its cover, the app's colour, the air time and what kind of day it is —
+// a finale, a digital release, already on disk.
+import { Check, ChevronLeft } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useNavigationType } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn, focusRing } from "@/lib/utils";
-import { formatDate } from "../api/format";
 import type { CalendarItem } from "../api/types";
-import { Card, EmptyNote, Row, SectionTitle, StateBadge } from "../components/Blocks";
-import { useRegisterSubnav } from "../components/subnav";
+import { EmptyNote } from "../components/Blocks";
+import { Cover } from "../components/library/Cover";
 import { useCalendarRange } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
+import { usePref } from "../lib/prefs";
 
-type View = "month" | "week" | "agenda";
-
-const AGENDA_DAYS = 14;
+const STEP_DAYS = 30;
+const BACK_DAYS = 14;
+const AHEAD_DAYS = 60;
 
 function isoDay(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -21,28 +25,6 @@ function isoDay(d: Date): string {
 
 function addDays(d: Date, n: number): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
-}
-
-/** Monday-first, matching the month grid's column order. */
-function weekStart(d: Date): Date {
-  return addDays(d, -((d.getDay() + 6) % 7));
-}
-
-/** The window to request, per view. Each view steps by its own unit, so the
- * offset means months, weeks or nothing depending on where you are. */
-function range(view: View, offset: number): { start: Date; days: number } {
-  const now = new Date();
-  if (view === "month") {
-    const first = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-    return {
-      start: first,
-      days: new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate(),
-    };
-  }
-  if (view === "week") {
-    return { start: addDays(weekStart(now), offset * 7), days: 7 };
-  }
-  return { start: now, days: AGENDA_DAYS };
 }
 
 const ROUTE: Record<CalendarItem["app"], string> = {
@@ -57,143 +39,115 @@ const APP_LABEL: Record<CalendarItem["app"], string> = {
   readarr: "nav.books",
 };
 
+// the theme's colours, so a palette recolours the stripes too
+const STRIPE: Record<CalendarItem["app"], string> = {
+  radarr: "bg-warning",
+  sonarr: "bg-primary",
+  readarr: "bg-success",
+};
+
+/** The local day an entry falls on. An episode's air time is a moment and can
+ * cross midnight here; a film's or book's release is a date and must not. */
+function dayOf(item: CalendarItem): string {
+  if (!item.date) return "";
+  if (item.app !== "sonarr") return item.date.slice(0, 10);
+  return isoDay(new Date(item.date));
+}
+
+type Entry = CalendarItem & { count?: number; firstCode?: string };
+
+/** A season dropped at once is one entry, not eight: same show, same day. */
+function foldEpisodes(items: CalendarItem[]): Entry[] {
+  const out: Entry[] = [];
+  for (const item of items) {
+    const prev = out.find(
+      (o) => o.app === "sonarr" && item.app === "sonarr" && o.item_id === item.item_id,
+    );
+    if (!prev) {
+      out.push({ ...item, count: 1, firstCode: (item.extra ?? "").split(" ")[0] });
+      continue;
+    }
+    const last = (item.extra ?? "").split(" ")[0];
+    prev.count = (prev.count ?? 1) + 1;
+    // S01E01 … S01E08 reads as S01E01–E08
+    prev.extra = `${prev.firstCode}–${last.slice(last.indexOf("E"))}`;
+    prev.has_file = prev.has_file && item.has_file;
+    prev.finale_type = prev.finale_type ?? item.finale_type;
+  }
+  return out;
+}
+
 export default function CalendarPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const [view, setView] = usePersistentState<View>("cal.view", "month");
-  const [offset, setOffset] = useState(0);
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const spoilers = usePref("spoilers");
+  const [back, setBack] = useState(BACK_DAYS);
+  const [ahead, setAhead] = useState(AHEAD_DAYS);
+  const today = new Date();
+  const todayIso = isoDay(today);
+  const start = addDays(today, -back);
+  const { data, isLoading } = useCalendarRange(isoDay(start), back + ahead);
 
-  useRegisterSubnav(
-    [
-      { value: "month", label: t("cal.month") },
-      { value: "week", label: t("cal.week") },
-      { value: "agenda", label: t("cal.agenda") },
-    ],
-    view,
-    (v) => {
-      setView(v as View);
-      setOffset(0);
-      setSelectedDay(null);
-    },
-  );
-
-  const { start, days } = range(view, offset);
-  const { data } = useCalendarRange(isoDay(start), days);
-
-  // Which apps to show and whether to leave out what is already on disk; both
-  // survive a reload, because a calendar is usually opened for one question.
   const [hiddenApps, setHiddenApps] = usePersistentState<string[]>("cal.hiddenApps", []);
   const [hideDownloaded, setHideDownloaded] = usePersistentState("cal.hideDownloaded", false);
   const apps = (["radarr", "sonarr", "readarr"] as const).filter((app) => data?.[app]);
 
-  const items = useMemo(
-    () =>
-      [
-        ...(data?.radarr?.data ?? []),
-        ...(data?.sonarr?.data ?? []),
-        ...(data?.readarr?.data ?? []),
-      ]
-        .filter((c) => c.date)
-        .filter((c) => !hiddenApps.includes(c.app) && !(hideDownloaded && c.has_file))
-        .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? "")),
-    [data, hiddenApps, hideDownloaded],
-  );
+  const days = useMemo(() => {
+    const all = [
+      ...(data?.radarr?.data ?? []),
+      ...(data?.sonarr?.data ?? []),
+      ...(data?.readarr?.data ?? []),
+    ]
+      .filter((c) => c.date)
+      .filter((c) => !hiddenApps.includes(c.app) && !(hideDownloaded && c.has_file));
+    const byDay = new Map<string, CalendarItem[]>();
+    for (const item of all) byDay.set(dayOf(item), [...(byDay.get(dayOf(item)) ?? []), item]);
+    // today is always there, so there is somewhere to open at
+    if (!byDay.has(todayIso)) byDay.set(todayIso, []);
+    return [...byDay.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([day, items]) => ({
+        day,
+        items: foldEpisodes(items.sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""))),
+      }));
+  }, [data, hiddenApps, hideDownloaded, todayIso]);
 
-  const open = (c: CalendarItem) => {
-    if (c.item_id == null) return;
-    navigate(`/${ROUTE[c.app]}/${c.item_id}`);
-  };
+  // Open at today once, when the list first has something to scroll through.
+  // Coming back from a title restores where you were instead.
+  const navigation = useNavigationType();
+  const opened = useRef(navigation === "POP");
+  const jumpToToday = (smooth = false) =>
+    document
+      .getElementById("cal-today")
+      ?.scrollIntoView({ block: "start", behavior: smooth ? "smooth" : "auto" });
+  useEffect(() => {
+    if (!data || opened.current) return;
+    opened.current = true;
+    // after the shell's own scroll-to-top for a new page
+    setTimeout(() => jumpToToday(), 0);
+  }, [data]);
 
-  const byDay = useMemo(() => {
-    const map = new Map<string, CalendarItem[]>();
-    for (const item of items) {
-      const day = (item.date ?? "").slice(0, 10);
-      map.set(day, [...(map.get(day) ?? []), item]);
-    }
-    return map;
-  }, [items]);
-
-  const todayIso = isoDay(new Date());
-  const stepUnit = view === "month" ? "cal.month" : "cal.week";
-
-  const heading =
-    view === "month"
-      ? start.toLocaleDateString(i18n.language, { month: "long", year: "numeric" })
-      : view === "week"
-        ? `${start.toLocaleDateString(i18n.language, { day: "numeric", month: "short" })} – ${addDays(start, 6).toLocaleDateString(i18n.language, { day: "numeric", month: "short" })}`
-        : t("cal.nextDays", { count: AGENDA_DAYS });
-
-  const dayCell = (date: Date, tall: boolean) => {
-    const iso = isoDay(date);
-    const dayItems = byDay.get(iso) ?? [];
-    return (
-      <button
-        type="button"
-        key={iso}
-        // the coloured dots alone don't say how much is on a day
-        aria-label={`${date.toLocaleDateString(i18n.language, { weekday: "long", day: "numeric", month: "long" })} — ${t("cal.itemCount", { count: dayItems.length })}`}
-        className={cn(
-          focusRing,
-          "flex flex-col items-center gap-1 rounded-xl bg-card p-1.5 text-xs active:opacity-70",
-          tall ? "min-h-16" : "min-h-20",
-          selectedDay === iso && "ring-2 ring-primary",
-          iso === todayIso && "font-bold text-primary",
-        )}
-        onClick={() => setSelectedDay(selectedDay === iso ? null : iso)}
-      >
-        {!tall && (
-          <span className="text-[0.6rem] uppercase text-muted-foreground">
-            {date.toLocaleDateString(i18n.language, { weekday: "short" })}
-          </span>
-        )}
-        {date.getDate()}
-        {dayItems.length > 0 && (
-          <span aria-hidden="true" className="flex flex-wrap justify-center gap-0.5">
-            {dayItems.slice(0, 4).map((item, j) => (
-              <span
-                key={j}
-                className={cn(
-                  "size-1.5 rounded-full",
-                  item.has_file
-                    ? "bg-success"
-                    : item.app === "radarr"
-                      ? "bg-warning"
-                      : "bg-primary",
-                )}
-              />
-            ))}
-          </span>
-        )}
-      </button>
+  const relative = (day: string) => {
+    const [y, m, d] = day.split("-").map(Number);
+    const offset = Math.round(
+      (new Date(y, m - 1, d).getTime() -
+        new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) /
+        86_400_000,
+    );
+    return new Intl.RelativeTimeFormat(i18n.language, { numeric: "auto" }).format(
+      offset,
+      "day",
     );
   };
 
-  const row = (c: CalendarItem, i: number, showDate: boolean) => (
-    <Row
-      key={`${c.title}-${c.date}-${i}`}
-      onClick={c.item_id != null ? () => open(c) : undefined}
-    >
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium">{c.title}</div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-          <StateBadge state={c.app} />
-          {c.release_type && <StateBadge state={t(`cal.${c.release_type}`)} raw />}
-          {c.extra ?? ""}
-        </div>
-      </div>
-      <div className="flex shrink-0 flex-col items-end gap-1 text-xs text-muted-foreground">
-        {showDate && <span>{formatDate(c.date)}</span>}
-        {c.has_file && <StateBadge state="downloaded" />}
-      </div>
-    </Row>
-  );
+  const open = (c: CalendarItem) => {
+    if (c.item_id != null) navigate(`/${ROUTE[c.app]}/${c.item_id}`);
+  };
 
-  const listItems = selectedDay ? (byDay.get(selectedDay) ?? []) : items;
-
+  let lastMonth = "";
   return (
     <>
-      <div className="mb-4 mt-1 flex items-center gap-2">
+      <div className="mb-3 mt-1 flex items-center gap-2">
         <Button
           variant="ghost"
           size="icon"
@@ -202,39 +156,20 @@ export default function CalendarPage() {
         >
           <ChevronLeft className="size-6" />
         </Button>
-        <h1 className="min-w-0 truncate text-2xl font-extrabold capitalize tracking-tight">
-          {heading}
+        <h1 className="min-w-0 flex-1 truncate text-2xl font-extrabold tracking-tight">
+          {t("cal.title")}
         </h1>
-        {/* the agenda is always "from today", so stepping it makes no sense */}
-        {view !== "agenda" && (
-          <div className="ml-auto flex gap-1">
-            <Button
-              variant="secondary"
-              size="icon-sm"
-              aria-label={t("cal.previous", { unit: t(stepUnit) })}
-              onClick={() => {
-                setOffset(offset - 1);
-                setSelectedDay(null);
-              }}
-            >
-              <ChevronLeft />
-            </Button>
-            <Button
-              variant="secondary"
-              size="icon-sm"
-              aria-label={t("cal.next", { unit: t(stepUnit) })}
-              onClick={() => {
-                setOffset(offset + 1);
-                setSelectedDay(null);
-              }}
-            >
-              <ChevronRight />
-            </Button>
-          </div>
-        )}
+        <Button
+          variant="secondary"
+          size="sm"
+          className="rounded-full"
+          onClick={() => jumpToToday(true)}
+        >
+          {t("cal.jumpToday")}
+        </Button>
       </div>
 
-      <div className="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]">
+      <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]">
         {apps.length > 1 &&
           apps.map((app) => {
             const on = !hiddenApps.includes(app);
@@ -246,6 +181,10 @@ export default function CalendarPage() {
                   setHiddenApps(on ? [...hiddenApps, app] : hiddenApps.filter((a) => a !== app))
                 }
               >
+                <span
+                  aria-hidden="true"
+                  className={cn("mr-1.5 inline-block size-2 rounded-full", STRIPE[app])}
+                />
                 {t(APP_LABEL[app])}
               </Chip>
             );
@@ -255,52 +194,190 @@ export default function CalendarPage() {
         </Chip>
       </div>
 
-      {view === "month" && (
-        <div className="mb-4 grid grid-cols-7 gap-1">
-          {Array.from({ length: (start.getDay() + 6) % 7 }, (_, i) => (
-            <div key={`blank${i}`} />
-          ))}
-          {Array.from({ length: days }, (_, i) =>
-            dayCell(new Date(start.getFullYear(), start.getMonth(), i + 1), true),
-          )}
+      {data && (
+        <div className="mb-4 flex justify-center">
+          <Button variant="ghost" size="sm" onClick={() => setBack(back + STEP_DAYS)}>
+            {t("cal.earlier")}
+          </Button>
         </div>
       )}
+      {isLoading && <EmptyNote>{t("common.loading")}</EmptyNote>}
 
-      {view === "week" && (
-        <div className="mb-4 grid grid-cols-7 gap-1">
-          {Array.from({ length: 7 }, (_, i) => dayCell(addDays(start, i), false))}
-        </div>
-      )}
-
-      {view === "agenda" ? (
-        // grouped by day rather than one flat list, so the next fortnight reads
-        // as a schedule instead of a wall of rows
-        [...byDay.entries()].length === 0 ? (
-          <EmptyNote>{t("dash.nothingScheduled")}</EmptyNote>
-        ) : (
-          [...byDay.entries()].map(([day, dayItems]) => (
-            <div key={day} className="mb-5">
-              <SectionTitle>
-                {new Date(`${day}T00:00:00`).toLocaleDateString(i18n.language, {
+      {data &&
+        days.map(({ day, items }) => {
+          const [y, m, d] = day.split("-").map(Number);
+          const date = new Date(y, m - 1, d);
+          const month = date.toLocaleDateString(i18n.language, {
+            month: "long",
+            year: "numeric",
+          });
+          const newMonth = month !== lastMonth;
+          lastMonth = month;
+          const isToday = day === todayIso;
+          const past = day < todayIso;
+          return (
+            <div key={day}>
+              {newMonth && (
+                <div className="mb-3 mt-6 flex items-center gap-3 first:mt-0">
+                  <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                    {month}
+                  </span>
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+              )}
+              <section
+                id={isToday ? "cal-today" : undefined}
+                aria-label={date.toLocaleDateString(i18n.language, {
                   weekday: "long",
                   day: "numeric",
-                  month: "short",
+                  month: "long",
                 })}
-                {day === todayIso && (
-                  <span className="ml-2 font-normal text-primary">{t("cal.today")}</span>
+                className={cn(
+                  "mb-4 flex scroll-mt-[calc(env(safe-area-inset-top)+0.75rem)] gap-3",
+                  past && "opacity-60",
                 )}
-              </SectionTitle>
-              <Card>{dayItems.map((c, i) => row(c, i, false))}</Card>
+              >
+                <div
+                  className={cn(
+                    "flex w-12 shrink-0 flex-col items-center rounded-2xl py-1.5",
+                    isToday ? "bg-primary text-primary-foreground" : "bg-card",
+                  )}
+                >
+                  <span className="text-[10px] font-semibold uppercase">
+                    {date.toLocaleDateString(i18n.language, { weekday: "short" })}
+                  </span>
+                  <span className="text-xl font-extrabold leading-tight">{d}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div
+                    className={cn(
+                      "mb-1.5 text-xs font-semibold",
+                      isToday ? "text-primary" : "text-muted-foreground",
+                    )}
+                  >
+                    {relative(day)}
+                  </div>
+                  {items.length === 0 ? (
+                    <div className="rounded-xl bg-card px-3 py-2.5 text-sm text-muted-foreground">
+                      {t("cal.nothingToday")}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {items.map((c, i) => (
+                        <EntryRow
+                          key={`${c.app}-${c.item_id}-${c.date}-${i}`}
+                          item={c}
+                          hideEpisodeTitle={spoilers !== "off"}
+                          onOpen={() => open(c)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </section>
             </div>
-          ))
-        )
-      ) : (
-        <Card>
-          {listItems.length === 0 && <EmptyNote>{t("dash.nothingScheduled")}</EmptyNote>}
-          {listItems.map((c, i) => row(c, i, !selectedDay))}
-        </Card>
+          );
+        })}
+
+      {data && (
+        <div className="mb-2 mt-2 flex justify-center">
+          <Button variant="ghost" size="sm" onClick={() => setAhead(ahead + STEP_DAYS)}>
+            {t("cal.later")}
+          </Button>
+        </div>
       )}
     </>
+  );
+}
+
+function EntryRow({
+  item,
+  hideEpisodeTitle,
+  onOpen,
+}: {
+  item: Entry;
+  hideEpisodeTitle: boolean;
+  onOpen: () => void;
+}) {
+  const { t, i18n } = useTranslation();
+  // "S02E05 Love and Be Loved": the code always, the title unless spoilers say no
+  const [code, ...rest] = (item.extra ?? "").split(" ");
+  const folded = (item.count ?? 1) > 1;
+  const subtitle =
+    item.app === "sonarr"
+      ? [
+          code,
+          folded
+            ? t("cal.episodes", { count: item.count })
+            : hideEpisodeTitle
+              ? null
+              : rest.join(" "),
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : item.extra;
+  const time =
+    item.app === "sonarr" && item.date
+      ? new Date(item.date).toLocaleTimeString(i18n.language, {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : null;
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      disabled={item.item_id == null}
+      className={cn(
+        focusRing,
+        "flex w-full items-center gap-3 overflow-hidden rounded-xl bg-card pr-3 text-left active:opacity-70",
+      )}
+    >
+      <span aria-hidden="true" className={cn("w-1 self-stretch", STRIPE[item.app])} />
+      <div className="w-9 shrink-0 py-2">
+        <Cover src={item.poster} title={item.title} compact />
+      </div>
+      <div className="min-w-0 flex-1 py-2">
+        <div className="truncate text-sm font-semibold">{item.title}</div>
+        {subtitle && <div className="truncate text-xs text-muted-foreground">{subtitle}</div>}
+        <div className="mt-1 flex flex-wrap gap-1">
+          {item.finale_type && (
+            <Badge className="bg-primary/15 text-primary">
+              {t(`cal.finale_${item.finale_type}`)}
+            </Badge>
+          )}
+          {item.release_type && (
+            <Badge className="bg-warning/15 text-warning">
+              {t(`cal.${item.release_type}`)}
+            </Badge>
+          )}
+          {item.has_file && (
+            <Badge className="bg-success/15 text-success">
+              <Check className="mr-0.5 inline size-3" />
+              {t("cal.onDisk")}
+            </Badge>
+          )}
+        </div>
+      </div>
+      {time && (
+        <span className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
+          {time}
+        </span>
+      )}
+    </button>
+  );
+}
+
+function Badge({ className, children }: { className: string; children: React.ReactNode }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold",
+        className,
+      )}
+    >
+      {children}
+    </span>
   );
 }
 
@@ -320,7 +397,7 @@ function Chip({
       onClick={onClick}
       className={cn(
         focusRing,
-        "shrink-0 rounded-full px-3 py-1 text-xs font-semibold",
+        "flex shrink-0 items-center rounded-full px-3 py-1 text-xs font-semibold",
         on ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground",
       )}
     >

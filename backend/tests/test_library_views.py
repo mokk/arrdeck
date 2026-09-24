@@ -57,7 +57,13 @@ def test_next_episodes_keep_the_earliest_per_series():
     )
     out = asyncio.run(next_episodes(sonarr))
     assert out == {
-        1: {"season": 3, "episode": 4, "title": "Four", "air_date": "2026-10-01T01:00:00Z"}
+        1: {
+            "season": 3,
+            "episode": 4,
+            "title": "Four",
+            "air_date": "2026-10-01T01:00:00Z",
+            "finale_type": None,
+        }
     }, "the calendar is sorted first and undated episodes are skipped"
 
 

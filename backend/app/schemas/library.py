@@ -18,6 +18,9 @@ class CalendarItemOut(BaseModel):
     release_type: str | None = None  # cinema | digital | physical (movies)
     # The library id to open: the movie, the episode's series, the book.
     item_id: int | None = None
+    poster: str | None = None
+    # Sonarr: "season", "series" or "midseason" when the episode ends one
+    finale_type: str | None = None
 
 
 class HistoryEventOut(BaseModel):

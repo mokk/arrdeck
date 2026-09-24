@@ -1359,6 +1359,17 @@
             ],
             "title": "Extra"
           },
+          "finale_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finale Type"
+          },
           "has_file": {
             "default": false,
             "title": "Has File",
@@ -1374,6 +1385,17 @@
               }
             ],
             "title": "Item Id"
+          },
+          "poster": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Poster"
           },
           "release_type": {
             "anyOf": [
@@ -1977,6 +1999,17 @@
               }
             ],
             "title": "File Id"
+          },
+          "finale_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finale Type"
           },
           "has_file": {
             "default": false,
@@ -3654,6 +3687,17 @@
           "episode": {
             "title": "Episode",
             "type": "integer"
+          },
+          "finale_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finale Type"
           },
           "season": {
             "title": "Season",

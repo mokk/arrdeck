@@ -1,6 +1,6 @@
 // Discovery, search, adding titles, the calendar, history and the popular page.
 // Movies, series, episodes, discovery, calendar and history.
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { api } from "../api/client";
@@ -34,6 +34,8 @@ export const useCalendarRange = (startDate: string, days: number) =>
         readarr?: ServiceBlock<CalendarItem[]>;
       }>(`/calendar?days=${days}&start_date=${startDate}`),
     staleTime: 300_000,
+    // widening the window keeps what is on screen while the rest loads
+    placeholderData: keepPreviousData,
   });
 
 export const useHistoryPage = (page: number) =>

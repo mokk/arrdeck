@@ -53,6 +53,11 @@ function UpNextRow({ show, onOpen }: { show: LibrarySeries; onOpen: () => void }
               {code(next.season, next.episode)}
             </span>
             {next.title && spoilers === "off" ? ` · ${next.title}` : ""}
+            {next.finale_type && (
+              <span className="ml-1.5 rounded-md bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                {t(`cal.finale_${next.finale_type}`)}
+              </span>
+            )}
           </div>
         ) : (
           <div className="truncate text-xs text-muted-foreground">
