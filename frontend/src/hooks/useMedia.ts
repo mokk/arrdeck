@@ -158,6 +158,14 @@ export const usePlexWatchlist = (enabled: boolean) =>
     staleTime: 5 * 60_000,
   });
 
+export const useTraktList = (kind: "movie" | "series", which: string) =>
+  useQuery({
+    queryKey: ["trakt", kind, which],
+    queryFn: () => api.get<SearchResult[]>(`/discover/trakt?kind=${kind}&which=${which}`),
+    staleTime: 30 * 60_000,
+    retry: false,
+  });
+
 export function useDismissRecommendation() {
   const qc = useQueryClient();
   return useMutation({

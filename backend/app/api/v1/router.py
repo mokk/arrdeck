@@ -35,6 +35,7 @@ from . import (
     tools,
     torrentactions,
     torrents,
+    trakt,
     wanted,
     watchstats,
 )
@@ -70,6 +71,7 @@ router.include_router(reading.router)
 router.include_router(opds_settings.router)
 router.include_router(ical_settings.router)
 router.include_router(tools.router)
+router.include_router(trakt.router)
 router.include_router(watchstats.router)
 router.include_router(wanted.router)
 router.include_router(arrmeta.router)

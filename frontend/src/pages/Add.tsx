@@ -9,6 +9,7 @@ import { Card, EmptyNote, ErrorNote, Row, SectionTitle } from "../components/Blo
 import { DetailHeader } from "../components/detail";
 import { CollectionsList } from "../components/library/Collections";
 import { RecommendationsRow } from "../components/library/Recommendations";
+import { TraktRow } from "../components/library/Trakt";
 import { WatchlistRow } from "../components/library/Watchlist";
 import { PosterGrid } from "../components/media";
 import { useRegisterSearchbar } from "../components/subnav";
@@ -75,6 +76,7 @@ export default function Add() {
     (services ?? []).filter((s) => s.configured).map((s) => s.service),
   );
   const hasPlex = configured.has("plex" as never);
+  const hasTrakt = configured.has("trakt" as never);
   const tabs = (["movies", "series", "books", "collections", "releases"] as Tab[]).filter(
     (tab) => configured.has(TAB_SERVICE[tab] as never),
   );
@@ -182,6 +184,7 @@ export default function Add() {
         // recommendations still are
         <>
           {hasPlex && <WatchlistRow kind="movie" />}
+          {hasTrakt && <TraktRow kind="movie" />}
           <RecommendationsRow />
         </>
       ) : tab === "books" ? (
@@ -190,6 +193,7 @@ export default function Add() {
       ) : canDiscover ? (
         <>
           {hasPlex && <WatchlistRow kind={tab === "series" ? "series" : "movie"} />}
+          {hasTrakt && <TraktRow kind={tab === "series" ? "series" : "movie"} />}
           {tab === "movies" && configured.has("radarr" as never) && <RecommendationsRow />}
           <SectionTitle>
             {tab === "series" ? t("add.popularSeries") : t("add.popularMovies")}

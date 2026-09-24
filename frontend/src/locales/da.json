@@ -216,7 +216,11 @@
     "recommended": "Anbefalet til dig",
     "notInterested": "Ikke interesseret i {{title}}",
     "watchlist": "På din Plex-watchlist",
-    "watchlistHave": "· {{have}} af {{total}} i biblioteket"
+    "watchlistHave": "· {{have}} af {{total}} i biblioteket",
+    "trakt": "På Trakt",
+    "trakt_trending": "Populært nu",
+    "trakt_anticipated": "Ventet",
+    "trakt_popular": "Populære"
   },
   "manage": {
     "title": "Administrér",
@@ -293,7 +297,8 @@
     "importLists": "Importlister",
     "syncApp": "Synkronisér {{app}}",
     "syncStarted": "Synkronisering startet",
-    "updateHint": "Opdatering tilgængelig: {{version}}"
+    "updateHint": "Opdatering tilgængelig: {{version}}",
+    "traktHint": "Opret en API-app på trakt.tv/oauth/applications (redirect-URI kan være urn:ietf:wg:oauth:2.0:oob), og indsæt dens Client ID. arrdeck læser kun Trakts offentlige lister."
   },
   "system": {
     "tasks": "Planlagte opgaver",

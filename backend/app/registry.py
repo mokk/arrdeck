@@ -11,6 +11,7 @@ from .clients.qbittorrent import QbittorrentClient
 from .clients.radarr import RadarrClient
 from .clients.readarr import ReadarrClient
 from .clients.sonarr import SonarrClient
+from .clients.trakt import TraktClient
 from .clients.transmission import TransmissionClient
 from .db import SERVICES
 
@@ -26,7 +27,13 @@ NEEDS_API_KEY = {
 }
 
 
+# services with a fixed public address: the key is all they need
+KEY_ONLY = {"trakt"}
+
+
 def is_configured(name: str, conf: dict) -> bool:
+    if name in KEY_ONLY:
+        return bool(conf.get("api_key"))
     if not conf.get("url"):
         return False
     return not (name in NEEDS_API_KEY and not conf.get("api_key"))
@@ -86,6 +93,10 @@ class Registry:
             self._clients[name] = PlexClient(self._arr_http, conf["url"], conf["api_key"])
         elif name == "prometheus":
             self._clients[name] = PrometheusClient(self._arr_http, conf["url"])
+        elif name == "trakt":
+            self._clients[name] = TraktClient(
+                self._arr_http, conf["api_key"], conf.get("url") or ""
+            )
 
     def rebuild_all(self, confs: dict[str, dict]) -> None:
         for name in SERVICES:
@@ -116,6 +127,6 @@ async def probe_version(name: str, client) -> str:
         return (await client.status()).get("bazarr_version", "?")
     if name == "plex":
         return (await client.identity()).get("version", "?")
-    if name == "prometheus":
+    if name in ("prometheus", "trakt"):
         return (await client.status()).get("version", "?")
     raise ServiceUnavailable(name, "unknown service")

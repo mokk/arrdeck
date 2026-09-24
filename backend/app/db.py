@@ -16,6 +16,7 @@ SERVICES = [
     "bazarr",
     "plex",
     "prometheus",
+    "trakt",
 ]
 EMPTY = {"url": "", "api_key": "", "username": "", "password": ""}
 

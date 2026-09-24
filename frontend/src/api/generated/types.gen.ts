@@ -3810,7 +3810,8 @@ export type ServiceStatus = {
     | "gluetun"
     | "bazarr"
     | "plex"
-    | "prometheus";
+    | "prometheus"
+    | "trakt";
   /**
    * Update Available
    */
@@ -5650,6 +5651,44 @@ export type DiscoverSeriesApiV1DiscoverSeriesGetResponses = {
 
 export type DiscoverSeriesApiV1DiscoverSeriesGetResponse =
   DiscoverSeriesApiV1DiscoverSeriesGetResponses[keyof DiscoverSeriesApiV1DiscoverSeriesGetResponses];
+
+export type TraktListApiV1DiscoverTraktGetData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Kind
+     */
+    kind: "movie" | "series";
+    /**
+     * Which
+     */
+    which?: "trending" | "anticipated" | "popular";
+  };
+  url: "/api/v1/discover/trakt";
+};
+
+export type TraktListApiV1DiscoverTraktGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TraktListApiV1DiscoverTraktGetError =
+  TraktListApiV1DiscoverTraktGetErrors[keyof TraktListApiV1DiscoverTraktGetErrors];
+
+export type TraktListApiV1DiscoverTraktGetResponses = {
+  /**
+   * Response Trakt List Api V1 Discover Trakt Get
+   *
+   * Successful Response
+   */
+  200: Array<SearchResultOut>;
+};
+
+export type TraktListApiV1DiscoverTraktGetResponse =
+  TraktListApiV1DiscoverTraktGetResponses[keyof TraktListApiV1DiscoverTraktGetResponses];
 
 export type DiskspaceApiV1DiskspaceGetData = {
   body?: never;

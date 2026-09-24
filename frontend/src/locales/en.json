@@ -216,7 +216,11 @@
     "recommended": "Recommended for you",
     "notInterested": "Not interested in {{title}}",
     "watchlist": "On your Plex watchlist",
-    "watchlistHave": "· {{have}} of {{total}} in the library"
+    "watchlistHave": "· {{have}} of {{total}} in the library",
+    "trakt": "On Trakt",
+    "trakt_trending": "Trending",
+    "trakt_anticipated": "Anticipated",
+    "trakt_popular": "Popular"
   },
   "manage": {
     "title": "Manage",
@@ -293,7 +297,8 @@
     "importLists": "Import lists",
     "syncApp": "Sync {{app}}",
     "syncStarted": "Sync started",
-    "updateHint": "Update available: {{version}}"
+    "updateHint": "Update available: {{version}}",
+    "traktHint": "Create an API app at trakt.tv/oauth/applications (the redirect URI can be urn:ietf:wg:oauth:2.0:oob) and paste its Client ID. arrdeck only reads Trakt's public lists."
   },
   "system": {
     "tasks": "Scheduled tasks",

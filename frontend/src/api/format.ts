@@ -13,6 +13,7 @@ export const SERVICE_LABELS: Record<string, string> = {
   bazarr: "Bazarr",
   plex: "Plex",
   prometheus: "Prometheus",
+  trakt: "Trakt",
 };
 
 /** Sizes in steps of 1024 (what arrdeck always showed) or 1000 (how disks are

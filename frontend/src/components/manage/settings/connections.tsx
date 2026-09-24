@@ -40,6 +40,7 @@ const SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password
   bazarr: ["url", "api_key"],
   plex: ["url", "api_key"],
   prometheus: ["url"],
+  trakt: ["api_key"],
 };
 
 const FIELD_KEYS: Record<string, string> = {
@@ -107,6 +108,9 @@ export function ServiceSettingsCard({
             />
           </div>
         ))}
+        {name === "trakt" && (
+          <span className="text-xs text-muted-foreground">{t("manage.traktHint")}</span>
+        )}
         <div className="flex gap-2">
           <Button
             disabled={!dirty || save.isPending}
