@@ -36,6 +36,7 @@ import type {
   VpnStatus,
   WatchedEpisode,
   WatchedMap,
+  WatchStats,
   WebhookApp,
   WebhookStatus,
 } from "../api/types";
@@ -412,6 +413,17 @@ export function useSubtitleSearch() {
     onSettled: () => qc.invalidateQueries({ queryKey: ["subtitles"] }),
   });
 }
+
+/** Plex play history over `days` (0 = all time), bucketed in `tz`. */
+export const useWatchStats = (days: number, tz: string) =>
+  useQuery({
+    queryKey: ["watchStats", days, tz],
+    queryFn: () =>
+      api.get<ServiceBlock<WatchStats>>(
+        `/plex/stats?days=${days}&tz=${encodeURIComponent(tz)}`,
+      ),
+    staleTime: 5 * 60_000,
+  });
 
 const WANTED_PAGE = 50;
 

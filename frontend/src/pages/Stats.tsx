@@ -6,7 +6,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatBytes, formatDate } from "../api/format";
 import type { StatsSample } from "../api/types";
 import { Segmented } from "../components/Blocks";
-import { useStatsHistory } from "../hooks/queries";
+import { Watching } from "../components/stats/Watching";
+import { useServices, useStatsHistory } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 import { forecastFull } from "../lib/forecast";
 
@@ -109,9 +110,10 @@ export default function StatsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [days, setDays] = usePersistentState<string>("stats.days", "30");
+  const [view, setView] = usePersistentState<"library" | "watching">("stats.view", "library");
   const { data, isLoading } = useStatsHistory(Number(days));
-
-  const count = (v: number) => String(Math.round(v));
+  const { data: services } = useServices();
+  const hasPlex = (services ?? []).some((s) => s.service === "plex" && s.configured);
 
   return (
     <>
@@ -126,6 +128,40 @@ export default function StatsPage() {
         </Button>
         <h1 className="text-2xl font-extrabold tracking-tight">{t("stats.title")}</h1>
       </div>
+      {hasPlex && (
+        <Segmented
+          options={[
+            { value: "library", label: t("stats.library") },
+            { value: "watching", label: t("stats.watching") },
+          ]}
+          value={view}
+          onChange={setView}
+        />
+      )}
+      {hasPlex && view === "watching" ? (
+        <Watching />
+      ) : (
+        <LibraryStats days={days} setDays={setDays} data={data} isLoading={isLoading} />
+      )}
+    </>
+  );
+}
+
+function LibraryStats({
+  days,
+  setDays,
+  data,
+  isLoading,
+}: {
+  days: string;
+  setDays: (v: string) => void;
+  data: StatsSample[] | undefined;
+  isLoading: boolean;
+}) {
+  const { t } = useTranslation();
+  const count = (v: number) => String(Math.round(v));
+  return (
+    <>
       <Segmented
         options={[
           { value: "30", label: t("stats.days30") },

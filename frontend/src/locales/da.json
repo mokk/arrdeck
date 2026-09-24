@@ -214,7 +214,9 @@
     "addShow": "Tilføj serie",
     "addBook": "Tilføj bog",
     "recommended": "Anbefalet til dig",
-    "notInterested": "Ikke interesseret i {{title}}"
+    "notInterested": "Ikke interesseret i {{title}}",
+    "watchlist": "På din Plex-watchlist",
+    "watchlistHave": "· {{have}} af {{total}} i biblioteket"
   },
   "manage": {
     "title": "Administrér",
@@ -437,7 +439,9 @@
     "fullInDays_other": "Fuld om cirka {{count}} dage",
     "fullInWeeks_one": "Fuld om cirka {{count}} uge",
     "fullInWeeks_other": "Fuld om cirka {{count}} uger",
-    "perDay": "I periodens tempo: {{size}} om dagen"
+    "perDay": "I periodens tempo: {{size}} om dagen",
+    "library": "Bibliotek",
+    "watching": "Afspilning"
   },
   "push": {
     "title": "Notifikationer",
@@ -812,5 +816,22 @@
     "regenerateHint": "Den gamle adresse holder op med at virke; alle kalenderapps skal have den nye.",
     "hint": "Adressen indeholder en hemmelighed i stedet for en adgangskode, da kalenderapps ikke kan logge ind på arrdeck. Alle med adressen kan se, hvad der er på vej. Google Kalender: Andre kalendere → Fra webadresse.",
     "unavailable": "Kalenderen kræver Radarr, Sonarr eller Readarr."
+  },
+  "watching": {
+    "days7": "7 dage",
+    "allTime": "Altid",
+    "nothing": "Intet set i perioden.",
+    "playsLabel": "Afspilninger",
+    "plays_one": "{{count}} afspilning",
+    "plays_other": "{{count}} afspilninger",
+    "hours": "Timer",
+    "episodes": "Afsnit",
+    "topShows": "Mest sete serier",
+    "topMovies": "Mest sete film",
+    "byWeekday": "Efter ugedag",
+    "byHour": "Efter tidspunkt",
+    "users": "Hvem så",
+    "estimate": "Fra Plex' afspilningshistorik. Timerne er et skøn: hver afspilning tæller filmens længde eller seriens normale afsnitslængde.",
+    "busiest": "Travlest: {{name}}"
   }
 }

@@ -3433,6 +3433,25 @@ export type ServiceBlockVpnStatusOut = {
 };
 
 /**
+ * ServiceBlock[WatchStatsOut]
+ */
+export type ServiceBlockWatchStatsOut = {
+  data?: WatchStatsOut | null;
+  /**
+   * Error
+   */
+  error?: string | null;
+  /**
+   * Ok
+   */
+  ok: boolean;
+  /**
+   * Stale Age Seconds
+   */
+  stale_age_seconds?: number | null;
+};
+
+/**
  * ServiceBlock[WatchedMapOut]
  */
 export type ServiceBlockWatchedMapOut = {
@@ -4591,6 +4610,100 @@ export type WantedPageOut = {
    * Total
    */
   total?: number;
+};
+
+/**
+ * WatchStatsOut
+ */
+export type WatchStatsOut = {
+  /**
+   * By Hour
+   */
+  by_hour?: Array<number>;
+  /**
+   * By Weekday
+   */
+  by_weekday?: Array<number>;
+  /**
+   * Days
+   */
+  days: number;
+  /**
+   * Episodes
+   */
+  episodes?: number;
+  /**
+   * Hours
+   */
+  hours?: number;
+  /**
+   * Movies
+   */
+  movies?: number;
+  /**
+   * Plays
+   */
+  plays?: number;
+  /**
+   * Top Movies
+   */
+  top_movies?: Array<WatchTitleOut>;
+  /**
+   * Top Shows
+   */
+  top_shows?: Array<WatchTitleOut>;
+  /**
+   * Users
+   */
+  users?: Array<WatchUserOut>;
+};
+
+/**
+ * WatchTitleOut
+ */
+export type WatchTitleOut = {
+  /**
+   * Hours
+   */
+  hours?: number;
+  /**
+   * Movie Id
+   */
+  movie_id?: number | null;
+  /**
+   * Plays
+   */
+  plays?: number;
+  /**
+   * Poster
+   */
+  poster?: string | null;
+  /**
+   * Series Id
+   */
+  series_id?: number | null;
+  /**
+   * Title
+   */
+  title: string;
+};
+
+/**
+ * WatchUserOut
+ */
+export type WatchUserOut = {
+  /**
+   * Hours
+   */
+  hours?: number;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Plays
+   */
+  plays?: number;
 };
 
 /**
@@ -7291,6 +7404,61 @@ export type ParseApiV1ParseAppGetResponses = {
 
 export type ParseApiV1ParseAppGetResponse =
   ParseApiV1ParseAppGetResponses[keyof ParseApiV1ParseAppGetResponses];
+
+export type WatchStatsApiV1PlexStatsGetData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Days
+     */
+    days?: number;
+    /**
+     * Tz
+     */
+    tz?: string;
+  };
+  url: "/api/v1/plex/stats";
+};
+
+export type WatchStatsApiV1PlexStatsGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type WatchStatsApiV1PlexStatsGetError =
+  WatchStatsApiV1PlexStatsGetErrors[keyof WatchStatsApiV1PlexStatsGetErrors];
+
+export type WatchStatsApiV1PlexStatsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ServiceBlockWatchStatsOut;
+};
+
+export type WatchStatsApiV1PlexStatsGetResponse =
+  WatchStatsApiV1PlexStatsGetResponses[keyof WatchStatsApiV1PlexStatsGetResponses];
+
+export type PlexWatchlistApiV1PlexWatchlistGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/plex/watchlist";
+};
+
+export type PlexWatchlistApiV1PlexWatchlistGetResponses = {
+  /**
+   * Response Plex Watchlist Api V1 Plex Watchlist Get
+   *
+   * Successful Response
+   */
+  200: Array<SearchResultOut>;
+};
+
+export type PlexWatchlistApiV1PlexWatchlistGetResponse =
+  PlexWatchlistApiV1PlexWatchlistGetResponses[keyof PlexWatchlistApiV1PlexWatchlistGetResponses];
 
 export type PopularApiV1PopularGetData = {
   body?: never;

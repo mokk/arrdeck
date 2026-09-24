@@ -150,6 +150,14 @@ export const useRecommendations = (enabled: boolean) =>
     staleTime: 30 * 60_000,
   });
 
+export const usePlexWatchlist = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["plexWatchlist"],
+    queryFn: () => api.get<SearchResult[]>("/plex/watchlist"),
+    enabled,
+    staleTime: 5 * 60_000,
+  });
+
 export function useDismissRecommendation() {
   const qc = useQueryClient();
   return useMutation({

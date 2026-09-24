@@ -18,6 +18,7 @@ POSTER_HOSTS = {
     "assets.fanart.tv",
     "images.fanart.tv",
     "fanart.tv",
+    "metadata-static.plex.tv",  # Plex watchlist art
 }
 TMDB_SIZE_RE = re.compile(r"(https://image\.tmdb\.org/t/p/)([^/]+)(/)")
 TMDB_POSTER_SIZE = "w500"

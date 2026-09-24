@@ -36,6 +36,7 @@ from . import (
     torrentactions,
     torrents,
     wanted,
+    watchstats,
 )
 
 router = APIRouter(prefix="/api/v1")
@@ -69,6 +70,7 @@ router.include_router(reading.router)
 router.include_router(opds_settings.router)
 router.include_router(ical_settings.router)
 router.include_router(tools.router)
+router.include_router(watchstats.router)
 router.include_router(wanted.router)
 router.include_router(arrmeta.router)
 router.include_router(settings.router)

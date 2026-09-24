@@ -375,6 +375,36 @@ class DiagnosisOut(BaseModel):
     findings: list[DiagnosisFindingOut] = []
 
 
+class WatchUserOut(BaseModel):
+    name: str
+    plays: int = 0
+    hours: float = 0
+
+
+class WatchTitleOut(BaseModel):
+    title: str
+    plays: int = 0
+    hours: float = 0
+    poster: str | None = None
+    movie_id: int | None = None  # the Radarr movie, when it is in the library
+    series_id: int | None = None  # the Sonarr series
+
+
+class WatchStatsOut(BaseModel):
+    days: int  # 0 = all time
+    plays: int = 0
+    # estimated: Plex history has no durations, so each play counts the
+    # movie's runtime or the show's usual episode length
+    hours: float = 0
+    movies: int = 0  # movie plays
+    episodes: int = 0  # episode plays
+    users: list[WatchUserOut] = []
+    top_shows: list[WatchTitleOut] = []
+    top_movies: list[WatchTitleOut] = []
+    by_weekday: list[int] = []  # Monday first, in the asked time zone
+    by_hour: list[int] = []  # 0–23
+
+
 class IcalSettingsOut(BaseModel):
     enabled: bool = False
     # the secret path segment; the client builds the URL from its own origin

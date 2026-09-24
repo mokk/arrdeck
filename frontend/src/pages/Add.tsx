@@ -9,6 +9,7 @@ import { Card, EmptyNote, ErrorNote, Row, SectionTitle } from "../components/Blo
 import { DetailHeader } from "../components/detail";
 import { CollectionsList } from "../components/library/Collections";
 import { RecommendationsRow } from "../components/library/Recommendations";
+import { WatchlistRow } from "../components/library/Watchlist";
 import { PosterGrid } from "../components/media";
 import { useRegisterSearchbar } from "../components/subnav";
 import {
@@ -73,6 +74,7 @@ export default function Add() {
   const configured = new Set(
     (services ?? []).filter((s) => s.configured).map((s) => s.service),
   );
+  const hasPlex = configured.has("plex" as never);
   const tabs = (["movies", "series", "books", "collections", "releases"] as Tab[]).filter(
     (tab) => configured.has(TAB_SERVICE[tab] as never),
   );
@@ -178,12 +180,16 @@ export default function Add() {
       ) : tab === "movies" && configured.has("radarr" as never) && !canDiscover ? (
         // without Overseerr there is no popular list, but Radarr's own
         // recommendations still are
-        <RecommendationsRow />
+        <>
+          {hasPlex && <WatchlistRow kind="movie" />}
+          <RecommendationsRow />
+        </>
       ) : tab === "books" ? (
         // Overseerr knows nothing about books, so there is no popular list
         <EmptyNote>{t("add.searchBooksHint")}</EmptyNote>
       ) : canDiscover ? (
         <>
+          {hasPlex && <WatchlistRow kind={tab === "series" ? "series" : "movie"} />}
           {tab === "movies" && configured.has("radarr" as never) && <RecommendationsRow />}
           <SectionTitle>
             {tab === "series" ? t("add.popularSeries") : t("add.popularMovies")}

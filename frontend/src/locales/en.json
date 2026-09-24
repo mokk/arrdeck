@@ -214,7 +214,9 @@
     "addShow": "Add show",
     "addBook": "Add book",
     "recommended": "Recommended for you",
-    "notInterested": "Not interested in {{title}}"
+    "notInterested": "Not interested in {{title}}",
+    "watchlist": "On your Plex watchlist",
+    "watchlistHave": "· {{have}} of {{total}} in the library"
   },
   "manage": {
     "title": "Manage",
@@ -437,7 +439,9 @@
     "fullInDays_other": "Full in about {{count}} days",
     "fullInWeeks_one": "Full in about {{count}} week",
     "fullInWeeks_other": "Full in about {{count}} weeks",
-    "perDay": "At the pace of this period: {{size}} a day"
+    "perDay": "At the pace of this period: {{size}} a day",
+    "library": "Library",
+    "watching": "Watching"
   },
   "push": {
     "title": "Notifications",
@@ -812,5 +816,22 @@
     "regenerateHint": "The old address stops working; every calendar app needs the new one.",
     "hint": "The address contains a secret instead of a password, since calendar apps cannot sign in to arrdeck. Anyone with it can see what is coming up. Google Calendar: Other calendars → From URL.",
     "unavailable": "The calendar needs Radarr, Sonarr or Readarr."
+  },
+  "watching": {
+    "days7": "7 days",
+    "allTime": "All time",
+    "nothing": "Nothing watched in this period.",
+    "playsLabel": "Plays",
+    "plays_one": "{{count}} play",
+    "plays_other": "{{count}} plays",
+    "hours": "Hours",
+    "episodes": "Episodes",
+    "topShows": "Most watched shows",
+    "topMovies": "Most watched movies",
+    "byWeekday": "By weekday",
+    "byHour": "By time of day",
+    "users": "Who watched",
+    "estimate": "From Plex's play history. Hours are an estimate: each play counts the movie's runtime or the show's usual episode length.",
+    "busiest": "Busiest: {{name}}"
   }
 }
