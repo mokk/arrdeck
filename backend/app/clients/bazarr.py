@@ -34,12 +34,35 @@ class BazarrClient(BaseClient):
         return await self.get("/badges")
 
     async def wanted_episodes(self, length: int = 20) -> list:
-        data = await self.get("/episodes/wanted", params={"start": 0, "length": length})
-        return data.get("data") or []
+        return (await self.wanted_page("episodes", 0, length))["data"]
 
     async def wanted_movies(self, length: int = 20) -> list:
-        data = await self.get("/movies/wanted", params={"start": 0, "length": length})
+        return (await self.wanted_page("movies", 0, length))["data"]
+
+    async def wanted_page(self, kind: str, start: int, length: int) -> dict:
+        """One page of `movies` or `episodes` missing subtitles, with the total."""
+        data = await self.get(f"/{kind}/wanted", params={"start": start, "length": length})
+        return {"data": data.get("data") or [], "total": data.get("total") or 0}
+
+    async def profiles(self) -> list:
+        return await self.get("/system/languages/profiles") or []
+
+    async def all_titles(self, kind: str) -> list:
+        """Every movie or series Bazarr knows, with its language profile."""
+        data = await self.get(f"/{kind}", params={"start": 0, "length": -1})
         return data.get("data") or []
+
+    async def set_profile(self, kind: str, ids: list[int], profile_id: int | None) -> None:
+        """Give these movies or series one language profile; None takes it off.
+        Bazarr pairs the lists by position and reads an empty id as none."""
+        key = "radarrid" if kind == "movies" else "seriesid"
+        value = "" if profile_id is None else str(profile_id)
+        await self.request(
+            "POST", f"/{kind}", data={key: [str(i) for i in ids], "profileid": [value] * len(ids)}
+        )
+
+    async def run_task(self, task_id: str) -> None:
+        await self.request("POST", "/system/tasks", data={"taskid": task_id})
 
     async def search_episode(self, series_id: int, episode_id: int) -> None:
         await self.request(

@@ -1,6 +1,6 @@
 // Services, auth, push, backups and the media-server integrations.
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { api } from "../api/client";
@@ -14,6 +14,7 @@ import type {
   Indexer,
   IndexerSchema,
   IndexerStats,
+  LanguageProfile,
   LogEntry,
   MediaRequest,
   PlaySession,
@@ -29,6 +30,8 @@ import type {
   Session,
   StatsSample,
   Subtitles,
+  SubtitleTitle,
+  SubtitleWanted,
   TitleSubtitles,
   VpnStatus,
   WatchedEpisode,
@@ -397,6 +400,69 @@ export function useSubtitleSearch() {
     mutationFn: (input: { kind: "movie" | "episode"; id: number; series_id?: number | null }) =>
       api.post<void>("/subtitles/search", input),
     onSettled: () => qc.invalidateQueries({ queryKey: ["subtitles"] }),
+  });
+}
+
+const WANTED_PAGE = 50;
+
+/** Everything Bazarr is missing subtitles for, fifty at a time. */
+export const useSubtitlesWanted = (kind: "movie" | "episode") =>
+  useInfiniteQuery({
+    queryKey: ["subtitles", "wanted", kind],
+    queryFn: ({ pageParam }) =>
+      api.get<SubtitleWanted>(
+        `/subtitles/wanted?kind=${kind}&start=${pageParam}&length=${WANTED_PAGE}`,
+      ),
+    initialPageParam: 0,
+    getNextPageParam: (last, pages) => {
+      const seen = pages.reduce((n, p) => n + (p.items?.length ?? 0), 0);
+      return seen < (last.total ?? 0) ? seen : undefined;
+    },
+  });
+
+/** Bazarr's own job that searches the whole wanted list. */
+export function useSubtitleSearchAll() {
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (kind: "movie" | "episode") =>
+      api.post<void>(`/subtitles/wanted/search?kind=${kind}`),
+    onSuccess: () => toast.success(t("subtitles.searchAllStarted")),
+  });
+}
+
+export const useLanguageProfiles = () =>
+  useQuery({
+    queryKey: ["languageProfiles"],
+    queryFn: () => api.get<LanguageProfile[]>("/subtitles/profiles"),
+    staleTime: SLOW,
+  });
+
+export const useSubtitleTitles = () =>
+  useQuery({
+    queryKey: ["subtitleTitles"],
+    queryFn: () => api.get<SubtitleTitle[]>("/subtitles/titles"),
+  });
+
+/** One language profile onto many movies or series at once. */
+export function useAssignProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      kind: "movie" | "series";
+      ids: number[];
+      profile_id: number | null;
+    }) => api.put<void>("/subtitles/profile", input),
+    onMutate: ({ kind, ids, profile_id }) => {
+      const picked = new Set(ids);
+      qc.setQueryData<SubtitleTitle[]>(["subtitleTitles"], (old) =>
+        old?.map((r) => (r.kind === kind && picked.has(r.id) ? { ...r, profile_id } : r)),
+      );
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["subtitleTitles"] });
+      qc.invalidateQueries({ queryKey: ["subtitles"] });
+      qc.invalidateQueries({ queryKey: ["titleSubtitles"] });
+    },
   });
 }
 

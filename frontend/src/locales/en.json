@@ -578,7 +578,8 @@
     "cleanup": "Cleanup",
     "opds": "Reading apps (OPDS)",
     "exclusions": "Exclusions",
-    "parse": "Release name tester"
+    "parse": "Release name tester",
+    "subtitles": "Subtitles"
   },
   "book": {
     "pages": "{{count}} pages",
@@ -594,7 +595,29 @@
     "untracked": "Bazarr does not track this title",
     "none": "No subtitle languages wanted",
     "get": "Get {{language}}",
-    "requested": "Subtitle search started"
+    "requested": "Subtitle search started",
+    "missingTab": "Missing",
+    "profilesTab": "Language profiles",
+    "episodes": "Episodes",
+    "movies": "Movies",
+    "shows": "Shows",
+    "nothingMissing": "Nothing is missing subtitles.",
+    "missingCount_one": "{{count}} missing subtitles",
+    "missingCount_other": "{{count}} missing subtitles",
+    "searchAll": "Search all",
+    "searchAllStarted": "Bazarr is searching for all of them",
+    "search": "Search",
+    "more": "Show more",
+    "profilesIntro": "Bazarr only fetches subtitles for titles with a language profile. Pick titles and give them one.",
+    "onlyUnset_one": "Only titles without a profile ({{count}})",
+    "onlyUnset_other": "Only titles without a profile ({{count}})",
+    "pickAll": "Select all shown",
+    "noProfile": "No profile",
+    "applyProfile": "Set profile to {{profile}}",
+    "titlesCount_one": "{{count}} title",
+    "titlesCount_other": "{{count}} titles",
+    "applyCount": "Apply to {{count}}",
+    "allHaveProfile": "Every title has a language profile."
   },
   "episode": {
     "deleteFile": "Delete file",

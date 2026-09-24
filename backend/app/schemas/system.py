@@ -1,8 +1,8 @@
 """Services, auth, push, backups, health and the media-server integrations."""
 
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .common import ServiceSettingsOut
 
@@ -97,6 +97,31 @@ class SubtitlesOut(BaseModel):
     # provider started failing.
     throttled_providers: int = 0
     items: list[SubtitleItemOut] = []
+
+
+class SubtitleWantedOut(BaseModel):
+    items: list[SubtitleItemOut] = []
+    total: int = 0
+
+
+class LanguageProfileOut(BaseModel):
+    id: int
+    name: str
+    languages: list[str] = []  # two-letter codes, in the profile's order
+
+
+class SubtitleTitleOut(BaseModel):
+    kind: Literal["movie", "series"]
+    id: int  # radarrId, or sonarrSeriesId
+    title: str = ""
+    year: str | None = None
+    profile_id: int | None = None  # None: Bazarr fetches nothing for it
+
+
+class ProfileAssignIn(BaseModel):
+    kind: Literal["movie", "series"]
+    ids: list[int] = Field(min_length=1, max_length=1000)
+    profile_id: int | None = None
 
 
 class SubtitleTrackOut(BaseModel):

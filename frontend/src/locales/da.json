@@ -578,7 +578,8 @@
     "cleanup": "Oprydning",
     "opds": "Læseapps (OPDS)",
     "exclusions": "Udelukkelser",
-    "parse": "Test af udgivelsesnavn"
+    "parse": "Test af udgivelsesnavn",
+    "subtitles": "Undertekster"
   },
   "book": {
     "pages": "{{count}} sider",
@@ -594,7 +595,29 @@
     "untracked": "Bazarr følger ikke denne titel",
     "none": "Ingen ønskede undertekstsprog",
     "get": "Hent {{language}}",
-    "requested": "Søgning efter undertekster startet"
+    "requested": "Søgning efter undertekster startet",
+    "missingTab": "Mangler",
+    "profilesTab": "Sprogprofiler",
+    "episodes": "Afsnit",
+    "movies": "Film",
+    "shows": "Serier",
+    "nothingMissing": "Intet mangler undertekster.",
+    "missingCount_one": "{{count}} mangler undertekster",
+    "missingCount_other": "{{count}} mangler undertekster",
+    "searchAll": "Søg efter alle",
+    "searchAllStarted": "Bazarr søger efter dem alle",
+    "search": "Søg",
+    "more": "Vis flere",
+    "profilesIntro": "Bazarr henter kun undertekster til titler med en sprogprofil. Vælg titler og giv dem en.",
+    "onlyUnset_one": "Kun titler uden profil ({{count}})",
+    "onlyUnset_other": "Kun titler uden profil ({{count}})",
+    "pickAll": "Vælg alle viste",
+    "noProfile": "Ingen profil",
+    "applyProfile": "Sæt profil til {{profile}}",
+    "titlesCount_one": "{{count}} titel",
+    "titlesCount_other": "{{count}} titler",
+    "applyCount": "Anvend på {{count}}",
+    "allHaveProfile": "Alle titler har en sprogprofil."
   },
   "episode": {
     "deleteFile": "Slet fil",

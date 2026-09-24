@@ -1495,6 +1495,24 @@ export type IndexerStatsOut = {
 };
 
 /**
+ * LanguageProfileOut
+ */
+export type LanguageProfileOut = {
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Languages
+   */
+  languages?: Array<string>;
+  /**
+   * Name
+   */
+  name: string;
+};
+
+/**
  * LibraryBookOut
  */
 export type LibraryBookOut = {
@@ -2320,6 +2338,24 @@ export type PopularSnapshotOut = {
    * Indexers
    */
   indexers?: Array<PopularIndexerOut>;
+};
+
+/**
+ * ProfileAssignIn
+ */
+export type ProfileAssignIn = {
+  /**
+   * Ids
+   */
+  ids: Array<number>;
+  /**
+   * Kind
+   */
+  kind: "movie" | "series";
+  /**
+   * Profile Id
+   */
+  profile_id?: number | null;
 };
 
 /**
@@ -3946,6 +3982,32 @@ export type SubtitleSearchIn = {
 };
 
 /**
+ * SubtitleTitleOut
+ */
+export type SubtitleTitleOut = {
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Kind
+   */
+  kind: "movie" | "series";
+  /**
+   * Profile Id
+   */
+  profile_id?: number | null;
+  /**
+   * Title
+   */
+  title?: string;
+  /**
+   * Year
+   */
+  year?: string | null;
+};
+
+/**
  * SubtitleTrackOut
  */
 export type SubtitleTrackOut = {
@@ -3969,6 +4031,20 @@ export type SubtitleTrackOut = {
    * Path
    */
   path?: string | null;
+};
+
+/**
+ * SubtitleWantedOut
+ */
+export type SubtitleWantedOut = {
+  /**
+   * Items
+   */
+  items?: Array<SubtitleItemOut>;
+  /**
+   * Total
+   */
+  total?: number;
 };
 
 /**
@@ -8503,6 +8579,52 @@ export type MovieSubtitleDownloadApiV1SubtitlesMovieRadarrIdDownloadPostResponse
 export type MovieSubtitleDownloadApiV1SubtitlesMovieRadarrIdDownloadPostResponse =
   MovieSubtitleDownloadApiV1SubtitlesMovieRadarrIdDownloadPostResponses[keyof MovieSubtitleDownloadApiV1SubtitlesMovieRadarrIdDownloadPostResponses];
 
+export type AssignProfileApiV1SubtitlesProfilePutData = {
+  body: ProfileAssignIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/subtitles/profile";
+};
+
+export type AssignProfileApiV1SubtitlesProfilePutErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type AssignProfileApiV1SubtitlesProfilePutError =
+  AssignProfileApiV1SubtitlesProfilePutErrors[keyof AssignProfileApiV1SubtitlesProfilePutErrors];
+
+export type AssignProfileApiV1SubtitlesProfilePutResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type AssignProfileApiV1SubtitlesProfilePutResponse =
+  AssignProfileApiV1SubtitlesProfilePutResponses[keyof AssignProfileApiV1SubtitlesProfilePutResponses];
+
+export type LanguageProfilesApiV1SubtitlesProfilesGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/subtitles/profiles";
+};
+
+export type LanguageProfilesApiV1SubtitlesProfilesGetResponses = {
+  /**
+   * Response Language Profiles Api V1 Subtitles Profiles Get
+   *
+   * Successful Response
+   */
+  200: Array<LanguageProfileOut>;
+};
+
+export type LanguageProfilesApiV1SubtitlesProfilesGetResponse =
+  LanguageProfilesApiV1SubtitlesProfilesGetResponses[keyof LanguageProfilesApiV1SubtitlesProfilesGetResponses];
+
 export type SubtitleSearchApiV1SubtitlesSearchPostData = {
   body: SubtitleSearchIn;
   path?: never;
@@ -8602,6 +8724,97 @@ export type EpisodeSubtitleDownloadApiV1SubtitlesSeriesSeriesIdEpisodesEpisodeId
 
 export type EpisodeSubtitleDownloadApiV1SubtitlesSeriesSeriesIdEpisodesEpisodeIdDownloadPostResponse =
   EpisodeSubtitleDownloadApiV1SubtitlesSeriesSeriesIdEpisodesEpisodeIdDownloadPostResponses[keyof EpisodeSubtitleDownloadApiV1SubtitlesSeriesSeriesIdEpisodesEpisodeIdDownloadPostResponses];
+
+export type SubtitleTitlesApiV1SubtitlesTitlesGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/subtitles/titles";
+};
+
+export type SubtitleTitlesApiV1SubtitlesTitlesGetResponses = {
+  /**
+   * Response Subtitle Titles Api V1 Subtitles Titles Get
+   *
+   * Successful Response
+   */
+  200: Array<SubtitleTitleOut>;
+};
+
+export type SubtitleTitlesApiV1SubtitlesTitlesGetResponse =
+  SubtitleTitlesApiV1SubtitlesTitlesGetResponses[keyof SubtitleTitlesApiV1SubtitlesTitlesGetResponses];
+
+export type SubtitlesWantedApiV1SubtitlesWantedGetData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Kind
+     */
+    kind: "movie" | "episode";
+    /**
+     * Start
+     */
+    start?: number;
+    /**
+     * Length
+     */
+    length?: number;
+  };
+  url: "/api/v1/subtitles/wanted";
+};
+
+export type SubtitlesWantedApiV1SubtitlesWantedGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type SubtitlesWantedApiV1SubtitlesWantedGetError =
+  SubtitlesWantedApiV1SubtitlesWantedGetErrors[keyof SubtitlesWantedApiV1SubtitlesWantedGetErrors];
+
+export type SubtitlesWantedApiV1SubtitlesWantedGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: SubtitleWantedOut;
+};
+
+export type SubtitlesWantedApiV1SubtitlesWantedGetResponse =
+  SubtitlesWantedApiV1SubtitlesWantedGetResponses[keyof SubtitlesWantedApiV1SubtitlesWantedGetResponses];
+
+export type SubtitlesSearchAllApiV1SubtitlesWantedSearchPostData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Kind
+     */
+    kind: "movie" | "episode";
+  };
+  url: "/api/v1/subtitles/wanted/search";
+};
+
+export type SubtitlesSearchAllApiV1SubtitlesWantedSearchPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type SubtitlesSearchAllApiV1SubtitlesWantedSearchPostError =
+  SubtitlesSearchAllApiV1SubtitlesWantedSearchPostErrors[keyof SubtitlesSearchAllApiV1SubtitlesWantedSearchPostErrors];
+
+export type SubtitlesSearchAllApiV1SubtitlesWantedSearchPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type SubtitlesSearchAllApiV1SubtitlesWantedSearchPostResponse =
+  SubtitlesSearchAllApiV1SubtitlesWantedSearchPostResponses[keyof SubtitlesSearchAllApiV1SubtitlesWantedSearchPostResponses];
 
 export type TagsApiV1TagsAppGetData = {
   body?: never;
