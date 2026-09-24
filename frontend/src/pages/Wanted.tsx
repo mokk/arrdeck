@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatDate, SERVICE_LABELS } from "../api/format";
+import { formatDate, formatWhen, SERVICE_LABELS } from "../api/format";
 import type { ArrApp, WantedItem } from "../api/types";
 import { Card, EmptyNote, Row } from "../components/Blocks";
 import { DiagnoseSheet } from "../components/DiagnoseSheet";
@@ -89,6 +89,11 @@ function WantedList({ app, kind }: { app: ArrApp; kind: Kind }) {
               <div className="truncate text-sm font-medium">{w.title}</div>
               <div className="mt-0.5 truncate text-xs text-muted-foreground">
                 {w.subtitle ?? ""} {w.air_date ? `· ${formatDate(w.air_date)}` : ""}
+              </div>
+              <div className="truncate text-[11px] text-muted-foreground/80">
+                {w.last_search
+                  ? t("wanted.searched", { when: formatWhen(w.last_search) })
+                  : t("wanted.neverSearched")}
               </div>
             </div>
             <div className="flex shrink-0 gap-1">

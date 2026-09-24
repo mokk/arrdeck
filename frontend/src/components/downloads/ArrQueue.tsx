@@ -2,11 +2,12 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-
+import { formatWhen } from "../../api/format";
 import { Card, Row, SectionTitle, StateBadge } from "../../components/Blocks";
 import {
   useBlocklistRetry,
   useForceImport,
+  useGrabNow,
   useQueue,
   useQueueRemove,
 } from "../../hooks/queries";
@@ -18,6 +19,7 @@ export function ArrQueue() {
   const remove = useQueueRemove();
   const retry = useBlocklistRetry();
   const forceImport = useForceImport();
+  const grab = useGrabNow();
   const [importing, setImporting] = useState<{ app: string; id: number } | null>(null);
   const items = [
     ...(data?.radarr?.data ?? []),
@@ -37,10 +39,29 @@ export function ArrQueue() {
                 <StateBadge state={q.app} />
                 <StateBadge state={(q.errors ?? []).length ? "error" : q.status} />
                 {q.errors?.[0] ? <span className="truncate">{q.errors[0]}</span> : null}
+                {q.status === "delay" && q.estimated_completion && (
+                  <span className="truncate">
+                    {t("dl.heldUntil", {
+                      when: formatWhen(q.estimated_completion, "relative"),
+                    })}
+                  </span>
+                )}
               </div>
               {/* under the text, wrapping: beside it the four buttons ran over
                   the title on a phone */}
               <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {/* held by a delay profile: skip the wait */}
+                {q.status === "delay" && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="text-primary"
+                    disabled={grab.isPending}
+                    onClick={() => grab.mutate({ app: q.app, id: q.id })}
+                  >
+                    {t("dl.grabNow")}
+                  </Button>
+                )}
                 {q.app !== "readarr" &&
                   q.tracked_state?.startsWith("import") &&
                   q.tracked_state !== "imported" && (

@@ -39,6 +39,7 @@ async def wanted(
                 subtitle=str(r.get("year") or "") or None,
                 air_date=r.get("digitalRelease") or r.get("physicalRelease") or r.get("inCinemas"),
                 poster=_poster(r.get("images")),
+                last_search=r.get("lastSearchTime"),
             )
             for r in payload.get("records", [])
         ]
@@ -56,6 +57,7 @@ async def wanted(
                 ),
                 air_date=e.get("airDateUtc"),
                 poster=_poster((e.get("series") or {}).get("images")),
+                last_search=e.get("lastSearchTime"),
             )
             for e in payload.get("records", [])
         ]
@@ -72,6 +74,7 @@ async def wanted(
                 subtitle=(b.get("author") or {}).get("authorName") or b.get("authorTitle"),
                 air_date=b.get("releaseDate"),
                 poster=book_cover(b.get("images")),
+                last_search=b.get("lastSearchTime"),
             )
             for b in payload.get("records", [])
         ]

@@ -53,7 +53,8 @@
     "unmonitored": "ikke overvåget",
     "ok": "ok",
     "radarr": "radarr",
-    "sonarr": "sonarr"
+    "sonarr": "sonarr",
+    "delay": "holdt"
   },
   "dash": {
     "torrentActivity": "Torrent-aktivitet",
@@ -159,7 +160,10 @@
     "enterSeason": "Indtast et sæsonnummer",
     "chooseTarget": "Tryk for at vælge hvad det er",
     "loadMore": "Hent flere",
-    "showing": "Viser {{shown}} af {{total}}"
+    "showing": "Viser {{shown}} af {{total}}",
+    "grabNow": "Hent nu",
+    "grabbedNow": "Sendt til downloadklienten",
+    "heldUntil": "Holdt tilbage af en forsinkelsesprofil, hentes {{when}}"
   },
   "add": {
     "title": "Tilføj",
@@ -208,7 +212,9 @@
     "edition": "Udgave",
     "addMovie": "Tilføj film",
     "addShow": "Tilføj serie",
-    "addBook": "Tilføj bog"
+    "addBook": "Tilføj bog",
+    "recommended": "Anbefalet til dig",
+    "notInterested": "Ikke interesseret i {{title}}"
   },
   "manage": {
     "title": "Administrér",
@@ -357,7 +363,9 @@
     "cutoff": "Opgraderinger",
     "searchAll": "Søg alle",
     "empty": "Intet her — biblioteket er komplet",
-    "count": "{{count}} elementer"
+    "count": "{{count}} elementer",
+    "searched": "Søgt {{when}}",
+    "neverSearched": "Aldrig søgt"
   },
   "diagnose": {
     "title": "Hvorfor er den ikke kommet?",
@@ -375,7 +383,9 @@
     "delay_profile": "En forsinkelsesprofil holder igen med vilje — usenet {{usenet}}m, torrent {{torrent}}m.",
     "no_indexers": "Ingen indexers er aktiveret, så der er intet sted at søge.",
     "indexers_failing": "{{count}} indexer-problem rapporteret: {{message}}",
-    "nothing_found": "Alt ser fint ud — indexerne har blot ikke tilbudt en matchende udgivelse endnu."
+    "nothing_found": "Alt ser fint ud — indexerne har blot ikke tilbudt en matchende udgivelse endnu.",
+    "last_searched": "Radarr søgte sidst efter den {{when}}.",
+    "never_searched": "Radarr har ikke søgt efter den endnu."
   },
   "collections": {
     "title": "Samlinger",

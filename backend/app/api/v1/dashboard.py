@@ -102,6 +102,7 @@ def _queue_items(app: str, payload: dict) -> list[QueueItemOut]:
                 size=rec.get("size", 0),
                 size_left=rec.get("sizeleft", 0),
                 time_left=rec.get("timeleft"),
+                estimated_completion=rec.get("estimatedCompletionTime"),
                 errors=errors,
                 movie_id=rec.get("movieId"),
                 series_id=rec.get("seriesId"),

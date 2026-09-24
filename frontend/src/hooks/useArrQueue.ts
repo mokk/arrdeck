@@ -121,6 +121,18 @@ export function useBlocklistRetry() {
   });
 }
 
+/** Send a release a delay profile is holding to the download client now. */
+export function useGrabNow() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ app, id }: { app: ArrApp; id: number }) =>
+      api.post<void>(`/queue/${app}/${id}/grab`),
+    onSuccess: () => toast.success(t("dl.grabbedNow")),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["queue"] }),
+  });
+}
+
 export const useQueue = () =>
   useQuery({
     queryKey: ["queue"],

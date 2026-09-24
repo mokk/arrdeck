@@ -9,7 +9,8 @@ from fastapi import HTTPException
 
 from app.api.v1.books import shelf_rows
 from app.api.v1.cleanup import build_cleanup
-from app.api.v1.discover import _fanart, _rating
+from app.api.v1.diagnose import _search_findings
+from app.api.v1.discover import _fanart, _rating, recommendation_rows
 from app.api.v1.movies import movie_quality
 from app.api.v1.people import elsewhere_rows, index_credits, metadata_map
 from app.api.v1.reading import apply as apply_reading
@@ -374,3 +375,41 @@ def test_opds_token_is_checked_and_a_disabled_feed_is_a_404():
     Req.app.state.db.kv_set("opds.token", "")
     with pytest.raises(HTTPException):
         check_token(Req, "")
+
+
+def test_recommendations_skip_owned_and_excluded_best_known_first():
+    items = [
+        {
+            "tmdbId": 1,
+            "title": "Owned",
+            "isRecommendation": True,
+            "isExisting": True,
+            "popularity": 90,
+        },
+        {
+            "tmdbId": 2,
+            "title": "Skipped",
+            "isRecommendation": True,
+            "isExcluded": True,
+            "popularity": 80,
+        },
+        {"tmdbId": 3, "title": "Quiet", "isRecommendation": True, "popularity": 5},
+        {
+            "tmdbId": 4,
+            "title": "Loud",
+            "isRecommendation": True,
+            "popularity": 50,
+            "remotePoster": "https://image.tmdb.org/t/p/original/x.jpg",
+        },
+        {"tmdbId": 5, "title": "Trending, not recommended", "isTrending": True},
+    ]
+    rows = recommendation_rows(items)
+    assert [r["title"] for r in rows] == ["Loud", "Quiet"]
+    assert rows[0]["kind"] == "movie" and rows[0]["remote_id"] == 4
+    assert rows[0]["poster"].startswith("/api/v1/poster")
+
+
+def test_diagnosis_says_when_radarr_last_looked():
+    assert _search_findings({})[0].code == "never_searched"
+    found = _search_findings({"lastSearchTime": "2026-09-20T10:00:00Z"})[0]
+    assert found.code == "last_searched" and found.params["when"] == "2026-09-20T10:00:00Z"

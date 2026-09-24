@@ -57,3 +57,19 @@ async def remove_queue_item(
         await readarr.delete_queue_item(item_id, remove_from_client, blocklist)
     else:
         raise HTTPException(404, f"unknown app {app!r}")
+
+
+@router.post("/queue/{app}/{item_id}/grab", status_code=204)
+async def grab_now(
+    app: str,
+    item_id: int,
+    radarr: RadarrClient = Depends(get_radarr),
+    sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
+) -> None:
+    """Send a release a delay profile is holding to the download client now,
+    rather than when the delay runs out."""
+    clients = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}
+    if app not in clients:
+        raise HTTPException(404, f"unknown app {app!r}")
+    await clients[app].request("POST", f"/queue/grab/{item_id}")

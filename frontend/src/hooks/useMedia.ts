@@ -141,6 +141,27 @@ export function useGrabRelease() {
   });
 }
 
+/** Radarr's own suggestions from the library, and dismissing one for good. */
+export const useRecommendations = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["recommendations"],
+    queryFn: () => api.get<SearchResult[]>("/discover/recommendations"),
+    enabled,
+    staleTime: 30 * 60_000,
+  });
+
+export function useDismissRecommendation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (tmdbId: number) =>
+      api.post<void>(`/discover/recommendations/${tmdbId}/dismiss`),
+    onMutate: (tmdbId) =>
+      qc.setQueryData<SearchResult[]>(["recommendations"], (old) =>
+        old?.filter((r) => r.remote_id !== tmdbId),
+      ),
+  });
+}
+
 export const usePopular = (hours: number) =>
   useQuery({
     queryKey: ["popular", hours],

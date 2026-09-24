@@ -2485,6 +2485,10 @@ export type QueueItemOut = {
    */
   errors?: Array<string>;
   /**
+   * Estimated Completion
+   */
+  estimated_completion?: string | null;
+  /**
    * Id
    */
   id: number;
@@ -4282,6 +4286,10 @@ export type WantedItemOut = {
    */
   id: number;
   /**
+   * Last Search
+   */
+  last_search?: string | null;
+  /**
    * Library Id
    */
   library_id: number;
@@ -5176,6 +5184,57 @@ export type DiscoverMoviesApiV1DiscoverMoviesGetResponses = {
 
 export type DiscoverMoviesApiV1DiscoverMoviesGetResponse =
   DiscoverMoviesApiV1DiscoverMoviesGetResponses[keyof DiscoverMoviesApiV1DiscoverMoviesGetResponses];
+
+export type RecommendationsApiV1DiscoverRecommendationsGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/discover/recommendations";
+};
+
+export type RecommendationsApiV1DiscoverRecommendationsGetResponses = {
+  /**
+   * Response Recommendations Api V1 Discover Recommendations Get
+   *
+   * Successful Response
+   */
+  200: Array<SearchResultOut>;
+};
+
+export type RecommendationsApiV1DiscoverRecommendationsGetResponse =
+  RecommendationsApiV1DiscoverRecommendationsGetResponses[keyof RecommendationsApiV1DiscoverRecommendationsGetResponses];
+
+export type DismissRecommendationApiV1DiscoverRecommendationsTmdbIdDismissPostData = {
+  body?: never;
+  path: {
+    /**
+     * Tmdb Id
+     */
+    tmdb_id: number;
+  };
+  query?: never;
+  url: "/api/v1/discover/recommendations/{tmdb_id}/dismiss";
+};
+
+export type DismissRecommendationApiV1DiscoverRecommendationsTmdbIdDismissPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type DismissRecommendationApiV1DiscoverRecommendationsTmdbIdDismissPostError =
+  DismissRecommendationApiV1DiscoverRecommendationsTmdbIdDismissPostErrors[keyof DismissRecommendationApiV1DiscoverRecommendationsTmdbIdDismissPostErrors];
+
+export type DismissRecommendationApiV1DiscoverRecommendationsTmdbIdDismissPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type DismissRecommendationApiV1DiscoverRecommendationsTmdbIdDismissPostResponse =
+  DismissRecommendationApiV1DiscoverRecommendationsTmdbIdDismissPostResponses[keyof DismissRecommendationApiV1DiscoverRecommendationsTmdbIdDismissPostResponses];
 
 export type DiscoverSeriesApiV1DiscoverSeriesGetData = {
   body?: never;
@@ -7274,6 +7333,42 @@ export type ForceImportApiV1QueueAppItemIdForceImportPostResponses = {
 
 export type ForceImportApiV1QueueAppItemIdForceImportPostResponse =
   ForceImportApiV1QueueAppItemIdForceImportPostResponses[keyof ForceImportApiV1QueueAppItemIdForceImportPostResponses];
+
+export type GrabNowApiV1QueueAppItemIdGrabPostData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+    /**
+     * Item Id
+     */
+    item_id: number;
+  };
+  query?: never;
+  url: "/api/v1/queue/{app}/{item_id}/grab";
+};
+
+export type GrabNowApiV1QueueAppItemIdGrabPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type GrabNowApiV1QueueAppItemIdGrabPostError =
+  GrabNowApiV1QueueAppItemIdGrabPostErrors[keyof GrabNowApiV1QueueAppItemIdGrabPostErrors];
+
+export type GrabNowApiV1QueueAppItemIdGrabPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type GrabNowApiV1QueueAppItemIdGrabPostResponse =
+  GrabNowApiV1QueueAppItemIdGrabPostResponses[keyof GrabNowApiV1QueueAppItemIdGrabPostResponses];
 
 export type BookReleasesApiV1ReleasesBookBookIdGetData = {
   body?: never;

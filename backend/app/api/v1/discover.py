@@ -5,7 +5,7 @@ import copy
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from ...cache import cache
+from ...cache import cache, cached
 from ...clients.overseerr import OverseerrClient
 from ...clients.radarr import RadarrClient
 from ...clients.readarr import ReadarrClient
@@ -135,6 +135,58 @@ async def discover_movies(
         )
         for m in results
     ]
+
+
+RECOMMENDATIONS_TTL = 3600
+
+
+def recommendation_rows(items: list[dict]) -> list[dict]:
+    """Radarr's suggestions minus what it already has or was told to skip,
+    best known first."""
+    rows = [
+        m
+        for m in items
+        if m.get("isRecommendation")
+        and not m.get("isExisting")
+        and not m.get("isExcluded")
+        and m.get("tmdbId")
+    ]
+    rows.sort(key=lambda m: -(m.get("popularity") or 0))
+    return [
+        {
+            "kind": "movie",
+            "title": m.get("title") or "",
+            "year": m.get("year") or None,
+            "overview": m.get("overview"),
+            "remote_id": m["tmdbId"],
+            "tmdb_id": m["tmdbId"],
+            "imdb_id": m.get("imdbId"),
+            "poster": proxy_poster(m.get("remotePoster"))
+            if m.get("remotePoster")
+            else _poster(m.get("images")),
+            "in_library": False,
+        }
+        for m in rows
+    ]
+
+
+@router.get("/discover/recommendations", response_model=list[SearchResultOut])
+async def recommendations(radarr: RadarrClient = Depends(get_radarr)) -> list[dict]:
+    """Films Radarr recommends from your library, no Overseerr needed."""
+    return recommendation_rows(
+        await cached("radarr:recommendations", RECOMMENDATIONS_TTL, radarr.recommendations)
+    )
+
+
+@router.post("/discover/recommendations/{tmdb_id}/dismiss", status_code=204)
+async def dismiss_recommendation(tmdb_id: int, radarr: RadarrClient = Depends(get_radarr)) -> None:
+    """Not interested: a Radarr exclusion, so no list or suggestion brings it back."""
+    items = await cached("radarr:recommendations", RECOMMENDATIONS_TTL, radarr.recommendations)
+    movie = next((m for m in items if m.get("tmdbId") == tmdb_id), {})
+    await radarr.add_exclusion(tmdb_id, movie.get("title") or str(tmdb_id), movie.get("year"))
+    for m in items:
+        if m.get("tmdbId") == tmdb_id:
+            m["isExcluded"] = True
 
 
 @router.get("/discover/series", response_model=list[SearchResultOut])

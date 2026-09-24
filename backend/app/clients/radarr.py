@@ -54,6 +54,26 @@ class RadarrClient(ArrClient):
         """Cast and crew. Sonarr has no equivalent — /api/v3/credit is 404 there."""
         return await self.get("/credit", params={"movieId": movie_id})
 
+    async def recommendations(self) -> list:
+        """What Radarr suggests from the films already in the library."""
+        return await self.get(
+            "/importlist/movie",
+            params={
+                "includeRecommendations": "true",
+                "includeTrending": "false",
+                "includePopular": "false",
+            },
+            timeout=60.0,
+        )
+
+    async def add_exclusion(self, tmdb_id: int, title: str, year: int | None) -> dict:
+        """Keep a film out of lists and suggestions."""
+        return await self.request(
+            "POST",
+            "/exclusions",
+            json={"tmdbId": tmdb_id, "movieTitle": title, "movieYear": year or 0},
+        )
+
     async def all_credits(self) -> list:
         """Every credit of every film in one call (~3 MB for 125 films), keyed
         by movieMetadataId rather than the movie id."""

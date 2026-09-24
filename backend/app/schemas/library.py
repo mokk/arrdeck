@@ -233,6 +233,8 @@ class WantedItemOut(BaseModel):
     subtitle: str | None = None
     air_date: str | None = None
     poster: str | None = None
+    # when the arr last went looking; None when it never has
+    last_search: datetime | None = None
 
 
 class WantedPageOut(BaseModel):

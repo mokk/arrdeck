@@ -197,6 +197,15 @@ def _indexer_findings(stats: dict) -> list[DiagnosisFindingOut]:
     return []
 
 
+def _search_findings(item: dict) -> list[DiagnosisFindingOut]:
+    """When Radarr last went looking: a film it has never searched for has a
+    different answer from one that keeps coming up empty."""
+    last = item.get("lastSearchTime")
+    if not last:
+        return [_finding("never_searched", "info")]
+    return [_finding("last_searched", "info", when=last)]
+
+
 @router.get("/diagnose/{app}/{item_id}", response_model=DiagnosisOut)
 async def diagnose(
     app: str,
@@ -242,6 +251,7 @@ async def diagnose(
     findings += _queue_findings(rows(queue), item_id, app)
     if app == "radarr":
         findings += _availability_findings(item)
+        findings += _search_findings(item)
     elif not item.get("monitored", True):
         findings += [_finding("not_monitored", "blocked")]
     findings += _blocklist_findings(rows(blocklist), item_id, app)

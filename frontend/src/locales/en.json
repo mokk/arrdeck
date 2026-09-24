@@ -53,7 +53,8 @@
     "unmonitored": "unmonitored",
     "ok": "ok",
     "radarr": "radarr",
-    "sonarr": "sonarr"
+    "sonarr": "sonarr",
+    "delay": "held"
   },
   "dash": {
     "torrentActivity": "Torrent activity",
@@ -159,7 +160,10 @@
     "enterSeason": "Enter a season number",
     "chooseTarget": "Tap to choose what this is",
     "loadMore": "Load more",
-    "showing": "Showing {{shown}} of {{total}}"
+    "showing": "Showing {{shown}} of {{total}}",
+    "grabNow": "Grab now",
+    "grabbedNow": "Sent to the download client",
+    "heldUntil": "Held by a delay profile, grabbed {{when}}"
   },
   "add": {
     "title": "Add",
@@ -208,7 +212,9 @@
     "edition": "Edition",
     "addMovie": "Add movie",
     "addShow": "Add show",
-    "addBook": "Add book"
+    "addBook": "Add book",
+    "recommended": "Recommended for you",
+    "notInterested": "Not interested in {{title}}"
   },
   "manage": {
     "title": "Manage",
@@ -357,7 +363,9 @@
     "cutoff": "Upgrades",
     "searchAll": "Search all",
     "empty": "Nothing here — the library is complete",
-    "count": "{{count}} items"
+    "count": "{{count}} items",
+    "searched": "Searched {{when}}",
+    "neverSearched": "Never searched"
   },
   "diagnose": {
     "title": "Why hasn't this arrived?",
@@ -375,7 +383,9 @@
     "delay_profile": "A delay profile is holding grabs on purpose — usenet {{usenet}}m, torrent {{torrent}}m.",
     "no_indexers": "No indexers are enabled, so there is nowhere to search.",
     "indexers_failing": "{{count}} indexer problem reported: {{message}}",
-    "nothing_found": "Everything checks out — the indexers simply have not offered a matching release yet."
+    "nothing_found": "Everything checks out — the indexers simply have not offered a matching release yet.",
+    "last_searched": "Radarr last searched for it {{when}}.",
+    "never_searched": "Radarr has not searched for it yet."
   },
   "collections": {
     "title": "Collections",

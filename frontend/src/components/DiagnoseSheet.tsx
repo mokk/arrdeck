@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { formatWhen } from "../api/format";
 import type { DiagnosisFinding } from "../api/types";
 import { useDiagnose } from "../hooks/queries";
 import { EmptyNote, ErrorNote } from "./Blocks";
@@ -35,7 +36,12 @@ function Finding({ finding }: { finding: DiagnosisFinding }) {
         {/* The endpoint returns codes rather than sentences so the wording can
             live in the locale files. An unknown code falls back to the code
             itself, which is better than an empty row. */}
-        {t(key, { ...finding.params, defaultValue: finding.code })}
+        {t(key, {
+          ...finding.params,
+          // a moment, sent raw so the wording and the date style stay here
+          ...(finding.params?.when ? { when: formatWhen(String(finding.params.when)) } : {}),
+          defaultValue: finding.code,
+        })}
       </div>
     </div>
   );

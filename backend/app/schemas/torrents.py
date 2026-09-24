@@ -48,6 +48,8 @@ class QueueItemOut(BaseModel):
     size: float
     size_left: float
     time_left: str | None = None
+    # a release held by a delay profile: when it will be grabbed on its own
+    estimated_completion: str | None = None
     errors: list[str] = []
     # enables blocklist-&-retry from the UI
     movie_id: int | None = None
