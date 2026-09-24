@@ -79,6 +79,7 @@ export type Exclusion = G.ExclusionOut;
 export type ParseResult = G.ParseOut;
 export type SeasonGridRow = G.SeasonGridOut;
 export type OpdsSettings = G.OpdsSettingsOut;
+export type IcalSettings = G.IcalSettingsOut;
 export type CleanupItem = G.CleanupItemOut;
 export type TorrentSummary = G.TorrentSummaryOut;
 export type ImportCandidate = G.ImportCandidateOut;

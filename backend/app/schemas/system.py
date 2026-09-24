@@ -201,6 +201,8 @@ class PushRulesOut(BaseModel):
     quiet_end: str = ""
     timezone: str = "UTC"
     tags: dict[str, list[int]] = {}
+    digest_day: int = 6  # Monday = 0
+    digest_time: str = "18:00"
     quiet_now: bool = False  # whether the window is currently in effect
 
 
@@ -209,6 +211,8 @@ class PushRulesIn(BaseModel):
     quiet_end: str = ""
     timezone: str = "UTC"
     tags: dict[str, list[int]] = {}
+    digest_day: int = Field(6, ge=0, le=6)
+    digest_time: str = Field("18:00", pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
 
 
 class PushTestIn(BaseModel):
@@ -369,6 +373,14 @@ class DiagnosisOut(BaseModel):
     id: int
     title: str | None = None
     findings: list[DiagnosisFindingOut] = []
+
+
+class IcalSettingsOut(BaseModel):
+    enabled: bool = False
+    # the secret path segment; the client builds the URL from its own origin
+    token: str | None = None
+    # the arrs whose calendars the feed merges
+    apps: list[str] = []
 
 
 class OpdsSettingsOut(BaseModel):

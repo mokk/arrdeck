@@ -97,6 +97,7 @@ def _send_all(
                 "body": note.body,
                 "url": url,
                 "tag": tag,
+                **({"params": note.params} if note.params else {}),
             }
         )
         try:

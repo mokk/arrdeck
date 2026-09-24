@@ -132,6 +132,25 @@ class ArrClient(BaseClient):
     async def status(self) -> dict:
         return await self.get("/system/status")
 
+    async def history_since(self, date: str, **params: bool) -> list:
+        """Every history record after `date` (ISO), unpaged."""
+        return await self.get("/history/since", params={"date": date, **params}) or []
+
+    async def calendar_feed(self, past_days: int, future_days: int) -> str:
+        """The arr's own iCal feed, as text. It sits beside the API rather than
+        under it: /feed/v3/calendar/radarr.ics, /feed/v1/… for Readarr."""
+        version = self.api_prefix.rsplit("/", 1)[-1]
+        resp = await self._request(
+            "GET",
+            f"{self.base_url}/feed/{version}/calendar/{self.name}.ics",
+            headers={"X-Api-Key": self.api_key},
+            params={"pastDays": past_days, "futureDays": future_days},
+        )
+        if resp.status_code == 401:
+            raise ServiceUnavailable(self.name, "unauthorized (check API key)")
+        resp.raise_for_status()
+        return resp.text
+
     async def history(self, page_size: int = 20, page: int = 1, **params: bool) -> dict:
         # Extra params: Radarr includeMovie=, Sonarr includeSeries=/includeEpisode=.
         return await self.get(

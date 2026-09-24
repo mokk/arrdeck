@@ -409,7 +409,8 @@
     "finale_series": "Seriefinale",
     "finale_midseason": "Midtsæsonfinale",
     "episodes_one": "{{count}} afsnit",
-    "episodes_other": "{{count}} afsnit"
+    "episodes_other": "{{count}} afsnit",
+    "subscribe": "Abonnér"
   },
   "movie": {
     "file": "Fil",
@@ -452,7 +453,8 @@
       "failed": "Download mislykkedes",
       "manual": "Kræver manuel import",
       "health": "Systemadvarsel",
-      "added": "Tilføjet til biblioteket"
+      "added": "Tilføjet til biblioteket",
+      "digest": "Ugentlig oversigt"
     },
     "delivery": "Levering",
     "hookOn": "Forbundet",
@@ -469,7 +471,12 @@
     "quietHours": "Stilletimer",
     "quietNow": "stille lige nu",
     "quietHint": "Intet leveres i dette tidsrum ({{tz}}). Testnotifikationer sendes stadig.",
-    "onlyTags": "Kun {{app}}-emner med tag"
+    "onlyTags": "Kun {{app}}-emner med tag",
+    "digest": "Ugentlig oversigt",
+    "digestTime": "Tidspunkt for oversigten",
+    "digestNow": "Send nu",
+    "digestQuiet": "Intet at sende: en stille uge",
+    "digestHint": "Hvad der kom i denne uge, og hvad der kommer i næste uge. Slå hændelsen Ugentlig oversigt fra for at stoppe den."
   },
   "search": {
     "global": "Søg i alt…",
@@ -579,7 +586,8 @@
     "opds": "Læseapps (OPDS)",
     "exclusions": "Udelukkelser",
     "parse": "Test af udgivelsesnavn",
-    "subtitles": "Undertekster"
+    "subtitles": "Undertekster",
+    "ical": "Kalenderabonnement"
   },
   "book": {
     "pages": "{{count}} sider",
@@ -795,5 +803,14 @@
     "score": "Formatscore",
     "matches": "Passer til {{title}} i biblioteket",
     "noMatch": "Intet i biblioteket passer."
+  },
+  "ical": {
+    "intro": "Abonnér på det, Radarr, Sonarr og Readarr har på vej, i Apple Kalender, Google Kalender eller Outlook — én kalender for dem alle.",
+    "address": "Kalenderadresse",
+    "subscribe": "Abonnér",
+    "enable": "Slå kalenderen til",
+    "regenerateHint": "Den gamle adresse holder op med at virke; alle kalenderapps skal have den nye.",
+    "hint": "Adressen indeholder en hemmelighed i stedet for en adgangskode, da kalenderapps ikke kan logge ind på arrdeck. Alle med adressen kan se, hvad der er på vej. Google Kalender: Andre kalendere → Fra webadresse.",
+    "unavailable": "Kalenderen kræver Radarr, Sonarr eller Readarr."
   }
 }

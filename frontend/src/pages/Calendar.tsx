@@ -2,7 +2,7 @@
 // Days carry a big date and how far away they are, months a divider, and each
 // entry its cover, the app's colour, the air time and what kind of day it is —
 // a finale, a digital release, already on disk.
-import { Check, ChevronLeft } from "lucide-react";
+import { CalendarPlus, Check, ChevronLeft } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useNavigationType } from "react-router-dom";
@@ -160,6 +160,15 @@ export default function CalendarPage() {
         <h1 className="min-w-0 flex-1 truncate text-2xl font-extrabold tracking-tight">
           {t("cal.title")}
         </h1>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={t("cal.subscribe")}
+          title={t("cal.subscribe")}
+          onClick={() => navigate("/settings/ical")}
+        >
+          <CalendarPlus className="size-5" />
+        </Button>
         <Button
           variant="secondary"
           size="sm"

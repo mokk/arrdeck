@@ -24,6 +24,11 @@ const PUSH_STRINGS: Record<string, Record<string, string>> = {
     health: "Health issue",
     added: "Added to library",
     test: "Test notification",
+    digest: "Your week",
+    digest_arrived: "{list} downloaded",
+    digest_coming: "{list} coming up",
+    count_readarr_one: "1 book",
+    count_readarr: "{n} books",
     count_radarr_one: "1 movie",
     count_radarr: "{n} movies",
     count_sonarr_one: "1 episode",
@@ -40,6 +45,11 @@ const PUSH_STRINGS: Record<string, Record<string, string>> = {
     health: "Helbredsproblem",
     added: "Tilføjet til biblioteket",
     test: "Testnotifikation",
+    digest: "Din uge",
+    digest_arrived: "{list} downloadet",
+    digest_coming: "{list} på vej",
+    count_readarr_one: "1 bog",
+    count_readarr: "{n} bøger",
     count_radarr_one: "1 film",
     count_radarr: "{n} film",
     count_sonarr_one: "1 afsnit",
@@ -57,6 +67,7 @@ type PushPayload = {
   lang?: unknown;
   title?: unknown;
   body?: unknown;
+  params?: unknown;
 };
 
 function text(value: unknown): string {
@@ -71,10 +82,39 @@ function counted(strings: Record<string, string>, app: string, count: number): s
   return (strings[key] ?? "").replace("{n}", String(count));
 }
 
+const DIGEST_APPS = ["radarr", "sonarr", "readarr"];
+
+/** "3 movies, 52 episodes downloaded · 12 episodes coming up — Slow Horses, Dune" */
+function digest(
+  strings: Record<string, string>,
+  params: Record<string, unknown>,
+  heading: string,
+) {
+  const list = (suffix: string) =>
+    DIGEST_APPS.map((app) => {
+      const n = params[`${app}_${suffix}`];
+      return typeof n === "number" && n > 0 ? counted(strings, app, n) : "";
+    })
+      .filter(Boolean)
+      .join(", ");
+  const arrived = list("imported");
+  const coming = list("upcoming");
+  const parts = [
+    arrived && (strings.digest_arrived ?? "").replace("{list}", arrived),
+    coming && (strings.digest_coming ?? "").replace("{list}", coming),
+  ].filter(Boolean);
+  const body = parts.join(" · ");
+  return { title: strings.digest, body: heading && coming ? `${body} — ${heading}` : body };
+}
+
 export function localise(data: PushPayload): { title: string; body: string } {
   const lang = text(data.lang) || "en";
   const strings = PUSH_STRINGS[lang] ?? PUSH_STRINGS.en;
   const label = strings[text(data.code)];
+  if (data.code === "digest" && data.params && typeof data.params === "object") {
+    const out = digest(strings, data.params as Record<string, unknown>, text(data.heading));
+    if (out.body) return out;
+  }
 
   // No code, or one this build has never heard of: use whatever the server
   // rendered. That keeps a newly added server-side event readable in an older

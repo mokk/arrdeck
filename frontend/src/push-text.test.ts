@@ -30,6 +30,44 @@ describe("a single event", () => {
   });
 });
 
+describe("the weekly digest", () => {
+  const params = {
+    radarr_imported: 3,
+    sonarr_imported: 52,
+    sonarr_upcoming: 12,
+    readarr_upcoming: 1,
+  };
+
+  it("lists what arrived and what is coming, then names a few", () => {
+    const out = localise({
+      code: "digest",
+      count: 55,
+      app: "arrdeck",
+      heading: "Slow Horses",
+      params,
+    });
+    expect(out).toEqual({
+      title: "Your week",
+      body: "3 movies, 52 episodes downloaded · 12 episodes, 1 book coming up — Slow Horses",
+    });
+  });
+
+  it("writes it in Danish", () => {
+    const out = localise({
+      code: "digest",
+      count: 55,
+      app: "arrdeck",
+      heading: "",
+      params,
+      lang: "da",
+    });
+    expect(out).toEqual({
+      title: "Din uge",
+      body: "3 film, 52 afsnit downloadet · 12 afsnit, 1 bog på vej",
+    });
+  });
+});
+
 describe("a collapsed burst", () => {
   it("keeps the series as the heading and counts in the body", () => {
     const out = localise({ code: "imported", count: 8, app: "sonarr", heading: "The Bear" });

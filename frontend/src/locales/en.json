@@ -409,7 +409,8 @@
     "finale_series": "Series finale",
     "finale_midseason": "Midseason finale",
     "episodes_one": "{{count}} episode",
-    "episodes_other": "{{count}} episodes"
+    "episodes_other": "{{count}} episodes",
+    "subscribe": "Subscribe"
   },
   "movie": {
     "file": "File",
@@ -452,7 +453,8 @@
       "failed": "Download failed",
       "manual": "Needs manual import",
       "health": "Health issue",
-      "added": "Added to library"
+      "added": "Added to library",
+      "digest": "Weekly digest"
     },
     "delivery": "Delivery",
     "hookOn": "Connected",
@@ -469,7 +471,12 @@
     "quietHours": "Quiet hours",
     "quietNow": "quiet right now",
     "quietHint": "Nothing is delivered during this window ({{tz}}). Test notifications still go through.",
-    "onlyTags": "Only {{app}} items tagged"
+    "onlyTags": "Only {{app}} items tagged",
+    "digest": "Weekly digest",
+    "digestTime": "Digest time",
+    "digestNow": "Send now",
+    "digestQuiet": "Nothing to send: a quiet week",
+    "digestHint": "What arrived this week and what is coming up next week. Switch the Weekly digest event off to stop it."
   },
   "search": {
     "global": "Search everything…",
@@ -579,7 +586,8 @@
     "opds": "Reading apps (OPDS)",
     "exclusions": "Exclusions",
     "parse": "Release name tester",
-    "subtitles": "Subtitles"
+    "subtitles": "Subtitles",
+    "ical": "Calendar subscription"
   },
   "book": {
     "pages": "{{count}} pages",
@@ -795,5 +803,14 @@
     "score": "Format score",
     "matches": "Matches {{title}} in the library",
     "noMatch": "Nothing in the library matches it."
+  },
+  "ical": {
+    "intro": "Subscribe to what Radarr, Sonarr and Readarr have coming in Apple Calendar, Google Calendar or Outlook — one calendar for all of them.",
+    "address": "Calendar address",
+    "subscribe": "Subscribe",
+    "enable": "Turn on the calendar",
+    "regenerateHint": "The old address stops working; every calendar app needs the new one.",
+    "hint": "The address contains a secret instead of a password, since calendar apps cannot sign in to arrdeck. Anyone with it can see what is coming up. Google Calendar: Other calendars → From URL.",
+    "unavailable": "The calendar needs Radarr, Sonarr or Readarr."
   }
 }

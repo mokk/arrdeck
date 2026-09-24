@@ -14,6 +14,7 @@ from ...push import (
     ensure_vapid,
     get_rules,
     in_quiet_hours,
+    send_digest,
     send_test,
     set_enabled_events,
     set_rules,
@@ -166,6 +167,15 @@ async def push_test(body: PushTestIn, request: Request) -> dict:
     sent = await send_test(request.app.state.db, body.endpoint)
     if sent == 0:
         raise HTTPException(404, "no push subscription to deliver to")
+    return {"sent": sent}
+
+
+@router.post("/push/digest/test", response_model=PushTestOut)
+async def push_digest_test(body: PushTestIn, request: Request) -> dict:
+    """This week's digest now, to one device when an endpoint is given."""
+    sent = await send_digest(request.app.state.db, request.app.state.registry, body.endpoint)
+    if sent == 0:
+        raise HTTPException(404, "nothing to deliver: no subscription, or a quiet week")
     return {"sent": sent}
 
 

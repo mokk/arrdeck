@@ -216,6 +216,8 @@ export function useSavePushRules() {
       quiet_end: string;
       timezone: string;
       tags: Record<string, number[]>;
+      digest_day?: number;
+      digest_time?: string;
     }) => api.put<PushRules>("/push/rules", rules),
     onSuccess: (data) => qc.setQueryData(["pushRules"], data),
   });
@@ -224,6 +226,14 @@ export function useSavePushRules() {
 export function useTestPush() {
   return useMutation({
     mutationFn: (endpoint: string) => api.post<{ sent: number }>("/push/test", { endpoint }),
+  });
+}
+
+/** This week's digest right away, so the schedule can be tried out. */
+export function useTestDigest() {
+  return useMutation({
+    mutationFn: (endpoint: string) =>
+      api.post<{ sent: number }>("/push/digest/test", { endpoint }),
   });
 }
 

@@ -19,6 +19,7 @@ import type {
   EditionChoice,
   Episode,
   Exclusion,
+  IcalSettings,
   LibraryBook,
   LibraryKind,
   LibraryMovie,
@@ -155,6 +156,20 @@ export function useOpdsToken() {
         ? api.post<OpdsSettings>("/opds/settings/token")
         : api.delete<OpdsSettings>("/opds/settings/token"),
     onSuccess: (data) => qc.setQueryData(["opds"], data),
+  });
+}
+
+export const useIcalSettings = () =>
+  useQuery({ queryKey: ["ical"], queryFn: () => api.get<IcalSettings>("/ical/settings") });
+
+export function useIcalToken() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (enable: boolean) =>
+      enable
+        ? api.post<IcalSettings>("/ical/settings/token")
+        : api.delete<IcalSettings>("/ical/settings/token"),
+    onSuccess: (data) => qc.setQueryData(["ical"], data),
   });
 }
 

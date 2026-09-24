@@ -8,6 +8,7 @@ import {
   Ban,
   BarChart3,
   BookOpen,
+  CalendarPlus,
   Captions,
   ChevronRight,
   Cog,
@@ -27,6 +28,7 @@ import { Indexers } from "../components/manage/Indexers";
 import { ServiceSettingsTab } from "../components/manage/ServicesTab";
 import { SystemTab } from "../components/manage/System";
 import { DisplaySettings } from "../components/manage/settings/display";
+import { IcalSettings } from "../components/manage/settings/ical";
 import { NotificationsCard } from "../components/manage/settings/notifications";
 import { OpdsSettings } from "../components/manage/settings/opds";
 import { SubtitlesTool } from "../components/manage/subtitles";
@@ -37,6 +39,7 @@ type Section =
   | "display"
   | "notifications"
   | "opds"
+  | "ical"
   | "exclusions"
   | "parse"
   | "subtitles"
@@ -47,6 +50,7 @@ const SECTIONS: Section[] = [
   "display",
   "notifications",
   "opds",
+  "ical",
   "exclusions",
   "parse",
   "subtitles",
@@ -84,6 +88,7 @@ export default function Settings() {
         {section === "display" && <DisplaySettings configured={configured} />}
         {section === "notifications" && <NotificationsCard />}
         {section === "opds" && <OpdsSettings />}
+        {section === "ical" && <IcalSettings />}
         {section === "exclusions" && <ExclusionsTool />}
         {section === "parse" && (
           <ParseTool apps={["radarr", "sonarr"].filter((a) => configured.has(a))} />
@@ -125,6 +130,9 @@ export default function Settings() {
             )}
             {(configured.has("radarr") || configured.has("sonarr")) && (
               <LinkRow icon={FlaskConical} label={t("settings.parse")} to="/settings/parse" />
+            )}
+            {hasArr && (
+              <LinkRow icon={CalendarPlus} label={t("settings.ical")} to="/settings/ical" />
             )}
             {configured.has("bazarr") && (
               <LinkRow

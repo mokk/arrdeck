@@ -18,10 +18,11 @@ from .api.v1.router import router as v1_router
 from .clients.base import ServiceUnavailable
 from .config import get_settings
 from .db import SettingsDB
+from .ical import router as ical_router
 from .logging_setup import HEADER, REQUEST_ID, RequestIdMiddleware
 from .logging_setup import configure as configure_logging
 from .opds import router as opds_router
-from .push import flush_loop, push_loop
+from .push import digest_loop, flush_loop, push_loop
 from .registry import Registry
 from .stats import sampler_loop
 from .version import VERSION
@@ -82,6 +83,7 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(sampler_loop(db, registry)),
         asyncio.create_task(push_loop(db, registry)),
         asyncio.create_task(flush_loop(db)),
+        asyncio.create_task(digest_loop(db, registry)),
         asyncio.create_task(popular_loop(db, registry)),
     ]
     yield
@@ -104,6 +106,8 @@ app.add_middleware(RequestIdMiddleware)
 app.include_router(v1_router)
 # the OPDS feed: outside /api, guarded by the secret in its path
 app.include_router(opds_router)
+# the calendar subscription: same arrangement
+app.include_router(ical_router)
 
 
 OPEN_PREFIXES = ("/api/v1/auth/", "/api/v1/hooks/")

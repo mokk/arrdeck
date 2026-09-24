@@ -71,6 +71,8 @@ class Notification:
     heading: str
     title: str
     body: str
+    # numbers a sentence needs beyond `count` (the digest's per-app totals)
+    params: dict = field(default_factory=dict)
 
 
 def render(slot: _Slot) -> Notification:

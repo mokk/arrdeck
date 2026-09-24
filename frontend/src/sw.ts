@@ -20,7 +20,7 @@ cleanupOutdatedCaches();
 
 registerRoute(
   new NavigationRoute(createHandlerBoundToURL("index.html"), {
-    denylist: [/^\/api\//, /^\/openapi\.json/, /^\/docs/],
+    denylist: [/^\/api\//, /^\/openapi\.json/, /^\/docs/, /^\/ical\//, /^\/opds\//],
   }),
 );
 

@@ -6,6 +6,13 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { cn, focusRing } from "@/lib/utils";
 
@@ -18,6 +25,7 @@ import {
   useSavePushEvents,
   useSavePushRules,
   useTags,
+  useTestDigest,
   useTestPush,
   useVapidKey,
   useWebhookStatus,
@@ -100,7 +108,7 @@ function EventToggles({ endpoint }: { endpoint: string }) {
  * the container runs UTC and a window entered as 23:00 would otherwise take
  * effect at the wrong time of night. */
 
-function NotificationRules() {
+function NotificationRules({ endpoint }: { endpoint: string }) {
   const { t } = useTranslation();
   const { data } = usePushRules();
   const save = useSavePushRules();
@@ -121,6 +129,8 @@ function NotificationRules() {
       quiet_end: quietEnd,
       timezone: browserTz,
       tags: { radarr: tags.radarr ?? [], sonarr: tags.sonarr ?? [] },
+      digest_day: data.digest_day ?? 6,
+      digest_time: data.digest_time ?? "18:00",
       ...over,
     } as Parameters<typeof save.mutate>[0]);
 
@@ -176,6 +186,12 @@ function NotificationRules() {
       <span className="text-xs text-muted-foreground">
         {t("push.quietHint", { tz: data.timezone || browserTz })}
       </span>
+      <DigestSchedule
+        endpoint={endpoint}
+        day={data.digest_day ?? 6}
+        time={data.digest_time ?? "18:00"}
+        onChange={(digest_day, digest_time) => persist({ digest_day, digest_time })}
+      />
       {tagRows.map(([app, list]) => (
         <div key={app} className="flex flex-wrap items-center gap-1.5">
           <Label className="text-xs text-muted-foreground">
@@ -200,6 +216,76 @@ function NotificationRules() {
           })}
         </div>
       ))}
+    </div>
+  );
+}
+
+/** When the weekly digest goes out. Shown only while the digest event is on,
+ * which is also how it is switched off. */
+function DigestSchedule({
+  endpoint,
+  day,
+  time,
+  onChange,
+}: {
+  endpoint: string;
+  day: number;
+  time: string;
+  onChange: (day: number, time: string) => void;
+}) {
+  const { t, i18n } = useTranslation();
+  const { data: events } = usePushEvents(true, endpoint);
+  const test = useTestDigest();
+  const [draft, setDraft] = useState<string | null>(null);
+  const on = (events?.device ?? events?.enabled ?? []).includes("digest");
+  if (!on) return null;
+  // 1 January 2024 was a Monday, which is day 0 on the server
+  const weekday = (i: number) =>
+    new Date(2024, 0, 1 + i).toLocaleDateString(i18n.language, { weekday: "long" });
+  return (
+    <div className="flex flex-col gap-2">
+      <Label className="text-xs text-muted-foreground">{t("push.digest")}</Label>
+      <div className="flex flex-wrap items-center gap-2">
+        <Select value={String(day)} onValueChange={(v) => onChange(Number(v), time)}>
+          <SelectTrigger size="sm" className="w-36 bg-secondary">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+              <SelectItem key={i} value={String(i)}>
+                {weekday(i)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Input
+          type="time"
+          className="w-28"
+          aria-label={t("push.digestTime")}
+          value={draft ?? time}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={() => {
+            if (draft && draft !== time) onChange(day, draft);
+            setDraft(null);
+          }}
+        />
+        {endpoint && (
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={test.isPending}
+            onClick={() =>
+              test.mutate(endpoint, {
+                onSuccess: () => toast.success(t("push.testSent")),
+                onError: () => toast.message(t("push.digestQuiet")),
+              })
+            }
+          >
+            {t("push.digestNow")}
+          </Button>
+        )}
+      </div>
+      <span className="text-xs text-muted-foreground">{t("push.digestHint")}</span>
     </div>
   );
 }
@@ -388,7 +474,7 @@ export function NotificationsCard() {
           )}
         </div>
         <EventToggles endpoint={endpoint} />
-        <NotificationRules />
+        <NotificationRules endpoint={endpoint} />
         <WebhookSection />
       </div>
     </Card>

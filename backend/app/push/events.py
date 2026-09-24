@@ -33,10 +33,11 @@ EVENT_LABELS = {
     "manual": "Needs manual import",
     "health": "Health issue",
     "added": "Added to library",
+    "digest": "Weekly digest",
 }
 
 
-DEFAULT_EVENTS = ["imported", "upgraded", "failed", "manual", "health"]
+DEFAULT_EVENTS = ["imported", "upgraded", "failed", "manual", "health", "digest"]
 
 
 WEBHOOK_EVENTS = {
@@ -123,6 +124,8 @@ DEFAULT_RULES = {
     "quiet_end": "",
     "timezone": "UTC",  # the container runs UTC, so the browser supplies its own
     "tags": {"radarr": [], "sonarr": []},  # empty = every item; ids are per app
+    "digest_day": 6,  # weekday of the weekly digest, Monday = 0
+    "digest_time": "18:00",  # in `timezone`
 }
 
 
@@ -141,6 +144,11 @@ def get_rules(db: SettingsDB) -> dict:
     for key in ("quiet_start", "quiet_end", "timezone"):
         if isinstance(stored.get(key), str):
             rules[key] = stored[key]
+    day = stored.get("digest_day")
+    if isinstance(day, int) and 0 <= day <= 6:
+        rules["digest_day"] = day
+    if _parse_hhmm(stored.get("digest_time") or "") is not None:
+        rules["digest_time"] = stored["digest_time"]
     tags = stored.get("tags")
     if isinstance(tags, dict):
         for app_name in ("radarr", "sonarr"):

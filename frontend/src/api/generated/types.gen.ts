@@ -1341,6 +1341,24 @@ export type HistoryResponse = {
 };
 
 /**
+ * IcalSettingsOut
+ */
+export type IcalSettingsOut = {
+  /**
+   * Apps
+   */
+  apps?: Array<string>;
+  /**
+   * Enabled
+   */
+  enabled?: boolean;
+  /**
+   * Token
+   */
+  token?: string | null;
+};
+
+/**
  * ImportCandidateOut
  */
 export type ImportCandidateOut = {
@@ -2409,6 +2427,14 @@ export type PushEventsOut = {
  */
 export type PushRulesIn = {
   /**
+   * Digest Day
+   */
+  digest_day?: number;
+  /**
+   * Digest Time
+   */
+  digest_time?: string;
+  /**
    * Quiet End
    */
   quiet_end?: string;
@@ -2432,6 +2458,14 @@ export type PushRulesIn = {
  * PushRulesOut
  */
 export type PushRulesOut = {
+  /**
+   * Digest Day
+   */
+  digest_day?: number;
+  /**
+   * Digest Time
+   */
+  digest_time?: string;
   /**
    * Quiet End
    */
@@ -5642,6 +5676,57 @@ export type HistoryAllApiV1HistoryAllGetResponses = {
 export type HistoryAllApiV1HistoryAllGetResponse =
   HistoryAllApiV1HistoryAllGetResponses[keyof HistoryAllApiV1HistoryAllGetResponses];
 
+export type IcalSettingsApiV1IcalSettingsGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/ical/settings";
+};
+
+export type IcalSettingsApiV1IcalSettingsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: IcalSettingsOut;
+};
+
+export type IcalSettingsApiV1IcalSettingsGetResponse =
+  IcalSettingsApiV1IcalSettingsGetResponses[keyof IcalSettingsApiV1IcalSettingsGetResponses];
+
+export type IcalDisableApiV1IcalSettingsTokenDeleteData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/ical/settings/token";
+};
+
+export type IcalDisableApiV1IcalSettingsTokenDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  200: IcalSettingsOut;
+};
+
+export type IcalDisableApiV1IcalSettingsTokenDeleteResponse =
+  IcalDisableApiV1IcalSettingsTokenDeleteResponses[keyof IcalDisableApiV1IcalSettingsTokenDeleteResponses];
+
+export type IcalNewTokenApiV1IcalSettingsTokenPostData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/ical/settings/token";
+};
+
+export type IcalNewTokenApiV1IcalSettingsTokenPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: IcalSettingsOut;
+};
+
+export type IcalNewTokenApiV1IcalSettingsTokenPostResponse =
+  IcalNewTokenApiV1IcalSettingsTokenPostResponses[keyof IcalNewTokenApiV1IcalSettingsTokenPostResponses];
+
 export type ImportListsApiV1ImportListsGetData = {
   body?: never;
   path?: never;
@@ -7242,6 +7327,33 @@ export type PopularApiV1PopularGetResponses = {
 
 export type PopularApiV1PopularGetResponse =
   PopularApiV1PopularGetResponses[keyof PopularApiV1PopularGetResponses];
+
+export type PushDigestTestApiV1PushDigestTestPostData = {
+  body: PushTestIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/push/digest/test";
+};
+
+export type PushDigestTestApiV1PushDigestTestPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type PushDigestTestApiV1PushDigestTestPostError =
+  PushDigestTestApiV1PushDigestTestPostErrors[keyof PushDigestTestApiV1PushDigestTestPostErrors];
+
+export type PushDigestTestApiV1PushDigestTestPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: PushTestOut;
+};
+
+export type PushDigestTestApiV1PushDigestTestPostResponse =
+  PushDigestTestApiV1PushDigestTestPostResponses[keyof PushDigestTestApiV1PushDigestTestPostResponses];
 
 export type PushEventsApiV1PushEventsGetData = {
   body?: never;
