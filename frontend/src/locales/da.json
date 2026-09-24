@@ -375,7 +375,8 @@
     "blocklist": "Blokeringsliste",
     "blocklistEmpty": "Intet er blokeret",
     "unblock": "Ophæv",
-    "clearFor": "Ryd {{app}}"
+    "clearFor": "Ryd {{app}}",
+    "new": "NY"
   },
   "wanted": {
     "title": "Ønsket",
@@ -585,9 +586,6 @@
     "downloads": "Downloads",
     "queue": "Kø",
     "history": "Historik",
-    "new": "Nyt",
-    "sinceLabel": "Siden {{time}}",
-    "nothingNew": "Intet nyt siden du sidst kiggede",
     "newCount": "{{count}} nye"
   },
   "settings": {

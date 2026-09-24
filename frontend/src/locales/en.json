@@ -375,7 +375,8 @@
     "blocklist": "Blocklist",
     "blocklistEmpty": "Nothing is blocked",
     "unblock": "Unblock",
-    "clearFor": "Clear {{app}}"
+    "clearFor": "Clear {{app}}",
+    "new": "NEW"
   },
   "wanted": {
     "title": "Wanted",
@@ -585,9 +586,6 @@
     "downloads": "Downloads",
     "queue": "Queue",
     "history": "History",
-    "new": "New",
-    "sinceLabel": "Since {{time}}",
-    "nothingNew": "Nothing new since you last looked",
     "newCount": "{{count}} new"
   },
   "settings": {

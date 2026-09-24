@@ -13,6 +13,7 @@ import {
   useServices,
 } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
+import { getLastSeen, markSeen } from "../lib/lastSeen";
 
 const TYPE_CHIPS = ["fetched", "imported", "failed", "deleted"];
 
@@ -82,6 +83,13 @@ export default function HistoryPage() {
   const [appFilter, setAppFilter] = usePersistentState<string>("history.app", "all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const { data, isFetching } = useHistoryPage(page);
+  // What happened after the last visit is marked NEW. The cutoff is taken once,
+  // so the badges stay while the mark (and the tab's count) moves on.
+  const [since] = useState(() => Date.parse(getLastSeen()));
+  const isNew = (h: HistoryItem) => Date.parse(h.date) > since;
+  useEffect(() => {
+    if (data && page === 1) markSeen(new Date().toISOString());
+  }, [data, page]);
   const [tab, setTab] = useState<"history" | "blocklist">("history");
   const { data: services } = useServices();
   const apps = (["radarr", "sonarr", "readarr"] as const).filter((app) =>
@@ -180,7 +188,14 @@ export default function HistoryPage() {
             }
           >
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-medium">{h.title}</div>
+              <div className="flex min-w-0 items-center gap-1.5">
+                {isNew(h) && (
+                  <span className="shrink-0 rounded bg-primary px-1.5 py-px text-[10px] font-bold tracking-wide text-primary-foreground">
+                    {t("history.new")}
+                  </span>
+                )}
+                <span className="truncate text-sm font-medium">{h.title}</span>
+              </div>
               <div className="mt-0.5 flex flex-wrap items-center gap-1 text-xs">
                 <StateBadge state={h.app} />
                 {(h.events ?? []).map((e) => (
