@@ -24,6 +24,7 @@ import { CollectionsList } from "../components/library/Collections";
 import { Cover } from "../components/library/Cover";
 import { LetterScrubber, letterAnchor, letterOf } from "../components/library/LetterScrubber";
 import { READING } from "../components/library/Reading";
+import { SeasonGrid } from "../components/library/SeasonGrid";
 import { ShelfView } from "../components/library/Shelf";
 import { UpNextView } from "../components/library/UpNext";
 import { LibraryBulkBar } from "../components/manage/library/shared";
@@ -104,7 +105,7 @@ const CONFIG = {
 const LETTER_SORTS = new Set(["title", "author"]);
 // the views that bring their own grouping and order, so sort and the letter
 // strip do not apply to them
-const OWN_ORDER = new Set<Layout>(["upnext", "shelf", "collections"]);
+const OWN_ORDER = new Set<Layout>(["upnext", "seasons", "shelf", "collections"]);
 // room for the letter strip on a phone, where the content reaches the edge
 const gutter = "mr-5 sm:mr-0";
 
@@ -381,6 +382,8 @@ function LibraryView({
             navigate(`/series/${id}`);
           }}
         />
+      ) : layout === "seasons" ? (
+        <SeasonGrid needle={needle} onOpen={(id) => navigate(`/series/${id}`)} />
       ) : layout === "shelf" ? (
         <ShelfView
           books={shown as unknown as LibraryBook[]}
@@ -409,7 +412,7 @@ function LibraryView({
           </div>
         )
       )}
-      {cards && shown.length === 0 && layout !== "collections" && (
+      {cards && shown.length === 0 && layout !== "collections" && layout !== "seasons" && (
         <EmptyState
           kind={kind}
           searching={needle !== ""}

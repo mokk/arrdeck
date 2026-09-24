@@ -16,6 +16,7 @@ from app.api.v1.people import elsewhere_rows, index_credits, metadata_map
 from app.api.v1.reading import apply as apply_reading
 from app.api.v1.requests import request_keys
 from app.api.v1.series import current_season, next_episodes
+from app.api.v1.tools import exclusion_row, parse_row
 from app.cache import cache
 from app.opds import book_entry, check_token
 
@@ -413,3 +414,50 @@ def test_diagnosis_says_when_radarr_last_looked():
     assert _search_findings({})[0].code == "never_searched"
     found = _search_findings({"lastSearchTime": "2026-09-20T10:00:00Z"})[0]
     assert found.code == "last_searched" and found.params["when"] == "2026-09-20T10:00:00Z"
+
+
+def test_parse_row_reads_films_and_episodes():
+    film = parse_row(
+        "radarr",
+        "Dune.Part.Two.2024.2160p.UHD.BluRay",
+        {
+            "parsedMovieInfo": {
+                "movieTitles": ["Dune Part Two"],
+                "year": 2024,
+                "quality": {
+                    "quality": {"name": "Bluray-2160p", "resolution": 2160, "source": "bluray"}
+                },
+                "languages": [{"name": "Unknown"}],
+                "releaseGroup": "FraMeSToR",
+            },
+            "customFormats": [{"name": "DV"}],
+            "customFormatScore": 1500,
+        },
+    )
+    assert film["parsed_title"] == "Dune Part Two" and film["year"] == 2024
+    assert film["quality"] == "Bluray-2160p" and film["resolution"] == 2160
+    assert film["languages"] == [], "Unknown is no language"
+    assert film["custom_formats"] == ["DV"] and film["custom_format_score"] == 1500
+    assert film["match_id"] is None
+    show = parse_row(
+        "sonarr",
+        "Slow.Horses.S06E03",
+        {
+            "parsedEpisodeInfo": {
+                "seriesTitle": "Slow Horses",
+                "seasonNumber": 6,
+                "episodeNumbers": [3],
+            },
+            "series": {"id": 72, "title": "Slow Horses"},
+            "episodes": [{"seasonNumber": 6, "episodeNumber": 3, "title": "Resurrection"}],
+        },
+    )
+    assert show["season"] == 6 and show["episodes"] == [3]
+    assert show["match_id"] == 72 and show["match_episodes"] == ["S06E03 Resurrection"]
+
+
+def test_exclusion_rows_per_app():
+    assert exclusion_row(
+        "radarr", {"id": 1, "tmdbId": 5, "movieTitle": "F4", "movieYear": 2025}
+    ) == {"app": "radarr", "id": 1, "title": "F4", "year": 2025, "remote_id": "5"}
+    assert exclusion_row("sonarr", {"id": 2, "tvdbId": 9, "title": "Diplomat"})["remote_id"] == "9"

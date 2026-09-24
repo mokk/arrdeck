@@ -1170,6 +1170,32 @@ export type EpisodeSubtitlesOut = {
 };
 
 /**
+ * ExclusionOut
+ */
+export type ExclusionOut = {
+  /**
+   * App
+   */
+  app: "radarr" | "sonarr" | "readarr";
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Remote Id
+   */
+  remote_id?: string | null;
+  /**
+   * Title
+   */
+  title?: string | null;
+  /**
+   * Year
+   */
+  year?: number | null;
+};
+
+/**
  * GrabIn
  */
 export type GrabIn = {
@@ -2015,6 +2041,86 @@ export type OptionsOut = {
    * Root Folders
    */
   root_folders: Array<RootFolderOut>;
+};
+
+/**
+ * ParseOut
+ *
+ * How an arr reads a release name, and what it would do with it.
+ */
+export type ParseOut = {
+  /**
+   * App
+   */
+  app: "radarr" | "sonarr";
+  /**
+   * Custom Format Score
+   */
+  custom_format_score?: number;
+  /**
+   * Custom Formats
+   */
+  custom_formats?: Array<string>;
+  /**
+   * Edition
+   */
+  edition?: string | null;
+  /**
+   * Episodes
+   */
+  episodes?: Array<number>;
+  /**
+   * Full Season
+   */
+  full_season?: boolean;
+  /**
+   * Languages
+   */
+  languages?: Array<string>;
+  /**
+   * Match Episodes
+   */
+  match_episodes?: Array<string>;
+  /**
+   * Match Id
+   */
+  match_id?: number | null;
+  /**
+   * Match Title
+   */
+  match_title?: string | null;
+  /**
+   * Parsed Title
+   */
+  parsed_title?: string | null;
+  /**
+   * Quality
+   */
+  quality?: string | null;
+  /**
+   * Release Group
+   */
+  release_group?: string | null;
+  /**
+   * Resolution
+   */
+  resolution?: number | null;
+  /**
+   * Season
+   */
+  season?: number | null;
+  /**
+   * Source
+   */
+  source?: string | null;
+  /**
+   * Title
+   */
+  title: string;
+  /**
+   * Year
+   */
+  year?: number | null;
 };
 
 /**
@@ -2903,6 +3009,58 @@ export type SearchResultOut = {
    * Year
    */
   year?: number | null;
+};
+
+/**
+ * SeasonCellOut
+ */
+export type SeasonCellOut = {
+  /**
+   * Have
+   */
+  have?: number;
+  /**
+   * Monitored
+   */
+  monitored?: boolean;
+  /**
+   * Number
+   */
+  number: number;
+  /**
+   * Total
+   */
+  total?: number;
+};
+
+/**
+ * SeasonGridOut
+ */
+export type SeasonGridOut = {
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Monitored
+   */
+  monitored?: boolean;
+  /**
+   * Poster
+   */
+  poster?: string | null;
+  /**
+   * Seasons
+   */
+  seasons?: Array<SeasonCellOut>;
+  /**
+   * Status
+   */
+  status?: string | null;
+  /**
+   * Title
+   */
+  title?: string | null;
 };
 
 /**
@@ -5287,6 +5445,61 @@ export type DiskspaceApiV1DiskspaceGetResponses = {
 export type DiskspaceApiV1DiskspaceGetResponse =
   DiskspaceApiV1DiskspaceGetResponses[keyof DiskspaceApiV1DiskspaceGetResponses];
 
+export type ExclusionsApiV1ExclusionsGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/exclusions";
+};
+
+export type ExclusionsApiV1ExclusionsGetResponses = {
+  /**
+   * Response Exclusions Api V1 Exclusions Get
+   *
+   * Successful Response
+   */
+  200: Array<ExclusionOut>;
+};
+
+export type ExclusionsApiV1ExclusionsGetResponse =
+  ExclusionsApiV1ExclusionsGetResponses[keyof ExclusionsApiV1ExclusionsGetResponses];
+
+export type RemoveExclusionApiV1ExclusionsAppExclusionIdDeleteData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+    /**
+     * Exclusion Id
+     */
+    exclusion_id: number;
+  };
+  query?: never;
+  url: "/api/v1/exclusions/{app}/{exclusion_id}";
+};
+
+export type RemoveExclusionApiV1ExclusionsAppExclusionIdDeleteErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type RemoveExclusionApiV1ExclusionsAppExclusionIdDeleteError =
+  RemoveExclusionApiV1ExclusionsAppExclusionIdDeleteErrors[keyof RemoveExclusionApiV1ExclusionsAppExclusionIdDeleteErrors];
+
+export type RemoveExclusionApiV1ExclusionsAppExclusionIdDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type RemoveExclusionApiV1ExclusionsAppExclusionIdDeleteResponse =
+  RemoveExclusionApiV1ExclusionsAppExclusionIdDeleteResponses[keyof RemoveExclusionApiV1ExclusionsAppExclusionIdDeleteResponses];
+
 export type HealthApiV1HealthGetData = {
   body?: never;
   path?: never;
@@ -6255,6 +6468,25 @@ export type LibrarySeriesApiV1LibrarySeriesGetResponses = {
 export type LibrarySeriesApiV1LibrarySeriesGetResponse =
   LibrarySeriesApiV1LibrarySeriesGetResponses[keyof LibrarySeriesApiV1LibrarySeriesGetResponses];
 
+export type SeasonGridApiV1LibrarySeriesSeasonsGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/library/series/seasons";
+};
+
+export type SeasonGridApiV1LibrarySeriesSeasonsGetResponses = {
+  /**
+   * Response Season Grid Api V1 Library Series Seasons Get
+   *
+   * Successful Response
+   */
+  200: Array<SeasonGridOut>;
+};
+
+export type SeasonGridApiV1LibrarySeriesSeasonsGetResponse =
+  SeasonGridApiV1LibrarySeriesSeasonsGetResponses[keyof SeasonGridApiV1LibrarySeriesSeasonsGetResponses];
+
 export type DeleteSeriesApiV1LibrarySeriesSeriesIdDeleteData = {
   body?: never;
   path: {
@@ -6861,6 +7093,43 @@ export type OptionsApiV1OptionsAppGetResponses = {
 
 export type OptionsApiV1OptionsAppGetResponse =
   OptionsApiV1OptionsAppGetResponses[keyof OptionsApiV1OptionsAppGetResponses];
+
+export type ParseApiV1ParseAppGetData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+  };
+  query: {
+    /**
+     * Title
+     */
+    title: string;
+  };
+  url: "/api/v1/parse/{app}";
+};
+
+export type ParseApiV1ParseAppGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type ParseApiV1ParseAppGetError =
+  ParseApiV1ParseAppGetErrors[keyof ParseApiV1ParseAppGetErrors];
+
+export type ParseApiV1ParseAppGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ParseOut;
+};
+
+export type ParseApiV1ParseAppGetResponse =
+  ParseApiV1ParseAppGetResponses[keyof ParseApiV1ParseAppGetResponses];
 
 export type PopularApiV1PopularGetData = {
   body?: never;

@@ -31,6 +31,7 @@ from . import (
     subtitles,
     system,
     tasks,
+    tools,
     torrentactions,
     torrents,
     wanted,
@@ -65,6 +66,7 @@ router.include_router(people.router)
 router.include_router(cleanup.router)
 router.include_router(reading.router)
 router.include_router(opds_settings.router)
+router.include_router(tools.router)
 router.include_router(wanted.router)
 router.include_router(arrmeta.router)
 router.include_router(settings.router)

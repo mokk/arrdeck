@@ -5,14 +5,21 @@
 import { useSyncExternalStore } from "react";
 import type { LibraryKind } from "../api/types";
 
-export type Layout = "posters" | "list" | "details" | "upnext" | "shelf" | "collections";
+export type Layout =
+  | "posters"
+  | "list"
+  | "details"
+  | "upnext"
+  | "seasons"
+  | "shelf"
+  | "collections";
 
 /** Each tab's views: the three shared layouts, then the one that only makes
  * sense for that kind — airing order for shows, series for books, Radarr's
  * collections for films. */
 export const LAYOUTS_FOR: Record<LibraryKind, Layout[]> = {
   movies: ["posters", "list", "details", "collections"],
-  series: ["posters", "list", "details", "upnext"],
+  series: ["posters", "list", "details", "upnext", "seasons"],
   books: ["posters", "list", "details", "shelf"],
 };
 export type Unmonitored = "show" | "dim" | "hide";

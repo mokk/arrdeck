@@ -18,6 +18,7 @@ import type {
   Diagnosis,
   EditionChoice,
   Episode,
+  Exclusion,
   LibraryBook,
   LibraryKind,
   LibraryMovie,
@@ -25,8 +26,10 @@ import type {
   MovieDetail,
   OpdsSettings,
   Options,
+  ParseResult,
   Person,
   Reading,
+  SeasonGridRow,
   SeriesDetail,
   ShelfSeries,
   Tag,
@@ -436,6 +439,70 @@ export function useSeasonMonitor(seriesId: number) {
     mutationFn: ({ season, monitored }: { season: number; monitored: boolean }) =>
       api.post<void>(`/library/series/${seriesId}/seasons/${season}/monitor`, { monitored }),
     onSettled: () => qc.invalidateQueries({ queryKey: ["seriesDetail", seriesId] }),
+  });
+}
+
+export const useExclusions = () =>
+  useQuery({ queryKey: ["exclusions"], queryFn: () => api.get<Exclusion[]>("/exclusions") });
+
+export function useRemoveExclusion() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ app, id }: { app: string; id: number }) =>
+      api.delete<void>(`/exclusions/${app}/${id}`),
+    onMutate: ({ app, id }) =>
+      qc.setQueryData<Exclusion[]>(["exclusions"], (old) =>
+        old?.filter((e) => !(e.app === app && e.id === id)),
+      ),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["recommendations"] }),
+  });
+}
+
+export const useParse = (app: string, title: string) =>
+  useQuery({
+    queryKey: ["parse", app, title],
+    queryFn: () => api.get<ParseResult>(`/parse/${app}?title=${encodeURIComponent(title)}`),
+    enabled: title.trim().length > 3,
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+
+export const useSeasonGrid = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["seasonGrid"],
+    queryFn: () => api.get<SeasonGridRow[]>("/library/series/seasons"),
+    enabled,
+  });
+
+/** One season's monitoring from the grid, updated in place so a row of taps
+ * does not wait on a refetch each time. */
+export function useGridSeasonMonitor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      seriesId,
+      season,
+      monitored,
+    }: {
+      seriesId: number;
+      season: number;
+      monitored: boolean;
+    }) =>
+      api.post<void>(`/library/series/${seriesId}/seasons/${season}/monitor`, { monitored }),
+    onMutate: ({ seriesId, season, monitored }) =>
+      qc.setQueryData<SeasonGridRow[]>(["seasonGrid"], (old) =>
+        old?.map((row) =>
+          row.id === seriesId
+            ? {
+                ...row,
+                seasons: (row.seasons ?? []).map((s) =>
+                  s.number === season ? { ...s, monitored } : s,
+                ),
+              }
+            : row,
+        ),
+      ),
+    onSettled: (_d, _e, { seriesId }) =>
+      qc.invalidateQueries({ queryKey: ["seriesDetail", seriesId] }),
   });
 }
 

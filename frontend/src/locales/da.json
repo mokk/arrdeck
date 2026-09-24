@@ -534,7 +534,8 @@
       "details": "Detaljer",
       "upnext": "Næste afsnit",
       "shelf": "Bogreol",
-      "collections": "Samlinger"
+      "collections": "Samlinger",
+      "seasons": "Sæsonoversigt"
     },
     "empty": {
       "movies": "Ingen film endnu.",
@@ -575,7 +576,9 @@
     "display": "Visning",
     "notifications": "Notifikationer",
     "cleanup": "Oprydning",
-    "opds": "Læseapps (OPDS)"
+    "opds": "Læseapps (OPDS)",
+    "exclusions": "Udelukkelser",
+    "parse": "Test af udgivelsesnavn"
   },
   "book": {
     "pages": "{{count}} sider",
@@ -744,5 +747,30 @@
     "shows": "Serier",
     "books": "Bøger",
     "authors": "Forfattere"
+  },
+  "seasons": {
+    "latestOnly": "Kun seneste",
+    "toggle": "Overvåg {{season}}",
+    "specials": "Sp"
+  },
+  "tools": {
+    "exclusionsIntro": "Titler, som arr-appernes lister og forslag ikke tilføjer igen — fra Oprydning, Ikke interesseret eller apperne selv.",
+    "noExclusions": "Intet er udelukket.",
+    "allowAgain": "Tillad igen",
+    "parseIntro": "Indsæt et udgivelsesnavn for at se, hvordan Radarr eller Sonarr læser det: titel, kvalitet, custom formats og score, og hvor det ville havne.",
+    "releaseName": "Udgivelsesnavn",
+    "parse": "Test",
+    "parsedTitle": "Titel",
+    "year": "År",
+    "episode": "Afsnit",
+    "fullSeason": "hel sæson",
+    "quality": "Kvalitet",
+    "languages": "Sprog",
+    "group": "Udgivergruppe",
+    "edition": "Udgave",
+    "formats": "Custom formats",
+    "score": "Formatscore",
+    "matches": "Passer til {{title}} i biblioteket",
+    "noMatch": "Intet i biblioteket passer."
   }
 }

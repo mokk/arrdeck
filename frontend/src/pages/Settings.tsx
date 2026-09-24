@@ -5,12 +5,14 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Antenna,
+  Ban,
   BarChart3,
   BookOpen,
   ChevronRight,
   Cog,
   Eraser,
   Flame,
+  FlaskConical,
   LayoutGrid,
   Link2,
   Palette,
@@ -26,13 +28,24 @@ import { SystemTab } from "../components/manage/System";
 import { DisplaySettings } from "../components/manage/settings/display";
 import { NotificationsCard } from "../components/manage/settings/notifications";
 import { OpdsSettings } from "../components/manage/settings/opds";
+import { ExclusionsTool, ParseTool } from "../components/manage/tools";
 import { useServices } from "../hooks/queries";
 
-type Section = "display" | "notifications" | "opds" | "indexers" | "system" | "connections";
+type Section =
+  | "display"
+  | "notifications"
+  | "opds"
+  | "exclusions"
+  | "parse"
+  | "indexers"
+  | "system"
+  | "connections";
 const SECTIONS: Section[] = [
   "display",
   "notifications",
   "opds",
+  "exclusions",
+  "parse",
   "indexers",
   "system",
   "connections",
@@ -67,6 +80,10 @@ export default function Settings() {
         {section === "display" && <DisplaySettings configured={configured} />}
         {section === "notifications" && <NotificationsCard />}
         {section === "opds" && <OpdsSettings />}
+        {section === "exclusions" && <ExclusionsTool />}
+        {section === "parse" && (
+          <ParseTool apps={["radarr", "sonarr"].filter((a) => configured.has(a))} />
+        )}
         {section === "indexers" && <Indexers />}
         {section === "system" && <SystemTab />}
         {section === "connections" && <ServiceSettingsTab />}
@@ -98,6 +115,12 @@ export default function Settings() {
               <LinkRow icon={Antenna} label={t("settings.indexers")} to="/settings/indexers" />
             )}
             <LinkRow icon={Cog} label={t("settings.system")} to="/settings/system" />
+            {hasArr && (
+              <LinkRow icon={Ban} label={t("settings.exclusions")} to="/settings/exclusions" />
+            )}
+            {(configured.has("radarr") || configured.has("sonarr")) && (
+              <LinkRow icon={FlaskConical} label={t("settings.parse")} to="/settings/parse" />
+            )}
             {configured.has("readarr") && (
               <LinkRow icon={BookOpen} label={t("settings.opds")} to="/settings/opds" />
             )}

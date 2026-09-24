@@ -459,3 +459,52 @@ class ReadingOut(BaseModel):
 class ReadingIn(BaseModel):
     # None clears it: the book goes back to having no reading status
     status: Literal["to_read", "reading", "read"] | None = None
+
+
+class ExclusionOut(BaseModel):
+    app: Literal["radarr", "sonarr", "readarr"]
+    id: int
+    title: str | None = None
+    year: int | None = None
+    # tmdb for films, tvdb for shows, the foreign id for books
+    remote_id: str | None = None
+
+
+class ParseOut(BaseModel):
+    """How an arr reads a release name, and what it would do with it."""
+
+    app: Literal["radarr", "sonarr"]
+    title: str
+    parsed_title: str | None = None
+    year: int | None = None
+    season: int | None = None
+    episodes: list[int] = []
+    full_season: bool = False
+    quality: str | None = None
+    resolution: int | None = None
+    source: str | None = None
+    languages: list[str] = []
+    release_group: str | None = None
+    edition: str | None = None
+    custom_formats: list[str] = []
+    custom_format_score: int = 0
+    # the library title it matched, if any
+    match_id: int | None = None
+    match_title: str | None = None
+    match_episodes: list[str] = []
+
+
+class SeasonCellOut(BaseModel):
+    number: int
+    monitored: bool = False
+    have: int = 0
+    total: int = 0
+
+
+class SeasonGridOut(BaseModel):
+    id: int
+    title: str | None = None
+    poster: str | None = None
+    monitored: bool = False
+    status: str | None = None
+    seasons: list[SeasonCellOut] = []

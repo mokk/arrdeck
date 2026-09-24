@@ -534,7 +534,8 @@
       "details": "Details",
       "upnext": "Up next",
       "shelf": "Bookshelf",
-      "collections": "Collections"
+      "collections": "Collections",
+      "seasons": "Season grid"
     },
     "empty": {
       "movies": "No movies yet.",
@@ -575,7 +576,9 @@
     "display": "Display",
     "notifications": "Notifications",
     "cleanup": "Cleanup",
-    "opds": "Reading apps (OPDS)"
+    "opds": "Reading apps (OPDS)",
+    "exclusions": "Exclusions",
+    "parse": "Release name tester"
   },
   "book": {
     "pages": "{{count}} pages",
@@ -744,5 +747,30 @@
     "shows": "Shows",
     "books": "Books",
     "authors": "Authors"
+  },
+  "seasons": {
+    "latestOnly": "Latest only",
+    "toggle": "Monitor {{season}}",
+    "specials": "Sp"
+  },
+  "tools": {
+    "exclusionsIntro": "Titles the arrs' lists and suggestions will not add back — from Cleanup, Not interested, or the arrs themselves.",
+    "noExclusions": "Nothing is excluded.",
+    "allowAgain": "Allow again",
+    "parseIntro": "Paste a release name to see how Radarr or Sonarr reads it: the title, quality, custom formats and score, and where it would go.",
+    "releaseName": "Release name",
+    "parse": "Test",
+    "parsedTitle": "Title",
+    "year": "Year",
+    "episode": "Episode",
+    "fullSeason": "full season",
+    "quality": "Quality",
+    "languages": "Languages",
+    "group": "Release group",
+    "edition": "Edition",
+    "formats": "Custom formats",
+    "score": "Format score",
+    "matches": "Matches {{title}} in the library",
+    "noMatch": "Nothing in the library matches it."
   }
 }
