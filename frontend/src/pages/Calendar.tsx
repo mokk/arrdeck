@@ -134,10 +134,11 @@ export default function CalendarPage() {
         new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) /
         86_400_000,
     );
-    return new Intl.RelativeTimeFormat(i18n.language, { numeric: "auto" }).format(
+    const text = new Intl.RelativeTimeFormat(i18n.language, { numeric: "auto" }).format(
       offset,
       "day",
     );
+    return text.charAt(0).toLocaleUpperCase(i18n.language) + text.slice(1);
   };
 
   const open = (c: CalendarItem) => {
