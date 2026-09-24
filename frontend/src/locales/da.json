@@ -220,7 +220,20 @@
     "trakt": "På Trakt",
     "trakt_trending": "Populært nu",
     "trakt_anticipated": "Ventet",
-    "trakt_popular": "Populære"
+    "trakt_popular": "Populære",
+    "monitor_all": "Alle afsnit",
+    "monitor_future": "Kommende afsnit",
+    "monitor_missing": "Manglende afsnit",
+    "monitor_existing": "Eksisterende afsnit",
+    "monitor_recent": "Nyere afsnit",
+    "monitor_pilot": "Pilotafsnit",
+    "monitor_firstSeason": "Første sæson",
+    "monitor_lastSeason": "Seneste sæson",
+    "monitor_none": "Ingen",
+    "monitor_pick": "Vælg sæsoner…",
+    "specials": "Specials",
+    "seasonN": "Sæson {{n}}",
+    "addOnly": "Tilføj"
   },
   "manage": {
     "title": "Administrér",

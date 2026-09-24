@@ -18,10 +18,13 @@ import {
   useBookEditions,
   useDeleteLibraryItem,
   useOptions,
+  useSeriesSeasons,
   useTriggerSearch,
   useUpdateLibraryItem,
 } from "../hooks/queries";
+import { usePersistentState } from "../hooks/usePersistentState";
 import { ErrorNote } from "./Blocks";
+import { type MonitorChoice, monitorPayload, SeriesMonitor } from "./library/SeriesMonitor";
 import { ReleasesSheet } from "./ReleasesSheet";
 import { Sheet } from "./Sheet";
 
@@ -147,6 +150,15 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
   const [metadataProfileId, setMetadataProfileId] = useState<number | null>(null);
   const [rootPath, setRootPath] = useState<string | null>(null);
   const [editionId, setEditionId] = useState<string | null>(null);
+  // the last choice sticks: someone who only ever wants the latest season
+  // should not have to pick it every time
+  const [monitor, setMonitor] = usePersistentState<MonitorChoice>("add.seriesMonitor", "all");
+  const [pickedSeasons, setPickedSeasons] = useState<Set<number> | null>(null);
+  const seasonsQuery = useSeriesSeasons(
+    result.remote_id,
+    result.kind === "series" && !result.in_library && monitor === "pick",
+  );
+  const monitorChoice = monitorPayload(monitor, pickedSeasons, seasonsQuery.data);
   // the search result carries Readarr's pick; the fork's lookup has them all
   const editionsQuery = useBookEditions(
     result.foreign_edition_id,
@@ -248,6 +260,15 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
             </Select>
           </>
         )}
+        {result.kind === "series" && (
+          <SeriesMonitor
+            tvdbId={result.remote_id}
+            choice={monitor}
+            onChoice={setMonitor}
+            picked={pickedSeasons}
+            onPicked={setPickedSeasons}
+          />
+        )}
         <Label className="mb-1.5 mt-3 text-xs text-muted-foreground">
           {t("add.rootFolder")}
         </Label>
@@ -273,7 +294,12 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
           </Button>
           <Button
             className="h-11 flex-1 rounded-xl"
-            disabled={!profile || !root || pending}
+            disabled={
+              !profile ||
+              !root ||
+              pending ||
+              (result.kind === "series" && monitor === "pick" && !seasonsQuery.data)
+            }
             onClick={() =>
               add.mutate(
                 {
@@ -285,12 +311,18 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
                   foreign_id: result.foreign_id,
                   foreign_edition_id: edition,
                   metadata_profile_id: metadataProfile,
+                  ...(result.kind === "series" ? monitorChoice : {}),
                 },
                 { onSuccess: onClose },
               )
             }
           >
-            {add.isPending ? t("add.adding") : t("add.addAndSearch")}
+            {add.isPending
+              ? t("add.adding")
+              : result.kind === "series" &&
+                  (monitorChoice.monitor === "none" || monitorChoice.seasons?.length === 0)
+                ? t("add.addOnly")
+                : t("add.addAndSearch")}
           </Button>
         </div>
       </Sheet>

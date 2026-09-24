@@ -173,6 +173,20 @@ export type AddMovieIn = {
  */
 export type AddSeriesIn = {
   /**
+   * Monitor
+   */
+  monitor?:
+    | "all"
+    | "future"
+    | "missing"
+    | "existing"
+    | "recent"
+    | "pilot"
+    | "firstSeason"
+    | "lastSeason"
+    | "none"
+    | null;
+  /**
    * Monitored
    */
   monitored?: boolean;
@@ -192,6 +206,10 @@ export type AddSeriesIn = {
    * Season Folder
    */
   season_folder?: boolean;
+  /**
+   * Seasons
+   */
+  seasons?: Array<number> | null;
   /**
    * Title
    */
@@ -8559,6 +8577,40 @@ export type SearchSeriesApiV1SearchSeriesGetResponses = {
 
 export type SearchSeriesApiV1SearchSeriesGetResponse =
   SearchSeriesApiV1SearchSeriesGetResponses[keyof SearchSeriesApiV1SearchSeriesGetResponses];
+
+export type SeriesSeasonsApiV1SearchSeriesTvdbIdSeasonsGetData = {
+  body?: never;
+  path: {
+    /**
+     * Tvdb Id
+     */
+    tvdb_id: number;
+  };
+  query?: never;
+  url: "/api/v1/search/series/{tvdb_id}/seasons";
+};
+
+export type SeriesSeasonsApiV1SearchSeriesTvdbIdSeasonsGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type SeriesSeasonsApiV1SearchSeriesTvdbIdSeasonsGetError =
+  SeriesSeasonsApiV1SearchSeriesTvdbIdSeasonsGetErrors[keyof SeriesSeasonsApiV1SearchSeriesTvdbIdSeasonsGetErrors];
+
+export type SeriesSeasonsApiV1SearchSeriesTvdbIdSeasonsGetResponses = {
+  /**
+   * Response Series Seasons Api V1 Search Series  Tvdb Id  Seasons Get
+   *
+   * Successful Response
+   */
+  200: Array<number>;
+};
+
+export type SeriesSeasonsApiV1SearchSeriesTvdbIdSeasonsGetResponse =
+  SeriesSeasonsApiV1SearchSeriesTvdbIdSeasonsGetResponses[keyof SeriesSeasonsApiV1SearchSeriesTvdbIdSeasonsGetResponses];
 
 export type AddSeriesApiV1SeriesPostData = {
   body: AddSeriesIn;

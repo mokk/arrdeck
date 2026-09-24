@@ -87,6 +87,12 @@ class AddMovieIn(BaseModel):
     search_now: bool = True
 
 
+# Sonarr's own "Monitor" choices when adding a series
+SeriesMonitor = Literal[
+    "all", "future", "missing", "existing", "recent", "pilot", "firstSeason", "lastSeason", "none"
+]
+
+
 class AddSeriesIn(BaseModel):
     tvdb_id: int
     title: str
@@ -95,6 +101,10 @@ class AddSeriesIn(BaseModel):
     monitored: bool = True
     season_folder: bool = True
     search_now: bool = True
+    # one of Sonarr's presets; ignored when `seasons` is given
+    monitor: SeriesMonitor | None = None
+    # exactly these season numbers monitored, the rest not (0 is specials)
+    seasons: list[int] | None = None
 
 
 class EditionChoiceOut(BaseModel):

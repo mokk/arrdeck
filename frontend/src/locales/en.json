@@ -220,7 +220,20 @@
     "trakt": "On Trakt",
     "trakt_trending": "Trending",
     "trakt_anticipated": "Anticipated",
-    "trakt_popular": "Popular"
+    "trakt_popular": "Popular",
+    "monitor_all": "All episodes",
+    "monitor_future": "Future episodes",
+    "monitor_missing": "Missing episodes",
+    "monitor_existing": "Existing episodes",
+    "monitor_recent": "Recent episodes",
+    "monitor_pilot": "Pilot episode",
+    "monitor_firstSeason": "First season",
+    "monitor_lastSeason": "Latest season",
+    "monitor_none": "None",
+    "monitor_pick": "Pick seasons…",
+    "specials": "Specials",
+    "seasonN": "Season {{n}}",
+    "addOnly": "Add"
   },
   "manage": {
     "title": "Manage",

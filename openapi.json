@@ -249,6 +249,28 @@
       },
       "AddSeriesIn": {
         "properties": {
+          "monitor": {
+            "anyOf": [
+              {
+                "enum": [
+                  "all",
+                  "future",
+                  "missing",
+                  "existing",
+                  "recent",
+                  "pilot",
+                  "firstSeason",
+                  "lastSeason",
+                  "none"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monitor"
+          },
           "monitored": {
             "default": true,
             "title": "Monitored",
@@ -271,6 +293,20 @@
             "default": true,
             "title": "Season Folder",
             "type": "boolean"
+          },
+          "seasons": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seasons"
           },
           "title": {
             "title": "Title",
@@ -13765,6 +13801,53 @@
           }
         },
         "summary": "Search Series",
+        "tags": [
+          "discover"
+        ]
+      }
+    },
+    "/api/v1/search/series/{tvdb_id}/seasons": {
+      "get": {
+        "description": "The season numbers a show has, for picking which to monitor before adding.",
+        "operationId": "series_seasons_api_v1_search_series__tvdb_id__seasons_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tvdb_id",
+            "required": true,
+            "schema": {
+              "title": "Tvdb Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "title": "Response Series Seasons Api V1 Search Series  Tvdb Id  Seasons Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Series Seasons",
         "tags": [
           "discover"
         ]

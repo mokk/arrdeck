@@ -180,3 +180,28 @@ def test_edition_choice_and_the_picked_edition_becomes_the_monitored_one():
     )
     assert [e["monitored"] for e in payload["editions"]] == [False, True]
     assert payload["foreignEditionId"] == "2"
+
+
+def test_series_payload_picked_seasons_preset_and_default():
+    from app.api.v1.discover import series_payload
+    from app.schemas import AddSeriesIn
+
+    base = {"tvdb_id": 1, "title": "Reacher", "quality_profile_id": 4, "root_folder_path": "/tv"}
+    picked = series_payload(AddSeriesIn(**base, seasons=[3, 4], search_now=False), [0, 1, 2, 3, 4])
+    assert picked["seasons"] == [
+        {"seasonNumber": 0, "monitored": False},
+        {"seasonNumber": 1, "monitored": False},
+        {"seasonNumber": 2, "monitored": False},
+        {"seasonNumber": 3, "monitored": True},
+        {"seasonNumber": 4, "monitored": True},
+    ]
+    assert picked["addOptions"] == {"searchForMissingEpisodes": False, "monitor": "skip"}
+
+    preset = series_payload(AddSeriesIn(**base, monitor="lastSeason"), [])
+    assert preset["addOptions"]["monitor"] == "lastSeason" and "seasons" not in preset
+    # picked seasons win over a preset sent alongside
+    both = series_payload(AddSeriesIn(**base, monitor="all", seasons=[1]), [1, 2])
+    assert both["addOptions"]["monitor"] == "skip"
+
+    default = series_payload(AddSeriesIn(**base), [])
+    assert default["addOptions"] == {"searchForMissingEpisodes": True} and "seasons" not in default

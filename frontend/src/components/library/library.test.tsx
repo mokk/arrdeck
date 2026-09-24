@@ -64,3 +64,16 @@ describe("UpNextView", () => {
     expect(titles).toEqual(["Sooner", "Later"]);
   });
 });
+
+describe("series monitor choice", () => {
+  it("sends a preset as is, and picked seasons sorted", async () => {
+    const { monitorPayload } = await import("./SeriesMonitor");
+    expect(monitorPayload("lastSeason", null, undefined)).toEqual({ monitor: "lastSeason" });
+    expect(monitorPayload("pick", new Set([3, 1]), [0, 1, 2, 3])).toEqual({ seasons: [1, 3] });
+  });
+
+  it("picks every regular season until one is untoggled", async () => {
+    const { monitorPayload } = await import("./SeriesMonitor");
+    expect(monitorPayload("pick", null, [0, 1, 2])).toEqual({ seasons: [1, 2] });
+  });
+});

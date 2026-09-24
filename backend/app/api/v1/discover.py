@@ -501,8 +501,11 @@ async def add_movie(body: AddMovieIn, radarr: RadarrClient = Depends(get_radarr)
     return {"id": created.get("id"), "title": created.get("title")}
 
 
-@router.post("/series", status_code=201)
-async def add_series(body: AddSeriesIn, sonarr: SonarrClient = Depends(get_sonarr)) -> dict:
+def series_payload(body: AddSeriesIn, season_numbers: list[int]) -> dict:
+    """The add call. Picked seasons are sent as Sonarr's own season list with
+    monitoring set per season, and `skip` so Sonarr leaves that as it is;
+    a preset goes through as Sonarr's own monitor option."""
+    options: dict = {"searchForMissingEpisodes": body.search_now}
     payload = {
         "tvdbId": body.tvdb_id,
         "title": body.title,
@@ -510,9 +513,33 @@ async def add_series(body: AddSeriesIn, sonarr: SonarrClient = Depends(get_sonar
         "rootFolderPath": body.root_folder_path,
         "monitored": body.monitored,
         "seasonFolder": body.season_folder,
-        "addOptions": {"searchForMissingEpisodes": body.search_now},
+        "addOptions": options,
     }
-    created = await sonarr.add_series(payload)
+    if body.seasons is not None:
+        chosen = set(body.seasons)
+        payload["seasons"] = [{"seasonNumber": n, "monitored": n in chosen} for n in season_numbers]
+        options["monitor"] = "skip"
+    elif body.monitor:
+        options["monitor"] = body.monitor
+    return payload
+
+
+async def season_numbers(sonarr: SonarrClient, tvdb_id: int) -> list[int]:
+    results = await sonarr.lookup(f"tvdb:{tvdb_id}")
+    match = next((r for r in results if r.get("tvdbId") == tvdb_id), results[0] if results else {})
+    return sorted({s["seasonNumber"] for s in match.get("seasons") or [] if "seasonNumber" in s})
+
+
+@router.get("/search/series/{tvdb_id}/seasons", response_model=list[int])
+async def series_seasons(tvdb_id: int, sonarr: SonarrClient = Depends(get_sonarr)) -> list[int]:
+    """The season numbers a show has, for picking which to monitor before adding."""
+    return await season_numbers(sonarr, tvdb_id)
+
+
+@router.post("/series", status_code=201)
+async def add_series(body: AddSeriesIn, sonarr: SonarrClient = Depends(get_sonarr)) -> dict:
+    numbers = await season_numbers(sonarr, body.tvdb_id) if body.seasons is not None else []
+    created = await sonarr.add_series(series_payload(body, numbers))
     cache.set("library_map:series", None)
     return {"id": created.get("id"), "title": created.get("title")}
 

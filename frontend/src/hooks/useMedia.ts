@@ -84,6 +84,15 @@ export const useSearch = (kind: "movies" | "series" | "books" | "releases", q: s
     staleTime: 60_000,
   });
 
+/** A show's season numbers, before it is in the library. */
+export const useSeriesSeasons = (tvdbId: number, enabled: boolean) =>
+  useQuery({
+    queryKey: ["seriesSeasons", tvdbId],
+    queryFn: () => api.get<number[]>(`/search/series/${tvdbId}/seasons`),
+    enabled,
+    staleTime: 60 * 60_000,
+  });
+
 export function useAddMedia() {
   const qc = useQueryClient();
   const { t } = useTranslation();
@@ -99,6 +108,9 @@ export function useAddMedia() {
       foreign_id?: string | null;
       foreign_edition_id?: string | null;
       metadata_profile_id?: number | null;
+      // series: one of Sonarr's monitor presets, or exactly these seasons
+      monitor?: string;
+      seasons?: number[];
     }) =>
       input.kind === "movie"
         ? api.post("/movies", {
@@ -113,6 +125,10 @@ export function useAddMedia() {
               title: input.title,
               quality_profile_id: input.quality_profile_id,
               root_folder_path: input.root_folder_path,
+              monitor: input.monitor,
+              seasons: input.seasons,
+              // monitoring nothing means there is nothing to search for yet
+              search_now: input.monitor !== "none" && input.seasons?.length !== 0,
             })
           : api.post("/books", {
               foreign_book_id: input.foreign_id,
