@@ -3,6 +3,7 @@ import hashlib
 import ipaddress
 import json
 import math
+import re
 import secrets
 import time
 
@@ -315,6 +316,8 @@ def login_verify(body: VerifyIn, request: Request, response: Response) -> dict:
 # is bound to a challenge the app made, so a code caught by another app that
 # registered the same URL scheme is useless without the app's verifier.
 PAIR_CODE_TTL = 300
+# ASCII only: compare_digest raises on anything else, which would surface as a 500
+PKCE_CHALLENGE = re.compile(r"[A-Za-z0-9_-]{43}")
 _pair_codes: dict[str, tuple[float, str]] = {}  # code hash -> (expires, challenge)
 
 
@@ -339,7 +342,7 @@ def pair_code(body: PairCodeIn, request: Request) -> dict:
     if not is_request_allowed(request):
         raise HTTPException(401, "unauthorized")
     # a base64url sha256, as the app sends it; anything else is a malformed link
-    if len(body.challenge) != 43 or not body.challenge.replace("-", "").replace("_", "").isalnum():
+    if not PKCE_CHALLENGE.fullmatch(body.challenge):
         raise HTTPException(400, "invalid pairing link")
     now = time.time()
     for key in [k for k, (expires, _) in _pair_codes.items() if expires < now]:

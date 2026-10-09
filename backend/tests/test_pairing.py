@@ -61,6 +61,9 @@ def test_a_malformed_challenge_is_refused(client):
     signed_in(client)
     resp = client.post("/api/v1/auth/pair/code", json={"challenge": "not-a-hash"})
     assert resp.status_code == 400
+    # the right length, but letters str.isalnum() would have let through
+    resp = client.post("/api/v1/auth/pair/code", json={"challenge": "é" * 43})
+    assert resp.status_code == 400
 
 
 def test_code_and_verifier_buy_a_session(client):
