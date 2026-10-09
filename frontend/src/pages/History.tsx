@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateTime, SERVICE_LABELS } from "../api/format";
 import type { HistoryItem } from "../api/types";
-import { Card, EmptyNote, Row, StateBadge } from "../components/Blocks";
+import { Card, EmptyNote, NewBadge, Row, StateBadge } from "../components/Blocks";
 import {
   useBlocklist,
   useBlocklistRemove,
@@ -75,7 +75,9 @@ function BlocklistView() {
   );
 }
 
-export default function HistoryPage() {
+/** `since` is the Activity visit's cutoff, shared with the torrent list so
+ * both mark the same things NEW; on its own the page takes its own. */
+export default function HistoryPage({ since: visitSince }: { since?: string } = {}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -85,7 +87,7 @@ export default function HistoryPage() {
   const { data, isFetching } = useHistoryPage(page);
   // What happened after the last visit is marked NEW. The cutoff is taken once,
   // so the badges stay while the mark (and the tab's count) moves on.
-  const [since] = useState(() => Date.parse(getLastSeen()));
+  const [since] = useState(() => Date.parse(visitSince ?? getLastSeen()));
   const isNew = (h: HistoryItem) => Date.parse(h.date) > since;
   useEffect(() => {
     if (data && page === 1) markSeen(new Date().toISOString());
@@ -189,11 +191,7 @@ export default function HistoryPage() {
           >
             <div className="min-w-0 flex-1">
               <div className="flex min-w-0 items-center gap-1.5">
-                {isNew(h) && (
-                  <span className="shrink-0 rounded bg-primary px-1.5 py-px text-[10px] font-bold tracking-wide text-primary-foreground">
-                    {t("history.new")}
-                  </span>
-                )}
+                {isNew(h) && <NewBadge />}
                 <span className="truncate text-sm font-medium">{h.title}</span>
               </div>
               <div className="mt-0.5 flex flex-wrap items-center gap-1 text-xs">

@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 
 /** When the Activity tab was last looked at. The badge counts what happened
- * after it; opening the "New" list moves it forward. One store, so the shell's
+ * after it; opening History or the torrent list moves it forward. One store, so the shell's
  * badge and the list agree without prop-drilling. */
 const KEY = "activity.lastSeen";
 const listeners = new Set<() => void>();
@@ -45,4 +45,10 @@ export function useLastSeen(): string {
     getLastSeen,
     getLastSeen,
   );
+}
+
+/** Whether a torrent finished after the visit's cutoff. Clients report
+ * completion in unix seconds; unfinished torrents have none (or 0). */
+export function finishedSince(completedOn: number | null | undefined, since: string): boolean {
+  return completedOn != null && completedOn > 0 && completedOn * 1000 > Date.parse(since);
 }

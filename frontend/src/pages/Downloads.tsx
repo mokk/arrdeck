@@ -11,7 +11,15 @@ import {
   SERVICE_LABELS,
 } from "../api/format";
 import type { Torrent } from "../api/types";
-import { Card, EmptyNote, ErrorNote, ProgressBar, Row, StateBadge } from "../components/Blocks";
+import {
+  Card,
+  EmptyNote,
+  ErrorNote,
+  NewBadge,
+  ProgressBar,
+  Row,
+  StateBadge,
+} from "../components/Blocks";
 import { SortSheet } from "../components/SortSheet";
 import { SwipeableRow } from "../components/SwipeableRow";
 import { useSort } from "../components/sortable";
@@ -25,6 +33,7 @@ import {
   useTorrents,
 } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
+import { finishedSince, markSeen } from "../lib/lastSeen";
 
 const SORT_KEYS = [
   "added_on",
@@ -46,7 +55,10 @@ import { isPaused, TorrentSheet } from "../components/downloads/TorrentSheet";
 // how many rows each client returns per request; raised by "load more"
 const PAGE = 200;
 
-export default function Downloads() {
+/** Inside Activity, `since` is the visit's cutoff: torrents that finished after
+ * it are marked NEW, and the list counts as seen once it has loaded — without a
+ * History segment (a client but no arrs) nothing else would clear the badge. */
+export default function Downloads({ since }: { since?: string } = {}) {
   const { t } = useTranslation();
   const [stateFilter, setStateFilter] = usePersistentState<string>("downloads.state", "all");
   const [clients, setClients] = usePersistentState<Record<Torrent["client"], boolean>>(
@@ -73,6 +85,12 @@ export default function Downloads() {
   });
   const { data: services } = useServices();
   const action = useTorrentAction();
+  const isNew = (torrent: Torrent) =>
+    since != null && finishedSince(torrent.completed_on, since);
+  const loaded = data != null;
+  useEffect(() => {
+    if (since && loaded) markSeen(new Date().toISOString());
+  }, [since, loaded]);
   const configured = new Set(
     (services ?? []).filter((s) => s.configured).map((s) => s.service as string),
   );
@@ -249,7 +267,10 @@ export default function Downloads() {
               >
                 <Row className="border-t-0">
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium">{torrent.name}</div>
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      {isNew(torrent) && <NewBadge />}
+                      <span className="truncate text-sm font-medium">{torrent.name}</span>
+                    </div>
                     <div className="mt-0.5 truncate text-xs text-muted-foreground">
                       <StateBadge state={torrent.state} />{" "}
                       <StateBadge state={SERVICE_LABELS[torrent.client]} raw />

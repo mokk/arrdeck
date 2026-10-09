@@ -109,6 +109,16 @@ export function Segmented<T extends string>({
   );
 }
 
+/** Marks what arrived since the Activity tab was last looked at. */
+export function NewBadge() {
+  const { t } = useTranslation();
+  return (
+    <span className="shrink-0 rounded bg-primary px-1.5 py-px text-[10px] font-bold tracking-wide text-primary-foreground">
+      {t("history.new")}
+    </span>
+  );
+}
+
 /** Shared list-row primitives */
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
   return (
