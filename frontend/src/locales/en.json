@@ -531,7 +531,10 @@
     "thisDevice": "this device",
     "deletePasskey": "Delete passkey {{name}}",
     "revokeSession": "Sign out this device",
-    "otherHost": "{{host}} only"
+    "otherHost": "{{host}} only",
+    "pairPhone": "Pair this phone",
+    "pairHint": "Signs the arrdeck iPhone app in with a session of its own. It shows under Signed-in devices and can be signed out from there.",
+    "pairFromApp": "Open this page from the arrdeck iPhone app's Sign in button."
   },
   "popular": {
     "all": "All",

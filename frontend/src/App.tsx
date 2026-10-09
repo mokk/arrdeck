@@ -9,6 +9,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GlobalSearch } from "./components/GlobalSearch";
 import { LoginScreen } from "./components/LoginScreen";
 import { NotFound } from "./components/NotFound";
+import { PairScreen } from "./components/PairScreen";
 import { PullToRefresh } from "./components/PullToRefresh";
 import { SubnavProvider, useSubnav } from "./components/subnav";
 import { useActivitySince, useAuthState, useServices } from "./hooks/queries";
@@ -103,6 +104,16 @@ function Shell() {
       <>
         <Toaster position="top-center" />
         <LoginScreen onDone={() => auth.refetch()} />
+      </>
+    );
+  }
+
+  // the iOS app's sign-in sheet lands here: bare, like the login screen
+  if (location.pathname === "/pair") {
+    return (
+      <>
+        <Toaster position="top-center" />
+        <PairScreen />
       </>
     );
   }

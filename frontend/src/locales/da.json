@@ -531,7 +531,10 @@
     "thisDevice": "denne enhed",
     "deletePasskey": "Slet adgangsnøgle {{name}}",
     "revokeSession": "Log denne enhed ud",
-    "otherHost": "kun {{host}}"
+    "otherHost": "kun {{host}}",
+    "pairPhone": "Par denne telefon",
+    "pairHint": "Logger arrdeck-iPhone-appen ind med sin egen session. Den vises under Tilmeldte enheder og kan logges ud derfra.",
+    "pairFromApp": "Åbn denne side fra Log ind-knappen i arrdeck-iPhone-appen."
   },
   "popular": {
     "all": "Alle",

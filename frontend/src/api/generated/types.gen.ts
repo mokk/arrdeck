@@ -2124,6 +2124,30 @@ export type OptionsOut = {
 };
 
 /**
+ * PairCodeIn
+ */
+export type PairCodeIn = {
+  /**
+   * Challenge
+   */
+  challenge: string;
+};
+
+/**
+ * PairExchangeIn
+ */
+export type PairExchangeIn = {
+  /**
+   * Code
+   */
+  code: string;
+  /**
+   * Verifier
+   */
+  verifier: string;
+};
+
+/**
  * ParseOut
  *
  * How an arr reads a release name, and what it would do with it.
@@ -5057,6 +5081,68 @@ export type LogoutApiV1AuthLogoutPostResponses = {
 
 export type LogoutApiV1AuthLogoutPostResponse =
   LogoutApiV1AuthLogoutPostResponses[keyof LogoutApiV1AuthLogoutPostResponses];
+
+export type PairCodeApiV1AuthPairCodePostData = {
+  body: PairCodeIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/pair/code";
+};
+
+export type PairCodeApiV1AuthPairCodePostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type PairCodeApiV1AuthPairCodePostError =
+  PairCodeApiV1AuthPairCodePostErrors[keyof PairCodeApiV1AuthPairCodePostErrors];
+
+export type PairCodeApiV1AuthPairCodePostResponses = {
+  /**
+   * Response Pair Code Api V1 Auth Pair Code Post
+   *
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown;
+  };
+};
+
+export type PairCodeApiV1AuthPairCodePostResponse =
+  PairCodeApiV1AuthPairCodePostResponses[keyof PairCodeApiV1AuthPairCodePostResponses];
+
+export type PairExchangeApiV1AuthPairExchangePostData = {
+  body: PairExchangeIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/auth/pair/exchange";
+};
+
+export type PairExchangeApiV1AuthPairExchangePostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type PairExchangeApiV1AuthPairExchangePostError =
+  PairExchangeApiV1AuthPairExchangePostErrors[keyof PairExchangeApiV1AuthPairExchangePostErrors];
+
+export type PairExchangeApiV1AuthPairExchangePostResponses = {
+  /**
+   * Response Pair Exchange Api V1 Auth Pair Exchange Post
+   *
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown;
+  };
+};
+
+export type PairExchangeApiV1AuthPairExchangePostResponse =
+  PairExchangeApiV1AuthPairExchangePostResponses[keyof PairExchangeApiV1AuthPairExchangePostResponses];
 
 export type RegisterOptionsApiV1AuthRegisterOptionsPostData = {
   /**

@@ -305,6 +305,68 @@ def login_verify(body: VerifyIn, request: Request, response: Response) -> dict:
     return {"ok": True}
 
 
+# --- pairing a native app ------------------------------------------------
+#
+# The iOS app cannot run WebAuthn itself: passkeys in an embedded web view need
+# an Associated Domains entitlement for the site, which an app that is pointed
+# at any backend (and signed by a free team) cannot have. So it signs in through
+# a system browser sheet instead, where passkeys work, and is handed a one-time
+# code by the /pair page to trade for a session of its own. PKCE-style: the code
+# is bound to a challenge the app made, so a code caught by another app that
+# registered the same URL scheme is useless without the app's verifier.
+PAIR_CODE_TTL = 300
+_pair_codes: dict[str, tuple[float, str]] = {}  # code hash -> (expires, challenge)
+
+
+class PairCodeIn(BaseModel):
+    challenge: str
+
+
+class PairExchangeIn(BaseModel):
+    code: str
+    verifier: str
+
+
+def _pkce(verifier: str) -> str:
+    digest = hashlib.sha256(verifier.encode()).digest()
+    return base64.urlsafe_b64encode(digest).decode().rstrip("=")
+
+
+@router.post("/pair/code")
+def pair_code(body: PairCodeIn, request: Request) -> dict:
+    # /auth/* is outside the global gate, so this guards itself — without it
+    # anyone could mint their own way in.
+    if not is_request_allowed(request):
+        raise HTTPException(401, "unauthorized")
+    # a base64url sha256, as the app sends it; anything else is a malformed link
+    if len(body.challenge) != 43 or not body.challenge.replace("-", "").replace("_", "").isalnum():
+        raise HTTPException(400, "invalid pairing link")
+    now = time.time()
+    for key in [k for k, (expires, _) in _pair_codes.items() if expires < now]:
+        del _pair_codes[key]
+    code = secrets.token_urlsafe(32)
+    _pair_codes[_token_hash(code)] = (now + PAIR_CODE_TTL, body.challenge)
+    return {"code": code}
+
+
+@router.post("/pair/exchange")
+def pair_exchange(body: PairExchangeIn, request: Request, response: Response) -> dict:
+    _check_throttle(request)
+    db = request.app.state.db
+    # popped before checking, so a code is spent by any attempt, right or wrong
+    entry = _pair_codes.pop(_token_hash(body.code), None)
+    if (
+        entry is None
+        or entry[0] < time.time()
+        or not secrets.compare_digest(_pkce(body.verifier), entry[1])
+    ):
+        _record_failure(db)
+        raise HTTPException(401, "pairing code invalid or expired — sign in again")
+    _clear_failures(db)
+    _start_session(request, response)
+    return {"ok": True}
+
+
 @router.post("/logout", status_code=204)
 def logout(request: Request, response: Response) -> None:
     token = request.cookies.get(SESSION_COOKIE)
