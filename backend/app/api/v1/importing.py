@@ -16,7 +16,7 @@ from ...schemas import (
 router = APIRouter(tags=["importing"])
 
 
-def _import_file(app: str, candidate: dict) -> dict | None:
+def _import_file(app: str, candidate: dict, download_id: str | None = None) -> dict | None:
     """The ManualImport command payload for one candidate, or None when the arr
     didn't work out what it is."""
     if not candidate.get("quality"):
@@ -26,6 +26,7 @@ def _import_file(app: str, candidate: dict) -> dict | None:
         "quality": candidate["quality"],
         "languages": candidate.get("languages", []),
         "releaseGroup": candidate.get("releaseGroup") or "",
+        **_tracked(download_id),
     }
     # an id can be missing even when the arr returned a stub match; that is
     # still "couldn't place it", not a crash
@@ -37,6 +38,14 @@ def _import_file(app: str, candidate: dict) -> dict | None:
     if series_id and episode_ids:
         return {**common, "seriesId": series_id, "episodeIds": episode_ids}
     return None
+
+
+def _tracked(download_id: str | None) -> dict:
+    """Ties an imported file to the arr's tracked download. Without it the arr
+    has no download client item, and importMode "auto" then means *move* — the
+    torrent loses its files and stops seeding. With it, auto copies/hardlinks
+    until the client says the files may be moved."""
+    return {"downloadId": download_id} if download_id else {}
 
 
 async def _queue_download_id(client, item_id: int) -> str:
@@ -106,9 +115,14 @@ async def manual_import_run(
     if app not in ("radarr", "sonarr"):
         raise HTTPException(404, f"unknown app {app!r}")
     client = radarr if app == "radarr" else sonarr
-    candidates = await client.manual_import(await _queue_download_id(client, body.item_id))
+    download_id = await _queue_download_id(client, body.item_id)
+    candidates = await client.manual_import(download_id)
     wanted = set(body.paths)
-    files = [f for f in (_import_file(app, c) for c in candidates if c.get("path") in wanted) if f]
+    files = [
+        f
+        for f in (_import_file(app, c, download_id) for c in candidates if c.get("path") in wanted)
+        if f
+    ]
     if not files:
         raise HTTPException(409, "none of the selected files could be mapped")
     await client.command({"name": "ManualImport", "files": files, "importMode": body.mode})
@@ -128,7 +142,8 @@ async def manual_import_assign(
     if app not in ("radarr", "sonarr"):
         raise HTTPException(404, f"unknown app {app!r}")
     client = radarr if app == "radarr" else sonarr
-    candidates = await client.manual_import(await _queue_download_id(client, body.item_id))
+    download_id = await _queue_download_id(client, body.item_id)
+    candidates = await client.manual_import(download_id)
     by_path = {c.get("path"): c for c in candidates}
 
     files = []
@@ -143,6 +158,7 @@ async def manual_import_assign(
             "quality": candidate["quality"],
             "languages": candidate.get("languages", []),
             "releaseGroup": candidate.get("releaseGroup") or "",
+            **_tracked(download_id),
         }
         if app == "radarr":
             if not choice.movie_id:
@@ -217,7 +233,7 @@ async def force_import(
     if rec is None or not rec.get("downloadId"):
         raise HTTPException(404, "queue item not found")
     candidates = await client.manual_import(rec["downloadId"])
-    files = [f for f in (_import_file(app, c) for c in candidates) if f]
+    files = [f for f in (_import_file(app, c, rec["downloadId"]) for c in candidates) if f]
     if not files:
         raise HTTPException(409, "no importable files could be mapped automatically")
     await client.command({"name": "ManualImport", "files": files, "importMode": "auto"})

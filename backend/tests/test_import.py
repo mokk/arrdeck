@@ -162,3 +162,28 @@ def test_a_candidate_with_no_detected_quality_cannot_be_forced():
     with pytest.raises(HTTPException) as exc:
         _assign("radarr", [{"path": CANDIDATE["path"], "movie_id": 1}], [stripped])
     assert exc.value.status_code == 409
+
+
+# --- staying tied to the tracked download --------------------------------
+
+
+def test_queue_imports_name_the_download_so_auto_does_not_move_a_seeding_torrent():
+    # without downloadId the arr has no download client item and "auto" moves
+    # the files out from under the torrent
+    commands = _assign("radarr", [{"path": CANDIDATE["path"], "movie_id": 42}])
+    assert commands[0]["files"][0]["downloadId"] == "abc"
+    assert commands[0]["importMode"] == "auto"
+
+
+def test_force_import_names_the_download_too():
+    import asyncio
+
+    from app.api.v1.importing import force_import
+
+    client = FakeArr([{**CANDIDATE, "movie": {"id": 7}}])
+    asyncio.run(force_import("radarr", 1, client, None))
+    assert client.commands[0]["files"][0]["downloadId"] == "abc"
+
+
+def test_a_file_without_a_download_carries_no_download_id():
+    assert "downloadId" not in _import_file("radarr", {**CANDIDATE, "movie": {"id": 7}})
