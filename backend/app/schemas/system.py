@@ -243,15 +243,16 @@ class WebhookInstallIn(BaseModel):
 
 class StatsSampleOut(BaseModel):
     ts: int  # unix seconds
-    disk_free_bytes: int = 0
-    movies: int = 0
-    series: int = 0
-    episode_files: int = 0
-    library_bytes: int = 0
-    torrents_qbit: int = 0
-    torrents_tm: int = 0
-    indexer_grabs: int = 0
-    indexer_queries: int = 0
+    # None: the service did not answer when the sample was taken
+    disk_free_bytes: int | None = None
+    movies: int | None = None
+    series: int | None = None
+    episode_files: int | None = None
+    library_bytes: int | None = None
+    torrents_qbit: int | None = None
+    torrents_tm: int | None = None
+    indexer_grabs: int | None = None
+    indexer_queries: int | None = None
 
 
 class BackupOut(BaseModel):

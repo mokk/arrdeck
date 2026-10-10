@@ -10,26 +10,31 @@ import { Watching } from "../components/stats/Watching";
 import { useServices, useStatsHistory } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 import { forecastFull } from "../lib/forecast";
+import { knownPoints, type Pick, torrentCount } from "../lib/samples";
 
 function Chart({
   label,
-  samples,
+  samples: all,
   pick,
   format,
 }: {
   label: string;
   samples: StatsSample[];
-  pick: (s: StatsSample) => number;
+  pick: Pick;
   format: (v: number) => string;
 }) {
-  const values = samples.map(pick);
+  // only the samples where this value is known: a service that was down when
+  // a sample was taken left a gap, which must not be drawn as a drop to zero
+  const points = knownPoints(all, pick);
+  const samples = points.map((p) => p.sample);
+  const values = points.map((p) => p.value);
   if (values.length < 2) return null;
   const w = 320;
   const h = 72;
   const min = Math.min(...values);
   const max = Math.max(...values);
   const span = max - min || 1;
-  const points = values
+  const line = values
     .map(
       (v, i) =>
         `${((i / (values.length - 1)) * w).toFixed(1)},${(h - 4 - ((v - min) / span) * (h - 8)).toFixed(1)}`,
@@ -37,7 +42,7 @@ function Chart({
     .join(" ");
   const first = samples[0];
   const last = samples[samples.length - 1];
-  const delta = pick(last) - pick(first);
+  const delta = values[values.length - 1] - values[0];
 
   return (
     <div className="mb-4 rounded-2xl bg-card p-4">
@@ -49,7 +54,7 @@ function Chart({
         </div>
       </div>
       <div className="mb-1 flex items-baseline gap-2">
-        <span className="text-xl font-bold">{format(pick(last))}</span>
+        <span className="text-xl font-bold">{format(values[values.length - 1])}</span>
         {delta !== 0 && (
           <span className={delta > 0 ? "text-xs text-success" : "text-xs text-destructive"}>
             {delta > 0 ? "+" : "−"}
@@ -63,7 +68,7 @@ function Chart({
         className="h-[72px] w-full text-primary"
       >
         <polyline
-          points={points}
+          points={line}
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
@@ -178,49 +183,49 @@ function LibraryStats({
           <Chart
             label={t("dash.librarySize")}
             samples={data}
-            pick={(s) => s.library_bytes ?? 0}
+            pick={(s) => s.library_bytes}
             format={formatBytes}
           />
           <Chart
             label={t("dash.freeSpaceShort")}
             samples={data}
-            pick={(s) => s.disk_free_bytes ?? 0}
+            pick={(s) => s.disk_free_bytes}
             format={formatBytes}
           />
           <Chart
             label={t("dash.movies")}
             samples={data}
-            pick={(s) => s.movies ?? 0}
+            pick={(s) => s.movies}
             format={count}
           />
           <Chart
             label={t("dash.seriesCount")}
             samples={data}
-            pick={(s) => s.series ?? 0}
+            pick={(s) => s.series}
             format={count}
           />
           <Chart
             label={t("stats.episodeFiles")}
             samples={data}
-            pick={(s) => s.episode_files ?? 0}
+            pick={(s) => s.episode_files}
             format={count}
           />
           <Chart
             label={t("stats.torrents")}
             samples={data}
-            pick={(s) => (s.torrents_qbit ?? 0) + (s.torrents_tm ?? 0)}
+            pick={torrentCount}
             format={count}
           />
           <Chart
             label={t("dash.grabs")}
             samples={data}
-            pick={(s) => s.indexer_grabs ?? 0}
+            pick={(s) => s.indexer_grabs}
             format={count}
           />
           <Chart
             label={t("stats.queries")}
             samples={data}
-            pick={(s) => s.indexer_queries ?? 0}
+            pick={(s) => s.indexer_queries}
             format={count}
           />
         </>

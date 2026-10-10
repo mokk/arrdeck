@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { formatBytes } from "../../api/format";
-
 import {
   BlockView,
   Card,
@@ -23,6 +22,7 @@ import {
   useSubtitles,
   useVpn,
 } from "../../hooks/queries";
+import { knownPoints, type Pick } from "../../lib/samples";
 
 export function NowPlayingSection({ configured }: { configured: Set<string> }) {
   const { t } = useTranslation();
@@ -302,30 +302,21 @@ export function TrendsSection() {
   const { data } = useStatsHistory(30);
   if (!data || data.length < 2) return null;
 
-  const last = data[data.length - 1];
+  // each tile from the samples where its value is known: a sample taken while
+  // an arr was down has null there, which must not show as an empty library
+  const tile = (label: string, pick: Pick, format: (v: number) => string) => {
+    const values = knownPoints(data, pick).map((p) => p.value);
+    return {
+      label,
+      value: values.length ? format(values[values.length - 1]) : "–",
+      values,
+    };
+  };
   const tiles = [
-    {
-      label: t("dash.librarySize"),
-      value: formatBytes(last.library_bytes),
-      values: data.map((s) => s.library_bytes ?? 0),
-    },
-    {
-      label: t("dash.movies"),
-      // ?? 0 like the sparkline beside it: these fields are optional, so a
-      // snapshot taken while an arr was down rendered the string "undefined".
-      value: String(last.movies ?? 0),
-      values: data.map((s) => s.movies ?? 0),
-    },
-    {
-      label: t("dash.seriesCount"),
-      value: String(last.series ?? 0),
-      values: data.map((s) => s.series ?? 0),
-    },
-    {
-      label: t("dash.grabs"),
-      value: String(last.indexer_grabs ?? 0),
-      values: data.map((s) => s.indexer_grabs ?? 0),
-    },
+    tile(t("dash.librarySize"), (s) => s.library_bytes, formatBytes),
+    tile(t("dash.movies"), (s) => s.movies, String),
+    tile(t("dash.seriesCount"), (s) => s.series, String),
+    tile(t("dash.grabs"), (s) => s.indexer_grabs, String),
   ];
 
   return (

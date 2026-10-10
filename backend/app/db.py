@@ -21,6 +21,21 @@ SERVICES = [
 EMPTY = {"url": "", "api_key": "", "username": "", "password": ""}
 
 
+# NULL is "not known": the service did not answer when the sample was taken.
+STATS_TABLE_COLUMNS = """
+    ts INTEGER PRIMARY KEY,
+    movies INTEGER,
+    series INTEGER,
+    episode_files INTEGER,
+    library_bytes INTEGER,
+    torrents_qbit INTEGER,
+    torrents_tm INTEGER,
+    indexer_grabs INTEGER,
+    indexer_queries INTEGER,
+    disk_free_bytes INTEGER
+"""
+
+
 class SettingsDB:
     """Tiny sqlite-backed store for per-service connection settings."""
 
@@ -70,24 +85,11 @@ class SettingsDB:
                     ts INTEGER NOT NULL
                 )"""
             )
-            self._conn.execute(
-                """CREATE TABLE IF NOT EXISTS stats_samples (
-                    ts INTEGER PRIMARY KEY,
-                    movies INTEGER NOT NULL DEFAULT 0,
-                    series INTEGER NOT NULL DEFAULT 0,
-                    episode_files INTEGER NOT NULL DEFAULT 0,
-                    library_bytes INTEGER NOT NULL DEFAULT 0,
-                    torrents_qbit INTEGER NOT NULL DEFAULT 0,
-                    torrents_tm INTEGER NOT NULL DEFAULT 0,
-                    indexer_grabs INTEGER NOT NULL DEFAULT 0,
-                    indexer_queries INTEGER NOT NULL DEFAULT 0
-                )"""
-            )
+            self._conn.execute(f"CREATE TABLE IF NOT EXISTS stats_samples ({STATS_TABLE_COLUMNS})")
             # CREATE TABLE IF NOT EXISTS leaves an existing table alone, so
             # columns added after a release need an explicit ALTER.
-            self._migrate_columns(
-                "stats_samples", {"disk_free_bytes": "INTEGER NOT NULL DEFAULT 0"}
-            )
+            self._migrate_columns("stats_samples", {"disk_free_bytes": "INTEGER"})
+            self._nullable_stats()
             # NULL events = this device follows the global default
             self._migrate_columns("push_subscriptions", {"events": "TEXT"})
             # NULL language = render in English. Notification text is built by
@@ -155,13 +157,30 @@ class SettingsDB:
         "disk_free_bytes",
     ]
 
+    def _nullable_stats(self) -> None:
+        """Samples once stored a down service as 0. NULL now means unknown;
+        SQLite cannot drop NOT NULL, so the table is rebuilt once. The values
+        already in it are kept as they are."""
+        info = self._conn.execute("PRAGMA table_info(stats_samples)").fetchall()
+        if not any(col[1] == "movies" and col[3] for col in info):  # col[3]: notnull
+            return
+        cols = ", ".join(self.STATS_COLUMNS)
+        self._conn.execute(f"CREATE TABLE stats_samples_new ({STATS_TABLE_COLUMNS})")
+        self._conn.execute(
+            f"INSERT INTO stats_samples_new ({cols}) SELECT {cols} FROM stats_samples"
+        )
+        self._conn.execute("DROP TABLE stats_samples")
+        self._conn.execute("ALTER TABLE stats_samples_new RENAME TO stats_samples")
+        self._conn.commit()
+
     def insert_sample(self, sample: dict) -> None:
         cols = ", ".join(self.STATS_COLUMNS)
         placeholders = ", ".join("?" for _ in self.STATS_COLUMNS)
         with self._lock:
             self._conn.execute(
                 f"INSERT OR REPLACE INTO stats_samples ({cols}) VALUES ({placeholders})",
-                tuple(sample.get(c, 0) for c in self.STATS_COLUMNS),
+                # a value the sample does not have is unknown, not zero
+                tuple(sample.get(c) for c in self.STATS_COLUMNS),
             )
             # keep a year of samples
             self._conn.execute(

@@ -4018,39 +4018,39 @@ export type StatsSampleOut = {
   /**
    * Disk Free Bytes
    */
-  disk_free_bytes?: number;
+  disk_free_bytes?: number | null;
   /**
    * Episode Files
    */
-  episode_files?: number;
+  episode_files?: number | null;
   /**
    * Indexer Grabs
    */
-  indexer_grabs?: number;
+  indexer_grabs?: number | null;
   /**
    * Indexer Queries
    */
-  indexer_queries?: number;
+  indexer_queries?: number | null;
   /**
    * Library Bytes
    */
-  library_bytes?: number;
+  library_bytes?: number | null;
   /**
    * Movies
    */
-  movies?: number;
+  movies?: number | null;
   /**
    * Series
    */
-  series?: number;
+  series?: number | null;
   /**
    * Torrents Qbit
    */
-  torrents_qbit?: number;
+  torrents_qbit?: number | null;
   /**
    * Torrents Tm
    */
-  torrents_tm?: number;
+  torrents_tm?: number | null;
   /**
    * Ts
    */

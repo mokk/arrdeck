@@ -7436,49 +7436,103 @@
       "StatsSampleOut": {
         "properties": {
           "disk_free_bytes": {
-            "default": 0,
-            "title": "Disk Free Bytes",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disk Free Bytes"
           },
           "episode_files": {
-            "default": 0,
-            "title": "Episode Files",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Episode Files"
           },
           "indexer_grabs": {
-            "default": 0,
-            "title": "Indexer Grabs",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Indexer Grabs"
           },
           "indexer_queries": {
-            "default": 0,
-            "title": "Indexer Queries",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Indexer Queries"
           },
           "library_bytes": {
-            "default": 0,
-            "title": "Library Bytes",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Bytes"
           },
           "movies": {
-            "default": 0,
-            "title": "Movies",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Movies"
           },
           "series": {
-            "default": 0,
-            "title": "Series",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Series"
           },
           "torrents_qbit": {
-            "default": 0,
-            "title": "Torrents Qbit",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Torrents Qbit"
           },
           "torrents_tm": {
-            "default": 0,
-            "title": "Torrents Tm",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Torrents Tm"
           },
           "ts": {
             "title": "Ts",
