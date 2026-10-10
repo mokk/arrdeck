@@ -2463,6 +2463,38 @@ export type PopularSnapshotOut = {
 };
 
 /**
+ * PrefsIn
+ */
+export type PrefsIn = {
+  /**
+   * Updated At
+   */
+  updated_at: number;
+  /**
+   * Values
+   */
+  values: {
+    [key: string]: unknown;
+  };
+};
+
+/**
+ * PrefsOut
+ */
+export type PrefsOut = {
+  /**
+   * Updated At
+   */
+  updated_at?: number;
+  /**
+   * Values
+   */
+  values?: {
+    [key: string]: unknown;
+  };
+};
+
+/**
  * ProfileAssignIn
  */
 export type ProfileAssignIn = {
@@ -7774,6 +7806,50 @@ export type PopularApiV1PopularGetResponses = {
 
 export type PopularApiV1PopularGetResponse =
   PopularApiV1PopularGetResponses[keyof PopularApiV1PopularGetResponses];
+
+export type GetPrefsApiV1PrefsGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/prefs";
+};
+
+export type GetPrefsApiV1PrefsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: PrefsOut;
+};
+
+export type GetPrefsApiV1PrefsGetResponse =
+  GetPrefsApiV1PrefsGetResponses[keyof GetPrefsApiV1PrefsGetResponses];
+
+export type PutPrefsApiV1PrefsPutData = {
+  body: PrefsIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/prefs";
+};
+
+export type PutPrefsApiV1PrefsPutErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type PutPrefsApiV1PrefsPutError =
+  PutPrefsApiV1PrefsPutErrors[keyof PutPrefsApiV1PrefsPutErrors];
+
+export type PutPrefsApiV1PrefsPutResponses = {
+  /**
+   * Successful Response
+   */
+  200: PrefsOut;
+};
+
+export type PutPrefsApiV1PrefsPutResponse =
+  PutPrefsApiV1PrefsPutResponses[keyof PutPrefsApiV1PrefsPutResponses];
 
 export type PushDigestTestApiV1PushDigestTestPostData = {
   body: PushTestIn;

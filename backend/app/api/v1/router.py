@@ -23,6 +23,7 @@ from . import (
     plex,
     popular,
     posters,
+    prefs,
     profiles,
     reading,
     releases,
@@ -75,6 +76,7 @@ router.include_router(trakt.router)
 router.include_router(watchstats.router)
 router.include_router(wanted.router)
 router.include_router(arrmeta.router)
+router.include_router(prefs.router)
 router.include_router(settings.router)
 router.include_router(auth.router)
 router.include_router(hooks.router)

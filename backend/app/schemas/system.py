@@ -1,8 +1,10 @@
 """Services, auth, push, backups, health and the media-server integrations."""
 
+import json
+import math
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from .common import ServiceSettingsOut
 
@@ -420,3 +422,40 @@ class OpdsSettingsOut(BaseModel):
     token: str | None = None
     # the feed serves files through the Readarr fork; without it there is nothing to offer
     available: bool = False
+
+
+PREFS_MAX_KEYS = 100
+PREFS_MAX_KEY_LENGTH = 64
+PREFS_MAX_BYTES = 16 * 1024
+
+
+class PrefsOut(BaseModel):
+    # flat: scalars (string, number, boolean, null) or arrays of strings. The
+    # server stores it and never reads a key — clients evolve independently.
+    values: dict[str, Any] = {}
+    # unix milliseconds of the write that produced these values; 0 = never set
+    updated_at: int = 0
+
+
+class PrefsIn(BaseModel):
+    values: dict[str, Any]
+    updated_at: int = Field(ge=0)  # unix milliseconds, from the writing client
+
+    @field_validator("values")
+    @classmethod
+    def flat_and_small(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if len(values) > PREFS_MAX_KEYS:
+            raise ValueError(f"at most {PREFS_MAX_KEYS} keys")
+        for key, value in values.items():
+            if not key or len(key) > PREFS_MAX_KEY_LENGTH:
+                raise ValueError(f"keys are 1-{PREFS_MAX_KEY_LENGTH} characters")
+            is_strings = isinstance(value, list) and all(isinstance(v, str) for v in value)
+            is_scalar = value is None or isinstance(value, bool | int | str)
+            # NaN and Infinity parse from JSON in Python but are not JSON (FastAPI
+            # cannot render its own 422 for them, so a body with one is a 500)
+            is_number = isinstance(value, float) and math.isfinite(value)
+            if not (is_strings or is_scalar or is_number):
+                raise ValueError(f"{key!r}: only scalars and arrays of strings")
+        if len(json.dumps(values, separators=(",", ":")).encode()) > PREFS_MAX_BYTES:
+            raise ValueError(f"at most {PREFS_MAX_BYTES} bytes")
+        return values

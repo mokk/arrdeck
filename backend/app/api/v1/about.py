@@ -37,6 +37,7 @@ FEATURE_ROUTES: dict[str, str] = {
     "subtitles": "/api/v1/subtitles",
     "vpn": "/api/v1/vpn",
     "backup_restore": "/api/v1/restore",
+    "prefs": "/api/v1/prefs",
 }
 
 

@@ -4588,6 +4588,43 @@
         "title": "PopularSnapshotOut",
         "type": "object"
       },
+      "PrefsIn": {
+        "properties": {
+          "updated_at": {
+            "minimum": 0.0,
+            "title": "Updated At",
+            "type": "integer"
+          },
+          "values": {
+            "additionalProperties": true,
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "values",
+          "updated_at"
+        ],
+        "title": "PrefsIn",
+        "type": "object"
+      },
+      "PrefsOut": {
+        "properties": {
+          "updated_at": {
+            "default": 0,
+            "title": "Updated At",
+            "type": "integer"
+          },
+          "values": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "title": "PrefsOut",
+        "type": "object"
+      },
       "ProfileAssignIn": {
         "properties": {
           "ids": {
@@ -12808,6 +12845,68 @@
         "summary": "Popular",
         "tags": [
           "popular"
+        ]
+      }
+    },
+    "/api/v1/prefs": {
+      "get": {
+        "description": "The stored set: {values, updated_at}. updated_at is unix milliseconds of\nthe write that produced it; values is {} and updated_at 0 until something\nhas been written.",
+        "operationId": "get_prefs_api_v1_prefs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrefsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Prefs",
+        "tags": [
+          "settings"
+        ]
+      },
+      "put": {
+        "description": "Replaces the whole set with {values, updated_at}, unless the server holds\na newer one. Always answers with what is stored now.\n\nLast write wins: a PUT whose updated_at (unix milliseconds) is older than the\nstored one changes nothing, and the answer carries the stored values and a\ngreater updated_at than was sent, which tells the client its write lost and\nthe returned values are the ones to adopt. An equal updated_at is accepted,\nso a retry is harmless. One in the future is clamped to the server's clock,\nso a device with a wrong clock cannot lock out the others; the answer carries\nthe clamped value, which the client should record as its sync time.\n\nvalues must be flat. Keys are 1-64 characters, at most 100 of them; each\nvalue is a string, number, boolean, null or an array of strings; the whole\nobject is at most 16 KB. Anything else is a 422. A client should send back,\nunchanged, any key it does not know.",
+        "operationId": "put_prefs_api_v1_prefs_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrefsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrefsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Prefs",
+        "tags": [
+          "settings"
         ]
       }
     },
