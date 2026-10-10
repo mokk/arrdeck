@@ -180,7 +180,11 @@
     "useDetected": "Use what the arr detected",
     "change": "change",
     "pickBook": "Choose a book",
-    "filterBooks": "Filter by title or author"
+    "filterBooks": "Filter by title or author",
+    "importInto": "Import into {{app}}",
+    "moveInstead": "Move the files instead of copying them",
+    "moveWarning": "Moving takes the files away from the torrent client, so this torrent stops seeding.",
+    "moveSelected": "Move {{count}}"
   },
   "add": {
     "title": "Add",

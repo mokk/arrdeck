@@ -18,6 +18,7 @@ import type { Torrent } from "../../api/types";
 import { Sheet } from "../../components/Sheet";
 import {
   useQbitTags,
+  useServices,
   useTorrentAction,
   useTorrentCategory,
   useTorrentDetails,
@@ -28,6 +29,9 @@ import {
   useTorrentRecheck,
   useTorrentTags,
 } from "../../hooks/queries";
+import { ImportSheet } from "../ImportSheet";
+
+const ARRS = ["radarr", "sonarr", "readarr"] as const;
 
 // how many rows each client returns per request; raised by "load more"
 
@@ -287,7 +291,15 @@ export function TorrentSheet({
   const { t } = useTranslation();
   const action = useTorrentAction();
   const [confirmingDelete, setConfirmingDelete] = useState(startAtDelete ?? false);
+  const [importInto, setImportInto] = useState<string | null>(null);
+  const { data: services } = useServices();
   const paused = isPaused(torrent);
+  // a finished download can be handed to any arr; one that an arr is already
+  // tracking is refused by the server and says where to fix it instead
+  const arrs =
+    torrent.progress >= 1
+      ? ARRS.filter((a) => (services ?? []).some((s) => s.service === a && s.configured))
+      : [];
 
   const run = (a: "pause" | "resume" | "delete", deleteData?: boolean) =>
     action.mutate(
@@ -326,6 +338,11 @@ export function TorrentSheet({
       ) : (
         <>
           <TorrentDetailsSection torrent={torrent} />
+          {arrs.map((a) => (
+            <SheetButton key={a} color="blue" onClick={() => setImportInto(a)}>
+              {t("dl.importInto", { app: SERVICE_LABELS[a] })}
+            </SheetButton>
+          ))}
           <SheetButton
             color="blue"
             disabled={action.isPending}
@@ -340,6 +357,13 @@ export function TorrentSheet({
             {t("common.cancel")}
           </SheetButton>
         </>
+      )}
+      {importInto && (
+        <ImportSheet
+          app={importInto}
+          torrent={{ client: torrent.client, id: torrent.id, name: torrent.name }}
+          onClose={() => setImportInto(null)}
+        />
       )}
     </Sheet>
   );

@@ -5063,6 +5063,31 @@ export type TorrentGroupOut = {
 };
 
 /**
+ * TorrentImportIn
+ *
+ * Import a finished torrent no arr is tracking. The folder is never sent:
+ * the server looks the torrent up and uses the client's own save path.
+ */
+export type TorrentImportIn = {
+  /**
+   * Client
+   */
+  client: "qbittorrent" | "transmission";
+  /**
+   * Files
+   */
+  files: Array<ManualImportFileIn>;
+  /**
+   * Mode
+   */
+  mode?: "auto" | "move" | "copy";
+  /**
+   * Torrent Id
+   */
+  torrent_id: string;
+};
+
+/**
  * TorrentLimitsIn
  */
 export type TorrentLimitsIn = {
@@ -8438,6 +8463,81 @@ export type ManualImportOptionsApiV1ManualImportAppOptionsGetResponses = {
 
 export type ManualImportOptionsApiV1ManualImportAppOptionsGetResponse =
   ManualImportOptionsApiV1ManualImportAppOptionsGetResponses[keyof ManualImportOptionsApiV1ManualImportAppOptionsGetResponses];
+
+export type TorrentImportApiV1ManualImportAppTorrentPostData = {
+  body: TorrentImportIn;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+  };
+  query?: never;
+  url: "/api/v1/manual-import/{app}/torrent";
+};
+
+export type TorrentImportApiV1ManualImportAppTorrentPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TorrentImportApiV1ManualImportAppTorrentPostError =
+  TorrentImportApiV1ManualImportAppTorrentPostErrors[keyof TorrentImportApiV1ManualImportAppTorrentPostErrors];
+
+export type TorrentImportApiV1ManualImportAppTorrentPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: ImportCommandOut;
+};
+
+export type TorrentImportApiV1ManualImportAppTorrentPostResponse =
+  TorrentImportApiV1ManualImportAppTorrentPostResponses[keyof TorrentImportApiV1ManualImportAppTorrentPostResponses];
+
+export type TorrentImportCandidatesApiV1ManualImportAppTorrentClientNameTorrentIdGetData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+    /**
+     * Client Name
+     */
+    client_name: string;
+    /**
+     * Torrent Id
+     */
+    torrent_id: string;
+  };
+  query?: never;
+  url: "/api/v1/manual-import/{app}/torrent/{client_name}/{torrent_id}";
+};
+
+export type TorrentImportCandidatesApiV1ManualImportAppTorrentClientNameTorrentIdGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type TorrentImportCandidatesApiV1ManualImportAppTorrentClientNameTorrentIdGetError =
+  TorrentImportCandidatesApiV1ManualImportAppTorrentClientNameTorrentIdGetErrors[keyof TorrentImportCandidatesApiV1ManualImportAppTorrentClientNameTorrentIdGetErrors];
+
+export type TorrentImportCandidatesApiV1ManualImportAppTorrentClientNameTorrentIdGetResponses =
+  {
+    /**
+     * Response Torrent Import Candidates Api V1 Manual Import  App  Torrent  Client Name   Torrent Id  Get
+     *
+     * Successful Response
+     */
+    200: Array<ImportCandidateOut>;
+  };
+
+export type TorrentImportCandidatesApiV1ManualImportAppTorrentClientNameTorrentIdGetResponse =
+  TorrentImportCandidatesApiV1ManualImportAppTorrentClientNameTorrentIdGetResponses[keyof TorrentImportCandidatesApiV1ManualImportAppTorrentClientNameTorrentIdGetResponses];
 
 export type ManualImportCandidatesApiV1ManualImportAppItemIdGetData = {
   body?: never;

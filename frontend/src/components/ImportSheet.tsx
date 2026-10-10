@@ -12,15 +12,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn, focusRing } from "@/lib/utils";
-import { formatBytes } from "../api/format";
+import { formatBytes, SERVICE_LABELS } from "../api/format";
 import type { ImportCandidate, ImportCommand } from "../api/types";
 import {
   useImportCandidates,
   useImportCommand,
   useImportOptions,
   useManualImportAssign,
+  useTorrentImport,
+  useTorrentImportCandidates,
 } from "../hooks/queries";
-import { EmptyNote } from "./Blocks";
+import { EmptyNote, ErrorNote } from "./Blocks";
 import { Sheet } from "./Sheet";
 import { type Target, TargetPicker } from "./TargetPicker";
 
@@ -154,21 +156,31 @@ function OverrideSheet({
   );
 }
 
-/** Everything the arr found in a stuck download, including the files it
- * refused, so a rejection can be read and overridden rather than guessed at. */
+/** Everything the arr found in a stuck download (a queue item) or in a
+ * finished torrent no arr is tracking, including the files it refused, so a
+ * rejection can be read and overridden rather than guessed at. */
 export function ImportSheet({
   app,
   itemId,
+  torrent,
   onClose,
 }: {
   app: string;
-  itemId: number;
+  itemId?: number;
+  torrent?: { client: string; id: string; name: string };
   onClose: () => void;
 }) {
   const { t } = useTranslation();
-  const { data, isLoading } = useImportCandidates(app, itemId);
+  const fromQueue = useImportCandidates(app, torrent ? null : (itemId ?? null));
+  const fromTorrent = useTorrentImportCandidates(app, torrent ?? null);
+  const { data, isLoading, error } = torrent ? fromTorrent : fromQueue;
   const { data: options } = useImportOptions(app);
   const assign = useManualImportAssign();
+  const torrentImport = useTorrentImport();
+  const pending = assign.isPending || torrentImport.isPending;
+  // auto lets the arr copy or hardlink so the torrent keeps seeding; moving
+  // is a deliberate, separate choice
+  const [move, setMove] = useState(false);
   const [started, setStarted] = useState<ImportCommand | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   // files the arr couldn't place, pointed at a target by hand
@@ -209,8 +221,15 @@ export function ImportSheet({
   const importable = (data ?? []).filter(ready);
 
   return (
-    <Sheet title={t("dl.manualImport")} onClose={onClose}>
+    <Sheet
+      title={torrent ? t("dl.importInto", { app: SERVICE_LABELS[app] }) : t("dl.manualImport")}
+      subtitle={torrent?.name}
+      onClose={onClose}
+    >
       {isLoading && <EmptyNote>{t("common.loading")}</EmptyNote>}
+      {/* the arr's or the server's own reason: already tracked, not finished,
+          or a folder the arr cannot see */}
+      {error && <ErrorNote>{error.message}</ErrorNote>}
       {data && data.length === 0 && <EmptyNote>{t("dl.noCandidates")}</EmptyNote>}
       {(data ?? []).map((c) => {
         const detail = describe(c);
@@ -277,40 +296,70 @@ export function ImportSheet({
         );
       })}
       {(data ?? []).length > 0 && (
-        <div className="mt-3 flex gap-2">
-          <Button
-            disabled={assign.isPending || picked.size === 0 || started != null}
-            onClick={() =>
-              // one request: hand-picked files carry their target, the rest
-              // keep the arr's own match; overrides ride along per file
-              assign.mutate(
-                {
-                  app,
-                  itemId,
-                  files: [...picked].map((p) => ({
-                    path: p,
-                    movie_id: targets[p]?.movie_id,
-                    series_id: targets[p]?.series_id,
-                    episode_ids: targets[p]?.episode_ids,
-                    book_id: targets[p]?.book_id,
-                    ...overrides[p],
-                  })),
-                },
-                { onSuccess: setStarted },
-              )
-            }
+        <>
+          <button
+            type="button"
+            aria-pressed={move}
+            onClick={() => setMove(!move)}
+            className={cn(
+              focusRing,
+              "mt-3 flex w-full items-start gap-2.5 rounded-xl px-1 py-1.5 text-left text-sm",
+            )}
           >
-            {t("dl.importSelected", { count: picked.size })}
-          </Button>
-          {importable.length > 0 && (
-            <Button
-              variant="secondary"
-              onClick={() => setPicked(new Set(importable.map((c) => c.path)))}
+            <span
+              className={cn(
+                "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border text-[9px] text-white",
+                move ? "border-destructive bg-destructive" : "border-muted-foreground/50",
+              )}
             >
-              {t("dl.selectAll")}
+              {move ? "✓" : ""}
+            </span>
+            <span>
+              {t("dl.moveInstead")}
+              {move && (
+                <span className="mt-0.5 block text-xs text-destructive">
+                  {t("dl.moveWarning")}
+                </span>
+              )}
+            </span>
+          </button>
+          <div className="mt-2 flex gap-2">
+            <Button
+              variant={move ? "destructive" : "default"}
+              disabled={pending || picked.size === 0 || started != null}
+              onClick={() => {
+                // one request: hand-picked files carry their target, the rest
+                // keep the arr's own match; overrides ride along per file
+                const files = [...picked].map((p) => ({
+                  path: p,
+                  movie_id: targets[p]?.movie_id,
+                  series_id: targets[p]?.series_id,
+                  episode_ids: targets[p]?.episode_ids,
+                  book_id: targets[p]?.book_id,
+                  ...overrides[p],
+                }));
+                const mode = move ? "move" : "auto";
+                if (torrent)
+                  torrentImport.mutate(
+                    { app, client: torrent.client, torrentId: torrent.id, files, mode },
+                    { onSuccess: setStarted },
+                  );
+                else if (itemId != null)
+                  assign.mutate({ app, itemId, files, mode }, { onSuccess: setStarted });
+              }}
+            >
+              {t(move ? "dl.moveSelected" : "dl.importSelected", { count: picked.size })}
             </Button>
-          )}
-        </div>
+            {importable.length > 0 && (
+              <Button
+                variant="secondary"
+                onClick={() => setPicked(new Set(importable.map((c) => c.path)))}
+              >
+                {t("dl.selectAll")}
+              </Button>
+            )}
+          </div>
+        </>
       )}
       {started && <ImportResult started={started} />}
       {choosingFor && (

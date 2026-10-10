@@ -180,7 +180,11 @@
     "useDetected": "Brug det, arr-appen fandt",
     "change": "ret",
     "pickBook": "Vælg en bog",
-    "filterBooks": "Filtrér på titel eller forfatter"
+    "filterBooks": "Filtrér på titel eller forfatter",
+    "importInto": "Importér i {{app}}",
+    "moveInstead": "Flyt filerne i stedet for at kopiere dem",
+    "moveWarning": "Flytning tager filerne fra torrent-klienten, så denne torrent holder op med at seede.",
+    "moveSelected": "Flyt {{count}}"
   },
   "add": {
     "title": "Tilføj",

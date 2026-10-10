@@ -267,6 +267,20 @@ class ArrClient(BaseClient):
     async def test_notification(self, payload: dict) -> None:
         await self.request("POST", "/notification/test", json=payload, timeout=30.0)
 
+    async def manual_import_folder(self, folder: str) -> list:
+        """What the arr would import from a folder (or single file) it can
+        see, matched or not. A path it cannot see comes back empty."""
+        return await self.get(
+            "/manualimport",
+            params={"folder": folder, "filterExistingFiles": "false"},
+            timeout=120.0,
+        )
+
+    async def filesystem(self, path: str) -> dict:
+        """A directory listing as the arr sees it, for telling "nothing to
+        import" apart from "not mounted here"."""
+        return await self.get("/filesystem", params={"path": path, "includeFiles": "true"})
+
     async def get_command(self, command_id: int) -> dict:
         """A queued or finished command: status, result and the arr's message."""
         return await self.get(f"/command/{command_id}")

@@ -70,12 +70,56 @@ export function useManualImportAssign() {
       app,
       itemId,
       files,
+      mode = "auto",
     }: {
       app: string;
       itemId: number;
       files: ImportFileChoice[];
-    }) => api.post<ImportCommand>(`/manual-import/${app}/assign`, { item_id: itemId, files }),
+      mode?: "auto" | "move";
+    }) =>
+      api.post<ImportCommand>(`/manual-import/${app}/assign`, { item_id: itemId, files, mode }),
     onSettled: () => qc.invalidateQueries({ queryKey: ["queue"] }),
+  });
+}
+
+/** A finished torrent no arr is tracking, as the arr reads its folder. The
+ * server finds the folder from the torrent client; only the torrent is sent. */
+export const useTorrentImportCandidates = (
+  app: string,
+  torrent: { client: string; id: string } | null,
+) =>
+  useQuery({
+    queryKey: ["importCandidates", app, torrent?.client, torrent?.id],
+    queryFn: () =>
+      api.get<ImportCandidate[]>(
+        `/manual-import/${app}/torrent/${torrent?.client}/${encodeURIComponent(torrent?.id ?? "")}`,
+      ),
+    enabled: torrent != null,
+    // a 409 (tracked, or a folder the arr can't see) won't change on a retry
+    retry: false,
+  });
+
+export function useTorrentImport() {
+  return useMutation({
+    mutationFn: ({
+      app,
+      client,
+      torrentId,
+      files,
+      mode,
+    }: {
+      app: string;
+      client: string;
+      torrentId: string;
+      files: ImportFileChoice[];
+      mode: "auto" | "move";
+    }) =>
+      api.post<ImportCommand>(`/manual-import/${app}/torrent`, {
+        client,
+        torrent_id: torrentId,
+        files,
+        mode,
+      }),
   });
 }
 

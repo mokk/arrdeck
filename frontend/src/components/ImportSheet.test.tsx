@@ -18,10 +18,19 @@ const state = vi.hoisted(() => ({
   candidates: [] as unknown[],
   command: undefined as unknown,
   assign: vi.fn(),
+  torrentImport: vi.fn(),
+  torrentCandidates: undefined as unknown,
+  torrentError: null as Error | null,
 }));
 vi.mock("../hooks/queries", () => ({
   useImportCandidates: () => ({ data: state.candidates, isLoading: false }),
   useManualImportAssign: () => ({ mutate: state.assign, isPending: false }),
+  useTorrentImport: () => ({ mutate: state.torrentImport, isPending: false }),
+  useTorrentImportCandidates: (_app: string, torrent: unknown) => ({
+    data: torrent ? state.torrentCandidates : undefined,
+    isLoading: false,
+    error: torrent ? state.torrentError : null,
+  }),
   useImportCommand: () => ({ data: state.command }),
   useImportOptions: () => ({
     data: {
@@ -60,6 +69,9 @@ beforeEach(() => {
   state.candidates = [candidate()];
   state.command = undefined;
   state.assign.mockReset();
+  state.torrentImport.mockReset();
+  state.torrentCandidates = [candidate()];
+  state.torrentError = null;
   toast.success.mockReset();
   toast.error.mockReset();
 });
@@ -80,6 +92,7 @@ describe("import sheet", () => {
       app: "radarr",
       itemId: 3,
       files: [{ path: "/data/Movies/Dune/Dune.mkv" }],
+      mode: "auto",
     });
   });
 
@@ -131,5 +144,40 @@ describe("quality and language", () => {
       path: "/data/Movies/Dune/Dune.mkv",
       language_ids: [1, 11],
     });
+  });
+});
+
+describe("a finished torrent", () => {
+  const torrent = { client: "qbittorrent", id: "c095", name: "Dune.2021.1080p" };
+
+  it("imports from the torrent, naming only the torrent, with auto by default", () => {
+    render(<ImportSheet app="radarr" torrent={torrent} onClose={() => {}} />);
+    fireEvent.click(screen.getByText("dl.selectAll"));
+    fireEvent.click(screen.getByText("dl.importSelected(1)"));
+    expect(state.assign).not.toHaveBeenCalled();
+    expect(state.torrentImport.mock.calls[0][0]).toEqual({
+      app: "radarr",
+      client: "qbittorrent",
+      torrentId: "c095",
+      files: [{ path: "/data/Movies/Dune/Dune.mkv" }],
+      mode: "auto",
+    });
+  });
+
+  it("moves only when asked, and warns that seeding stops", () => {
+    render(<ImportSheet app="radarr" torrent={torrent} onClose={() => {}} />);
+    expect(screen.queryByText("dl.moveWarning")).toBeNull();
+    fireEvent.click(screen.getByText("dl.moveInstead"));
+    expect(screen.getByText("dl.moveWarning")).toBeTruthy();
+    fireEvent.click(screen.getByText("dl.selectAll"));
+    fireEvent.click(screen.getByText("dl.moveSelected(1)"));
+    expect(state.torrentImport.mock.calls[0][0].mode).toBe("move");
+  });
+
+  it("shows why the arr can't take it", () => {
+    state.torrentCandidates = undefined;
+    state.torrentError = new Error("Radarr can't see /downloads/x");
+    render(<ImportSheet app="radarr" torrent={torrent} onClose={() => {}} />);
+    expect(screen.getByText("Radarr can't see /downloads/x")).toBeTruthy();
   });
 });

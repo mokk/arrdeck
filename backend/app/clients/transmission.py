@@ -70,6 +70,12 @@ class TransmissionClient(BaseClient):
         result = await self.rpc("torrent-get", {"fields": TORRENT_FIELDS})
         return result.get("torrents", [])
 
+    async def torrent(self, id_or_hash: int | str) -> dict | None:
+        """One torrent's list fields; the RPC takes an id or an info hash."""
+        result = await self.rpc("torrent-get", {"ids": [id_or_hash], "fields": TORRENT_FIELDS})
+        torrents = result.get("torrents", [])
+        return torrents[0] if torrents else None
+
     async def torrent_details(self, torrent_id: int) -> dict:
         result = await self.rpc(
             "torrent-get",

@@ -235,6 +235,19 @@ class ImportCommandOut(BaseModel):
     imported: int | None = None
 
 
+class TorrentImportIn(BaseModel):
+    """Import a finished torrent no arr is tracking. The folder is never sent:
+    the server looks the torrent up and uses the client's own save path."""
+
+    client: Literal["qbittorrent", "transmission"]
+    torrent_id: str  # qBittorrent hash; Transmission id or hash
+    files: list[ManualImportFileIn]
+    # auto is sent to the arr as copy (hardlink when the arr is set to), since
+    # with no tracked download the arr's own auto would move the files away
+    # from the torrent; move only when chosen, and seeding stops
+    mode: Literal["auto", "move", "copy"] = "auto"
+
+
 class RenamePreviewOut(BaseModel):
     file_id: int
     existing_path: str = ""

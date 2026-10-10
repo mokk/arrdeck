@@ -1,14 +1,18 @@
-"""Rescuing a stuck download: manual import, hand-picked targets, renaming."""
+"""Rescuing a stuck download: manual import, hand-picked targets, renaming;
+and importing a finished torrent that no arr is tracking."""
 
+import posixpath
 import re
 
 from fastapi import APIRouter, Depends, HTTPException
 
 from ...cache import cached
+from ...clients.qbittorrent import QbittorrentClient
 from ...clients.radarr import RadarrClient
 from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_radarr, get_readarr, get_sonarr
+from ...clients.transmission import TransmissionClient
+from ...deps import get_qbit, get_radarr, get_readarr, get_sonarr, get_transmission
 from ...schemas import (
     ImportCandidateOut,
     ImportCommandOut,
@@ -18,11 +22,22 @@ from ...schemas import (
     ManualImportIn,
     RenameIn,
     RenamePreviewOut,
+    TorrentImportIn,
 )
 
 router = APIRouter(tags=["importing"])
 
+LABELS = {
+    "radarr": "Radarr",
+    "sonarr": "Sonarr",
+    "readarr": "Readarr",
+    "qbittorrent": "qBittorrent",
+    "transmission": "Transmission",
+}
+
 FINISHED = {"completed", "failed", "aborted", "cancelled", "orphaned"}
+# a v1 or v2 info hash; Transmission also takes its own numeric id
+HASH_RE = re.compile(r"[0-9a-fA-F]{40}|[0-9a-fA-F]{64}")
 # "Manually imported 3 files" — the arrs' closing progress line
 IMPORTED_RE = re.compile(r"imported (\d+) files?", re.IGNORECASE)
 
@@ -374,6 +389,155 @@ async def manual_import_command(
     the arr's own words, success or failure."""
     client = _client(app, radarr, sonarr, readarr)
     return command_out(app, await client.get_command(command_id))
+
+
+# --- a finished torrent no arr is tracking ----------------------------------
+
+
+def _inside(save_path: str, path: str) -> str:
+    """`path`, normalised, provided it lies strictly under `save_path`; the
+    torrent client is the only source of both, but a renamed torrent can
+    still carry "../" in its name."""
+    root = posixpath.normpath(save_path)
+    full = posixpath.normpath(path)
+    if not root.startswith("/") or posixpath.commonpath([root, full]) != root or full == root:
+        raise HTTPException(409, f"{path!r} is not inside the torrent's save path {save_path!r}")
+    return full
+
+
+async def _torrent_content(client_name: str, torrent_id: str, qbit, transmission) -> dict:
+    """Where a finished torrent's content lives, from the torrent client
+    itself: {folder, save_path, hash}. Nothing here comes from the request
+    except which torrent."""
+    numeric = client_name == "transmission" and torrent_id.isdigit()
+    if not (HASH_RE.fullmatch(torrent_id) or numeric):
+        raise HTTPException(404, "torrent not found")
+    if client_name == "qbittorrent":
+        found = await qbit.torrents(hashes=[torrent_id])
+        torrent = next(
+            (t for t in found if (t.get("hash") or "").lower() == torrent_id.lower()), None
+        )
+        if torrent is None:
+            raise HTTPException(404, "torrent not found")
+        done = (torrent.get("progress") or 0) >= 1
+        save_path = torrent.get("save_path") or ""
+        # root_path is the torrent's top folder; a single-file torrent has
+        # none, and content_path is then the file itself
+        content = (
+            torrent.get("root_path")
+            or torrent.get("content_path")
+            or posixpath.join(save_path, torrent.get("name") or "")
+        )
+        torrent_hash = torrent.get("hash") or torrent_id
+    else:
+        torrent = await transmission.torrent(
+            int(torrent_id) if torrent_id.isdigit() else torrent_id
+        )
+        if torrent is None:
+            raise HTTPException(404, "torrent not found")
+        done = (torrent.get("percentDone") or 0) >= 1
+        save_path = torrent.get("downloadDir") or ""
+        content = posixpath.join(save_path, torrent.get("name") or "")
+        torrent_hash = torrent.get("hashString") or ""
+    if not done:
+        raise HTTPException(409, "the torrent has not finished downloading")
+    return {"folder": _inside(save_path, content), "save_path": save_path, "hash": torrent_hash}
+
+
+async def _tracked_by(torrent_hash: str, arrs: dict) -> str | None:
+    """The arr that already has this download in its queue, if any. Those are
+    fixed from their queue item, where the arr keeps its own bookkeeping."""
+    for app, client in arrs.items():
+        try:
+            records = (await client.queue()).get("records", [])
+        except Exception:  # noqa: BLE001 — an arr that is down tracks nothing we can see
+            continue
+        if any((r.get("downloadId") or "").lower() == torrent_hash.lower() for r in records):
+            return app
+    return None
+
+
+async def _torrent_candidates(
+    app: str, client, client_name: str, content: dict, arrs: dict
+) -> list[dict]:
+    if content["hash"]:
+        tracker = await _tracked_by(content["hash"], arrs)
+        if tracker:
+            raise HTTPException(
+                409,
+                f"{LABELS[tracker]} is already tracking this download; "
+                "fix it from its queue item (Needs attention) instead",
+            )
+    folder = content["folder"]
+    candidates = await client.manual_import_folder(folder)
+    if candidates:
+        return candidates
+    # Empty can mean "nothing importable" or "that path does not exist where
+    # the arr runs". Ask the arr to list the parent rather than guess at a
+    # path mapping.
+    parent, name = posixpath.split(folder)
+    listing = await client.filesystem(parent.rstrip("/") + "/")
+    seen = {
+        e.get("name")
+        for e in (listing or {}).get("directories", []) + (listing or {}).get("files", [])
+    }
+    if name not in seen:
+        raise HTTPException(
+            409,
+            f"{LABELS[app]} can't see {folder}: {LABELS[client_name]} saved it to a folder "
+            f"that isn't mounted at the same path in {LABELS[app]}. Mount it there, or add "
+            f"a remote path mapping in {LABELS[app]}.",
+        )
+    return []
+
+
+@router.get(
+    "/manual-import/{app}/torrent/{client_name}/{torrent_id}",
+    response_model=list[ImportCandidateOut],
+)
+async def torrent_import_candidates(
+    app: str,
+    client_name: str,
+    torrent_id: str,
+    radarr: RadarrClient = Depends(get_radarr),
+    sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
+    qbit: QbittorrentClient = Depends(get_qbit),
+    transmission: TransmissionClient = Depends(get_transmission),
+) -> list[dict]:
+    """What the arr makes of a finished torrent's folder, in the same shape as
+    a queue item's candidates."""
+    client = _client(app, radarr, sonarr, readarr)
+    if client_name not in ("qbittorrent", "transmission"):
+        raise HTTPException(404, f"unknown torrent client {client_name!r}")
+    content = await _torrent_content(client_name, torrent_id, qbit, transmission)
+    arrs = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}
+    candidates = await _torrent_candidates(app, client, client_name, content, arrs)
+    return [_describe_candidate(app, c) for c in candidates]
+
+
+@router.post("/manual-import/{app}/torrent", response_model=ImportCommandOut)
+async def torrent_import(
+    app: str,
+    body: TorrentImportIn,
+    radarr: RadarrClient = Depends(get_radarr),
+    sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
+    qbit: QbittorrentClient = Depends(get_qbit),
+    transmission: TransmissionClient = Depends(get_transmission),
+) -> dict:
+    """Import picked files from a finished torrent's folder. The folder is
+    worked out again here and every path must be one the arr found in it."""
+    client = _client(app, radarr, sonarr, readarr)
+    content = await _torrent_content(body.client, body.torrent_id, qbit, transmission)
+    arrs = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}
+    candidates = await _torrent_candidates(app, client, body.client, content, arrs)
+    files = await _build_files(app, client, candidates, body.files, None)
+    # No tracked download here, and for the arr that turns auto into a move:
+    # copy keeps the torrent's files (a hardlink when the arr is set to use them)
+    mode = "copy" if body.mode == "auto" else body.mode
+    command = await client.command({"name": "ManualImport", "files": files, "importMode": mode})
+    return command_out(app, command)
 
 
 @router.get("/rename/{app}/{item_id}", response_model=list[RenamePreviewOut])

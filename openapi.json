@@ -9249,6 +9249,47 @@
         "title": "TorrentGroupOut",
         "type": "object"
       },
+      "TorrentImportIn": {
+        "description": "Import a finished torrent no arr is tracking. The folder is never sent:\nthe server looks the torrent up and uses the client's own save path.",
+        "properties": {
+          "client": {
+            "enum": [
+              "qbittorrent",
+              "transmission"
+            ],
+            "title": "Client",
+            "type": "string"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/ManualImportFileIn"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "mode": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "move",
+              "copy"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "torrent_id": {
+            "title": "Torrent Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "client",
+          "torrent_id",
+          "files"
+        ],
+        "title": "TorrentImportIn",
+        "type": "object"
+      },
       "TorrentLimitsIn": {
         "properties": {
           "dl_kib": {
@@ -13954,6 +13995,124 @@
           }
         },
         "summary": "Manual Import Options",
+        "tags": [
+          "importing"
+        ]
+      }
+    },
+    "/api/v1/manual-import/{app}/torrent": {
+      "post": {
+        "description": "Import picked files from a finished torrent's folder. The folder is\nworked out again here and every path must be one the arr found in it.",
+        "operationId": "torrent_import_api_v1_manual_import__app__torrent_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "app",
+            "required": true,
+            "schema": {
+              "title": "App",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TorrentImportIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportCommandOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Torrent Import",
+        "tags": [
+          "importing"
+        ]
+      }
+    },
+    "/api/v1/manual-import/{app}/torrent/{client_name}/{torrent_id}": {
+      "get": {
+        "description": "What the arr makes of a finished torrent's folder, in the same shape as\na queue item's candidates.",
+        "operationId": "torrent_import_candidates_api_v1_manual_import__app__torrent__client_name___torrent_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "app",
+            "required": true,
+            "schema": {
+              "title": "App",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "client_name",
+            "required": true,
+            "schema": {
+              "title": "Client Name",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "torrent_id",
+            "required": true,
+            "schema": {
+              "title": "Torrent Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ImportCandidateOut"
+                  },
+                  "title": "Response Torrent Import Candidates Api V1 Manual Import  App  Torrent  Client Name   Torrent Id  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Torrent Import Candidates",
         "tags": [
           "importing"
         ]
