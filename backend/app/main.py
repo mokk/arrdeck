@@ -23,7 +23,7 @@ from .ical import router as ical_router
 from .logging_setup import HEADER, REQUEST_ID, RequestIdMiddleware
 from .logging_setup import configure as configure_logging
 from .opds import router as opds_router
-from .push import digest_loop, flush_loop, push_loop
+from .push import ServiceWatch, digest_loop, flush_loop, push_loop, watch_loop
 from .registry import Registry
 from .stats import sampler_loop
 from .version import VERSION
@@ -80,6 +80,8 @@ async def lifespan(app: FastAPI):
     app.state.db = db
     app.state.registry = registry
     app.state.http = arr_http
+    # on app.state so /status can show how long a service has been down
+    app.state.watch = ServiceWatch.load(db)
     tasks = [
         asyncio.create_task(sampler_loop(db, registry)),
         asyncio.create_task(push_loop(db, registry)),
@@ -87,6 +89,7 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(digest_loop(db, registry)),
         asyncio.create_task(popular_loop(db, registry)),
         asyncio.create_task(cleanup_loop(db, registry)),
+        asyncio.create_task(watch_loop(db, registry, app.state.watch)),
     ]
     yield
     for task in tasks:

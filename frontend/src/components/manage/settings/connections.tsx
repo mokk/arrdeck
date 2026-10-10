@@ -21,7 +21,7 @@ import {
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
-import { SERVICE_LABELS } from "../../../api/format";
+import { formatDateTime, formatEta, SERVICE_LABELS } from "../../../api/format";
 import type { ServiceSettings } from "../../../api/types";
 import { useSaveServiceSettings, useStatus, useTestService } from "../../../hooks/queries";
 import i18n, { LANGUAGES, setLanguage } from "../../../i18n";
@@ -147,6 +147,10 @@ export function ServiceSettingsCard({
   );
 }
 
+function downFor(since: string): string {
+  return formatEta(Math.max(60, Math.round((Date.now() - new Date(since).getTime()) / 1000)));
+}
+
 export function StatusStrip() {
   const { t } = useTranslation();
   const { data } = useStatus();
@@ -160,11 +164,15 @@ export function StatusStrip() {
         // An available update is worth knowing but is not a fault: flaky wins the
         // dot, since a service that keeps dropping matters more than a version.
         const update = s.ok && s.update_available ? s.update_available : null;
-        const hint = flaky
-          ? t("manage.flakyHint", { count: s.retries ?? 0 })
-          : update
-            ? t("manage.updateHint", { version: update })
-            : undefined;
+        // the watcher's first failed probe, so "down 14m" rather than just offline
+        const downSince = !s.ok && s.down_since ? s.down_since : null;
+        const hint = downSince
+          ? t("manage.downSinceHint", { when: formatDateTime(downSince) })
+          : flaky
+            ? t("manage.flakyHint", { count: s.retries ?? 0 })
+            : update
+              ? t("manage.updateHint", { version: update })
+              : undefined;
         return (
           <div
             key={s.service}
@@ -184,7 +192,13 @@ export function StatusStrip() {
             <span
               className={cn("font-normal", update ? "text-warning" : "text-muted-foreground")}
             >
-              {!s.ok ? t("manage.offlineShort") : flaky ? t("manage.flaky") : s.version}
+              {downSince
+                ? t("manage.downFor", { duration: downFor(downSince) })
+                : !s.ok
+                  ? t("manage.offlineShort")
+                  : flaky
+                    ? t("manage.flaky")
+                    : s.version}
             </span>
             {update && <span className="text-warning">↑</span>}
           </div>

@@ -131,6 +131,7 @@ function NotificationRules({ endpoint }: { endpoint: string }) {
       tags: { radarr: tags.radarr ?? [], sonarr: tags.sonarr ?? [] },
       digest_day: data.digest_day ?? 6,
       digest_time: data.digest_time ?? "18:00",
+      service_down_minutes: data.service_down_minutes ?? 10,
       ...over,
     } as Parameters<typeof save.mutate>[0]);
 
@@ -191,6 +192,11 @@ function NotificationRules({ endpoint }: { endpoint: string }) {
         day={data.digest_day ?? 6}
         time={data.digest_time ?? "18:00"}
         onChange={(digest_day, digest_time) => persist({ digest_day, digest_time })}
+      />
+      <ServiceDownThreshold
+        endpoint={endpoint}
+        minutes={data.service_down_minutes ?? 10}
+        onChange={(service_down_minutes) => persist({ service_down_minutes })}
       />
       {tagRows.map(([app, list]) => (
         <div key={app} className="flex flex-wrap items-center gap-1.5">
@@ -286,6 +292,53 @@ function DigestSchedule({
         )}
       </div>
       <span className="text-xs text-muted-foreground">{t("push.digestHint")}</span>
+    </div>
+  );
+}
+
+/** How long a service may stay unreachable before the "down" alert. Shown only
+ * while that event is on, like the digest schedule. */
+function ServiceDownThreshold({
+  endpoint,
+  minutes,
+  onChange,
+}: {
+  endpoint: string;
+  minutes: number;
+  onChange: (minutes: number) => void;
+}) {
+  const { t } = useTranslation();
+  const { data: events } = usePushEvents(true, endpoint);
+  const [draft, setDraft] = useState<string | null>(null);
+  const on = (events?.device ?? events?.enabled ?? []).includes("service_down");
+  if (!on) return null;
+  const commit = () => {
+    const value = Number(draft);
+    // the server rejects anything outside 1–120, so clamp rather than error
+    if (draft !== null && Number.isFinite(value) && draft.trim() !== "") {
+      const clamped = Math.min(120, Math.max(1, Math.round(value)));
+      if (clamped !== minutes) onChange(clamped);
+    }
+    setDraft(null);
+  };
+  return (
+    <div className="flex flex-col gap-2">
+      <Label className="text-xs text-muted-foreground">{t("push.serviceDown")}</Label>
+      <div className="flex items-center gap-2">
+        <Input
+          type="number"
+          inputMode="numeric"
+          min={1}
+          max={120}
+          className="w-20"
+          aria-label={t("push.serviceDownAfter")}
+          value={draft ?? String(minutes)}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+        />
+        <span className="text-sm text-muted-foreground">{t("push.serviceDownAfter")}</span>
+      </div>
+      <span className="text-xs text-muted-foreground">{t("push.serviceDownHint")}</span>
     </div>
   );
 }

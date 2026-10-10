@@ -205,6 +205,7 @@ class PushRulesOut(BaseModel):
     tags: dict[str, list[int]] = {}
     digest_day: int = 6  # Monday = 0
     digest_time: str = "18:00"
+    service_down_minutes: int = 10
     quiet_now: bool = False  # whether the window is currently in effect
 
 
@@ -215,6 +216,9 @@ class PushRulesIn(BaseModel):
     tags: dict[str, list[int]] = {}
     digest_day: int = Field(6, ge=0, le=6)
     digest_time: str = Field("18:00", pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
+    # None keeps the stored value, so a client that predates the setting does
+    # not reset it every time it saves quiet hours
+    service_down_minutes: int | None = Field(None, ge=1, le=120)
 
 
 class PushTestIn(BaseModel):

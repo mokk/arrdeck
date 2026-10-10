@@ -1,6 +1,7 @@
 """Infrastructure health: service probes, disk space, VPN, arr warnings."""
 
 import asyncio
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Request
 
@@ -61,7 +62,12 @@ async def _pending_update(name: str, client) -> str | None:
 @router.get("/status", response_model=list[ServiceStatus])
 async def status(request: Request) -> list[ServiceStatus]:
     registry = request.app.state.registry
+    watch = getattr(request.app.state, "watch", None)
     names = registry.configured()
+
+    def down_since(name: str) -> datetime | None:
+        since = watch.down_since(name) if watch else None
+        return datetime.fromtimestamp(since, UTC) if since is not None else None
 
     async def probe(name: str) -> ServiceStatus:
         try:
@@ -75,13 +81,24 @@ async def status(request: Request) -> list[ServiceStatus]:
                 version=version,
                 retries=retry_count(name),
                 update_available=pending,
+                down_since=down_since(name),
             )
         except ServiceUnavailable as exc:
             return ServiceStatus(
-                service=name, ok=False, error=exc.message, retries=retry_count(name)
+                service=name,
+                ok=False,
+                error=exc.message,
+                retries=retry_count(name),
+                down_since=down_since(name),
             )
         except Exception as exc:  # noqa: BLE001
-            return ServiceStatus(service=name, ok=False, error=str(exc), retries=retry_count(name))
+            return ServiceStatus(
+                service=name,
+                ok=False,
+                error=str(exc),
+                retries=retry_count(name),
+                down_since=down_since(name),
+            )
 
     return list(await asyncio.gather(*(probe(n) for n in names)))
 

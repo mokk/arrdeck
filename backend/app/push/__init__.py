@@ -10,3 +10,4 @@ from .events import *  # noqa: F403
 from .pipeline import *  # noqa: F403
 from .pipeline import _Slot  # noqa: F401
 from .sources import *  # noqa: F403
+from .watch import *  # noqa: F403

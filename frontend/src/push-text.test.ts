@@ -139,6 +139,33 @@ describe("a collapsed burst", () => {
   });
 });
 
+describe("service alerts", () => {
+  it("names the service and how long it has been down", () => {
+    const down = localise({
+      code: "service_down",
+      count: 1,
+      app: "radarr",
+      heading: "Radarr",
+      params: { minutes: 12 },
+    });
+    expect(down).toEqual({ title: "Radarr is down", body: "No answer for 12 min" });
+    const up = localise({
+      code: "service_up",
+      count: 1,
+      app: "radarr",
+      heading: "Radarr",
+      lang: "da",
+      params: { minutes: 25 },
+    });
+    expect(up).toEqual({ title: "Radarr kører igen", body: "Var nede i 25 min" });
+  });
+
+  it("still reads without a name or a duration", () => {
+    const out = localise({ code: "service_down", count: 1, heading: "" });
+    expect(out).toEqual({ title: "Service down", body: "Service down" });
+  });
+});
+
 describe("fallbacks", () => {
   it("uses the server's rendering for a code this build does not know", () => {
     // A server can add an event before the client ships a string for it. Showing

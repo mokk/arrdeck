@@ -35,12 +35,24 @@ EVENT_LABELS = {
     "added": "Added to library",
     "digest": "Weekly digest",
     "cleanup": "Cleanup",
+    "service_down": "Service down",
+    "service_up": "Service back up",
 }
 
 
 # cleanup only ever fires once the cleanup rules are switched on, and then it
 # is the warning that something is about to be deleted: on by default
-DEFAULT_EVENTS = ["imported", "upgraded", "failed", "manual", "health", "digest", "cleanup"]
+DEFAULT_EVENTS = [
+    "imported",
+    "upgraded",
+    "failed",
+    "manual",
+    "health",
+    "digest",
+    "cleanup",
+    "service_down",
+    "service_up",
+]
 
 
 WEBHOOK_EVENTS = {
@@ -129,6 +141,7 @@ DEFAULT_RULES = {
     "tags": {"radarr": [], "sonarr": []},  # empty = every item; ids are per app
     "digest_day": 6,  # weekday of the weekly digest, Monday = 0
     "digest_time": "18:00",  # in `timezone`
+    "service_down_minutes": 10,  # unreachable this long before a "down" push
 }
 
 
@@ -152,6 +165,9 @@ def get_rules(db: SettingsDB) -> dict:
         rules["digest_day"] = day
     if _parse_hhmm(stored.get("digest_time") or "") is not None:
         rules["digest_time"] = stored["digest_time"]
+    minutes = stored.get("service_down_minutes")
+    if isinstance(minutes, int) and 1 <= minutes <= 120:
+        rules["service_down_minutes"] = minutes
     tags = stored.get("tags")
     if isinstance(tags, dict):
         for app_name in ("radarr", "sonarr"):

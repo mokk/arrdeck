@@ -311,7 +311,9 @@
     "syncApp": "Sync {{app}}",
     "syncStarted": "Sync started",
     "updateHint": "Update available: {{version}}",
-    "traktHint": "Create an API app at trakt.tv/oauth/applications (the redirect URI can be urn:ietf:wg:oauth:2.0:oob) and paste its Client ID. arrdeck only reads Trakt's public lists."
+    "traktHint": "Create an API app at trakt.tv/oauth/applications (the redirect URI can be urn:ietf:wg:oauth:2.0:oob) and paste its Client ID. arrdeck only reads Trakt's public lists.",
+    "downFor": "down {{duration}}",
+    "downSinceHint": "Not answering since {{when}}"
   },
   "system": {
     "tasks": "Scheduled tasks",
@@ -502,7 +504,9 @@
       "health": "Health issue",
       "added": "Added to library",
       "digest": "Weekly digest",
-      "cleanup": "Cleanup rules"
+      "cleanup": "Cleanup rules",
+      "service_down": "Service down",
+      "service_up": "Service back up"
     },
     "delivery": "Delivery",
     "hookOn": "Connected",
@@ -524,7 +528,10 @@
     "digestTime": "Digest time",
     "digestNow": "Send now",
     "digestQuiet": "Nothing to send: a quiet week",
-    "digestHint": "What arrived this week and what is coming up next week. Switch the Weekly digest event off to stop it."
+    "digestHint": "What arrived this week and what is coming up next week. Switch the Weekly digest event off to stop it.",
+    "serviceDown": "Service alerts",
+    "serviceDownAfter": "minutes without an answer",
+    "serviceDownHint": "Every service is checked once a minute: one notification when one has not answered for this long, one when it is back. During quiet hours they wait until the window ends."
   },
   "search": {
     "global": "Search everything…",

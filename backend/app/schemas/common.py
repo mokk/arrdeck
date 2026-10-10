@@ -1,5 +1,6 @@
 """Shared envelope types: the ServiceBlock wrapper and service identity."""
 
+from datetime import datetime
 from typing import Generic, Literal, TypeVar
 
 from pydantic import BaseModel
@@ -42,6 +43,9 @@ class ServiceStatus(BaseModel):
     # A newer release the service itself knows about. arrdeck cannot apply it —
     # these run in Docker — so this is information, not an action.
     update_available: str | None = None
+    # When the background watcher first saw it fail, for a "down since" badge.
+    # It probes once a minute, so this can trail `ok` by up to that long.
+    down_since: datetime | None = None
 
 
 class ServiceInfoOut(BaseModel):

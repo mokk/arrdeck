@@ -2950,6 +2950,10 @@ export type PushRulesIn = {
    */
   quiet_start?: string;
   /**
+   * Service Down Minutes
+   */
+  service_down_minutes?: number | null;
+  /**
    * Tags
    */
   tags?: {
@@ -2985,6 +2989,10 @@ export type PushRulesOut = {
    * Quiet Start
    */
   quiet_start?: string;
+  /**
+   * Service Down Minutes
+   */
+  service_down_minutes?: number;
   /**
    * Tags
    */
@@ -4333,6 +4341,10 @@ export type ServiceSettingsOut = {
  * ServiceStatus
  */
 export type ServiceStatus = {
+  /**
+   * Down Since
+   */
+  down_since?: string | null;
   /**
    * Error
    */

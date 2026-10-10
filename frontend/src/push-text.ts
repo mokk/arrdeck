@@ -11,7 +11,7 @@
  * ServiceWorkerGlobalScope.
  *
  * Only the push strings are here, not the app's 436 — i18next is not loaded in
- * the worker and pulling it in for eight keys would be absurd. They are checked
+ * the worker and pulling it in for a few dozen keys would be absurd. They are checked
  * against the backend event list by push-text.test.ts.
  */
 const PUSH_STRINGS: Record<string, Record<string, string>> = {
@@ -33,6 +33,12 @@ const PUSH_STRINGS: Record<string, Record<string, string>> = {
     cleanup_removed_title: "Removed by cleanup",
     cleanup_removed_one: "1 title was removed",
     cleanup_removed: "{n} titles were removed",
+    service_down: "Service down",
+    service_down_title: "{name} is down",
+    service_down_body: "No answer for {n} min",
+    service_up: "Service back up",
+    service_up_title: "{name} is back up",
+    service_up_body: "Was down for {n} min",
     count_readarr_one: "1 book",
     count_readarr: "{n} books",
     count_radarr_one: "1 movie",
@@ -60,6 +66,12 @@ const PUSH_STRINGS: Record<string, Record<string, string>> = {
     cleanup_removed_title: "Fjernet af oprydning",
     cleanup_removed_one: "1 titel blev fjernet",
     cleanup_removed: "{n} titler blev fjernet",
+    service_down: "Tjeneste nede",
+    service_down_title: "{name} er nede",
+    service_down_body: "Intet svar i {n} min",
+    service_up: "Tjeneste kører igen",
+    service_up_title: "{name} kører igen",
+    service_up_body: "Var nede i {n} min",
     count_readarr_one: "1 bog",
     count_readarr: "{n} bøger",
     count_radarr_one: "1 film",
@@ -139,6 +151,27 @@ function cleanup(
   };
 }
 
+/** "Radarr is down" / "No answer for 12 min". The server sends the service's
+ * display name as the heading, since the worker cannot load the app's labels. */
+function outage(
+  strings: Record<string, string>,
+  code: string,
+  heading: string,
+  params: unknown,
+) {
+  const minutes =
+    params && typeof params === "object" ? (params as Record<string, unknown>).minutes : null;
+  return {
+    title: heading
+      ? (strings[`${code}_title`] ?? "").replace("{name}", heading)
+      : strings[code],
+    body:
+      typeof minutes === "number"
+        ? (strings[`${code}_body`] ?? "").replace("{n}", String(minutes))
+        : strings[code],
+  };
+}
+
 export function localise(data: PushPayload): { title: string; body: string } {
   const lang = text(data.lang) || "en";
   const strings = PUSH_STRINGS[lang] ?? PUSH_STRINGS.en;
@@ -151,6 +184,10 @@ export function localise(data: PushPayload): { title: string; body: string } {
     const n = typeof data.count === "number" && data.count > 0 ? data.count : 1;
     const out = cleanup(strings, data.params as Record<string, unknown>, n, text(data.heading));
     if (out.body) return out;
+  }
+
+  if (label && (data.code === "service_down" || data.code === "service_up")) {
+    return outage(strings, data.code, text(data.heading), data.params);
   }
 
   // No code, or one this build has never heard of: use whatever the server

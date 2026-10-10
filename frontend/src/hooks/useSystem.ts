@@ -219,6 +219,7 @@ export function useSavePushRules() {
       tags: Record<string, number[]>;
       digest_day?: number;
       digest_time?: string;
+      service_down_minutes?: number;
     }) => api.put<PushRules>("/push/rules", rules),
     onSuccess: (data) => qc.setQueryData(["pushRules"], data),
   });

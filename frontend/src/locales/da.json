@@ -311,7 +311,9 @@
     "syncApp": "Synkronisér {{app}}",
     "syncStarted": "Synkronisering startet",
     "updateHint": "Opdatering tilgængelig: {{version}}",
-    "traktHint": "Opret en API-app på trakt.tv/oauth/applications (redirect-URI kan være urn:ietf:wg:oauth:2.0:oob), og indsæt dens Client ID. arrdeck læser kun Trakts offentlige lister."
+    "traktHint": "Opret en API-app på trakt.tv/oauth/applications (redirect-URI kan være urn:ietf:wg:oauth:2.0:oob), og indsæt dens Client ID. arrdeck læser kun Trakts offentlige lister.",
+    "downFor": "nede {{duration}}",
+    "downSinceHint": "Har ikke svaret siden {{when}}"
   },
   "system": {
     "tasks": "Planlagte opgaver",
@@ -502,7 +504,9 @@
       "health": "Systemadvarsel",
       "added": "Tilføjet til biblioteket",
       "digest": "Ugentlig oversigt",
-      "cleanup": "Oprydningsregler"
+      "cleanup": "Oprydningsregler",
+      "service_down": "Tjeneste nede",
+      "service_up": "Tjeneste kører igen"
     },
     "delivery": "Levering",
     "hookOn": "Forbundet",
@@ -524,7 +528,10 @@
     "digestTime": "Tidspunkt for oversigten",
     "digestNow": "Send nu",
     "digestQuiet": "Intet at sende: en stille uge",
-    "digestHint": "Hvad der kom i denne uge, og hvad der kommer i næste uge. Slå hændelsen Ugentlig oversigt fra for at stoppe den."
+    "digestHint": "Hvad der kom i denne uge, og hvad der kommer i næste uge. Slå hændelsen Ugentlig oversigt fra for at stoppe den.",
+    "serviceDown": "Tjenestealarmer",
+    "serviceDownAfter": "minutter uden svar",
+    "serviceDownHint": "Alle tjenester tjekkes hvert minut: én notifikation, når en ikke har svaret så længe, og én, når den kører igen. I stilletimerne venter de, til tidsrummet slutter."
   },
   "search": {
     "global": "Søg i alt…",

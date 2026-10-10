@@ -158,7 +158,10 @@ def push_rules(request: Request) -> dict:
 @router.put("/push/rules", response_model=PushRulesOut)
 def save_push_rules(body: PushRulesIn, request: Request) -> dict:
     db = request.app.state.db
-    set_rules(db, body.model_dump())
+    rules = body.model_dump()
+    if rules["service_down_minutes"] is None:
+        rules["service_down_minutes"] = get_rules(db)["service_down_minutes"]
+    set_rules(db, rules)
     return _rules_payload(db)
 
 
