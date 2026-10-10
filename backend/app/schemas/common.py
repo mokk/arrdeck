@@ -19,6 +19,7 @@ ServiceName = Literal[
     "plex",
     "prometheus",
     "trakt",
+    "helper",
 ]
 
 

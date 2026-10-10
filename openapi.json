@@ -6210,6 +6210,94 @@
         "title": "RequestStateOut",
         "type": "object"
       },
+      "RestartableOut": {
+        "properties": {
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "projects": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RestartableProjectOut"
+            },
+            "title": "Projects",
+            "type": "array"
+          }
+        },
+        "required": [
+          "configured"
+        ],
+        "title": "RestartableOut",
+        "type": "object"
+      },
+      "RestartableProjectOut": {
+        "description": "A compose project the host helper may restart.",
+        "properties": {
+          "containers": {
+            "default": 0,
+            "title": "Containers",
+            "type": "integer"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "is_self": {
+            "default": false,
+            "title": "Is Self",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "running": {
+            "default": false,
+            "title": "Running",
+            "type": "boolean"
+          },
+          "running_containers": {
+            "default": 0,
+            "title": "Running Containers",
+            "type": "integer"
+          },
+          "service": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "RestartableProjectOut",
+        "type": "object"
+      },
       "RestoreIn": {
         "properties": {
           "credentials": {
@@ -7049,6 +7137,38 @@
           "seasons"
         ],
         "title": "SeriesDetailOut",
+        "type": "object"
+      },
+      "ServiceActionOut": {
+        "properties": {
+          "action": {
+            "enum": [
+              "restart",
+              "up"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "pending": {
+            "default": false,
+            "title": "Pending",
+            "type": "boolean"
+          },
+          "project": {
+            "title": "Project",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project",
+          "action"
+        ],
+        "title": "ServiceActionOut",
         "type": "object"
       },
       "ServiceBlock_IndexerStatsOut_": {
@@ -8083,7 +8203,8 @@
               "bazarr",
               "plex",
               "prometheus",
-              "trakt"
+              "trakt",
+              "helper"
             ],
             "title": "Service",
             "type": "string"
@@ -16169,6 +16290,84 @@
         "summary": "Subtitles Search All",
         "tags": [
           "subtitles"
+        ]
+      }
+    },
+    "/api/v1/system/restartable": {
+      "get": {
+        "description": "The compose projects the host helper will restart, matched to arrdeck's\nservices by name. Never an error: \"not configured\" and \"unreachable\" are\nstates the Settings page shows, not failures.",
+        "operationId": "restartable_api_v1_system_restartable_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestartableOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Restartable",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/system/services/{name}/{action}": {
+      "post": {
+        "description": "`docker compose restart` or `up -d` in one project, through the helper,\nwhich holds the allowlist. ServiceUnavailable (helper unreachable) is a 502\nfrom the app-wide handler.",
+        "operationId": "service_action_api_v1_system_services__name___action__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "action",
+            "required": true,
+            "schema": {
+              "enum": [
+                "restart",
+                "up"
+              ],
+              "title": "Action",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceActionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Service Action",
+        "tags": [
+          "system"
         ]
       }
     },

@@ -44,6 +44,7 @@ LABELS = {
     "plex": "Plex",
     "prometheus": "Prometheus",
     "trakt": "Trakt",
+    "helper": "Host helper",
 }
 
 

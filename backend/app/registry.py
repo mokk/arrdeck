@@ -3,6 +3,7 @@ import httpx
 from .clients.base import ServiceUnavailable
 from .clients.bazarr import BazarrClient
 from .clients.gluetun import GluetunClient
+from .clients.helper import HelperClient
 from .clients.overseerr import OverseerrClient
 from .clients.plex import PlexClient
 from .clients.prometheus import PrometheusClient
@@ -27,8 +28,8 @@ NEEDS_API_KEY = {
 }
 
 
-# services with a fixed public address: the key is all they need
-KEY_ONLY = {"trakt"}
+# services with a known default address: the key is all they need
+KEY_ONLY = {"trakt", "helper"}
 
 
 def is_configured(name: str, conf: dict) -> bool:
@@ -97,6 +98,10 @@ class Registry:
             self._clients[name] = TraktClient(
                 self._arr_http, conf["api_key"], conf.get("url") or ""
             )
+        elif name == "helper":
+            self._clients[name] = HelperClient(
+                self._arr_http, conf["api_key"], conf.get("url") or ""
+            )
 
     def rebuild_all(self, confs: dict[str, dict]) -> None:
         for name in SERVICES:
@@ -129,4 +134,6 @@ async def probe_version(name: str, client) -> str:
         return (await client.identity()).get("version", "?")
     if name in ("prometheus", "trakt"):
         return (await client.status()).get("version", "?")
+    if name == "helper":
+        return (await client.health()).get("version", "?")
     raise ServiceUnavailable(name, "unknown service")

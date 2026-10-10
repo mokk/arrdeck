@@ -8,6 +8,9 @@ export type ServiceStatus = G.ServiceStatus;
 export type ArrApp = "radarr" | "sonarr" | "readarr";
 export type ServiceInfo = G.ServiceInfoOut;
 export type ServiceSettings = G.ServiceSettingsOut;
+export type Restartable = G.RestartableOut;
+export type RestartableProject = G.RestartableProjectOut;
+export type ServiceAction = G.ServiceActionOut;
 
 /** Generic aggregate wrapper — the schema only has concrete instantiations,
  * so the generic form stays hand-written (shape-checked via the aliases below). */

@@ -1,17 +1,22 @@
 """Infrastructure health: service probes, disk space, VPN, arr warnings."""
 
 import asyncio
+import logging
+import re
 from datetime import UTC, datetime
+from typing import Literal
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from ...cache import cached, guarded
 from ...clients.base import ServiceUnavailable, retry_count
 from ...clients.gluetun import GluetunClient
+from ...clients.helper import HelperError
 from ...clients.prometheus import PrometheusClient
 from ...clients.qbittorrent import QbittorrentClient
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
+from ...db import SERVICES
 from ...deps import (
     get_gluetun,
     get_prometheus,
@@ -23,12 +28,15 @@ from ...registry import probe_version
 from ...schemas import (
     DiskSpaceOut,
     HealthWarningOut,
+    RestartableOut,
+    ServiceActionOut,
     ServiceBlock,
     ServiceStatus,
     VpnStatusOut,
 )
 
 router = APIRouter(tags=["system"])
+logger = logging.getLogger("arrdeck.system")
 
 
 # Only the arrs publish a release feed with installed/latest flags.
@@ -101,6 +109,87 @@ async def status(request: Request) -> list[ServiceStatus]:
             )
 
     return list(await asyncio.gather(*(probe(n) for n in names)))
+
+
+# arrdeck's own compose project, by the name the helper README uses for it
+SELF_PROJECT = "arrdeck"
+PROJECT_NAME = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
+# the self-restart runs after the response; held so it is not garbage-collected
+_pending: set[asyncio.Task] = set()
+
+
+def _self_action_done(task: asyncio.Task) -> None:
+    _pending.discard(task)
+    # normally never reached: the process is gone before the helper answers
+    if not task.cancelled() and task.exception() is not None:
+        logger.warning("self %s via the helper failed: %s", SELF_PROJECT, task.exception())
+
+
+def _helper(request: Request):
+    registry = request.app.state.registry
+    if not registry.is_configured("helper"):
+        raise HTTPException(409, "the host helper is not configured (Settings → Connections)")
+    return registry.get("helper")
+
+
+@router.get("/system/restartable", response_model=RestartableOut)
+async def restartable(request: Request) -> dict:
+    """The compose projects the host helper will restart, matched to arrdeck's
+    services by name. Never an error: "not configured" and "unreachable" are
+    states the Settings page shows, not failures."""
+    registry = request.app.state.registry
+    if not registry.is_configured("helper"):
+        return {"configured": False}
+    try:
+        rows = await registry.get("helper").projects()
+    except (ServiceUnavailable, HelperError) as exc:
+        return {"configured": True, "error": exc.message}
+    projects = []
+    for row in rows:
+        containers = row.get("containers") or []
+        name = row.get("name") or ""
+        projects.append(
+            {
+                "name": name,
+                "service": name if name in SERVICES else None,
+                "running": bool(row.get("running")),
+                "containers": len(containers),
+                "running_containers": sum(1 for c in containers if c.get("state") == "running"),
+                "error": row.get("error"),
+                "is_self": name == SELF_PROJECT,
+            }
+        )
+    return {"configured": True, "projects": projects}
+
+
+@router.post("/system/services/{name}/{action}", response_model=ServiceActionOut)
+async def service_action(name: str, action: Literal["restart", "up"], request: Request) -> dict:
+    """`docker compose restart` or `up -d` in one project, through the helper,
+    which holds the allowlist. ServiceUnavailable (helper unreachable) is a 502
+    from the app-wide handler."""
+    if not PROJECT_NAME.match(name):
+        raise HTTPException(404, f"unknown project {name!r}")
+    helper = _helper(request)
+    if name == SELF_PROJECT:
+        # The restart kills this process before the helper answers, so the
+        # answer would never reach the browser. Check what can be checked
+        # first, then hand it off and reply now.
+        try:
+            listed = {p.get("name") for p in await helper.projects()}
+        except HelperError as exc:
+            raise HTTPException(exc.status, exc.message) from exc
+        if name not in listed:
+            raise HTTPException(404, f"the helper does not list {name!r}")
+        task = asyncio.create_task(helper.action(name, action))
+        _pending.add(task)
+        task.add_done_callback(_self_action_done)
+        return {"project": name, "action": action, "pending": True}
+    try:
+        await helper.action(name, action)
+    except HelperError as exc:
+        headers = {"Retry-After": str(exc.retry_after)} if exc.retry_after else None
+        raise HTTPException(exc.status, exc.message, headers=headers) from exc
+    return {"project": name, "action": action}
 
 
 @router.get("/diskspace", response_model=ServiceBlock[list[DiskSpaceOut]])

@@ -22,7 +22,9 @@ import type {
   PushRules,
   QualityProfiles,
   RequestState,
+  Restartable,
   ScheduledTask,
+  ServiceAction,
   ServiceBlock,
   ServiceInfo,
   ServiceSettings,
@@ -296,6 +298,27 @@ export const useStatus = () =>
     queryFn: () => api.get<ServiceStatus[]>("/status"),
     refetchInterval: MEDIUM,
   });
+
+/** The compose projects the host helper may restart. */
+export const useRestartable = () =>
+  useQuery({
+    queryKey: ["restartable"],
+    queryFn: () => api.get<Restartable>("/system/restartable"),
+    refetchInterval: MEDIUM,
+  });
+
+/** `docker compose restart` / `up -d` in one project, through the host helper. */
+export function useServiceAction() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ name, action }: { name: string; action: "restart" | "up" }) =>
+      api.post<ServiceAction>(`/system/services/${encodeURIComponent(name)}/${action}`),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["restartable"] });
+      qc.invalidateQueries({ queryKey: ["status"] });
+    },
+  });
+}
 
 export const useImportLists = (enabled: boolean) =>
   useQuery({

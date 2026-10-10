@@ -313,7 +313,8 @@
     "updateHint": "Opdatering tilgængelig: {{version}}",
     "traktHint": "Opret en API-app på trakt.tv/oauth/applications (redirect-URI kan være urn:ietf:wg:oauth:2.0:oob), og indsæt dens Client ID. arrdeck læser kun Trakts offentlige lister.",
     "downFor": "nede {{duration}}",
-    "downSinceHint": "Har ikke svaret siden {{when}}"
+    "downSinceHint": "Har ikke svaret siden {{when}}",
+    "helperHint": "Genstarter tjenester fra Indstillinger → System, uden at arrdeck får adgang til Docker-socket'en. Indsæt tokenet fra ~/.config/arrdeck-helper/token som API-nøgle; en tom URL betyder http://host.docker.internal:8790."
   },
   "system": {
     "tasks": "Planlagte opgaver",
@@ -337,7 +338,19 @@
     "noCustomFormats": "Ingen brugerdefinerede formater",
     "showSizeLimits": "Størrelsesgrænser ({{count}})",
     "hideSizeLimits": "Skjul størrelsesgrænser",
-    "sizeBand": "{{min}}–{{max}} MB/min"
+    "sizeBand": "{{min}}–{{max}} MB/min",
+    "services": "Tjenester",
+    "restart": "Genstart",
+    "start": "Start",
+    "restarting": "Genstarter…",
+    "restarted": "{{name}} er genstartet",
+    "started": "{{name}} er startet",
+    "restartSelfWarning": "arrdeck forsvinder et øjeblik, mens den genstarter",
+    "restartingSelf": "arrdeck genstarter — tilbage om et øjeblik",
+    "downSince": "nede siden {{when}}",
+    "containersRunning": "{{running}} af {{total}} containere kører",
+    "helperMissing": "Genstart kræver hjælperen på værten: installér den (host-helper/README.md), og tilføj derefter dens token under Forbindelser → Host helper.",
+    "helperUnreachable": "Hjælperen på værten kan ikke nås: {{error}}"
   },
   "toast": {
     "added": "Tilføjet til biblioteket",

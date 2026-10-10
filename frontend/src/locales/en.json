@@ -313,7 +313,8 @@
     "updateHint": "Update available: {{version}}",
     "traktHint": "Create an API app at trakt.tv/oauth/applications (the redirect URI can be urn:ietf:wg:oauth:2.0:oob) and paste its Client ID. arrdeck only reads Trakt's public lists.",
     "downFor": "down {{duration}}",
-    "downSinceHint": "Not answering since {{when}}"
+    "downSinceHint": "Not answering since {{when}}",
+    "helperHint": "Restarts services from Settings → System without giving arrdeck the Docker socket. Paste the token from ~/.config/arrdeck-helper/token as the API key; an empty URL means http://host.docker.internal:8790."
   },
   "system": {
     "tasks": "Scheduled tasks",
@@ -337,7 +338,19 @@
     "noCustomFormats": "No custom formats defined",
     "showSizeLimits": "Size limits ({{count}})",
     "hideSizeLimits": "Hide size limits",
-    "sizeBand": "{{min}}–{{max}} MB/min"
+    "sizeBand": "{{min}}–{{max}} MB/min",
+    "services": "Services",
+    "restart": "Restart",
+    "start": "Start",
+    "restarting": "Restarting…",
+    "restarted": "{{name}} restarted",
+    "started": "{{name}} started",
+    "restartSelfWarning": "arrdeck goes away for a moment while it restarts",
+    "restartingSelf": "arrdeck is restarting — back in a moment",
+    "downSince": "down since {{when}}",
+    "containersRunning": "{{running}} of {{total}} containers running",
+    "helperMissing": "Restart buttons need the host helper: install it (host-helper/README.md), then add its token under Connections → Host helper.",
+    "helperUnreachable": "Host helper not reachable: {{error}}"
   },
   "toast": {
     "added": "Added to library",

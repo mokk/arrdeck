@@ -2,7 +2,7 @@
  * used to sit below an early return on the service-settings fetch, so a backend
  * hiccup — or just a slow first load — hid the theme override entirely. That is
  * the one moment someone is most likely to be poking at settings. */
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("react-i18next", () => ({
@@ -16,9 +16,13 @@ const settings = vi.hoisted(() => ({
   current: { data: undefined as unknown, error: undefined as unknown },
 }));
 const status = vi.hoisted(() => ({ data: [] as unknown[] }));
+const restartable = vi.hoisted(() => ({ data: undefined as unknown }));
+const serviceAction = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 vi.mock("../../hooks/queries", () => ({
   useServiceSettings: () => settings.current,
   useStatus: () => status,
+  useRestartable: () => restartable,
+  useServiceAction: () => serviceAction,
   useSaveServiceSettings: () => ({ mutate: vi.fn(), isPending: false }),
   useTestService: () => ({ mutate: vi.fn(), isPending: false }),
 }));
@@ -38,6 +42,8 @@ beforeEach(() => {
   localStorage.clear();
   settings.current = { data: undefined, error: undefined };
   status.data = [];
+  restartable.data = undefined;
+  serviceAction.mutate.mockClear();
 });
 
 describe("appearance and language stay reachable", () => {
@@ -116,5 +122,32 @@ describe("the status strip", () => {
     render(<ServiceSettingsTab />);
     expect(screen.getByText("manage.offlineShort")).toBeTruthy();
     expect(screen.queryByText("↑")).toBeNull();
+  });
+
+  it("says how long a service has been down", () => {
+    const since = new Date(Date.now() - 14 * 60_000).toISOString();
+    status.data = [svc({ ok: false, error: "refused", down_since: since })];
+    render(<ServiceSettingsTab />);
+    expect(screen.getByText("manage.downFor")).toBeTruthy();
+    expect(screen.queryByText("manage.offlineShort")).toBeNull();
+  });
+
+  it("offers a restart only for what the helper lists, and asks first", async () => {
+    status.data = [svc(), svc({ service: "sonarr" })];
+    restartable.data = {
+      configured: true,
+      projects: [{ name: "radarr", running: true, containers: 1, running_containers: 1 }],
+    };
+    render(<ServiceSettingsTab />);
+    const buttons = screen.getAllByRole("button", { name: /system\.restart/ });
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0].getAttribute("aria-label")).toBe("system.restart Radarr");
+    fireEvent.click(buttons[0]);
+    // the confirm context's default answers yes without a provider
+    await waitFor(() => expect(serviceAction.mutate).toHaveBeenCalledTimes(1));
+    expect(serviceAction.mutate.mock.calls[0][0]).toEqual({
+      name: "radarr",
+      action: "restart",
+    });
   });
 });

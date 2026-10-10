@@ -13,11 +13,21 @@ import type {
   QualityDefinition,
   QualityItem,
   QualityProfileDetail,
+  RestartableProject,
   ScheduledTask,
+  ServiceStatus,
 } from "../../api/types";
-import { useArrBackups, useQualityProfiles, useServices, useTasks } from "../../hooks/queries";
-import { BlockView, Card, EmptyNote, Row, SectionTitle } from "../Blocks";
+import {
+  useArrBackups,
+  useQualityProfiles,
+  useRestartable,
+  useServices,
+  useStatus,
+  useTasks,
+} from "../../hooks/queries";
+import { BlockView, Card, EmptyNote, ErrorNote, Row, SectionTitle } from "../Blocks";
 import { Logs } from "./Logs";
+import { RestartButton } from "./RestartButton";
 
 const ARR_SERVICES = ["radarr", "sonarr", "prowlarr"];
 
@@ -326,15 +336,103 @@ function ProfilesCard({ app }: { app: string }) {
   );
 }
 
+function ServiceRow({
+  name,
+  status,
+  project,
+}: {
+  name: string;
+  status?: ServiceStatus;
+  project?: RestartableProject;
+}) {
+  const { t } = useTranslation();
+  const label = SERVICE_LABELS[name] ?? name;
+  // a configured service reports through /status; a project with no service of
+  // its own (arrdeck itself) only through the helper's container states
+  const up = status ? status.ok : (project?.running ?? false);
+  let detail: string;
+  if (status && !status.ok) {
+    detail = status.down_since
+      ? t("system.downSince", { when: formatDateTime(status.down_since) })
+      : (status.error ?? t("manage.offlineShort"));
+  } else if (status) {
+    detail = status.version ?? "";
+  } else if (project?.error) {
+    detail = project.error;
+  } else {
+    detail = t("system.containersRunning", {
+      running: project?.running_containers ?? 0,
+      total: project?.containers ?? 0,
+    });
+  }
+  return (
+    <Row>
+      <span
+        className={cn("size-2 shrink-0 rounded-full", up ? "bg-success" : "bg-destructive")}
+      />
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-semibold">{label}</div>
+        <div
+          className={cn("truncate text-xs", up ? "text-muted-foreground" : "text-destructive")}
+        >
+          {detail}
+        </div>
+      </div>
+      {project && <RestartButton project={project} label={label} />}
+    </Row>
+  );
+}
+
+/** Every configured service with how long it has been down, and a Restart
+ * button for each one the host helper can restart. */
+function ServicesCard() {
+  const { t } = useTranslation();
+  const { data: status } = useStatus();
+  const { data: helper } = useRestartable();
+  const projects = new Map((helper?.projects ?? []).map((p) => [p.name, p]));
+  const covered = new Set((status ?? []).map((s) => s.service as string));
+  const extras = (helper?.projects ?? []).filter((p) => !covered.has(p.name));
+  if (!status?.length && extras.length === 0 && !helper) return null;
+  return (
+    <>
+      <SectionTitle>{t("system.services")}</SectionTitle>
+      <Card>
+        {(status ?? []).map((s) => (
+          <ServiceRow
+            key={s.service}
+            name={s.service}
+            status={s}
+            project={projects.get(s.service)}
+          />
+        ))}
+        {extras.map((p) => (
+          <ServiceRow key={`project:${p.name}`} name={p.name} project={p} />
+        ))}
+        {helper && !helper.configured && <EmptyNote>{t("system.helperMissing")}</EmptyNote>}
+        {helper?.error && (
+          <ErrorNote>{t("system.helperUnreachable", { error: helper.error })}</ErrorNote>
+        )}
+      </Card>
+    </>
+  );
+}
+
 export function SystemTab() {
   const { t } = useTranslation();
   const { data: services } = useServices();
   const configured = (services ?? []).filter(
     (s) => s.configured && ARR_SERVICES.includes(s.service),
   );
-  if (configured.length === 0) return <EmptyNote>{t("manage.notConfigured")}</EmptyNote>;
+  if (configured.length === 0)
+    return (
+      <>
+        <ServicesCard />
+        <EmptyNote>{t("manage.notConfigured")}</EmptyNote>
+      </>
+    );
   return (
     <>
+      <ServicesCard />
       <TasksCard />
       {configured.map((service) =>
         service.service === "radarr" || service.service === "sonarr" ? (

@@ -463,3 +463,32 @@ class PrefsIn(BaseModel):
         if len(json.dumps(values, separators=(",", ":")).encode()) > PREFS_MAX_BYTES:
             raise ValueError(f"at most {PREFS_MAX_BYTES} bytes")
         return values
+
+
+class RestartableProjectOut(BaseModel):
+    """A compose project the host helper may restart."""
+
+    name: str
+    # the arrdeck service of the same name, when there is one
+    service: str | None = None
+    running: bool = False
+    containers: int = 0
+    running_containers: int = 0
+    error: str | None = None
+    # restarting arrdeck takes this app away for a moment, so the UI warns
+    is_self: bool = False
+
+
+class RestartableOut(BaseModel):
+    configured: bool  # a helper token is set in Connections
+    error: str | None = None  # set when configured but not reachable
+    projects: list[RestartableProjectOut] = []
+
+
+class ServiceActionOut(BaseModel):
+    ok: bool = True
+    project: str
+    action: Literal["restart", "up"]
+    # arrdeck restarting itself: the request was handed to the helper and this
+    # answer goes out before it lands, so there is no result to report
+    pending: bool = False

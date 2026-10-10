@@ -23,9 +23,15 @@ import { cn } from "@/lib/utils";
 
 import { formatDateTime, formatEta, SERVICE_LABELS } from "../../../api/format";
 import type { ServiceSettings } from "../../../api/types";
-import { useSaveServiceSettings, useStatus, useTestService } from "../../../hooks/queries";
+import {
+  useRestartable,
+  useSaveServiceSettings,
+  useStatus,
+  useTestService,
+} from "../../../hooks/queries";
 import i18n, { LANGUAGES, setLanguage } from "../../../i18n";
 import { Card } from "../../Blocks";
+import { RestartButton } from "../RestartButton";
 
 /* ---------------- services (connection settings) ---------------- */
 
@@ -42,6 +48,12 @@ const SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "password
   plex: ["url", "api_key"],
   prometheus: ["url"],
   trakt: ["api_key"],
+  helper: ["url", "api_key"],
+};
+
+// what an empty URL falls back to, shown as the placeholder
+const DEFAULT_URLS: Record<string, string> = {
+  helper: "http://host.docker.internal:8790",
 };
 
 const FIELD_KEYS: Record<string, string> = {
@@ -104,13 +116,18 @@ export function ServiceSettingsCard({
             <Label className="mb-1 text-xs text-muted-foreground">{t(FIELD_KEYS[field])}</Label>
             <Input
               value={form[field]}
-              placeholder={field === "url" ? t("manage.urlPlaceholder") : ""}
+              placeholder={
+                field === "url" ? (DEFAULT_URLS[name] ?? t("manage.urlPlaceholder")) : ""
+              }
               onChange={(e) => setForm({ ...form, [field]: e.target.value })}
             />
           </div>
         ))}
         {name === "trakt" && (
           <span className="text-xs text-muted-foreground">{t("manage.traktHint")}</span>
+        )}
+        {name === "helper" && (
+          <span className="text-xs text-muted-foreground">{t("manage.helperHint")}</span>
         )}
         <div className="flex gap-2">
           <Button
@@ -154,6 +171,7 @@ function downFor(since: string): string {
 export function StatusStrip() {
   const { t } = useTranslation();
   const { data } = useStatus();
+  const { data: helper } = useRestartable();
   if (!data?.length) return null;
   return (
     <div className="mb-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
@@ -164,6 +182,7 @@ export function StatusStrip() {
         // An available update is worth knowing but is not a fault: flaky wins the
         // dot, since a service that keeps dropping matters more than a version.
         const update = s.ok && s.update_available ? s.update_available : null;
+        const project = helper?.projects?.find((p) => p.name === s.service);
         // the watcher's first failed probe, so "down 14m" rather than just offline
         const downSince = !s.ok && s.down_since ? s.down_since : null;
         const hint = downSince
@@ -201,6 +220,13 @@ export function StatusStrip() {
                     : s.version}
             </span>
             {update && <span className="text-warning">↑</span>}
+            {project && (
+              <RestartButton
+                project={project}
+                label={SERVICE_LABELS[s.service] ?? s.service}
+                compact
+              />
+            )}
           </div>
         );
       })}

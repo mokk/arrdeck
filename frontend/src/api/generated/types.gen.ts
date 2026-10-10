@@ -3409,6 +3409,60 @@ export type RequestStateOut = {
 };
 
 /**
+ * RestartableOut
+ */
+export type RestartableOut = {
+  /**
+   * Configured
+   */
+  configured: boolean;
+  /**
+   * Error
+   */
+  error?: string | null;
+  /**
+   * Projects
+   */
+  projects?: Array<RestartableProjectOut>;
+};
+
+/**
+ * RestartableProjectOut
+ *
+ * A compose project the host helper may restart.
+ */
+export type RestartableProjectOut = {
+  /**
+   * Containers
+   */
+  containers?: number;
+  /**
+   * Error
+   */
+  error?: string | null;
+  /**
+   * Is Self
+   */
+  is_self?: boolean;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Running
+   */
+  running?: boolean;
+  /**
+   * Running Containers
+   */
+  running_containers?: number;
+  /**
+   * Service
+   */
+  service?: string | null;
+};
+
+/**
  * RestoreIn
  */
 export type RestoreIn = {
@@ -3873,6 +3927,28 @@ export type SeriesDetailOut = {
    * Year
    */
   year?: number | null;
+};
+
+/**
+ * ServiceActionOut
+ */
+export type ServiceActionOut = {
+  /**
+   * Action
+   */
+  action: "restart" | "up";
+  /**
+   * Ok
+   */
+  ok?: boolean;
+  /**
+   * Pending
+   */
+  pending?: boolean;
+  /**
+   * Project
+   */
+  project: string;
 };
 
 /**
@@ -4372,7 +4448,8 @@ export type ServiceStatus = {
     | "bazarr"
     | "plex"
     | "prometheus"
-    | "trakt";
+    | "trakt"
+    | "helper";
   /**
    * Update Available
    */
@@ -10119,6 +10196,59 @@ export type SubtitlesSearchAllApiV1SubtitlesWantedSearchPostResponses = {
 
 export type SubtitlesSearchAllApiV1SubtitlesWantedSearchPostResponse =
   SubtitlesSearchAllApiV1SubtitlesWantedSearchPostResponses[keyof SubtitlesSearchAllApiV1SubtitlesWantedSearchPostResponses];
+
+export type RestartableApiV1SystemRestartableGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/system/restartable";
+};
+
+export type RestartableApiV1SystemRestartableGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: RestartableOut;
+};
+
+export type RestartableApiV1SystemRestartableGetResponse =
+  RestartableApiV1SystemRestartableGetResponses[keyof RestartableApiV1SystemRestartableGetResponses];
+
+export type ServiceActionApiV1SystemServicesNameActionPostData = {
+  body?: never;
+  path: {
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Action
+     */
+    action: "restart" | "up";
+  };
+  query?: never;
+  url: "/api/v1/system/services/{name}/{action}";
+};
+
+export type ServiceActionApiV1SystemServicesNameActionPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type ServiceActionApiV1SystemServicesNameActionPostError =
+  ServiceActionApiV1SystemServicesNameActionPostErrors[keyof ServiceActionApiV1SystemServicesNameActionPostErrors];
+
+export type ServiceActionApiV1SystemServicesNameActionPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: ServiceActionOut;
+};
+
+export type ServiceActionApiV1SystemServicesNameActionPostResponse =
+  ServiceActionApiV1SystemServicesNameActionPostResponses[keyof ServiceActionApiV1SystemServicesNameActionPostResponses];
 
 export type TagsApiV1TagsAppGetData = {
   body?: never;

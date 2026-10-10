@@ -21,6 +21,9 @@ vi.mock("../../hooks/queries", () => ({
   useArrBackups: () => ({ data: undefined }),
   useServices: () => ({ data: [{ service: "radarr", configured: true }] }),
   useLogs: () => ({ data: [], isFetching: false }),
+  useStatus: () => ({ data: undefined }),
+  useRestartable: () => ({ data: undefined }),
+  useServiceAction: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
 import { SystemTab } from "./System";
