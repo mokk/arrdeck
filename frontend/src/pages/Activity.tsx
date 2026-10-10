@@ -38,7 +38,7 @@ export default function Activity() {
   // read once: switching segments replaces the params, which must not
   // scroll the list back into view
   const [focus] = useState(() => params.get("focus") === "attention");
-  const attention = hasArr ? <NeedsAttention focus={focus} /> : null;
+  const attention = hasArr ? <NeedsAttention configured={configured} focus={focus} /> : null;
 
   useRegisterSubnav(
     segments.map((s) => ({ value: s, label: t(`activity.${s}`) })),

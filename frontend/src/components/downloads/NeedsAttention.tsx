@@ -19,14 +19,23 @@ function reasons(q: QueueItem): string[] {
 }
 
 /** `focus` scrolls the list into view once it has loaded: the "needs manual
- * import" push lands here. */
-export function NeedsAttention({ focus = false }: { focus?: boolean }) {
+ * import" push lands here. `configured` keeps an arr that was never set up
+ * (its /queue block is ok:false too) from reading as unreachable. */
+export function NeedsAttention({
+  configured,
+  focus = false,
+}: {
+  configured: Set<string>;
+  focus?: boolean;
+}) {
   const { t } = useTranslation();
   const { data } = useQueue();
   const [importing, setImporting] = useState<{ app: string; id: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const items = APPS.flatMap((app) => data?.[app]?.data ?? []).filter((q) => q.needs_attention);
-  const unreachable = APPS.filter((app) => data?.[app] && !data[app]?.ok);
+  const unreachable = APPS.filter(
+    (app) => configured.has(app) && data?.[app] && !data[app]?.ok,
+  );
 
   useEffect(() => {
     if (focus && items.length > 0) ref.current?.scrollIntoView({ block: "start" });

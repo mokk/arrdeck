@@ -23,6 +23,7 @@ vi.mock("../ImportSheet", () => ({
 
 import { NeedsAttention } from "./NeedsAttention";
 
+const ARRS = new Set(["radarr", "sonarr", "readarr"]);
 const healthy = <T,>(data: T) => ({ ok: true, data, error: null, stale_age_seconds: null });
 const item = (over: Record<string, unknown> = {}) => ({
   app: "radarr",
@@ -49,7 +50,7 @@ describe("needs attention", () => {
     hooks.queue = {
       data: { radarr: healthy([item({ needs_attention: false })]), sonarr: healthy([]) },
     };
-    const { container } = render(<NeedsAttention />);
+    const { container } = render(<NeedsAttention configured={ARRS} />);
     expect(container.textContent).toBe("");
   });
 
@@ -68,7 +69,7 @@ describe("needs attention", () => {
         ]),
       },
     };
-    render(<NeedsAttention />);
+    render(<NeedsAttention configured={ARRS} />);
     expect(screen.getByText("2")).toBeTruthy();
     expect(screen.getByText("Not an upgrade for existing movie file")).toBeTruthy();
     expect(screen.getByText("Download client is unavailable")).toBeTruthy();
@@ -79,7 +80,7 @@ describe("needs attention", () => {
     hooks.queue = {
       data: { radarr: healthy([item()]), sonarr: healthy([item({ app: "sonarr", id: 5 })]) },
     };
-    render(<NeedsAttention />);
+    render(<NeedsAttention configured={ARRS} />);
     expect(screen.queryByText(/import-sheet/)).toBeNull();
     fireEvent.click(screen.getAllByText("dl.fix")[1]);
     expect(screen.getByText("import-sheet:sonarr:5")).toBeTruthy();
@@ -87,9 +88,21 @@ describe("needs attention", () => {
 
   it("offers Fix for a stuck book as well", () => {
     hooks.queue = { data: { readarr: healthy([item({ app: "readarr", id: 8 })]) } };
-    render(<NeedsAttention />);
+    render(<NeedsAttention configured={ARRS} />);
     fireEvent.click(screen.getByText("dl.fix"));
     expect(screen.getByText("import-sheet:readarr:8")).toBeTruthy();
+  });
+
+  it("does not call an arr that was never set up unreachable", () => {
+    hooks.queue = {
+      data: {
+        radarr: { ok: false, data: null, error: "not configured", stale_age_seconds: null },
+        sonarr: healthy([item({ app: "sonarr", id: 5 })]),
+      },
+    };
+    render(<NeedsAttention configured={new Set(["sonarr"])} />);
+    expect(screen.getByText("dl.fix")).toBeTruthy();
+    expect(screen.queryByText(/dl.attentionUnavailable/)).toBeNull();
   });
 
   it("says which arr could not be asked", () => {
@@ -99,7 +112,7 @@ describe("needs attention", () => {
         sonarr: { ok: false, data: null, error: "refused", stale_age_seconds: null },
       },
     };
-    render(<NeedsAttention />);
+    render(<NeedsAttention configured={ARRS} />);
     expect(screen.getByText("dl.attentionUnavailable:Sonarr")).toBeTruthy();
   });
 });
