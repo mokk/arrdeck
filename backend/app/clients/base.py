@@ -221,6 +221,9 @@ class ArrClient(BaseClient):
         """Per-quality size bands in MB per minute of runtime."""
         return await self.get("/qualitydefinition")
 
+    async def languages(self) -> list:
+        return await self.get("/language")
+
     async def updates(self) -> list:
         """Release history with `installed` and `latest` flags."""
         return await self.get("/update")

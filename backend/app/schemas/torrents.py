@@ -177,9 +177,21 @@ class ImportCandidateOut(BaseModel):
     title: str = ""  # the movie/series the arr matched it to
     subtitle: str | None = None  # SxxEyy for episodes
     quality: str | None = None
+    quality_id: int | None = None  # the arr's detection, as an /options id
     languages: list[str] = []
+    language_ids: list[int] = []
     rejections: list[str] = []
     importable: bool = False  # has everything needed to be imported
+
+
+class ImportChoiceOut(BaseModel):
+    id: int
+    name: str
+
+
+class ImportOptionsOut(BaseModel):
+    qualities: list[ImportChoiceOut] = []  # the arr's own order, worst to best
+    languages: list[ImportChoiceOut] = []  # empty for Readarr, which has none per file
 
 
 class ManualImportIn(BaseModel):
@@ -190,9 +202,14 @@ class ManualImportIn(BaseModel):
 
 class ManualImportFileIn(BaseModel):
     path: str
+    # the target; all empty keeps the arr's own match
     movie_id: int | None = None
     series_id: int | None = None
     episode_ids: list[int] = []
+    # overrides of the arr's detection, as ids from /manual-import/{app}/options;
+    # None / empty keeps what the arr detected
+    quality_id: int | None = None
+    language_ids: list[int] | None = None
 
 
 class ManualImportAssignIn(BaseModel):

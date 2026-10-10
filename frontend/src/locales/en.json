@@ -171,7 +171,14 @@
     "importedFiles_one": "Imported {{count}} file",
     "importedFiles_other": "Imported {{count}} files",
     "importFinished": "Import finished",
-    "importFailed": "The import failed"
+    "importFailed": "The import failed",
+    "qualityAndLanguage": "Quality and language",
+    "quality": "Quality",
+    "qualityUnknown": "Unknown quality",
+    "languages": "Languages",
+    "filterLanguages": "Filter languages",
+    "useDetected": "Use what the arr detected",
+    "change": "change"
   },
   "add": {
     "title": "Add",

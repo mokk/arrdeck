@@ -9,6 +9,8 @@ import type {
   BlocklistPage,
   ImportCandidate,
   ImportCommand,
+  ImportFileChoice,
+  ImportOptions,
   QueueItem,
   RenamePreview,
   ServiceBlock,
@@ -71,16 +73,19 @@ export function useManualImportAssign() {
     }: {
       app: string;
       itemId: number;
-      files: {
-        path: string;
-        movie_id?: number | null;
-        series_id?: number | null;
-        episode_ids?: number[];
-      }[];
+      files: ImportFileChoice[];
     }) => api.post<ImportCommand>(`/manual-import/${app}/assign`, { item_id: itemId, files }),
     onSettled: () => qc.invalidateQueries({ queryKey: ["queue"] }),
   });
 }
+
+/** What a file's quality and languages can be corrected to in an import. */
+export const useImportOptions = (app: string) =>
+  useQuery({
+    queryKey: ["importOptions", app],
+    queryFn: () => api.get<ImportOptions>(`/manual-import/${app}/options`),
+    staleTime: 10 * 60_000,
+  });
 
 /** Follows the arr's ManualImport command until it finishes; the queue is
  * refreshed then, since that is when the item actually leaves it. */

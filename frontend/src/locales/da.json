@@ -171,7 +171,14 @@
     "importedFiles_one": "Importerede {{count}} fil",
     "importedFiles_other": "Importerede {{count}} filer",
     "importFinished": "Import færdig",
-    "importFailed": "Importen mislykkedes"
+    "importFailed": "Importen mislykkedes",
+    "qualityAndLanguage": "Kvalitet og sprog",
+    "quality": "Kvalitet",
+    "qualityUnknown": "Ukendt kvalitet",
+    "languages": "Sprog",
+    "filterLanguages": "Filtrér sprog",
+    "useDetected": "Brug det, arr-appen fandt",
+    "change": "ret"
   },
   "add": {
     "title": "Tilføj",

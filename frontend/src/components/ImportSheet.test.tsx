@@ -23,6 +23,18 @@ vi.mock("../hooks/queries", () => ({
   useImportCandidates: () => ({ data: state.candidates, isLoading: false }),
   useManualImportAssign: () => ({ mutate: state.assign, isPending: false }),
   useImportCommand: () => ({ data: state.command }),
+  useImportOptions: () => ({
+    data: {
+      qualities: [
+        { id: 3, name: "WEBDL-1080p" },
+        { id: 7, name: "Bluray-1080p" },
+      ],
+      languages: [
+        { id: 1, name: "English" },
+        { id: 11, name: "Danish" },
+      ],
+    },
+  }),
 }));
 vi.mock("./TargetPicker", () => ({ TargetPicker: () => null }));
 
@@ -34,7 +46,9 @@ const candidate = (over: Record<string, unknown> = {}) => ({
   size: 1,
   title: "Dune",
   quality: "WEBDL-1080p",
+  quality_id: 3,
   languages: ["English"],
+  language_ids: [1],
   rejections: [],
   importable: true,
   ...over,
@@ -93,5 +107,29 @@ describe("import sheet", () => {
     openAndImport();
     expect(screen.getByRole("status").textContent).toBe("System.IO.IOException: Disk full");
     expect(toast.error).toHaveBeenCalledWith("System.IO.IOException: Disk full");
+  });
+});
+
+describe("quality and language", () => {
+  it("shows the arr's detection and sends nothing extra when left alone", () => {
+    openAndImport();
+    expect(screen.getByText(/WEBDL-1080p · English/)).toBeTruthy();
+    expect(state.assign.mock.calls[0][0].files[0]).toEqual({
+      path: "/data/Movies/Dune/Dune.mkv",
+    });
+  });
+
+  it("sends a language picked for one file with that file", () => {
+    render(<ImportSheet app="radarr" itemId={3} onClose={() => {}} />);
+    fireEvent.click(screen.getByText("dl.change"));
+    fireEvent.click(screen.getByRole("button", { name: "Danish" }));
+    fireEvent.click(screen.getByText("dl.done"));
+    expect(screen.getByText(/WEBDL-1080p · English · Danish/)).toBeTruthy();
+    fireEvent.click(screen.getByText("dl.selectAll"));
+    fireEvent.click(screen.getByText("dl.importSelected(1)"));
+    expect(state.assign.mock.calls[0][0].files[0]).toEqual({
+      path: "/data/Movies/Dune/Dune.mkv",
+      language_ids: [1, 11],
+    });
   });
 });

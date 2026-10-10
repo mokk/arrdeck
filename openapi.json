@@ -3292,6 +3292,14 @@
             "title": "Importable",
             "type": "boolean"
           },
+          "language_ids": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Language Ids",
+            "type": "array"
+          },
           "languages": {
             "default": [],
             "items": {
@@ -3319,6 +3327,17 @@
               }
             ],
             "title": "Quality"
+          },
+          "quality_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality Id"
           },
           "rejections": {
             "default": [],
@@ -3354,6 +3373,24 @@
           "path"
         ],
         "title": "ImportCandidateOut",
+        "type": "object"
+      },
+      "ImportChoiceOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "ImportChoiceOut",
         "type": "object"
       },
       "ImportCommandOut": {
@@ -3508,6 +3545,28 @@
           "id"
         ],
         "title": "ImportListOut",
+        "type": "object"
+      },
+      "ImportOptionsOut": {
+        "properties": {
+          "languages": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ImportChoiceOut"
+            },
+            "title": "Languages",
+            "type": "array"
+          },
+          "qualities": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ImportChoiceOut"
+            },
+            "title": "Qualities",
+            "type": "array"
+          }
+        },
+        "title": "ImportOptionsOut",
         "type": "object"
       },
       "IndexerOut": {
@@ -4327,6 +4386,20 @@
             "title": "Episode Ids",
             "type": "array"
           },
+          "language_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language Ids"
+          },
           "movie_id": {
             "anyOf": [
               {
@@ -4341,6 +4414,17 @@
           "path": {
             "title": "Path",
             "type": "string"
+          },
+          "quality_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality Id"
           },
           "series_id": {
             "anyOf": [
@@ -13816,6 +13900,49 @@
           }
         },
         "summary": "Manual Import Command",
+        "tags": [
+          "importing"
+        ]
+      }
+    },
+    "/api/v1/manual-import/{app}/options": {
+      "get": {
+        "description": "What a file's quality and languages can be set to in an import. Declared\nbefore /manual-import/{app}/{item_id}, which would otherwise claim it.",
+        "operationId": "manual_import_options_api_v1_manual_import__app__options_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "app",
+            "required": true,
+            "schema": {
+              "title": "App",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportOptionsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Manual Import Options",
         "tags": [
           "importing"
         ]

@@ -1832,6 +1832,10 @@ export type ImportCandidateOut = {
    */
   importable?: boolean;
   /**
+   * Language Ids
+   */
+  language_ids?: Array<number>;
+  /**
    * Languages
    */
   languages?: Array<string>;
@@ -1848,6 +1852,10 @@ export type ImportCandidateOut = {
    */
   quality?: string | null;
   /**
+   * Quality Id
+   */
+  quality_id?: number | null;
+  /**
    * Rejections
    */
   rejections?: Array<string>;
@@ -1863,6 +1871,20 @@ export type ImportCandidateOut = {
    * Title
    */
   title?: string;
+};
+
+/**
+ * ImportChoiceOut
+ */
+export type ImportChoiceOut = {
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Name
+   */
+  name: string;
 };
 
 /**
@@ -1945,6 +1967,20 @@ export type ImportListOut = {
    * Root Folder
    */
   root_folder?: string | null;
+};
+
+/**
+ * ImportOptionsOut
+ */
+export type ImportOptionsOut = {
+  /**
+   * Languages
+   */
+  languages?: Array<ImportChoiceOut>;
+  /**
+   * Qualities
+   */
+  qualities?: Array<ImportChoiceOut>;
 };
 
 /**
@@ -2346,6 +2382,10 @@ export type ManualImportFileIn = {
    */
   episode_ids?: Array<number>;
   /**
+   * Language Ids
+   */
+  language_ids?: Array<number> | null;
+  /**
    * Movie Id
    */
   movie_id?: number | null;
@@ -2353,6 +2393,10 @@ export type ManualImportFileIn = {
    * Path
    */
   path: string;
+  /**
+   * Quality Id
+   */
+  quality_id?: number | null;
   /**
    * Series Id
    */
@@ -8358,6 +8402,38 @@ export type ManualImportCommandApiV1ManualImportAppCommandCommandIdGetResponses 
 
 export type ManualImportCommandApiV1ManualImportAppCommandCommandIdGetResponse =
   ManualImportCommandApiV1ManualImportAppCommandCommandIdGetResponses[keyof ManualImportCommandApiV1ManualImportAppCommandCommandIdGetResponses];
+
+export type ManualImportOptionsApiV1ManualImportAppOptionsGetData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+  };
+  query?: never;
+  url: "/api/v1/manual-import/{app}/options";
+};
+
+export type ManualImportOptionsApiV1ManualImportAppOptionsGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type ManualImportOptionsApiV1ManualImportAppOptionsGetError =
+  ManualImportOptionsApiV1ManualImportAppOptionsGetErrors[keyof ManualImportOptionsApiV1ManualImportAppOptionsGetErrors];
+
+export type ManualImportOptionsApiV1ManualImportAppOptionsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ImportOptionsOut;
+};
+
+export type ManualImportOptionsApiV1ManualImportAppOptionsGetResponse =
+  ManualImportOptionsApiV1ManualImportAppOptionsGetResponses[keyof ManualImportOptionsApiV1ManualImportAppOptionsGetResponses];
 
 export type ManualImportCandidatesApiV1ManualImportAppItemIdGetData = {
   body?: never;
