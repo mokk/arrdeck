@@ -9337,7 +9337,7 @@ export type ForceImportApiV1QueueAppItemIdForceImportPostResponses = {
   /**
    * Successful Response
    */
-  200: ImportCommandOut;
+  204: void;
 };
 
 export type ForceImportApiV1QueueAppItemIdForceImportPostResponse =

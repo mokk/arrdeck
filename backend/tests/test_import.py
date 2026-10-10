@@ -476,3 +476,11 @@ def test_force_import_works_for_books_too():
     client = FakeArr([matched])
     asyncio.run(force_import("readarr", 1, None, None, client))
     assert client.commands[0]["files"][0]["bookId"] == 8
+
+
+def test_force_import_keeps_answering_204_for_installed_ios_builds():
+    # the iOS app decodes this route's 204 strictly: a body would read as failure
+    from app.api.v1.importing import router
+
+    route = next(r for r in router.routes if r.path == "/queue/{app}/{item_id}/force-import")
+    assert route.status_code == 204

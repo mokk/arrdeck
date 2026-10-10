@@ -580,16 +580,17 @@ async def rename_files(
     await client.command({"name": "RenameFiles", key: body.id, "files": body.file_ids})
 
 
-@router.post("/queue/{app}/{item_id}/force-import", response_model=ImportCommandOut)
+@router.post("/queue/{app}/{item_id}/force-import", status_code=204)
 async def force_import(
     app: str,
     item_id: int,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
-) -> dict:
+) -> None:
     """Rescue a stuck import: take the arr's manual-import candidates that
-    already have a confident mapping and import them."""
+    already have a confident mapping and import them. Answers 204 with no body,
+    as it always has: installed iOS builds treat anything else as a failure."""
     client = _client(app, radarr, sonarr, readarr)
     payload = await client.queue()
     rec = next((r for r in payload.get("records", []) if r.get("id") == item_id), None)
@@ -599,5 +600,4 @@ async def force_import(
     files = [f for f in (_import_file(app, c, rec["downloadId"]) for c in candidates) if f]
     if not files:
         raise HTTPException(409, "no importable files could be mapped automatically")
-    command = await client.command({"name": "ManualImport", "files": files, "importMode": "auto"})
-    return command_out(app, command)
+    await client.command({"name": "ManualImport", "files": files, "importMode": "auto"})

@@ -15173,7 +15173,7 @@
     },
     "/api/v1/queue/{app}/{item_id}/force-import": {
       "post": {
-        "description": "Rescue a stuck import: take the arr's manual-import candidates that\nalready have a confident mapping and import them.",
+        "description": "Rescue a stuck import: take the arr's manual-import candidates that\nalready have a confident mapping and import them. Answers 204 with no body,\nas it always has: installed iOS builds treat anything else as a failure.",
         "operationId": "force_import_api_v1_queue__app___item_id__force_import_post",
         "parameters": [
           {
@@ -15196,14 +15196,7 @@
           }
         ],
         "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImportCommandOut"
-                }
-              }
-            },
+          "204": {
             "description": "Successful Response"
           },
           "422": {
