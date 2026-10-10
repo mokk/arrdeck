@@ -844,6 +844,43 @@ export type CalendarResponse = {
 };
 
 /**
+ * CleanupConditions
+ *
+ * ANDed. Unset (null, false, empty) is no condition; a rule with none at
+ * all matches nothing.
+ */
+export type CleanupConditions = {
+  /**
+   * Min Size Gb
+   */
+  min_size_gb?: number | null;
+  /**
+   * Rating Below
+   */
+  rating_below?: number | null;
+  /**
+   * Unmonitored
+   */
+  unmonitored?: boolean;
+  /**
+   * Unwatched Days
+   */
+  unwatched_days?: number | null;
+  /**
+   * Watched Days
+   */
+  watched_days?: number | null;
+  /**
+   * With Tags
+   */
+  with_tags?: Array<number>;
+  /**
+   * Without Tags
+   */
+  without_tags?: Array<number>;
+};
+
+/**
  * CleanupItemOut
  */
 export type CleanupItemOut = {
@@ -890,6 +927,168 @@ export type CleanupItemOut = {
 };
 
 /**
+ * CleanupKeepIn
+ */
+export type CleanupKeepIn = {
+  /**
+   * Title
+   */
+  title?: string;
+  /**
+   * Year
+   */
+  year?: number | null;
+};
+
+/**
+ * CleanupKeptOut
+ */
+export type CleanupKeptOut = {
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Kept At
+   */
+  kept_at?: number;
+  /**
+   * Kind
+   */
+  kind: "movie" | "series";
+  /**
+   * Title
+   */
+  title?: string;
+  /**
+   * Year
+   */
+  year?: number | null;
+};
+
+/**
+ * CleanupLeavingOut
+ */
+export type CleanupLeavingOut = {
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Kind
+   */
+  kind: "movie" | "series";
+  /**
+   * Leave At
+   */
+  leave_at: number;
+  /**
+   * Marked At
+   */
+  marked_at: number;
+  /**
+   * Poster
+   */
+  poster?: string | null;
+  /**
+   * Reasons
+   */
+  reasons?: Array<CleanupReasonOut>;
+  /**
+   * Rule Id
+   */
+  rule_id?: string;
+  /**
+   * Rule Name
+   */
+  rule_name?: string;
+  /**
+   * Size
+   */
+  size?: number;
+  /**
+   * Title
+   */
+  title?: string;
+  /**
+   * Year
+   */
+  year?: number | null;
+};
+
+/**
+ * CleanupLogTitleOut
+ */
+export type CleanupLogTitleOut = {
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Kind
+   */
+  kind: "movie" | "series";
+  /**
+   * Leave At
+   */
+  leave_at?: number | null;
+  /**
+   * Reason
+   */
+  reason?: string | null;
+  /**
+   * Size
+   */
+  size?: number;
+  /**
+   * Title
+   */
+  title?: string;
+  /**
+   * Year
+   */
+  year?: number | null;
+};
+
+/**
+ * CleanupMatchOut
+ */
+export type CleanupMatchOut = {
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Kind
+   */
+  kind: "movie" | "series";
+  /**
+   * Leave At
+   */
+  leave_at?: number | null;
+  /**
+   * Poster
+   */
+  poster?: string | null;
+  /**
+   * Reasons
+   */
+  reasons?: Array<CleanupReasonOut>;
+  /**
+   * Size
+   */
+  size?: number;
+  /**
+   * Title
+   */
+  title?: string;
+  /**
+   * Year
+   */
+  year?: number | null;
+};
+
+/**
  * CleanupOut
  *
  * What could go to free space, in four lists. Nothing here deletes: the
@@ -916,6 +1115,178 @@ export type CleanupOut = {
    * Watched
    */
   watched?: Array<CleanupItemOut>;
+};
+
+/**
+ * CleanupPreviewOut
+ *
+ * What the rule would take now. Nothing is changed by asking.
+ */
+export type CleanupPreviewOut = {
+  /**
+   * Held
+   */
+  held?: {
+    [key: string]: number;
+  };
+  /**
+   * Matches
+   */
+  matches?: Array<CleanupMatchOut>;
+  /**
+   * Total Size
+   */
+  total_size?: number;
+};
+
+/**
+ * CleanupReasonOut
+ */
+export type CleanupReasonOut = {
+  /**
+   * Code
+   */
+  code: string;
+  /**
+   * Value
+   */
+  value?: number | null;
+};
+
+/**
+ * CleanupRuleIn
+ */
+export type CleanupRuleIn = {
+  conditions?: CleanupConditions;
+  /**
+   * Enabled
+   */
+  enabled?: boolean;
+  /**
+   * Grace Days
+   */
+  grace_days?: number;
+  /**
+   * Id
+   */
+  id?: string;
+  /**
+   * Kind
+   */
+  kind: "movie" | "series";
+  /**
+   * Name
+   */
+  name?: string;
+};
+
+/**
+ * CleanupRuleOut
+ */
+export type CleanupRuleOut = {
+  conditions: CleanupConditions;
+  /**
+   * Enabled
+   */
+  enabled: boolean;
+  /**
+   * Grace Days
+   */
+  grace_days: number;
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Kind
+   */
+  kind: "movie" | "series";
+  /**
+   * Name
+   */
+  name: string;
+};
+
+/**
+ * CleanupRulesIn
+ */
+export type CleanupRulesIn = {
+  /**
+   * Rules
+   */
+  rules?: Array<CleanupRuleIn>;
+  settings: CleanupRulesSettings;
+};
+
+/**
+ * CleanupRulesOut
+ */
+export type CleanupRulesOut = {
+  /**
+   * Rules
+   */
+  rules: Array<CleanupRuleOut>;
+  settings: CleanupRulesSettings;
+};
+
+/**
+ * CleanupRulesSettings
+ */
+export type CleanupRulesSettings = {
+  /**
+   * Enabled
+   */
+  enabled?: boolean;
+  /**
+   * Max Deletions
+   */
+  max_deletions?: number;
+};
+
+/**
+ * CleanupRunOut
+ */
+export type CleanupRunOut = {
+  /**
+   * Deferred
+   */
+  deferred?: number;
+  /**
+   * Deleted
+   */
+  deleted?: Array<CleanupLogTitleOut>;
+  /**
+   * Dry Run
+   */
+  dry_run?: boolean;
+  /**
+   * Errors
+   */
+  errors?: Array<string>;
+  /**
+   * Kept
+   */
+  kept?: Array<CleanupLogTitleOut>;
+  /**
+   * Marked
+   */
+  marked?: Array<CleanupLogTitleOut>;
+  /**
+   * Released
+   */
+  released?: Array<CleanupLogTitleOut>;
+  /**
+   * Skipped
+   */
+  skipped?: string | null;
+  /**
+   * Trigger
+   */
+  trigger: string;
+  /**
+   * Ts
+   */
+  ts: number;
 };
 
 /**
@@ -5625,6 +5996,258 @@ export type CleanupApiV1CleanupGetResponses = {
 
 export type CleanupApiV1CleanupGetResponse =
   CleanupApiV1CleanupGetResponses[keyof CleanupApiV1CleanupGetResponses];
+
+export type ClearKeptApiV1CleanupKeptDeleteData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/cleanup/kept";
+};
+
+export type ClearKeptApiV1CleanupKeptDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type ClearKeptApiV1CleanupKeptDeleteResponse =
+  ClearKeptApiV1CleanupKeptDeleteResponses[keyof ClearKeptApiV1CleanupKeptDeleteResponses];
+
+export type KeptApiV1CleanupKeptGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/cleanup/kept";
+};
+
+export type KeptApiV1CleanupKeptGetResponses = {
+  /**
+   * Response Kept Api V1 Cleanup Kept Get
+   *
+   * Successful Response
+   */
+  200: Array<CleanupKeptOut>;
+};
+
+export type KeptApiV1CleanupKeptGetResponse =
+  KeptApiV1CleanupKeptGetResponses[keyof KeptApiV1CleanupKeptGetResponses];
+
+export type UnkeepApiV1CleanupKeptKindItemIdDeleteData = {
+  body?: never;
+  path: {
+    /**
+     * Kind
+     */
+    kind: string;
+    /**
+     * Item Id
+     */
+    item_id: number;
+  };
+  query?: never;
+  url: "/api/v1/cleanup/kept/{kind}/{item_id}";
+};
+
+export type UnkeepApiV1CleanupKeptKindItemIdDeleteErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type UnkeepApiV1CleanupKeptKindItemIdDeleteError =
+  UnkeepApiV1CleanupKeptKindItemIdDeleteErrors[keyof UnkeepApiV1CleanupKeptKindItemIdDeleteErrors];
+
+export type UnkeepApiV1CleanupKeptKindItemIdDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type UnkeepApiV1CleanupKeptKindItemIdDeleteResponse =
+  UnkeepApiV1CleanupKeptKindItemIdDeleteResponses[keyof UnkeepApiV1CleanupKeptKindItemIdDeleteResponses];
+
+export type LeavingApiV1CleanupLeavingGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/cleanup/leaving";
+};
+
+export type LeavingApiV1CleanupLeavingGetResponses = {
+  /**
+   * Response Leaving Api V1 Cleanup Leaving Get
+   *
+   * Successful Response
+   */
+  200: Array<CleanupLeavingOut>;
+};
+
+export type LeavingApiV1CleanupLeavingGetResponse =
+  LeavingApiV1CleanupLeavingGetResponses[keyof LeavingApiV1CleanupLeavingGetResponses];
+
+export type KeepApiV1CleanupLeavingKindItemIdKeepPostData = {
+  /**
+   * Body
+   */
+  body?: CleanupKeepIn | null;
+  path: {
+    /**
+     * Kind
+     */
+    kind: string;
+    /**
+     * Item Id
+     */
+    item_id: number;
+  };
+  query?: never;
+  url: "/api/v1/cleanup/leaving/{kind}/{item_id}/keep";
+};
+
+export type KeepApiV1CleanupLeavingKindItemIdKeepPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type KeepApiV1CleanupLeavingKindItemIdKeepPostError =
+  KeepApiV1CleanupLeavingKindItemIdKeepPostErrors[keyof KeepApiV1CleanupLeavingKindItemIdKeepPostErrors];
+
+export type KeepApiV1CleanupLeavingKindItemIdKeepPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: CleanupKeptOut;
+};
+
+export type KeepApiV1CleanupLeavingKindItemIdKeepPostResponse =
+  KeepApiV1CleanupLeavingKindItemIdKeepPostResponses[keyof KeepApiV1CleanupLeavingKindItemIdKeepPostResponses];
+
+export type RunLogApiV1CleanupLogGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/cleanup/log";
+};
+
+export type RunLogApiV1CleanupLogGetResponses = {
+  /**
+   * Response Run Log Api V1 Cleanup Log Get
+   *
+   * Successful Response
+   */
+  200: Array<CleanupRunOut>;
+};
+
+export type RunLogApiV1CleanupLogGetResponse =
+  RunLogApiV1CleanupLogGetResponses[keyof RunLogApiV1CleanupLogGetResponses];
+
+export type GetRulesApiV1CleanupRulesGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/cleanup/rules";
+};
+
+export type GetRulesApiV1CleanupRulesGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: CleanupRulesOut;
+};
+
+export type GetRulesApiV1CleanupRulesGetResponse =
+  GetRulesApiV1CleanupRulesGetResponses[keyof GetRulesApiV1CleanupRulesGetResponses];
+
+export type PutRulesApiV1CleanupRulesPutData = {
+  body: CleanupRulesIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/cleanup/rules";
+};
+
+export type PutRulesApiV1CleanupRulesPutErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type PutRulesApiV1CleanupRulesPutError =
+  PutRulesApiV1CleanupRulesPutErrors[keyof PutRulesApiV1CleanupRulesPutErrors];
+
+export type PutRulesApiV1CleanupRulesPutResponses = {
+  /**
+   * Successful Response
+   */
+  200: CleanupRulesOut;
+};
+
+export type PutRulesApiV1CleanupRulesPutResponse =
+  PutRulesApiV1CleanupRulesPutResponses[keyof PutRulesApiV1CleanupRulesPutResponses];
+
+export type PreviewRuleApiV1CleanupRulesPreviewPostData = {
+  body: CleanupRuleIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/cleanup/rules/preview";
+};
+
+export type PreviewRuleApiV1CleanupRulesPreviewPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type PreviewRuleApiV1CleanupRulesPreviewPostError =
+  PreviewRuleApiV1CleanupRulesPreviewPostErrors[keyof PreviewRuleApiV1CleanupRulesPreviewPostErrors];
+
+export type PreviewRuleApiV1CleanupRulesPreviewPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: CleanupPreviewOut;
+};
+
+export type PreviewRuleApiV1CleanupRulesPreviewPostResponse =
+  PreviewRuleApiV1CleanupRulesPreviewPostResponses[keyof PreviewRuleApiV1CleanupRulesPreviewPostResponses];
+
+export type RunNowApiV1CleanupRunPostData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Dry Run
+     */
+    dry_run?: boolean;
+  };
+  url: "/api/v1/cleanup/run";
+};
+
+export type RunNowApiV1CleanupRunPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type RunNowApiV1CleanupRunPostError =
+  RunNowApiV1CleanupRunPostErrors[keyof RunNowApiV1CleanupRunPostErrors];
+
+export type RunNowApiV1CleanupRunPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: CleanupRunOut;
+};
+
+export type RunNowApiV1CleanupRunPostResponse =
+  RunNowApiV1CleanupRunPostResponses[keyof RunNowApiV1CleanupRunPostResponses];
 
 export type CollectionsApiV1CollectionsGetData = {
   body?: never;

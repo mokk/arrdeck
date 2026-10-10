@@ -284,3 +284,135 @@ class CleanupOut(BaseModel):
     never_watched: list[CleanupItemOut] = []  # in Plex, never played, added long ago
     largest: list[CleanupItemOut] = []
     unmonitored: list[CleanupItemOut] = []  # nobody wants it, still on disk
+
+
+# --- cleanup rules ("Leaving soon") ---
+
+
+class CleanupConditions(BaseModel):
+    """ANDed. Unset (null, false, empty) is no condition; a rule with none at
+    all matches nothing."""
+
+    # watched to the end, last played more than this many days ago
+    watched_days: int | None = Field(None, ge=1, le=3650)
+    # never played (Plex has it, nothing seen), added more than this many days ago
+    unwatched_days: int | None = Field(None, ge=1, le=3650)
+    min_size_gb: float | None = Field(None, gt=0, le=100_000)  # GiB, as the app shows sizes
+    unmonitored: bool = False
+    rating_below: float | None = Field(None, gt=0, le=10)  # the arr's IMDb/TMDB rating
+    without_tags: list[int] = Field([], max_length=50)  # none of these arr tags
+    with_tags: list[int] = Field([], max_length=50)  # at least one of these
+
+
+class CleanupRuleIn(BaseModel):
+    id: str = Field("", max_length=40)  # empty for a new rule: the server assigns one
+    name: str = Field("", max_length=80)
+    kind: Literal["movie", "series"]
+    enabled: bool = False
+    grace_days: int = Field(14, ge=3, le=365)
+    conditions: CleanupConditions = CleanupConditions()
+
+
+class CleanupRuleOut(BaseModel):
+    id: str
+    name: str
+    kind: Literal["movie", "series"]
+    enabled: bool
+    grace_days: int
+    conditions: CleanupConditions
+
+
+class CleanupRulesSettings(BaseModel):
+    # the master switch: off, nothing is marked or deleted, whatever the rules say
+    enabled: bool = False
+    max_deletions: int = Field(10, ge=1, le=100)  # per run; the rest wait for the next
+
+
+class CleanupRulesIn(BaseModel):
+    settings: CleanupRulesSettings
+    rules: list[CleanupRuleIn] = Field([], max_length=30)
+
+
+class CleanupRulesOut(BaseModel):
+    settings: CleanupRulesSettings
+    rules: list[CleanupRuleOut]
+
+
+class CleanupReasonOut(BaseModel):
+    # watched | unwatched (value: days) · size (bytes) · rating · unmonitored ·
+    # without_tags · with_tags
+    code: str
+    value: float | None = None
+
+
+class CleanupMatchOut(BaseModel):
+    kind: Literal["movie", "series"]
+    id: int
+    title: str = ""
+    year: int | None = None
+    poster: str | None = None
+    size: int = 0
+    reasons: list[CleanupReasonOut] = []
+    leave_at: int | None = None  # unix seconds, when it is already leaving
+
+
+class CleanupPreviewOut(BaseModel):
+    """What the rule would take now. Nothing is changed by asking."""
+
+    matches: list[CleanupMatchOut] = []
+    total_size: int = 0
+    # matched, but held back by a brake: kept | requested | recent
+    held: dict[str, int] = {}
+
+
+class CleanupLeavingOut(BaseModel):
+    kind: Literal["movie", "series"]
+    id: int
+    title: str = ""
+    year: int | None = None
+    poster: str | None = None
+    size: int = 0
+    rule_id: str = ""
+    rule_name: str = ""
+    reasons: list[CleanupReasonOut] = []
+    marked_at: int  # unix seconds
+    leave_at: int  # unix seconds; deleted at the first run after this, if it still matches
+
+
+class CleanupKeepIn(BaseModel):
+    # what to call it in the keep list when it is not leaving (kept from a preview)
+    title: str = Field("", max_length=300)
+    year: int | None = None
+
+
+class CleanupKeptOut(BaseModel):
+    kind: Literal["movie", "series"]
+    id: int
+    title: str = ""
+    year: int | None = None
+    kept_at: int = 0
+
+
+class CleanupLogTitleOut(BaseModel):
+    kind: Literal["movie", "series"]
+    id: int
+    title: str = ""
+    year: int | None = None
+    size: int = 0
+    # released: kept | rule_off | gone | no_match | requested | recent | switched_off
+    reason: str | None = None
+    leave_at: int | None = None
+
+
+class CleanupRunOut(BaseModel):
+    ts: int
+    trigger: str  # schedule | manual | switch
+    dry_run: bool = False
+    # disabled (the switch is off) | unreachable (see errors); nothing was done
+    skipped: str | None = None
+    marked: list[CleanupLogTitleOut] = []
+    released: list[CleanupLogTitleOut] = []
+    kept: list[CleanupLogTitleOut] = []  # matched, but on the keep list
+    deleted: list[CleanupLogTitleOut] = []
+    deferred: int = 0  # due, but over the per-run limit
+    errors: list[str] = []

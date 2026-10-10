@@ -61,6 +61,26 @@ def _guid_keys(item: dict) -> list[str]:
     return keys
 
 
+def watch_entry(section_type: str, item: dict) -> dict:
+    """One title's watch state. A show counts as watched once every episode
+    has been played; partly seen is neither watched nor never watched."""
+    if section_type == "show":
+        total = item.get("leafCount") or 0
+        seen = item.get("viewedLeafCount") or 0
+        progress = seen / total if total else 0.0
+        is_watched = total > 0 and seen >= total
+    else:
+        progress = 1.0 if item.get("viewCount") else 0.0
+        is_watched = bool(item.get("viewCount"))
+    rating_key = item.get("ratingKey")
+    return {
+        "watched": is_watched,
+        "progress": progress,
+        "key": str(rating_key) if rating_key else None,
+        "last_viewed_at": item.get("lastViewedAt"),
+    }
+
+
 async def load_watched(plex: PlexClient) -> dict:
     """The watched map, cached ten minutes: the endpoint and the cleanup
     assistant both read it."""
@@ -83,21 +103,7 @@ async def load_watched(plex: PlexClient) -> dict:
             if isinstance(items, BaseException):
                 continue
             for item in items:
-                if section.get("type") == "show":
-                    total = item.get("leafCount") or 0
-                    seen = item.get("viewedLeafCount") or 0
-                    progress = seen / total if total else 0.0
-                    is_watched = total > 0 and seen >= total
-                else:
-                    progress = 1.0 if item.get("viewCount") else 0.0
-                    is_watched = bool(item.get("viewCount"))
-                rating_key = item.get("ratingKey")
-                entry = {
-                    "watched": is_watched,
-                    "progress": progress,
-                    "key": str(rating_key) if rating_key else None,
-                    "last_viewed_at": item.get("lastViewedAt"),
-                }
+                entry = watch_entry(section.get("type", ""), item)
                 for key in _guid_keys(item):
                     out[key] = entry
         return {

@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from .api.v1.auth import is_request_allowed
 from .api.v1.popular import popular_loop
 from .api.v1.router import router as v1_router
+from .autoclean.job import cleanup_loop
 from .clients.base import ServiceUnavailable
 from .config import get_settings
 from .db import SettingsDB
@@ -85,6 +86,7 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(flush_loop(db)),
         asyncio.create_task(digest_loop(db, registry)),
         asyncio.create_task(popular_loop(db, registry)),
+        asyncio.create_task(cleanup_loop(db, registry)),
     ]
     yield
     for task in tasks:

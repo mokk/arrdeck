@@ -34,6 +34,56 @@ class PlexClient(BaseClient):
         resp.raise_for_status()
         return resp.json()
 
+    async def send(self, method: str, path: str, **params: Any) -> Any:
+        """A write. Same headers and auth handling as get; the body, when Plex
+        sends one, is JSON."""
+        resp = await self._request(
+            method,
+            f"{self.base_url}{path}",
+            headers={"Accept": "application/json", "X-Plex-Token": self.token},
+            params=params or None,
+        )
+        if resp.status_code in (401, 403):
+            raise ServiceUnavailable(self.name, "unauthorized (check the Plex token)")
+        resp.raise_for_status()
+        return resp.json() if resp.content else None
+
+    # --- collections (the "Leaving soon" shelf) ---
+
+    @staticmethod
+    def item_uri(machine_id: str, rating_key: str) -> str:
+        return f"server://{machine_id}/com.plexapp.plugins.library/library/metadata/{rating_key}"
+
+    async def create_collection(
+        self, section_key: str, section_type: str, title: str, uri: str
+    ) -> str:
+        """A collection must start with one item. Returns its rating key."""
+        body = await self.send(
+            "POST",
+            "/library/collections",
+            type=1 if section_type == "movie" else 2,
+            title=title,
+            smart=0,
+            sectionId=section_key,
+            uri=uri,
+        )
+        return str(((body or {}).get("MediaContainer") or {}).get("Metadata", [{}])[0]["ratingKey"])
+
+    async def collection_add(self, collection_id: str, uri: str) -> None:
+        await self.send("PUT", f"/library/collections/{collection_id}/items", uri=uri)
+
+    async def collection_remove(self, collection_id: str, rating_key: str) -> None:
+        await self.send("DELETE", f"/library/collections/{collection_id}/items/{rating_key}")
+
+    async def collection_items(self, collection_id: str) -> list:
+        container = (await self.get(f"/library/collections/{collection_id}/children")).get(
+            "MediaContainer", {}
+        )
+        return container.get("Metadata") or []
+
+    async def delete_collection(self, collection_id: str) -> None:
+        await self.send("DELETE", f"/library/collections/{collection_id}")
+
     async def identity(self) -> dict:
         return (await self.get("/identity")).get("MediaContainer", {})
 

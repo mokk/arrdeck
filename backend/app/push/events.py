@@ -34,10 +34,13 @@ EVENT_LABELS = {
     "health": "Health issue",
     "added": "Added to library",
     "digest": "Weekly digest",
+    "cleanup": "Cleanup",
 }
 
 
-DEFAULT_EVENTS = ["imported", "upgraded", "failed", "manual", "health", "digest"]
+# cleanup only ever fires once the cleanup rules are switched on, and then it
+# is the warning that something is about to be deleted: on by default
+DEFAULT_EVENTS = ["imported", "upgraded", "failed", "manual", "health", "digest", "cleanup"]
 
 
 WEBHOOK_EVENTS = {

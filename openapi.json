@@ -1564,6 +1564,88 @@
         "title": "CalendarResponse",
         "type": "object"
       },
+      "CleanupConditions": {
+        "description": "ANDed. Unset (null, false, empty) is no condition; a rule with none at\nall matches nothing.",
+        "properties": {
+          "min_size_gb": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 100000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Size Gb"
+          },
+          "rating_below": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 10.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating Below"
+          },
+          "unmonitored": {
+            "default": false,
+            "title": "Unmonitored",
+            "type": "boolean"
+          },
+          "unwatched_days": {
+            "anyOf": [
+              {
+                "maximum": 3650.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unwatched Days"
+          },
+          "watched_days": {
+            "anyOf": [
+              {
+                "maximum": 3650.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watched Days"
+          },
+          "with_tags": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 50,
+            "title": "With Tags",
+            "type": "array"
+          },
+          "without_tags": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 50,
+            "title": "Without Tags",
+            "type": "array"
+          }
+        },
+        "title": "CleanupConditions",
+        "type": "object"
+      },
       "CleanupItemOut": {
         "properties": {
           "added": {
@@ -1660,6 +1742,292 @@
         "title": "CleanupItemOut",
         "type": "object"
       },
+      "CleanupKeepIn": {
+        "properties": {
+          "title": {
+            "default": "",
+            "maxLength": 300,
+            "title": "Title",
+            "type": "string"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          }
+        },
+        "title": "CleanupKeepIn",
+        "type": "object"
+      },
+      "CleanupKeptOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kept_at": {
+            "default": 0,
+            "title": "Kept At",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "movie",
+              "series"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "title": {
+            "default": "",
+            "title": "Title",
+            "type": "string"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "title": "CleanupKeptOut",
+        "type": "object"
+      },
+      "CleanupLeavingOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "movie",
+              "series"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "leave_at": {
+            "title": "Leave At",
+            "type": "integer"
+          },
+          "marked_at": {
+            "title": "Marked At",
+            "type": "integer"
+          },
+          "poster": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Poster"
+          },
+          "reasons": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CleanupReasonOut"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "rule_id": {
+            "default": "",
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "rule_name": {
+            "default": "",
+            "title": "Rule Name",
+            "type": "string"
+          },
+          "size": {
+            "default": 0,
+            "title": "Size",
+            "type": "integer"
+          },
+          "title": {
+            "default": "",
+            "title": "Title",
+            "type": "string"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "marked_at",
+          "leave_at"
+        ],
+        "title": "CleanupLeavingOut",
+        "type": "object"
+      },
+      "CleanupLogTitleOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "movie",
+              "series"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "leave_at": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Leave At"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "size": {
+            "default": 0,
+            "title": "Size",
+            "type": "integer"
+          },
+          "title": {
+            "default": "",
+            "title": "Title",
+            "type": "string"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "title": "CleanupLogTitleOut",
+        "type": "object"
+      },
+      "CleanupMatchOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "movie",
+              "series"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "leave_at": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Leave At"
+          },
+          "poster": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Poster"
+          },
+          "reasons": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CleanupReasonOut"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "size": {
+            "default": 0,
+            "title": "Size",
+            "type": "integer"
+          },
+          "title": {
+            "default": "",
+            "title": "Title",
+            "type": "string"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "title": "CleanupMatchOut",
+        "type": "object"
+      },
       "CleanupOut": {
         "description": "What could go to free space, in four lists. Nothing here deletes: the\nclient sends the chosen ids to the libraries' bulk delete.",
         "properties": {
@@ -1702,6 +2070,286 @@
           }
         },
         "title": "CleanupOut",
+        "type": "object"
+      },
+      "CleanupPreviewOut": {
+        "description": "What the rule would take now. Nothing is changed by asking.",
+        "properties": {
+          "held": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "default": {},
+            "title": "Held",
+            "type": "object"
+          },
+          "matches": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CleanupMatchOut"
+            },
+            "title": "Matches",
+            "type": "array"
+          },
+          "total_size": {
+            "default": 0,
+            "title": "Total Size",
+            "type": "integer"
+          }
+        },
+        "title": "CleanupPreviewOut",
+        "type": "object"
+      },
+      "CleanupReasonOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "title": "CleanupReasonOut",
+        "type": "object"
+      },
+      "CleanupRuleIn": {
+        "properties": {
+          "conditions": {
+            "$ref": "#/components/schemas/CleanupConditions",
+            "default": {
+              "unmonitored": false,
+              "with_tags": [],
+              "without_tags": []
+            }
+          },
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "grace_days": {
+            "default": 14,
+            "maximum": 365.0,
+            "minimum": 3.0,
+            "title": "Grace Days",
+            "type": "integer"
+          },
+          "id": {
+            "default": "",
+            "maxLength": 40,
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "movie",
+              "series"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 80,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "CleanupRuleIn",
+        "type": "object"
+      },
+      "CleanupRuleOut": {
+        "properties": {
+          "conditions": {
+            "$ref": "#/components/schemas/CleanupConditions"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "grace_days": {
+            "title": "Grace Days",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "movie",
+              "series"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "enabled",
+          "grace_days",
+          "conditions"
+        ],
+        "title": "CleanupRuleOut",
+        "type": "object"
+      },
+      "CleanupRulesIn": {
+        "properties": {
+          "rules": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CleanupRuleIn"
+            },
+            "maxItems": 30,
+            "title": "Rules",
+            "type": "array"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/CleanupRulesSettings"
+          }
+        },
+        "required": [
+          "settings"
+        ],
+        "title": "CleanupRulesIn",
+        "type": "object"
+      },
+      "CleanupRulesOut": {
+        "properties": {
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/CleanupRuleOut"
+            },
+            "title": "Rules",
+            "type": "array"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/CleanupRulesSettings"
+          }
+        },
+        "required": [
+          "settings",
+          "rules"
+        ],
+        "title": "CleanupRulesOut",
+        "type": "object"
+      },
+      "CleanupRulesSettings": {
+        "properties": {
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "max_deletions": {
+            "default": 10,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Max Deletions",
+            "type": "integer"
+          }
+        },
+        "title": "CleanupRulesSettings",
+        "type": "object"
+      },
+      "CleanupRunOut": {
+        "properties": {
+          "deferred": {
+            "default": 0,
+            "title": "Deferred",
+            "type": "integer"
+          },
+          "deleted": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CleanupLogTitleOut"
+            },
+            "title": "Deleted",
+            "type": "array"
+          },
+          "dry_run": {
+            "default": false,
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "errors": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "kept": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CleanupLogTitleOut"
+            },
+            "title": "Kept",
+            "type": "array"
+          },
+          "marked": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CleanupLogTitleOut"
+            },
+            "title": "Marked",
+            "type": "array"
+          },
+          "released": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CleanupLogTitleOut"
+            },
+            "title": "Released",
+            "type": "array"
+          },
+          "skipped": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skipped"
+          },
+          "trigger": {
+            "title": "Trigger",
+            "type": "string"
+          },
+          "ts": {
+            "title": "Ts",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ts",
+          "trigger"
+        ],
+        "title": "CleanupRunOut",
         "type": "object"
       },
       "CleanupSeasonOut": {
@@ -9898,6 +10546,356 @@
           }
         },
         "summary": "Cleanup",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/v1/cleanup/kept": {
+      "delete": {
+        "description": "Empty the keep list: the rules may match those titles again.",
+        "operationId": "clear_kept_api_v1_cleanup_kept_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Clear Kept",
+        "tags": [
+          "library"
+        ]
+      },
+      "get": {
+        "operationId": "kept_api_v1_cleanup_kept_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CleanupKeptOut"
+                  },
+                  "title": "Response Kept Api V1 Cleanup Kept Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Kept",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/v1/cleanup/kept/{kind}/{item_id}": {
+      "delete": {
+        "operationId": "unkeep_api_v1_cleanup_kept__kind___item_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "title": "Kind",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unkeep",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/v1/cleanup/leaving": {
+      "get": {
+        "description": "Titles marked to go, soonest first.",
+        "operationId": "leaving_api_v1_cleanup_leaving_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CleanupLeavingOut"
+                  },
+                  "title": "Response Leaving Api V1 Cleanup Leaving Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Leaving",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/v1/cleanup/leaving/{kind}/{item_id}/keep": {
+      "post": {
+        "description": "Keep a title for good: off the leaving list and the Plex shelf, and never\nmatched by any rule again until it is taken off the keep list. Works for a\ntitle that is not leaving yet, too (from a preview).",
+        "operationId": "keep_api_v1_cleanup_leaving__kind___item_id__keep_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "title": "Kind",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/CleanupKeepIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CleanupKeptOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Keep",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/v1/cleanup/log": {
+      "get": {
+        "description": "The last runs, newest first. Dry runs are not recorded.",
+        "operationId": "run_log_api_v1_cleanup_log_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CleanupRunOut"
+                  },
+                  "title": "Response Run Log Api V1 Cleanup Log Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Run Log",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/v1/cleanup/rules": {
+      "get": {
+        "operationId": "get_rules_api_v1_cleanup_rules_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CleanupRulesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Rules",
+        "tags": [
+          "library"
+        ]
+      },
+      "put": {
+        "description": "Replaces the switch and the whole rule list. A rule without an id gets\none. Switching off releases everything that was leaving, so turning it on\nagain starts every grace period afresh.",
+        "operationId": "put_rules_api_v1_cleanup_rules_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CleanupRulesIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CleanupRulesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Rules",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/v1/cleanup/rules/preview": {
+      "post": {
+        "description": "What this rule — saved or not, on or off — would take right now, why,\nand how much space that is. Read-only. 502 when Plex, an arr or Overseerr\ncannot be asked, rather than an answer built on missing data.",
+        "operationId": "preview_rule_api_v1_cleanup_rules_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CleanupRuleIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CleanupPreviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Preview Rule",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/v1/cleanup/run": {
+      "post": {
+        "description": "Run the lifecycle now. With the switch off only a dry run does anything\n(the answer says skipped=disabled otherwise). 409 while a run is going.",
+        "operationId": "run_now_api_v1_cleanup_run_post",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "dry_run",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Dry Run",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CleanupRunOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Now",
         "tags": [
           "library"
         ]

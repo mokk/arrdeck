@@ -27,6 +27,12 @@ const PUSH_STRINGS: Record<string, Record<string, string>> = {
     digest: "Your week",
     digest_arrived: "{list} downloaded",
     digest_coming: "{list} coming up",
+    cleanup: "Leaving soon",
+    cleanup_leaving_one: "1 title leaves in {days} days",
+    cleanup_leaving: "{n} titles leave in {days} days",
+    cleanup_removed_title: "Removed by cleanup",
+    cleanup_removed_one: "1 title was removed",
+    cleanup_removed: "{n} titles were removed",
     count_readarr_one: "1 book",
     count_readarr: "{n} books",
     count_radarr_one: "1 movie",
@@ -48,6 +54,12 @@ const PUSH_STRINGS: Record<string, Record<string, string>> = {
     digest: "Din uge",
     digest_arrived: "{list} downloadet",
     digest_coming: "{list} på vej",
+    cleanup: "Forsvinder snart",
+    cleanup_leaving_one: "1 titel forsvinder om {days} dage",
+    cleanup_leaving: "{n} titler forsvinder om {days} dage",
+    cleanup_removed_title: "Fjernet af oprydning",
+    cleanup_removed_one: "1 titel blev fjernet",
+    cleanup_removed: "{n} titler blev fjernet",
     count_readarr_one: "1 bog",
     count_readarr: "{n} bøger",
     count_radarr_one: "1 film",
@@ -107,12 +119,37 @@ function digest(
   return { title: strings.digest, body: heading && coming ? `${body} — ${heading}` : body };
 }
 
+/** "3 titles leave in 14 days — Dune, Heat", or after the grace period
+ * "2 titles were removed — Dune, Heat". */
+function cleanup(
+  strings: Record<string, string>,
+  params: Record<string, unknown>,
+  count: number,
+  heading: string,
+) {
+  const removed = params.action === "removed";
+  const base = removed ? "cleanup_removed" : "cleanup_leaving";
+  const days = typeof params.days === "number" ? params.days : 0;
+  const sentence = (strings[count === 1 ? `${base}_one` : base] ?? "")
+    .replace("{n}", String(count))
+    .replace("{days}", String(days));
+  return {
+    title: (removed ? strings.cleanup_removed_title : strings.cleanup) ?? "",
+    body: heading ? `${sentence} — ${heading}` : sentence,
+  };
+}
+
 export function localise(data: PushPayload): { title: string; body: string } {
   const lang = text(data.lang) || "en";
   const strings = PUSH_STRINGS[lang] ?? PUSH_STRINGS.en;
   const label = strings[text(data.code)];
   if (data.code === "digest" && data.params && typeof data.params === "object") {
     const out = digest(strings, data.params as Record<string, unknown>, text(data.heading));
+    if (out.body) return out;
+  }
+  if (data.code === "cleanup" && data.params && typeof data.params === "object") {
+    const n = typeof data.count === "number" && data.count > 0 ? data.count : 1;
+    const out = cleanup(strings, data.params as Record<string, unknown>, n, text(data.heading));
     if (out.body) return out;
   }
 

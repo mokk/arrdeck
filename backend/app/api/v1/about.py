@@ -38,6 +38,7 @@ FEATURE_ROUTES: dict[str, str] = {
     "vpn": "/api/v1/vpn",
     "backup_restore": "/api/v1/restore",
     "prefs": "/api/v1/prefs",
+    "cleanup_rules": "/api/v1/cleanup/rules",
 }
 
 

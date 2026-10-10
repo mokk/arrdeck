@@ -68,6 +68,40 @@ describe("the weekly digest", () => {
   });
 });
 
+describe("cleanup rules", () => {
+  it("warns what is leaving and when, naming a few", () => {
+    const out = localise({
+      code: "cleanup",
+      count: 3,
+      app: "arrdeck",
+      heading: "Dune, Heat",
+      params: { action: "leaving", days: 14 },
+    });
+    expect(out).toEqual({
+      title: "Leaving soon",
+      body: "3 titles leave in 14 days — Dune, Heat",
+    });
+  });
+
+  it("says what was removed, in Danish too", () => {
+    const one = localise({
+      code: "cleanup",
+      count: 1,
+      heading: "",
+      params: { action: "removed" },
+    });
+    expect(one).toEqual({ title: "Removed by cleanup", body: "1 title was removed" });
+    const da = localise({
+      code: "cleanup",
+      count: 2,
+      heading: "Dune",
+      lang: "da",
+      params: { action: "removed" },
+    });
+    expect(da).toEqual({ title: "Fjernet af oprydning", body: "2 titler blev fjernet — Dune" });
+  });
+});
+
 describe("a collapsed burst", () => {
   it("keeps the series as the heading and counts in the body", () => {
     const out = localise({ code: "imported", count: 8, app: "sonarr", heading: "The Bear" });

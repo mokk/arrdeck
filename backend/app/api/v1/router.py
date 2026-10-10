@@ -8,6 +8,7 @@ from . import (
     auth,
     books,
     cleanup,
+    cleanup_rules,
     credits,
     dashboard,
     diagnose,
@@ -68,6 +69,7 @@ router.include_router(series.router)
 router.include_router(credits.router)
 router.include_router(people.router)
 router.include_router(cleanup.router)
+router.include_router(cleanup_rules.router)
 router.include_router(reading.router)
 router.include_router(opds_settings.router)
 router.include_router(ical_settings.router)
