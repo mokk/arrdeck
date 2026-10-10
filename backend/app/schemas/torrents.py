@@ -201,6 +201,22 @@ class ManualImportAssignIn(BaseModel):
     mode: Literal["auto", "move", "copy"] = "auto"
 
 
+class ImportCommandOut(BaseModel):
+    """The arr's ManualImport command, as started or as it stands now."""
+
+    app: Literal["radarr", "sonarr", "readarr"]
+    id: int
+    # the arr's own: queued | started | completed | failed | aborted | cancelled | orphaned
+    status: str = "queued"
+    result: str | None = None  # successful | unsuccessful | unknown
+    message: str | None = None  # the arr's last progress line or its error
+    done: bool = False  # no longer queued or running
+    ok: bool | None = None  # None until done
+    # files the arr reports handling, parsed from its message; it counts files
+    # it then rejected too, so this is "processed", not a guarantee
+    imported: int | None = None
+
+
 class RenamePreviewOut(BaseModel):
     file_id: int
     existing_path: str = ""

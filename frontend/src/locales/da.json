@@ -166,7 +166,12 @@
     "heldUntil": "Holdt tilbage af en forsinkelsesprofil, hentes {{when}}",
     "needsAttention": "Kræver handling",
     "fix": "Ret",
-    "attentionUnavailable": "{{apps}} svarede ikke, så listen kan være ufuldstændig"
+    "attentionUnavailable": "{{apps}} svarede ikke, så listen kan være ufuldstændig",
+    "importing": "Importerer…",
+    "importedFiles_one": "Importerede {{count}} fil",
+    "importedFiles_other": "Importerede {{count}} filer",
+    "importFinished": "Import færdig",
+    "importFailed": "Importen mislykkedes"
   },
   "add": {
     "title": "Tilføj",

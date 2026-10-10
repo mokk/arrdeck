@@ -166,7 +166,12 @@
     "heldUntil": "Held by a delay profile, grabbed {{when}}",
     "needsAttention": "Needs attention",
     "fix": "Fix",
-    "attentionUnavailable": "{{apps}} could not be reached, so this list may be incomplete"
+    "attentionUnavailable": "{{apps}} could not be reached, so this list may be incomplete",
+    "importing": "Importing…",
+    "importedFiles_one": "Imported {{count}} file",
+    "importedFiles_other": "Imported {{count}} files",
+    "importFinished": "Import finished",
+    "importFailed": "The import failed"
   },
   "add": {
     "title": "Add",

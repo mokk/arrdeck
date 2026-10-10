@@ -8,6 +8,7 @@ import type {
   ArrApp,
   BlocklistPage,
   ImportCandidate,
+  ImportCommand,
   QueueItem,
   RenamePreview,
   ServiceBlock,
@@ -60,15 +61,6 @@ export const useImportCandidates = (app: string, itemId: number | null) =>
     enabled: itemId != null,
   });
 
-export function useManualImport() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ app, itemId, paths }: { app: string; itemId: number; paths: string[] }) =>
-      api.post<void>(`/manual-import/${app}`, { item_id: itemId, paths }),
-    onSettled: () => qc.invalidateQueries({ queryKey: ["queue"] }),
-  });
-}
-
 export function useManualImportAssign() {
   const qc = useQueryClient();
   return useMutation({
@@ -85,10 +77,26 @@ export function useManualImportAssign() {
         series_id?: number | null;
         episode_ids?: number[];
       }[];
-    }) => api.post<void>(`/manual-import/${app}/assign`, { item_id: itemId, files }),
+    }) => api.post<ImportCommand>(`/manual-import/${app}/assign`, { item_id: itemId, files }),
     onSettled: () => qc.invalidateQueries({ queryKey: ["queue"] }),
   });
 }
+
+/** Follows the arr's ManualImport command until it finishes; the queue is
+ * refreshed then, since that is when the item actually leaves it. */
+export const useImportCommand = (app: string, id: number | null) => {
+  const qc = useQueryClient();
+  return useQuery({
+    queryKey: ["importCommand", app, id],
+    queryFn: async () => {
+      const command = await api.get<ImportCommand>(`/manual-import/${app}/command/${id}`);
+      if (command.done) qc.invalidateQueries({ queryKey: ["queue"] });
+      return command;
+    },
+    enabled: id != null,
+    refetchInterval: (query) => (query.state.data?.done ? false : 1000),
+  });
+};
 
 export const useRenamePreview = (app: string, id: number, enabled: boolean) =>
   useQuery({

@@ -264,6 +264,10 @@ class ArrClient(BaseClient):
     async def test_notification(self, payload: dict) -> None:
         await self.request("POST", "/notification/test", json=payload, timeout=30.0)
 
+    async def get_command(self, command_id: int) -> dict:
+        """A queued or finished command: status, result and the arr's message."""
+        return await self.get(f"/command/{command_id}")
+
     async def grab_release(self, guid: str, indexer_id: int) -> None:
         await self.request(
             "POST", "/release", json={"guid": guid, "indexerId": indexer_id}, timeout=90.0

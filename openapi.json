@@ -3356,6 +3356,84 @@
         "title": "ImportCandidateOut",
         "type": "object"
       },
+      "ImportCommandOut": {
+        "description": "The arr's ManualImport command, as started or as it stands now.",
+        "properties": {
+          "app": {
+            "enum": [
+              "radarr",
+              "sonarr",
+              "readarr"
+            ],
+            "title": "App",
+            "type": "string"
+          },
+          "done": {
+            "default": false,
+            "title": "Done",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "imported": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imported"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "ok": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ok"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "status": {
+            "default": "queued",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "app",
+          "id"
+        ],
+        "title": "ImportCommandOut",
+        "type": "object"
+      },
       "ImportListOut": {
         "properties": {
           "app": {
@@ -13611,7 +13689,14 @@
           "required": true
         },
         "responses": {
-          "204": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportCommandOut"
+                }
+              }
+            },
             "description": "Successful Response"
           },
           "422": {
@@ -13633,7 +13718,7 @@
     },
     "/api/v1/manual-import/{app}/assign": {
       "post": {
-        "description": "Import files against targets the user picked, for the ones the arr\ncouldn't place itself. Quality and language still come from the arr's own\ndetection — it parses those from the filename even when the title is a\nmystery, and guessing them here would be worse than reusing its answer.",
+        "description": "Import files against targets the user picked, for the ones the arr\ncouldn't place itself; a file sent without a target keeps the arr's own\nmatch, so one request (and one command to follow) covers both. Quality and\nlanguage still come from the arr's own detection — it parses those from\nthe filename even when the title is a mystery, and guessing them here\nwould be worse than reusing its answer.",
         "operationId": "manual_import_assign_api_v1_manual_import__app__assign_post",
         "parameters": [
           {
@@ -13657,7 +13742,14 @@
           "required": true
         },
         "responses": {
-          "204": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportCommandOut"
+                }
+              }
+            },
             "description": "Successful Response"
           },
           "422": {
@@ -13672,6 +13764,58 @@
           }
         },
         "summary": "Manual Import Assign",
+        "tags": [
+          "importing"
+        ]
+      }
+    },
+    "/api/v1/manual-import/{app}/command/{command_id}": {
+      "get": {
+        "description": "How an import the arr accepted went. Poll until `done`; `message` is\nthe arr's own words, success or failure.",
+        "operationId": "manual_import_command_api_v1_manual_import__app__command__command_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "app",
+            "required": true,
+            "schema": {
+              "title": "App",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "command_id",
+            "required": true,
+            "schema": {
+              "title": "Command Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportCommandOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Manual Import Command",
         "tags": [
           "importing"
         ]
@@ -14755,7 +14899,14 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportCommandOut"
+                }
+              }
+            },
             "description": "Successful Response"
           },
           "422": {

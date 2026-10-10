@@ -25,6 +25,7 @@ export type Torrent = G.TorrentOut;
 export type TorrentGroup = G.TorrentGroupOut;
 export type TorrentDetails = G.TorrentDetailsOut;
 export type QueueItem = G.QueueItemOut;
+export type ImportCommand = G.ImportCommandOut;
 export type CalendarItem = G.CalendarItemOut;
 export type HistoryItem = G.HistoryItemOut;
 export type HistoryPage = G.HistoryPageOut;

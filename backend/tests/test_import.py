@@ -91,6 +91,16 @@ class FakeArr:
 
     async def command(self, payload):
         self.commands.append(payload)
+        return {"id": 77, "name": "ManualImport", "status": "queued"}
+
+    async def get_command(self, command_id):
+        return {
+            "id": command_id,
+            "name": "ManualImport",
+            "status": "completed",
+            "result": "successful",
+            "message": "Manually imported 2 files",
+        }
 
 
 CANDIDATE = {
@@ -187,3 +197,79 @@ def test_force_import_names_the_download_too():
 
 def test_a_file_without_a_download_carries_no_download_id():
     assert "downloadId" not in _import_file("radarr", {**CANDIDATE, "movie": {"id": 7}})
+
+
+# --- how the import went ---------------------------------------------------
+
+
+def test_an_import_returns_the_arrs_command_so_it_can_be_followed():
+    import asyncio
+
+    from app.api.v1.importing import manual_import_assign
+    from app.schemas import ManualImportAssignIn
+
+    client = FakeArr([CANDIDATE])
+    body = ManualImportAssignIn(item_id=1, files=[{"path": CANDIDATE["path"], "movie_id": 4}])
+    out = asyncio.run(manual_import_assign("radarr", body, client, None))
+    assert out["id"] == 77 and out["status"] == "queued"
+    assert out["done"] is False and out["ok"] is None
+
+
+def test_a_finished_command_reports_the_count_in_the_arrs_words():
+    import asyncio
+
+    from app.api.v1.importing import manual_import_command
+
+    out = asyncio.run(manual_import_command("radarr", 77, FakeArr([]), None))
+    assert out["done"] is True and out["ok"] is True
+    assert out["imported"] == 2
+    assert out["message"] == "Manually imported 2 files"
+
+
+def test_a_crashed_import_shows_the_first_line_of_the_arrs_error():
+    from app.api.v1.importing import command_out
+
+    out = command_out(
+        "sonarr",
+        {
+            "id": 5,
+            "status": "failed",
+            "result": "unsuccessful",
+            "message": "Failed",
+            "exception": "System.IO.IOException: Disk full\n   at NzbDrone.Common.Disk.Transfer()",
+        },
+    )
+    assert out["done"] is True and out["ok"] is False
+    assert out["message"] == "System.IO.IOException: Disk full"
+    assert out["imported"] is None
+
+
+def test_a_running_command_is_not_done_and_its_progress_line_is_no_count():
+    from app.api.v1.importing import command_out
+
+    out = command_out(
+        "radarr",
+        {"id": 5, "status": "started", "message": "Manually importing 3 files using mode Auto"},
+    )
+    assert out["done"] is False and out["ok"] is None and out["imported"] is None
+
+
+def test_an_unknown_app_has_no_commands():
+    import asyncio
+
+    with pytest.raises(HTTPException) as exc:
+        from app.api.v1.importing import manual_import_command
+
+        asyncio.run(manual_import_command("lidarr", 1, None, None))
+    assert exc.value.status_code == 404
+
+
+def test_a_file_sent_without_a_target_keeps_the_arrs_own_match():
+    matched = {**CANDIDATE, "path": "/downloads/known.mkv", "movie": {"id": 9}}
+    commands = _assign(
+        "radarr",
+        [{"path": matched["path"]}, {"path": CANDIDATE["path"], "movie_id": 42}],
+        [matched, CANDIDATE],
+    )
+    assert [f["movieId"] for f in commands[0]["files"]] == [9, 42]
+    assert len(commands) == 1

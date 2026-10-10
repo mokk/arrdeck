@@ -1866,6 +1866,46 @@ export type ImportCandidateOut = {
 };
 
 /**
+ * ImportCommandOut
+ *
+ * The arr's ManualImport command, as started or as it stands now.
+ */
+export type ImportCommandOut = {
+  /**
+   * App
+   */
+  app: "radarr" | "sonarr" | "readarr";
+  /**
+   * Done
+   */
+  done?: boolean;
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Imported
+   */
+  imported?: number | null;
+  /**
+   * Message
+   */
+  message?: string | null;
+  /**
+   * Ok
+   */
+  ok?: boolean | null;
+  /**
+   * Result
+   */
+  result?: string | null;
+  /**
+   * Status
+   */
+  status?: string;
+};
+
+/**
  * ImportListOut
  */
 export type ImportListOut = {
@@ -8245,7 +8285,7 @@ export type ManualImportRunApiV1ManualImportAppPostResponses = {
   /**
    * Successful Response
    */
-  204: void;
+  200: ImportCommandOut;
 };
 
 export type ManualImportRunApiV1ManualImportAppPostResponse =
@@ -8277,11 +8317,47 @@ export type ManualImportAssignApiV1ManualImportAppAssignPostResponses = {
   /**
    * Successful Response
    */
-  204: void;
+  200: ImportCommandOut;
 };
 
 export type ManualImportAssignApiV1ManualImportAppAssignPostResponse =
   ManualImportAssignApiV1ManualImportAppAssignPostResponses[keyof ManualImportAssignApiV1ManualImportAppAssignPostResponses];
+
+export type ManualImportCommandApiV1ManualImportAppCommandCommandIdGetData = {
+  body?: never;
+  path: {
+    /**
+     * App
+     */
+    app: string;
+    /**
+     * Command Id
+     */
+    command_id: number;
+  };
+  query?: never;
+  url: "/api/v1/manual-import/{app}/command/{command_id}";
+};
+
+export type ManualImportCommandApiV1ManualImportAppCommandCommandIdGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type ManualImportCommandApiV1ManualImportAppCommandCommandIdGetError =
+  ManualImportCommandApiV1ManualImportAppCommandCommandIdGetErrors[keyof ManualImportCommandApiV1ManualImportAppCommandCommandIdGetErrors];
+
+export type ManualImportCommandApiV1ManualImportAppCommandCommandIdGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ImportCommandOut;
+};
+
+export type ManualImportCommandApiV1ManualImportAppCommandCommandIdGetResponse =
+  ManualImportCommandApiV1ManualImportAppCommandCommandIdGetResponses[keyof ManualImportCommandApiV1ManualImportAppCommandCommandIdGetResponses];
 
 export type ManualImportCandidatesApiV1ManualImportAppItemIdGetData = {
   body?: never;
@@ -9081,7 +9157,7 @@ export type ForceImportApiV1QueueAppItemIdForceImportPostResponses = {
   /**
    * Successful Response
    */
-  204: void;
+  200: ImportCommandOut;
 };
 
 export type ForceImportApiV1QueueAppItemIdForceImportPostResponse =

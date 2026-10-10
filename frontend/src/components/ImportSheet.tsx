@@ -1,13 +1,53 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn, focusRing } from "@/lib/utils";
 import { formatBytes } from "../api/format";
-import { useImportCandidates, useManualImport, useManualImportAssign } from "../hooks/queries";
+import type { ImportCommand } from "../api/types";
+import { useImportCandidates, useImportCommand, useManualImportAssign } from "../hooks/queries";
 import { EmptyNote } from "./Blocks";
 import { Sheet } from "./Sheet";
 import { type Target, TargetPicker } from "./TargetPicker";
+
+/** How the arr's import went, in its own words, followed until it finishes;
+ * a toast says the same for whoever has already looked away. */
+function ImportResult({ started }: { started: ImportCommand }) {
+  const { t } = useTranslation();
+  const { data } = useImportCommand(started.app, started.id);
+  const command = data ?? started;
+  const told = useRef(false);
+  const summary = !command.done
+    ? t("dl.importing")
+    : command.ok
+      ? command.imported != null
+        ? t("dl.importedFiles", { count: command.imported })
+        : (command.message ?? t("dl.importFinished"))
+      : (command.message ?? t("dl.importFailed"));
+
+  useEffect(() => {
+    if (!command.done || told.current) return;
+    told.current = true;
+    if (command.ok) toast.success(summary);
+    else toast.error(summary);
+  }, [command.done, command.ok, summary]);
+
+  return (
+    <div
+      role="status"
+      className={cn(
+        "mt-3 rounded-xl bg-muted/40 px-3 py-2.5 text-sm",
+        command.done && !command.ok && "text-destructive",
+      )}
+    >
+      {summary}
+      {/* the arr's running commentary while it works ("Processing file 2 of 3") */}
+      {!command.done && command.message && (
+        <span className="mt-0.5 block text-xs text-muted-foreground">{command.message}</span>
+      )}
+    </div>
+  );
+}
 
 /** Everything the arr found in a stuck download, including the files it
  * refused, so a rejection can be read and overridden rather than guessed at. */
@@ -22,8 +62,8 @@ export function ImportSheet({
 }) {
   const { t } = useTranslation();
   const { data, isLoading } = useImportCandidates(app, itemId);
-  const run = useManualImport();
   const assign = useManualImportAssign();
+  const [started, setStarted] = useState<ImportCommand | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   // files the arr couldn't place, pointed at a target by hand
   const [targets, setTargets] = useState<Record<string, Target>>({});
@@ -92,36 +132,19 @@ export function ImportSheet({
       {(data ?? []).length > 0 && (
         <div className="mt-3 flex gap-2">
           <Button
-            disabled={run.isPending || assign.isPending || picked.size === 0}
-            onClick={() => {
-              const chosen = [...picked];
-              const auto = chosen.filter((p) => !targets[p]);
-              const manual = chosen.filter((p) => targets[p]);
-              const done = () => {
-                toast.success(t("dl.importStarted"));
-                onClose();
-              };
-              // hand-assigned files go through the endpoint that takes explicit
-              // targets; the rest keep using the arr's own mapping
-              if (manual.length === 0) {
-                run.mutate({ app, itemId, paths: auto }, { onSuccess: done });
-                return;
-              }
+            disabled={assign.isPending || picked.size === 0 || started != null}
+            onClick={() =>
+              // one request: hand-picked files carry their target, the rest
+              // keep the arr's own match
               assign.mutate(
                 {
                   app,
                   itemId,
-                  files: manual.map((p) => ({ path: p, ...targets[p] })),
+                  files: [...picked].map((p) => ({ path: p, ...targets[p] })),
                 },
-                {
-                  onSuccess: () => {
-                    if (auto.length)
-                      run.mutate({ app, itemId, paths: auto }, { onSuccess: done });
-                    else done();
-                  },
-                },
-              );
-            }}
+                { onSuccess: setStarted },
+              )
+            }
           >
             {t("dl.importSelected", { count: picked.size })}
           </Button>
@@ -135,6 +158,7 @@ export function ImportSheet({
           )}
         </div>
       )}
+      {started && <ImportResult started={started} />}
       {choosingFor && (
         <TargetPicker
           app={app}
