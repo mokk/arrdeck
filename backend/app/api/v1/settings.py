@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from ... import webhooks
 from ...api.v1.auth import is_request_allowed
 from ...cache import cache
-from ...db import SERVICES
+from ...db import LISTED_SERVICES, SERVICES
 from ...push import (
     EVENT_LABELS,
     WEBHOOK_SEEN_KEY,
@@ -73,7 +73,7 @@ def services(request: Request) -> list[dict]:
             if n in WEB_UI_SERVICES and registry.is_configured(n)
             else None,
         }
-        for n in SERVICES
+        for n in LISTED_SERVICES
     ]
 
 

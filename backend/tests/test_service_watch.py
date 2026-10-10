@@ -204,3 +204,12 @@ def test_the_status_endpoint_reports_down_since(monkeypatch):
         row = c.get("/api/v1/status").json()[0]
     assert row["ok"] is False
     assert row["down_since"].startswith("1970-01-01T00:00:00")
+
+
+def test_the_helper_stays_out_of_the_service_lists_clients_render():
+    # installed iOS builds decode service names as a fixed set
+    from app.db import INFRASTRUCTURE, LISTED_SERVICES, SERVICES
+
+    assert "helper" in SERVICES and "helper" in INFRASTRUCTURE
+    assert "helper" not in LISTED_SERVICES
+    assert [s for s in SERVICES if s != "helper"] == LISTED_SERVICES

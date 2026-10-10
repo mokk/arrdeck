@@ -19,6 +19,12 @@ SERVICES = [
     "trakt",
     "helper",
 ]
+# Plumbing rather than a media service: it is set up under Connections, but
+# stays out of the service lists (/services, /status) the clients render. The
+# iOS app decodes those names as a fixed set, so a name an installed build has
+# never seen would fail the whole list.
+INFRASTRUCTURE = {"helper"}
+LISTED_SERVICES = [s for s in SERVICES if s not in INFRASTRUCTURE]
 EMPTY = {"url": "", "api_key": "", "username": "", "password": ""}
 
 

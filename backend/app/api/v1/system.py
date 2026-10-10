@@ -16,7 +16,7 @@ from ...clients.prometheus import PrometheusClient
 from ...clients.qbittorrent import QbittorrentClient
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
-from ...db import SERVICES
+from ...db import INFRASTRUCTURE, SERVICES
 from ...deps import (
     get_gluetun,
     get_prometheus,
@@ -71,7 +71,7 @@ async def _pending_update(name: str, client) -> str | None:
 async def status(request: Request) -> list[ServiceStatus]:
     registry = request.app.state.registry
     watch = getattr(request.app.state, "watch", None)
-    names = registry.configured()
+    names = [n for n in registry.configured() if n not in INFRASTRUCTURE]
 
     def down_since(name: str) -> datetime | None:
         since = watch.down_since(name) if watch else None
