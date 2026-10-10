@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  LaunchAgent for the arrdeck host helper. launchd does not expand "~" or
+  $HOME, so the log path is absolute: change /Users/mokk if installing for
+  another user. See README.md for the install steps.
+
+  The script lives on /Volumes/Data, which is mounted after login items start
+  on a reboot. Until it is, python3 cannot open the script and exits; KeepAlive
+  starts it again every ThrottleInterval seconds until the volume is there.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>dk.thrawn.arrdeck-helper</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/python3</string>
+    <string>/Volumes/Data/docker/arrdeck/host-helper/arrdeck_helper.py</string>
+    <string>--boot</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <!-- the docker CLI finds its compose plugin and credential helpers on PATH -->
+    <key>PATH</key>
+    <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+  <key>StandardOutPath</key>
+  <string>/Users/mokk/Library/Logs/arrdeck-helper.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/mokk/Library/Logs/arrdeck-helper.log</string>
+</dict>
+</plist>
