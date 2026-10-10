@@ -363,9 +363,33 @@
   "releases": {
     "title": "Releases",
     "interactive": "Interactive search",
-    "rejected": "rejected",
+    "rejected": "Rejected",
     "searching": "Searching indexers… this can take a while",
-    "none": "No releases found"
+    "none": "No releases found",
+    "seasonPack": "season pack",
+    "score": "Custom format score",
+    "filterTitle": "Filter by title…",
+    "sortBy": "Sort by",
+    "sort": {
+      "best": "Best match",
+      "score": "Format score",
+      "size": "Size",
+      "seeders": "Seeders",
+      "age": "Newest"
+    },
+    "quality": "Quality",
+    "anyQuality": "Any quality",
+    "group": "Release group",
+    "anyGroup": "Any group",
+    "approvedOnly": "Approved only",
+    "size": "Size",
+    "min": "min",
+    "max": "max",
+    "minSize": "Minimum size in GB",
+    "maxSize": "Maximum size in GB",
+    "shown": "{{shown}} of {{total}}",
+    "noMatch": "No releases match the filters.",
+    "clearFilters": "Clear filters"
   },
   "history": {
     "title": "History",

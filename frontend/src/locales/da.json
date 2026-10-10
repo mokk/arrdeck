@@ -363,9 +363,33 @@
   "releases": {
     "title": "Udgivelser",
     "interactive": "Interaktiv søgning",
-    "rejected": "afvist",
+    "rejected": "Afvist",
     "searching": "Søger på indexere… det kan tage et stykke tid",
-    "none": "Ingen udgivelser fundet"
+    "none": "Ingen udgivelser fundet",
+    "seasonPack": "sæsonpakke",
+    "score": "Custom format-score",
+    "filterTitle": "Filtrér på titel…",
+    "sortBy": "Sortér efter",
+    "sort": {
+      "best": "Bedste match",
+      "score": "Format-score",
+      "size": "Størrelse",
+      "seeders": "Seedere",
+      "age": "Nyeste"
+    },
+    "quality": "Kvalitet",
+    "anyQuality": "Enhver kvalitet",
+    "group": "Release-gruppe",
+    "anyGroup": "Enhver gruppe",
+    "approvedOnly": "Kun godkendte",
+    "size": "Størrelse",
+    "min": "min",
+    "max": "maks",
+    "minSize": "Mindste størrelse i GB",
+    "maxSize": "Største størrelse i GB",
+    "shown": "{{shown}} af {{total}}",
+    "noMatch": "Ingen udgivelser matcher filtrene.",
+    "clearFilters": "Ryd filtre"
   },
   "history": {
     "title": "Historik",

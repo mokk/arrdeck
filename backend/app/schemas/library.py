@@ -200,6 +200,15 @@ class ArrReleaseOut(BaseModel):
     age_days: float | None = None
     approved: bool = True
     rejections: list[str] = []
+    release_group: str | None = None
+    # the profile's custom formats: the score they add up to, and which matched
+    custom_format_score: int | None = None
+    custom_formats: list[str] = []
+    languages: list[str] = []
+    protocol: str | None = None  # torrent | usenet
+    edition: str | None = None  # Radarr only
+    full_season: bool | None = None  # Sonarr only: a season pack
+    info_url: str | None = None  # the indexer's page for the release
 
 
 class ActivityEventOut(BaseModel):

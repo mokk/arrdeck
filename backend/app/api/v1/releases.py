@@ -42,6 +42,10 @@ async def grab_release(body: GrabIn, prowlarr: ProwlarrClient = Depends(get_prow
     await prowlarr.grab(body.guid, body.indexer_id)
 
 
+def _names(items: list[dict] | None) -> list[str]:
+    return [n for i in items or [] if (n := i.get("name"))]
+
+
 def _arr_release(r: dict) -> ArrReleaseOut:
     return ArrReleaseOut(
         guid=r.get("guid", ""),
@@ -55,6 +59,14 @@ def _arr_release(r: dict) -> ArrReleaseOut:
         age_days=r.get("ageHours", 0) / 24 if r.get("ageHours") is not None else None,
         approved=not r.get("rejected", False),
         rejections=r.get("rejections", []),
+        release_group=r.get("releaseGroup") or None,
+        custom_format_score=r.get("customFormatScore"),
+        custom_formats=_names(r.get("customFormats")),
+        languages=_names(r.get("languages")),
+        protocol=r.get("protocol") or None,
+        edition=r.get("edition") or None,
+        full_season=r.get("fullSeason"),
+        info_url=r.get("infoUrl") or None,
     )
 
 

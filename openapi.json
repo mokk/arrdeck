@@ -417,6 +417,47 @@
             "title": "Approved",
             "type": "boolean"
           },
+          "custom_format_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Format Score"
+          },
+          "custom_formats": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Custom Formats",
+            "type": "array"
+          },
+          "edition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edition"
+          },
+          "full_season": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Season"
+          },
           "guid": {
             "title": "Guid",
             "type": "string"
@@ -436,6 +477,25 @@
             "title": "Indexer Id",
             "type": "integer"
           },
+          "info_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Info Url"
+          },
+          "languages": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Languages",
+            "type": "array"
+          },
           "leechers": {
             "anyOf": [
               {
@@ -446,6 +506,17 @@
               }
             ],
             "title": "Leechers"
+          },
+          "protocol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Protocol"
           },
           "quality": {
             "anyOf": [
@@ -465,6 +536,17 @@
             },
             "title": "Rejections",
             "type": "array"
+          },
+          "release_group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Release Group"
           },
           "seeders": {
             "anyOf": [

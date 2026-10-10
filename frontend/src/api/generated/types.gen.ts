@@ -281,6 +281,22 @@ export type ArrReleaseOut = {
    */
   approved?: boolean;
   /**
+   * Custom Format Score
+   */
+  custom_format_score?: number | null;
+  /**
+   * Custom Formats
+   */
+  custom_formats?: Array<string>;
+  /**
+   * Edition
+   */
+  edition?: string | null;
+  /**
+   * Full Season
+   */
+  full_season?: boolean | null;
+  /**
    * Guid
    */
   guid: string;
@@ -293,9 +309,21 @@ export type ArrReleaseOut = {
    */
   indexer_id: number;
   /**
+   * Info Url
+   */
+  info_url?: string | null;
+  /**
+   * Languages
+   */
+  languages?: Array<string>;
+  /**
    * Leechers
    */
   leechers?: number | null;
+  /**
+   * Protocol
+   */
+  protocol?: string | null;
   /**
    * Quality
    */
@@ -304,6 +332,10 @@ export type ArrReleaseOut = {
    * Rejections
    */
   rejections?: Array<string>;
+  /**
+   * Release Group
+   */
+  release_group?: string | null;
   /**
    * Seeders
    */
