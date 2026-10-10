@@ -694,7 +694,7 @@
     "unmonitored_show": "Show",
     "unmonitored_dim": "Dim",
     "unmonitored_hide": "Hide",
-    "hint": "These choices are kept on this device only.",
+    "hint": "These choices follow you to other devices signed in to this server. Language is set separately on each device.",
     "tabs": "Tabs",
     "startTab": "Open on",
     "firstTab": "The first tab",

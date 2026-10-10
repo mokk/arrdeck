@@ -80,6 +80,7 @@ export type Exclusion = G.ExclusionOut;
 export type ParseResult = G.ParseOut;
 export type SeasonGridRow = G.SeasonGridOut;
 export type OpdsSettings = G.OpdsSettingsOut;
+export type DisplayPrefs = G.PrefsOut;
 export type IcalSettings = G.IcalSettingsOut;
 export type WatchStats = G.WatchStatsOut;
 export type WatchTitle = G.WatchTitleOut;

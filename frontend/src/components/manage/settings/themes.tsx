@@ -1,19 +1,25 @@
 // Settings → Display → Theme: arrdeck's own colours or an editor palette, as
 // swatches that preview the palette in the mode it will show in.
 import { Check } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import { cn, focusRing } from "@/lib/utils";
 import { PALETTE_INFO } from "../../../lib/palettes";
-import { DARK_ONLY, PALETTES, type Palette, readPalette, setPalette } from "../../../lib/theme";
+import {
+  DARK_ONLY,
+  PALETTES,
+  readPalette,
+  setPalette,
+  subscribeAppearance,
+} from "../../../lib/theme";
 import { SectionTitle } from "../../Blocks";
 import { ThemePicker } from "./connections";
 
 export function PalettePicker() {
   const { t } = useTranslation();
-  // Read once: the value only changes through this control, and the applied
-  // palette lives on <html>, not in React state.
-  const [current, setCurrent] = useState<Palette>(readPalette);
+  // The applied palette lives on <html>; this follows the stored choice, which a
+  // synced change from another device can also move.
+  const current = useSyncExternalStore(subscribeAppearance, readPalette);
   const mode = () => (document.documentElement.dataset.theme === "light" ? "light" : "dark");
   const [shownMode, setShownMode] = useState(mode);
   // the light/dark control beside it changes <html data-theme>; follow it so
@@ -42,7 +48,6 @@ export function PalettePicker() {
               aria-pressed={on}
               onClick={() => {
                 setPalette(key);
-                setCurrent(key);
                 setShownMode(mode());
               }}
               className={cn(

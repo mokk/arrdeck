@@ -1,5 +1,5 @@
 // Per-service connection settings, the reachability strip and the language picker.
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/select";
 import {
   readPreference,
-  setPreference as setThemePreference,
+  setPreference,
+  subscribeAppearance,
   type ThemePreference,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -195,9 +196,9 @@ export function StatusStrip() {
 
 export function ThemePicker() {
   const { t } = useTranslation();
-  // Read once on mount: the value only ever changes through this control, and
-  // the resolved theme lives on <html> rather than in React state.
-  const [preference, setPreference] = useState<ThemePreference>(readPreference);
+  // The resolved theme lives on <html>; this follows the stored choice, which a
+  // synced change from another device can also move.
+  const preference = useSyncExternalStore(subscribeAppearance, readPreference);
   const options: ThemePreference[] = ["system", "dark", "light"];
   return (
     <Card>
@@ -206,9 +207,7 @@ export function ThemePicker() {
         <Select
           value={preference}
           onValueChange={(value) => {
-            const next = value as ThemePreference;
-            setPreference(next);
-            setThemePreference(next);
+            setPreference(value as ThemePreference);
           }}
         >
           <SelectTrigger size="sm" className="w-auto bg-secondary">

@@ -1,5 +1,6 @@
-// Settings → Display: how each library is shown on this device. The sort sheet
-// changes the same layout preference; this is where every tab's is in one place.
+// Settings → Display: how each library is shown, on every device signed in to
+// this server. The sort sheet changes the same layout preference; this is where
+// every tab's is in one place.
 import { Bell, ChevronDown, ChevronRight, ChevronUp, Eye, EyeOff } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";

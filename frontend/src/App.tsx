@@ -15,6 +15,7 @@ import { SubnavProvider, useSubnav } from "./components/subnav";
 import { useActivitySince, useAuthState, useServices } from "./hooks/queries";
 import { useLastSeen } from "./lib/lastSeen";
 import { usePref } from "./lib/prefs";
+import { usePrefsSync } from "./lib/prefsSync";
 import { useScrollMemory } from "./lib/scrollMemory";
 // The library grids are the landing routes and stay in the entry chunk;
 // everything else is fetched on first visit, which keeps the initial download
@@ -86,6 +87,8 @@ function Shell() {
   const location = useLocation();
   useScrollMemory();
   const auth = useAuthState();
+  // display preferences follow you between devices once the API answers
+  usePrefsSync(!!auth.data && (auth.data.lan || auth.data.authenticated));
   const tabs = useArrangedTabs();
   // the Activity badge: what happened since that tab was last opened
   const lastSeen = useLastSeen();

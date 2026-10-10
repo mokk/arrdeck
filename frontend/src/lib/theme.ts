@@ -68,16 +68,32 @@ export function refreshTheme(): void {
   applyTheme(readPreference());
 }
 
+const listeners = new Set<() => void>();
+
+/** Told after either choice changes, from the pickers or from a synced value, so
+ * an open picker shows what was applied. */
+export function subscribeAppearance(fn: () => void): () => void {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+
+/** Whether this device holds a choice of its own, as opposed to the defaults. */
+export function hasStoredAppearance(): boolean {
+  return localStorage.getItem(THEME_KEY) != null || localStorage.getItem(PALETTE_KEY) != null;
+}
+
 export function setPalette(palette: Palette): void {
   if (palette === "arrdeck") localStorage.removeItem(PALETTE_KEY);
   else localStorage.setItem(PALETTE_KEY, palette);
   applyTheme(readPreference());
+  for (const fn of listeners) fn();
 }
 
 export function setPreference(preference: ThemePreference): void {
   if (preference === "system") localStorage.removeItem(THEME_KEY);
   else localStorage.setItem(THEME_KEY, preference);
   applyTheme(preference);
+  for (const fn of listeners) fn();
 }
 
 /** Keep "system" live: the OS can change appearance while the app is open, and

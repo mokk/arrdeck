@@ -694,7 +694,7 @@
     "unmonitored_show": "Vis",
     "unmonitored_dim": "Nedton",
     "unmonitored_hide": "Skjul",
-    "hint": "Valgene gemmes kun på denne enhed.",
+    "hint": "Valgene følger dig til andre enheder, der er logget ind på denne server. Sproget vælges separat på hver enhed.",
     "tabs": "Faner",
     "startTab": "Åbn på",
     "firstTab": "Den første fane",
