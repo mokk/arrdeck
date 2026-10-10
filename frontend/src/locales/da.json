@@ -178,7 +178,9 @@
     "languages": "Sprog",
     "filterLanguages": "Filtrér sprog",
     "useDetected": "Brug det, arr-appen fandt",
-    "change": "ret"
+    "change": "ret",
+    "pickBook": "Vælg en bog",
+    "filterBooks": "Filtrér på titel eller forfatter"
   },
   "add": {
     "title": "Tilføj",

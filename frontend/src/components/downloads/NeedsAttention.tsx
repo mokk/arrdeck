@@ -57,17 +57,14 @@ export function NeedsAttention({ focus = false }: { focus?: boolean }) {
                 </div>
               ))}
             </div>
-            {/* Readarr imports arrive with the books part of manual import */}
-            {q.app !== "readarr" && (
-              <Button
-                variant="secondary"
-                size="sm"
-                className="shrink-0 text-primary"
-                onClick={() => setImporting({ app: q.app, id: q.id })}
-              >
-                {t("dl.fix")}
-              </Button>
-            )}
+            <Button
+              variant="secondary"
+              size="sm"
+              className="shrink-0 text-primary"
+              onClick={() => setImporting({ app: q.app, id: q.id })}
+            >
+              {t("dl.fix")}
+            </Button>
           </Row>
         ))}
       </Card>

@@ -2378,6 +2378,10 @@ export type ManualImportAssignIn = {
  */
 export type ManualImportFileIn = {
   /**
+   * Book Id
+   */
+  book_id?: number | null;
+  /**
    * Episode Ids
    */
   episode_ids?: Array<number>;

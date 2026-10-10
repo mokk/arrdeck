@@ -2,7 +2,12 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useLibraryMovies, useLibrarySeries, useSeriesEpisodes } from "../hooks/queries";
+import {
+  useLibraryBooks,
+  useLibraryMovies,
+  useLibrarySeries,
+  useSeriesEpisodes,
+} from "../hooks/queries";
 import { EmptyNote } from "./Blocks";
 import { Sheet } from "./Sheet";
 
@@ -10,12 +15,13 @@ export type Target = {
   movie_id?: number;
   series_id?: number;
   episode_ids?: number[];
+  book_id?: number;
   label: string;
 };
 
-/** Points one unplaceable file at a library entry. Movies are a single choice;
- * series need a season and episode, so the sheet drills in rather than trying
- * to list every episode in the library at once. */
+/** Points one unplaceable file at a library entry. Movies and books are a
+ * single choice; series need a season and episode, so the sheet drills in
+ * rather than trying to list every episode in the library at once. */
 export function TargetPicker({
   app,
   onPick,
@@ -29,8 +35,9 @@ export function TargetPicker({
   const [q, setQ] = useState("");
   const [series, setSeries] = useState<{ id: number; title: string } | null>(null);
   const [season, setSeason] = useState<number | null>(null);
-  const movies = useLibraryMovies();
-  const shows = useLibrarySeries();
+  const movies = useLibraryMovies(app === "radarr");
+  const shows = useLibrarySeries(app === "sonarr");
+  const books = useLibraryBooks(app === "readarr");
   const episodes = useSeriesEpisodes(series?.id ?? 0, season);
 
   const match = (title: string | null | undefined) =>
@@ -55,6 +62,40 @@ export function TargetPicker({
               onClick={() => onPick({ movie_id: m.id, label: `${m.title} (${m.year ?? "?"})` })}
             >
               {m.title} <span className="text-muted-foreground">{m.year ?? ""}</span>
+            </button>
+          ))}
+        </div>
+      </Sheet>
+    );
+  }
+
+  if (app === "readarr") {
+    // an author's name finds their books too: that is how a shelf is browsed
+    const shown = (books.data ?? [])
+      .filter((b) => match(b.title) || match(b.author))
+      .slice(0, 60);
+    return (
+      <Sheet title={t("dl.pickBook")} onClose={onClose}>
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder={t("dl.filterBooks")}
+        />
+        <div className="mt-2 max-h-80 overflow-y-auto">
+          {shown.length === 0 && <EmptyNote>{t("manage.noMatches")}</EmptyNote>}
+          {shown.map((b) => (
+            <button
+              type="button"
+              key={b.id}
+              className="block w-full border-t border-border py-2 text-left text-sm first:border-t-0 active:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              onClick={() =>
+                onPick({
+                  book_id: b.id,
+                  label: [b.title, b.author].filter(Boolean).join(" — "),
+                })
+              }
+            >
+              {b.title} <span className="text-muted-foreground">{b.author ?? ""}</span>
             </button>
           ))}
         </div>

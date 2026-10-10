@@ -206,6 +206,7 @@ class ManualImportFileIn(BaseModel):
     movie_id: int | None = None
     series_id: int | None = None
     episode_ids: list[int] = []
+    book_id: int | None = None  # Readarr; the author and edition follow from it
     # overrides of the arr's detection, as ids from /manual-import/{app}/options;
     # None / empty keeps what the arr detected
     quality_id: int | None = None

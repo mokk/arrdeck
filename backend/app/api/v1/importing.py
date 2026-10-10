@@ -6,8 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from ...cache import cached
 from ...clients.radarr import RadarrClient
+from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_radarr, get_sonarr
+from ...deps import get_radarr, get_readarr, get_sonarr
 from ...schemas import (
     ImportCandidateOut,
     ImportCommandOut,
@@ -57,11 +58,39 @@ def _own_target(app: str, candidate: dict) -> dict:
     if app == "radarr":
         movie_id = (candidate.get("movie") or {}).get("id")
         return {"movieId": movie_id} if movie_id else {}
+    if app == "readarr":
+        author_id = (candidate.get("author") or {}).get("id")
+        book_id = (candidate.get("book") or {}).get("id")
+        edition = candidate.get("foreignEditionId")
+        if author_id and book_id and edition:
+            return {"authorId": author_id, "bookId": book_id, "foreignEditionId": edition}
+        return {}
     series_id = (candidate.get("series") or {}).get("id")
     episode_ids = [e["id"] for e in candidate.get("episodes") or [] if e.get("id")]
     if series_id and episode_ids:
         return {"seriesId": series_id, "episodeIds": episode_ids}
     return {}
+
+
+def _file_payload(
+    app: str, candidate: dict, quality: dict, languages: list, download_id: str | None
+) -> dict:
+    """One ManualImport file, minus its target, in the arr's own shape."""
+    if app == "readarr":
+        # Readarr's ManualImportFile has no languages or release group
+        return {
+            "path": candidate["path"],
+            "quality": quality,
+            "indexerFlags": candidate.get("indexerFlags") or 0,
+            **_tracked(download_id),
+        }
+    return {
+        "path": candidate["path"],
+        "quality": quality,
+        "languages": languages,
+        "releaseGroup": candidate.get("releaseGroup") or "",
+        **_tracked(download_id),
+    }
 
 
 def _import_file(app: str, candidate: dict, download_id: str | None = None) -> dict | None:
@@ -70,14 +99,8 @@ def _import_file(app: str, candidate: dict, download_id: str | None = None) -> d
     target = _own_target(app, candidate)
     if not candidate.get("quality") or not target:
         return None
-    return {
-        "path": candidate["path"],
-        "quality": candidate["quality"],
-        "languages": candidate.get("languages", []),
-        "releaseGroup": candidate.get("releaseGroup") or "",
-        **_tracked(download_id),
-        **target,
-    }
+    languages = candidate.get("languages", [])
+    return {**_file_payload(app, candidate, candidate["quality"], languages, download_id), **target}
 
 
 def _tracked(download_id: str | None) -> dict:
@@ -86,6 +109,13 @@ def _tracked(download_id: str | None) -> dict:
     torrent loses its files and stops seeding. With it, auto copies/hardlinks
     until the client says the files may be moved."""
     return {"downloadId": download_id} if download_id else {}
+
+
+def _client(app: str, radarr, sonarr, readarr):
+    clients = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}
+    if app not in clients:
+        raise HTTPException(404, f"unknown app {app!r}")
+    return clients[app]
 
 
 async def _queue_download_id(client, item_id: int) -> str:
@@ -101,6 +131,10 @@ def _describe_candidate(app: str, candidate: dict) -> dict:
     if app == "radarr":
         movie = candidate.get("movie") or {}
         title, subtitle = movie.get("title", ""), None
+    elif app == "readarr":
+        book = candidate.get("book") or {}
+        title = book.get("title", "")
+        subtitle = (candidate.get("author") or {}).get("authorName")
     else:
         series = candidate.get("series") or {}
         episodes = candidate.get("episodes") or []
@@ -138,7 +172,8 @@ async def _import_options(app: str, client) -> dict:
 
     async def fetch() -> dict:
         definitions = await client.quality_definitions()
-        languages = await client.languages()
+        # Readarr's files carry no language, so there is nothing to offer
+        languages = [] if app == "readarr" else await client.languages()
         return {
             "qualities": {
                 d["quality"]["id"]: d["quality"] for d in definitions if d.get("quality")
@@ -178,20 +213,41 @@ def _languages(candidate: dict, choice: ManualImportFileIn, options: dict | None
     return [known[i] for i in choice.language_ids]
 
 
-def _target(app: str, candidate: dict, choice: ManualImportFileIn) -> dict:
+async def _target(app: str, client, candidate: dict, choice: ManualImportFileIn) -> dict:
     """The user's pick when there is one, else the arr's own match."""
-    picked = choice.movie_id or choice.series_id or choice.episode_ids
+    picked = choice.movie_id or choice.series_id or choice.episode_ids or choice.book_id
     own = {} if picked else _own_target(app, candidate)
     if app == "radarr":
         movie_id = choice.movie_id or own.get("movieId")
         if not movie_id:
             raise HTTPException(422, "a movie must be chosen for each file")
         return {"movieId": movie_id}
+    if app == "readarr":
+        if choice.book_id:
+            return await _book_target(client, choice.book_id)
+        if not own:
+            raise HTTPException(422, "a book must be chosen for each file")
+        return own
     series_id = choice.series_id or own.get("seriesId")
     episode_ids = choice.episode_ids or own.get("episodeIds")
     if not series_id or not episode_ids:
         raise HTTPException(422, "a series and at least one episode must be chosen")
     return {"seriesId": series_id, "episodeIds": episode_ids}
+
+
+async def _book_target(client, book_id: int) -> dict:
+    """Readarr imports into an edition, not just a book: a picked book goes to
+    its monitored edition, the one Readarr's own import screen would use."""
+    book = await client.get_book(book_id)
+    editions = await client.editions(book_id)
+    edition = next((e for e in editions if e.get("monitored")), None)
+    if not book.get("authorId") or edition is None or not edition.get("foreignEditionId"):
+        raise HTTPException(409, "Readarr has no monitored edition for that book")
+    return {
+        "authorId": book["authorId"],
+        "bookId": book_id,
+        "foreignEditionId": edition["foreignEditionId"],
+    }
 
 
 async def _build_files(
@@ -211,14 +267,12 @@ async def _build_files(
         candidate = by_path.get(choice.path)
         if candidate is None:
             raise HTTPException(404, f"no candidate for {choice.path!r}")
+        quality = _quality(candidate, choice, options)
+        languages = _languages(candidate, choice, options)
         files.append(
             {
-                "path": choice.path,
-                "quality": _quality(candidate, choice, options),
-                "languages": _languages(candidate, choice, options),
-                "releaseGroup": candidate.get("releaseGroup") or "",
-                **_tracked(download_id),
-                **_target(app, candidate, choice),
+                **_file_payload(app, candidate, quality, languages, download_id),
+                **await _target(app, client, candidate, choice),
             }
         )
     if not files:
@@ -231,12 +285,11 @@ async def manual_import_options(
     app: str,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ) -> dict:
     """What a file's quality and languages can be set to in an import. Declared
     before /manual-import/{app}/{item_id}, which would otherwise claim it."""
-    if app not in ("radarr", "sonarr"):
-        raise HTTPException(404, f"unknown app {app!r}")
-    options = await _import_options(app, radarr if app == "radarr" else sonarr)
+    options = await _import_options(app, _client(app, radarr, sonarr, readarr))
     return {
         "qualities": [
             {"id": i, "name": q.get("name", "")} for i, q in options["qualities"].items()
@@ -251,12 +304,11 @@ async def manual_import_candidates(
     item_id: int,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ) -> list[dict]:
     """Everything the arr found in a stuck download's folder, including the
     files force-import skips, with the reasons it balked."""
-    if app not in ("radarr", "sonarr"):
-        raise HTTPException(404, f"unknown app {app!r}")
-    client = radarr if app == "radarr" else sonarr
+    client = _client(app, radarr, sonarr, readarr)
     candidates = await client.manual_import(await _queue_download_id(client, item_id))
     return [_describe_candidate(app, c) for c in candidates]
 
@@ -267,10 +319,9 @@ async def manual_import_run(
     body: ManualImportIn,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ) -> dict:
-    if app not in ("radarr", "sonarr"):
-        raise HTTPException(404, f"unknown app {app!r}")
-    client = radarr if app == "radarr" else sonarr
+    client = _client(app, radarr, sonarr, readarr)
     download_id = await _queue_download_id(client, body.item_id)
     candidates = await client.manual_import(download_id)
     wanted = set(body.paths)
@@ -293,6 +344,7 @@ async def manual_import_assign(
     body: ManualImportAssignIn,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ) -> dict:
     """Import files against targets the user picked, for the ones the arr
     couldn't place itself; a file sent without a target keeps the arr's own
@@ -300,9 +352,7 @@ async def manual_import_assign(
     language still come from the arr's own detection — it parses those from
     the filename even when the title is a mystery, and guessing them here
     would be worse than reusing its answer."""
-    if app not in ("radarr", "sonarr"):
-        raise HTTPException(404, f"unknown app {app!r}")
-    client = radarr if app == "radarr" else sonarr
+    client = _client(app, radarr, sonarr, readarr)
     download_id = await _queue_download_id(client, body.item_id)
     candidates = await client.manual_import(download_id)
     files = await _build_files(app, client, candidates, body.files, download_id)
@@ -318,12 +368,11 @@ async def manual_import_command(
     command_id: int,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ) -> dict:
     """How an import the arr accepted went. Poll until `done`; `message` is
     the arr's own words, success or failure."""
-    if app not in ("radarr", "sonarr"):
-        raise HTTPException(404, f"unknown app {app!r}")
-    client = radarr if app == "radarr" else sonarr
+    client = _client(app, radarr, sonarr, readarr)
     return command_out(app, await client.get_command(command_id))
 
 
@@ -373,12 +422,11 @@ async def force_import(
     item_id: int,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
 ) -> dict:
     """Rescue a stuck import: take the arr's manual-import candidates that
     already have a confident mapping and import them."""
-    if app not in ("radarr", "sonarr"):
-        raise HTTPException(404, f"unknown app {app!r}")
-    client = radarr if app == "radarr" else sonarr
+    client = _client(app, radarr, sonarr, readarr)
     payload = await client.queue()
     rec = next((r for r in payload.get("records", []) if r.get("id") == item_id), None)
     if rec is None or not rec.get("downloadId"):

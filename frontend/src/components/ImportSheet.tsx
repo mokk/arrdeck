@@ -292,6 +292,7 @@ export function ImportSheet({
                     movie_id: targets[p]?.movie_id,
                     series_id: targets[p]?.series_id,
                     episode_ids: targets[p]?.episode_ids,
+                    book_id: targets[p]?.book_id,
                     ...overrides[p],
                   })),
                 },

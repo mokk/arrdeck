@@ -61,6 +61,11 @@ class ReadarrClient(ArrClient):
         )
         return await self.http.send(request, stream=True)
 
+    async def manual_import(self, download_id: str) -> list:
+        return await self.get(
+            "/manualimport", params={"downloadId": download_id, "filterExistingFiles": "false"}
+        )
+
     async def editions(self, book_id: int) -> list:
         return await self.get("/edition", params={"bookId": book_id})
 

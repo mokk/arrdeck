@@ -62,19 +62,17 @@ export function ArrQueue() {
                     {t("dl.grabNow")}
                   </Button>
                 )}
-                {q.app !== "readarr" &&
-                  q.tracked_state?.startsWith("import") &&
-                  q.tracked_state !== "imported" && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="text-primary"
-                      disabled={forceImport.isPending}
-                      onClick={() => forceImport.mutate({ app: q.app, id: q.id })}
-                    >
-                      {t("dl.forceImport")}
-                    </Button>
-                  )}
+                {q.tracked_state?.startsWith("import") && q.tracked_state !== "imported" && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="text-primary"
+                    disabled={forceImport.isPending}
+                    onClick={() => forceImport.mutate({ app: q.app, id: q.id })}
+                  >
+                    {t("dl.forceImport")}
+                  </Button>
+                )}
                 {(q.errors ?? []).length > 0 && (
                   <Button
                     variant="secondary"

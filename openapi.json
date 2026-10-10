@@ -4378,6 +4378,17 @@
       },
       "ManualImportFileIn": {
         "properties": {
+          "book_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Book Id"
+          },
           "episode_ids": {
             "default": [],
             "items": {

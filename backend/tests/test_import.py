@@ -107,6 +107,15 @@ class FakeArr:
             {"id": 11, "name": "Danish"},
         ]
 
+    async def get_book(self, book_id):
+        return {"id": book_id, "title": "Atomic Habits", "authorId": 3}
+
+    async def editions(self, book_id):
+        return [
+            {"id": 1, "foreignEditionId": "111", "monitored": False},
+            {"id": 2, "foreignEditionId": "222", "monitored": True},
+        ]
+
     async def get_command(self, command_id):
         return {
             "id": command_id,
@@ -136,7 +145,11 @@ def _assign(app, files, candidates=None):
     body = ManualImportAssignIn(item_id=1, files=files)
     asyncio.run(
         manual_import_assign(
-            app, body, client if app == "radarr" else None, client if app == "sonarr" else None
+            app,
+            body,
+            client if app == "radarr" else None,
+            client if app == "sonarr" else None,
+            client if app == "readarr" else None,
         )
     )
     return client.commands
@@ -385,3 +398,81 @@ def test_candidates_carry_the_detected_ids_for_the_override_defaults():
     )
     assert described["quality_id"] == 3
     assert described["language_ids"] == [1]
+
+
+# --- Readarr ----------------------------------------------------------------
+
+BOOK = {
+    "path": "/data/books/Atomvaner/atomvaner.epub",
+    "name": "atomvaner",
+    "size": 2684929,
+    "quality": {"quality": {"id": 3, "name": "EPUB"}, "revision": {"version": 1}},
+    "indexerFlags": 0,
+    "rejections": [{"reason": "Couldn't find similar book", "type": "permanent"}],
+    # as Readarr returns it when it could not place the file: no author/book
+}
+
+
+def test_a_matched_book_mirrors_readarrs_manual_import_file():
+    matched = {
+        **BOOK,
+        "author": {"id": 3, "authorName": "James Clear"},
+        "book": {"id": 8, "title": "Atomvaner"},
+        "foreignEditionId": "222",
+    }
+    assert _import_file("readarr", matched, "HASH") == {
+        "path": BOOK["path"],
+        "quality": BOOK["quality"],
+        "indexerFlags": 0,
+        "downloadId": "HASH",
+        "authorId": 3,
+        "bookId": 8,
+        "foreignEditionId": "222",
+    }
+    described = _describe_candidate("readarr", matched)
+    assert (described["title"], described["subtitle"]) == ("Atomvaner", "James Clear")
+    assert described["importable"] is True and described["language_ids"] == []
+
+
+def test_a_book_without_an_edition_is_not_importable():
+    stub = {**BOOK, "author": {"id": 3}, "book": {"id": 8}}
+    assert _import_file("readarr", stub) is None
+
+
+def test_a_hand_picked_book_imports_into_its_monitored_edition():
+    commands = _assign("readarr", [{"path": BOOK["path"], "book_id": 8}], [BOOK])
+    file = commands[0]["files"][0]
+    assert (file["authorId"], file["bookId"], file["foreignEditionId"]) == (3, 8, "222")
+    assert file["downloadId"] == "abc"
+    # Readarr's ManualImportFile has neither
+    assert "languages" not in file and "releaseGroup" not in file
+
+
+def test_an_unplaced_book_needs_a_pick():
+    with pytest.raises(HTTPException) as exc:
+        _assign("readarr", [{"path": BOOK["path"]}], [BOOK])
+    assert exc.value.status_code == 422
+
+
+def test_readarr_offers_qualities_but_no_languages():
+    import asyncio
+
+    from app.api.v1.importing import manual_import_options
+
+    class NoLanguages(FakeArr):
+        async def languages(self):
+            raise AssertionError("Readarr files have no language to set")
+
+    out = asyncio.run(manual_import_options("readarr", None, None, NoLanguages([])))
+    assert out["languages"] == [] and out["qualities"]
+
+
+def test_force_import_works_for_books_too():
+    import asyncio
+
+    from app.api.v1.importing import force_import
+
+    matched = {**BOOK, "author": {"id": 3}, "book": {"id": 8}, "foreignEditionId": "222"}
+    client = FakeArr([matched])
+    asyncio.run(force_import("readarr", 1, None, None, client))
+    assert client.commands[0]["files"][0]["bookId"] == 8

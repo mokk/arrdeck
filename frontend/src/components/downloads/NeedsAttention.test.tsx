@@ -85,6 +85,13 @@ describe("needs attention", () => {
     expect(screen.getByText("import-sheet:sonarr:5")).toBeTruthy();
   });
 
+  it("offers Fix for a stuck book as well", () => {
+    hooks.queue = { data: { readarr: healthy([item({ app: "readarr", id: 8 })]) } };
+    render(<NeedsAttention />);
+    fireEvent.click(screen.getByText("dl.fix"));
+    expect(screen.getByText("import-sheet:readarr:8")).toBeTruthy();
+  });
+
   it("says which arr could not be asked", () => {
     hooks.queue = {
       data: {

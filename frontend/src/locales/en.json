@@ -178,7 +178,9 @@
     "languages": "Languages",
     "filterLanguages": "Filter languages",
     "useDetected": "Use what the arr detected",
-    "change": "change"
+    "change": "change",
+    "pickBook": "Choose a book",
+    "filterBooks": "Filter by title or author"
   },
   "add": {
     "title": "Add",
