@@ -18,7 +18,7 @@ from ...schemas import (
     SeasonOut,
     SeriesDetailOut,
 )
-from .discover import _fanart, _poster, _rating
+from .discover import _fanart, _poster, _rating, _ratings
 
 router = APIRouter(tags=["library"])
 
@@ -143,6 +143,7 @@ async def series_detail(
         air_time=series.get("airTime"),
         certification=series.get("certification"),
         genres=series.get("genres") or [],
+        ratings=_ratings(series.get("ratings")),
         episode_count=stats.get("episodeCount", 0),
         episode_file_count=stats.get("episodeFileCount", 0),
         total_episode_count=stats.get("totalEpisodeCount", 0),

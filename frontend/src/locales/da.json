@@ -755,7 +755,9 @@
   },
   "detail": {
     "previous": "Forrige titel",
-    "next": "Næste titel"
+    "next": "Næste titel",
+    "ratings": "Bedømmelser",
+    "votes": "{{count}} stemmer"
   },
   "cleanup": {
     "title": "Oprydning",

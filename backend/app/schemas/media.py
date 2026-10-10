@@ -92,6 +92,14 @@ class SeasonOut(BaseModel):
     size_on_disk: int = 0
 
 
+class RatingOut(BaseModel):
+    source: str  # imdb | tmdb | rottenTomatoes | metacritic | trakt
+    # 0-10 for imdb/tmdb/trakt, a 0-100 score for rottenTomatoes/metacritic;
+    # the client formats it
+    value: float
+    votes: int | None = None
+
+
 class SeriesDetailOut(BaseModel):
     """Deliberately mirrors MovieDetailOut, so the two detail pages can show the
     same things. The extra fields are the ones with no film equivalent: a series
@@ -117,6 +125,7 @@ class SeriesDetailOut(BaseModel):
     air_time: str | None = None
     certification: str | None = None
     genres: list[str] = []
+    ratings: list[RatingOut] = []
     # Whole-series totals. episode_count counts what has aired, which is what
     # the file ratio should be read against; total_episode_count includes
     # unaired episodes and is why the two differ.
@@ -196,6 +205,7 @@ class MovieDetailOut(BaseModel):
     quality_profile_id: int | None = None
     imdb_id: str | None = None
     tmdb_id: int | None = None
+    ratings: list[RatingOut] = []
     file: MovieFileOut | None = None
     history: list[HistoryEventOut] = []
 

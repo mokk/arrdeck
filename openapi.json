@@ -3825,6 +3825,14 @@
             ],
             "title": "Quality Profile Id"
           },
+          "ratings": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RatingOut"
+            },
+            "title": "Ratings",
+            "type": "array"
+          },
           "runtime": {
             "anyOf": [
               {
@@ -5186,6 +5194,35 @@
         "title": "QueueResponse",
         "type": "object"
       },
+      "RatingOut": {
+        "properties": {
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          },
+          "votes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Votes"
+          }
+        },
+        "required": [
+          "source",
+          "value"
+        ],
+        "title": "RatingOut",
+        "type": "object"
+      },
       "ReadingIn": {
         "properties": {
           "status": {
@@ -6206,6 +6243,14 @@
               }
             ],
             "title": "Quality Profile Id"
+          },
+          "ratings": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RatingOut"
+            },
+            "title": "Ratings",
+            "type": "array"
           },
           "runtime": {
             "anyOf": [

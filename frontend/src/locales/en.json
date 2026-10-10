@@ -755,7 +755,9 @@
   },
   "detail": {
     "previous": "Previous title",
-    "next": "Next title"
+    "next": "Next title",
+    "ratings": "Ratings",
+    "votes": "{{count}} votes"
   },
   "cleanup": {
     "title": "Cleanup",

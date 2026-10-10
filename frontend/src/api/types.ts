@@ -31,6 +31,7 @@ export type ArrBackup = G.ArrBackupOut;
 export type SearchResult = G.SearchResultOut;
 export type Release = G.ReleaseOut;
 export type ArrRelease = G.ArrReleaseOut;
+export type Rating = G.RatingOut;
 export type Options = G.OptionsOut;
 export type Indexer = G.IndexerOut;
 export type LibraryMovie = G.LibraryMovieOut;

@@ -13,7 +13,7 @@ from ...schemas import (
     MovieFileOut,
 )
 from .dashboard import EVENT_LABELS
-from .discover import _fanart, _poster, _rating
+from .discover import _fanart, _poster, _rating, _ratings
 
 router = APIRouter(tags=["library"])
 
@@ -82,6 +82,7 @@ async def movie_detail(movie_id: int, radarr: RadarrClient = Depends(get_radarr)
         quality_profile_id=movie.get("qualityProfileId"),
         imdb_id=movie.get("imdbId"),
         tmdb_id=movie.get("tmdbId"),
+        ratings=_ratings(movie.get("ratings")),
         file=file_out,
         history=[
             HistoryEventOut(

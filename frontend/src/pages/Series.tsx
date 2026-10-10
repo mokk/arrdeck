@@ -357,6 +357,7 @@ export default function SeriesPage() {
             poster={data.poster}
             backdrop={data.fanart}
             overview={data.overview}
+            ratings={data.ratings}
             links={links}
             badges={
               <>

@@ -19,6 +19,7 @@ from ...schemas import (
     CollectionOut,
     EditionChoiceOut,
     OptionsOut,
+    RatingOut,
     SearchResultOut,
 )
 from .posters import TMDB_BACKDROP_SIZE, proxy_poster
@@ -77,6 +78,25 @@ def _rating(ratings: dict | None) -> float | None:
         if value:
             return value
     return None
+
+
+RATING_SOURCES = ("imdb", "tmdb", "rottenTomatoes", "metacritic", "trakt")
+
+
+def _ratings(ratings: dict | None) -> list[RatingOut]:
+    """Every source the arr knows, for the detail pages. Sonarr sends one
+    unlabelled value (IMDb's: the vote counts match), so it becomes "imdb"."""
+    ratings = ratings or {}
+    if "value" in ratings:
+        ratings = {"imdb": ratings}
+    out = []
+    for source in RATING_SOURCES:
+        entry = ratings.get(source) or {}
+        if entry.get("value"):
+            out.append(
+                RatingOut(source=source, value=entry["value"], votes=entry.get("votes") or None)
+            )
+    return out
 
 
 async def _library_map(client, kind: str) -> dict[int, dict]:

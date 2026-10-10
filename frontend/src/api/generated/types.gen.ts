@@ -2046,6 +2046,10 @@ export type MovieDetailOut = {
    */
   quality_profile_id?: number | null;
   /**
+   * Ratings
+   */
+  ratings?: Array<RatingOut>;
+  /**
    * Runtime
    */
   runtime?: number | null;
@@ -2816,6 +2820,24 @@ export type QueueResponse = {
 };
 
 /**
+ * RatingOut
+ */
+export type RatingOut = {
+  /**
+   * Source
+   */
+  source: string;
+  /**
+   * Value
+   */
+  value: number;
+  /**
+   * Votes
+   */
+  votes?: number | null;
+};
+
+/**
  * ReadingIn
  */
 export type ReadingIn = {
@@ -3396,6 +3418,10 @@ export type SeriesDetailOut = {
    * Quality Profile Id
    */
   quality_profile_id?: number | null;
+  /**
+   * Ratings
+   */
+  ratings?: Array<RatingOut>;
   /**
    * Runtime
    */

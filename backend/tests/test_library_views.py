@@ -10,7 +10,7 @@ from fastapi import HTTPException
 from app.api.v1.books import shelf_rows
 from app.api.v1.cleanup import build_cleanup
 from app.api.v1.diagnose import _search_findings
-from app.api.v1.discover import _fanart, _rating, recommendation_rows
+from app.api.v1.discover import _fanart, _rating, _ratings, recommendation_rows
 from app.api.v1.movies import movie_quality
 from app.api.v1.people import elsewhere_rows, index_credits, metadata_map
 from app.api.v1.reading import apply as apply_reading
@@ -98,6 +98,36 @@ def test_rating_prefers_imdb_and_reads_sonarrs_single_value():
     assert _rating({"votes": 12, "value": 7.9}) == 7.9
     assert _rating({"value": 0}) is None
     assert _rating(None) is None
+
+
+def test_ratings_keep_every_source_in_a_fixed_order():
+    radarr = {
+        "trakt": {"votes": 6578, "value": 6.85},
+        "rottenTomatoes": {"votes": 0, "value": 89},
+        "imdb": {"votes": 90284, "value": 6.7},
+        "tmdb": {"votes": 1395, "value": 6.9},
+        "metacritic": {"votes": 0, "value": 75},
+    }
+    assert [(r.source, r.value, r.votes) for r in _ratings(radarr)] == [
+        ("imdb", 6.7, 90284),
+        ("tmdb", 6.9, 1395),
+        ("rottenTomatoes", 89, None),  # a zero vote count is "unknown", not zero votes
+        ("metacritic", 75, None),
+        ("trakt", 6.85, 6578),
+    ]
+
+
+def test_ratings_skip_sources_without_a_value():
+    rows = _ratings({"imdb": {"value": 0, "votes": 0}, "tmdb": {}, "trakt": {"value": 5.8}})
+    assert [r.source for r in rows] == ["trakt"]
+    assert _ratings(None) == []
+    assert _ratings({}) == []
+
+
+def test_ratings_read_sonarrs_single_value_as_imdb():
+    rows = _ratings({"votes": 1737675, "value": 8.6})
+    assert [(r.source, r.value, r.votes) for r in rows] == [("imdb", 8.6, 1737675)]
+    assert _ratings({"votes": 0, "value": 0}) == []
 
 
 def test_fanart_is_proxied_at_backdrop_width():

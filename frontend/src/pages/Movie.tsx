@@ -80,6 +80,7 @@ export default function MoviePage() {
             poster={data.poster}
             backdrop={data.fanart}
             overview={data.overview}
+            ratings={data.ratings}
             links={links}
             badges={
               <>

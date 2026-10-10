@@ -81,6 +81,10 @@ const MOVIE = {
   quality_profile_id: 4,
   imdb_id: "tt1160419",
   tmdb_id: 438631,
+  ratings: [
+    { source: "imdb", value: 8, votes: 700000 },
+    { source: "rottenTomatoes", value: 83, votes: null },
+  ],
   file: { quality: "Bluray-1080p", size: 8 * 1024 ** 3, resolution: "1920x1080" },
   history: [{ type: "imported", date: "2026-08-19T10:00:00Z" }],
 };
@@ -97,6 +101,7 @@ const SERIES = {
   size_on_disk: 19 * 1024 ** 3,
   quality_profile_id: 4,
   imdb_id: "tt16358384",
+  ratings: [{ source: "imdb", value: 7.9, votes: 121735 }],
   tvdb_id: 413215,
   tmdb_id: 153312,
   network: "Paramount+",
@@ -172,6 +177,13 @@ describe.each(pages)("the %s detail page", (_name, Page) => {
     expect(hrefs.some((h) => h.includes("themoviedb.org"))).toBe(true);
   });
 
+  it("shows the ratings as chips", () => {
+    const { container } = render(<Page />);
+    // IMDb is the one source both a film and a series have
+    const chips = container.querySelector('ul[aria-label="detail.ratings"]');
+    expect(chips?.textContent).toMatch(/IMDb\s*(8\.0|7\.9)/);
+  });
+
   it("surfaces a load error", () => {
     detail.movie = { data: undefined, error: new Error("radarr down"), isLoading: false };
     detail.series = { data: undefined, error: new Error("sonarr down"), isLoading: false };
@@ -181,6 +193,17 @@ describe.each(pages)("the %s detail page", (_name, Page) => {
 });
 
 describe("what each page shows that the other cannot", () => {
+  it("the film page shows Rotten Tomatoes as a percentage", () => {
+    render(<MoviePage />);
+    expect(screen.getByText("83%")).toBeTruthy();
+  });
+
+  it("a title with no ratings shows no empty row", () => {
+    detail.movie = { data: { ...MOVIE, ratings: [] }, error: undefined, isLoading: false };
+    const { container } = render(<MoviePage />);
+    expect(container.querySelector('ul[aria-label="detail.ratings"]')).toBeNull();
+  });
+
   it("the series page links to TVDB, which a film has no entry in", () => {
     const { container } = render(<SeriesPage />);
     const hrefs = [...container.querySelectorAll("a")].map((a) => a.getAttribute("href") ?? "");

@@ -15,8 +15,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn, focusRing } from "@/lib/utils";
-import { formatDayTime } from "../api/format";
-import type { CreditPerson, Credits, HistoryEvent, Options, WatchedItem } from "../api/types";
+import { formatDayTime, formatRating } from "../api/format";
+import type {
+  CreditPerson,
+  Credits,
+  HistoryEvent,
+  Options,
+  Rating,
+  WatchedItem,
+} from "../api/types";
 import { type Route, useSequence } from "../lib/sequence";
 import { Card, Row, SectionTitle, StateBadge } from "./Blocks";
 import { useConfirm } from "./Confirm";
@@ -95,6 +102,7 @@ export function DetailHero({
   blurBackdrop = false,
   overview,
   badges,
+  ratings,
   links,
 }: {
   poster?: string | null;
@@ -103,6 +111,7 @@ export function DetailHero({
   blurBackdrop?: boolean;
   overview?: string | null;
   badges: ReactNode;
+  ratings?: Rating[];
   links: ExternalLink[];
 }) {
   return (
@@ -128,6 +137,7 @@ export function DetailHero({
         poster={poster}
         overview={overview}
         badges={badges}
+        ratings={ratings}
         links={links}
         lifted={!!backdrop}
       />
@@ -135,16 +145,41 @@ export function DetailHero({
   );
 }
 
+/** Every score the arr has for the title, as a row of chips. The sources
+ * disagree, which is the point of showing more than one. */
+function DetailRatings({ ratings }: { ratings?: Rating[] }) {
+  const { t } = useTranslation();
+  if (!ratings?.length) return null;
+  return (
+    <ul className="mt-2 flex flex-wrap gap-1.5" aria-label={t("detail.ratings")}>
+      {ratings.map((r) => {
+        const f = formatRating(r);
+        return (
+          <li
+            key={r.source}
+            title={r.votes ? `${f.name} · ${t("detail.votes", { count: r.votes })}` : f.name}
+            className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-muted-foreground"
+          >
+            {f.label} <span className="font-semibold text-foreground">{f.text}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 function DetailHeroBody({
   poster,
   overview,
   badges,
+  ratings,
   links,
   lifted,
 }: {
   poster?: string | null;
   overview?: string | null;
   badges: ReactNode;
+  ratings?: Rating[];
   links: ExternalLink[];
   lifted: boolean;
 }) {
@@ -162,6 +197,7 @@ function DetailHeroBody({
         <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
           {badges}
         </div>
+        <DetailRatings ratings={ratings} />
         {links.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">
             {links.map((l) => (

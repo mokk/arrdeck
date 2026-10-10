@@ -551,6 +551,7 @@ export type {
   QueueApiV1QueueGetResponses,
   QueueItemOut,
   QueueResponse,
+  RatingOut,
   ReadingApiV1LibraryBooksReadingGetData,
   ReadingApiV1LibraryBooksReadingGetResponse,
   ReadingApiV1LibraryBooksReadingGetResponses,

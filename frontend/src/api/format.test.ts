@@ -4,6 +4,7 @@ import {
   formatDay,
   formatDayTime,
   formatEta,
+  formatRating,
   formatRelative,
   formatSpeed,
   formatWhen,
@@ -211,5 +212,27 @@ describe("formatWhen", () => {
     expect(formatWhen(iso, "absolute")).not.toBe(formatRelative(iso));
     expect(formatWhen("2001-01-02T00:00:00Z", "absolute")).toContain("2001");
     expect(formatWhen(null)).toBe("—");
+  });
+});
+
+describe("formatRating", () => {
+  it("writes each source the way its site does", () => {
+    expect(formatRating({ source: "imdb", value: 7.1 }).text).toBe("7.1");
+    expect(formatRating({ source: "imdb", value: 8 }).text).toBe("8.0");
+    expect(formatRating({ source: "tmdb", value: 6.901 }).text).toBe("6.9");
+    expect(formatRating({ source: "trakt", value: 6.85406 }).text).toBe("6.9");
+    expect(formatRating({ source: "rottenTomatoes", value: 89 }).text).toBe("89%");
+    expect(formatRating({ source: "metacritic", value: 64 }).text).toBe("64");
+  });
+
+  it("labels them compactly, with the full name for a tooltip", () => {
+    const rt = formatRating({ source: "rottenTomatoes", value: 82 });
+    expect([rt.label, rt.name]).toEqual(["RT", "Rotten Tomatoes"]);
+    expect(formatRating({ source: "imdb", value: 7 }).label).toBe("IMDb");
+  });
+
+  it("shows a source it does not know by its own name", () => {
+    const r = formatRating({ source: "letterboxd", value: 3.8 });
+    expect([r.label, r.text]).toEqual(["letterboxd", "3.8"]);
   });
 });

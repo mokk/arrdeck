@@ -1,5 +1,5 @@
 import { readPref } from "../lib/prefs";
-import type { WatchedItem, WatchedMap } from "./types";
+import type { Rating, WatchedItem, WatchedMap } from "./types";
 
 export const SERVICE_LABELS: Record<string, string> = {
   radarr: "Radarr",
@@ -162,4 +162,25 @@ export function watchedFor(
     return { ...item, url: map.base_url && item.key ? map.base_url + item.key : undefined };
   }
   return undefined;
+}
+
+const RATING_SOURCES: Record<string, { name: string; label: string }> = {
+  imdb: { name: "IMDb", label: "IMDb" },
+  tmdb: { name: "TMDB", label: "TMDB" },
+  rottenTomatoes: { name: "Rotten Tomatoes", label: "RT" },
+  metacritic: { name: "Metacritic", label: "Metacritic" },
+  trakt: { name: "Trakt", label: "Trakt" },
+};
+
+/** One source's score as a chip: the arrs send Rotten Tomatoes and Metacritic
+ * as 0-100 and the rest out of 10, so each is written the way its site does. */
+export function formatRating(r: Rating): { name: string; label: string; text: string } {
+  const source = RATING_SOURCES[r.source] ?? { name: r.source, label: r.source };
+  const text =
+    r.source === "rottenTomatoes"
+      ? `${Math.round(r.value)}%`
+      : r.source === "metacritic"
+        ? String(Math.round(r.value))
+        : r.value.toFixed(1);
+  return { ...source, text };
 }
