@@ -989,6 +989,9 @@
     "summary_unmonitored": "ikke overvåget",
     "summary_tags": "tags",
     "summary_grace": "{{n}} d frist",
-    "summary_none": "ingen betingelser"
+    "summary_none": "ingen betingelser",
+    "unkeepAction": "Fjern fra de beholdte",
+    "raiseLimit": "Tillad {{n}} sletninger pr. kørsel",
+    "raiseLimitBody": "Hver kørsel kan slette flere titler."
   }
 }

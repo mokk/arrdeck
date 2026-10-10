@@ -989,6 +989,9 @@
     "summary_unmonitored": "unmonitored",
     "summary_tags": "tags",
     "summary_grace": "{{n}} d grace",
-    "summary_none": "no conditions"
+    "summary_none": "no conditions",
+    "unkeepAction": "Take off the keep list",
+    "raiseLimit": "Allow {{n}} deletions per run",
+    "raiseLimitBody": "Each run may delete more titles."
   }
 }

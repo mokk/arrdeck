@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn, focusRing } from "@/lib/utils";
 import { formatBytes, formatEpoch } from "../../api/format";
 import type {
+  CleanupKept,
   CleanupLogTitle,
   CleanupRule,
   CleanupRuleDraft,
@@ -161,6 +162,20 @@ export function CleanupRules() {
     save.mutate({ settings, rules: next }, { onError: () => setEditing(draft) });
   };
 
+  // a higher limit lets a run delete more, so it asks like switching on does
+  const setLimit = async (n: number) => {
+    if (
+      n > (settings.max_deletions ?? 10) &&
+      !(await confirm({
+        action: t("cleanupRules.raiseLimit", { n }),
+        subject: t("cleanupRules.raiseLimitBody"),
+        destructive: true,
+      }))
+    )
+      return;
+    persist({ settings: { ...settings, max_deletions: n } });
+  };
+
   const runNow = async () => {
     if (
       await confirm({
@@ -196,7 +211,7 @@ export function CleanupRules() {
               key={n}
               type="button"
               aria-pressed={settings.max_deletions === n}
-              onClick={() => persist({ settings: { ...settings, max_deletions: n } })}
+              onClick={() => setLimit(n)}
               className={cn(
                 focusRing,
                 "rounded-md px-2 py-0.5",
@@ -350,6 +365,11 @@ function Kept() {
   const confirm = useConfirm();
   const { data } = useCleanupKept();
   const unkeep = useCleanupUnkeep();
+  const unkeepOne = async (item: CleanupKept) => {
+    const subject = item.title || `#${item.id}`;
+    if (await confirm({ action: t("cleanupRules.unkeepAction"), subject, destructive: true }))
+      unkeep.mutate(item);
+  };
   return (
     <>
       <SectionTitle>{t("cleanupRules.kept")}</SectionTitle>
@@ -368,7 +388,7 @@ function Kept() {
               type="button"
               aria-label={t("cleanupRules.unkeep", { title: item.title || `#${item.id}` })}
               disabled={unkeep.isPending}
-              onClick={() => unkeep.mutate(item)}
+              onClick={() => unkeepOne(item)}
               className={cn(focusRing, "rounded px-2 text-muted-foreground")}
             >
               ✕
