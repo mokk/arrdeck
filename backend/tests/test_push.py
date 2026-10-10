@@ -566,3 +566,22 @@ def test_an_unknown_timezone_falls_back_to_utc():
 
     # must not raise: a bad tz shouldn't take the notifier down
     in_quiet_hours(_rules(quiet_start="00:00", quiet_end="23:59", timezone="Mars/Olympus"))
+
+
+def test_a_manual_import_push_opens_the_needs_attention_list():
+    from app.push import webhook_event
+
+    movie = webhook_event(
+        "radarr",
+        {"eventType": "ManualInteractionRequired", "movie": {"id": 7, "title": "Dune"}},
+    )
+    episode = webhook_event(
+        "sonarr",
+        {
+            "eventType": "ManualInteractionRequired",
+            "series": {"id": 12, "title": "The Bear"},
+            "episodes": [{"seasonNumber": 3, "episodeNumber": 4}],
+        },
+    )
+    assert movie.key == episode.key == "manual"
+    assert movie.url == episode.url == "/activity?tab=queue&focus=attention"

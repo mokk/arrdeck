@@ -351,6 +351,24 @@ export type ArrReleaseOut = {
 };
 
 /**
+ * AttentionOut
+ */
+export type AttentionOut = {
+  /**
+   * Count
+   */
+  count?: number;
+  /**
+   * Items
+   */
+  items?: Array<QueueItemOut>;
+  /**
+   * Unavailable
+   */
+  unavailable?: Array<string>;
+};
+
+/**
  * AuthorDetailOut
  */
 export type AuthorDetailOut = {
@@ -3172,6 +3190,10 @@ export type QueueItemOut = {
    */
   episode_id?: number | null;
   /**
+   * Error Message
+   */
+  error_message?: string | null;
+  /**
    * Errors
    */
   errors?: Array<string>;
@@ -3188,6 +3210,10 @@ export type QueueItemOut = {
    */
   movie_id?: number | null;
   /**
+   * Needs Attention
+   */
+  needs_attention?: boolean;
+  /**
    * Series Id
    */
   series_id?: number | null;
@@ -3203,6 +3229,10 @@ export type QueueItemOut = {
    * Status
    */
   status: string;
+  /**
+   * Status Messages
+   */
+  status_messages?: Array<QueueStatusMessageOut>;
   /**
    * Time Left
    */
@@ -3228,6 +3258,20 @@ export type QueueResponse = {
   radarr: ServiceBlockListQueueItemOut;
   readarr?: ServiceBlockListQueueItemOut | null;
   sonarr: ServiceBlockListQueueItemOut;
+};
+
+/**
+ * QueueStatusMessageOut
+ */
+export type QueueStatusMessageOut = {
+  /**
+   * Messages
+   */
+  messages?: Array<string>;
+  /**
+   * Title
+   */
+  title?: string;
 };
 
 /**
@@ -8908,6 +8952,23 @@ export type QueueApiV1QueueGetResponses = {
 
 export type QueueApiV1QueueGetResponse =
   QueueApiV1QueueGetResponses[keyof QueueApiV1QueueGetResponses];
+
+export type QueueAttentionApiV1QueueAttentionGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/queue/attention";
+};
+
+export type QueueAttentionApiV1QueueAttentionGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: AttentionOut;
+};
+
+export type QueueAttentionApiV1QueueAttentionGetResponse =
+  QueueAttentionApiV1QueueAttentionGetResponses[keyof QueueAttentionApiV1QueueAttentionGetResponses];
 
 export type RemoveQueueItemApiV1QueueAppItemIdDeleteData = {
   body?: never;

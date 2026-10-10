@@ -583,6 +583,33 @@
         "title": "ArrReleaseOut",
         "type": "object"
       },
+      "AttentionOut": {
+        "properties": {
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "items": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/QueueItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "unavailable": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Unavailable",
+            "type": "array"
+          }
+        },
+        "title": "AttentionOut",
+        "type": "object"
+      },
       "AuthorDetailOut": {
         "properties": {
           "available_count": {
@@ -5765,6 +5792,17 @@
             ],
             "title": "Episode Id"
           },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
           "errors": {
             "default": [],
             "items": {
@@ -5799,6 +5837,11 @@
             ],
             "title": "Movie Id"
           },
+          "needs_attention": {
+            "default": false,
+            "title": "Needs Attention",
+            "type": "boolean"
+          },
           "series_id": {
             "anyOf": [
               {
@@ -5821,6 +5864,14 @@
           "status": {
             "title": "Status",
             "type": "string"
+          },
+          "status_messages": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/QueueStatusMessageOut"
+            },
+            "title": "Status Messages",
+            "type": "array"
           },
           "time_left": {
             "anyOf": [
@@ -5895,6 +5946,25 @@
           "sonarr"
         ],
         "title": "QueueResponse",
+        "type": "object"
+      },
+      "QueueStatusMessageOut": {
+        "properties": {
+          "messages": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "title": {
+            "default": "",
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "title": "QueueStatusMessageOut",
         "type": "object"
       },
       "RatingOut": {
@@ -14525,6 +14595,28 @@
           }
         },
         "summary": "Queue",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/v1/queue/attention": {
+      "get": {
+        "description": "Every queue item, across the arrs, that is stuck until someone looks at\nit — each with the arr's own reasons. An arr that is down is named in\n`unavailable` rather than failing the list.",
+        "operationId": "queue_attention_api_v1_queue_attention_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttentionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Queue Attention",
         "tags": [
           "dashboard"
         ]

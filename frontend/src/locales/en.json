@@ -163,7 +163,10 @@
     "showing": "Showing {{shown}} of {{total}}",
     "grabNow": "Grab now",
     "grabbedNow": "Sent to the download client",
-    "heldUntil": "Held by a delay profile, grabbed {{when}}"
+    "heldUntil": "Held by a delay profile, grabbed {{when}}",
+    "needsAttention": "Needs attention",
+    "fix": "Fix",
+    "attentionUnavailable": "{{apps}} could not be reached, so this list may be incomplete"
   },
   "add": {
     "title": "Add",

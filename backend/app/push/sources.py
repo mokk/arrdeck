@@ -6,7 +6,15 @@ import time
 
 from ..db import SettingsDB
 from ..registry import Registry
-from .events import HISTORY_EVENTS, HISTORY_PARAMS, WEBHOOK_EVENTS, WEBHOOK_SEEN_KEY, Event, logger
+from .events import (
+    ATTENTION_URL,
+    HISTORY_EVENTS,
+    HISTORY_PARAMS,
+    WEBHOOK_EVENTS,
+    WEBHOOK_SEEN_KEY,
+    Event,
+    logger,
+)
 from .pipeline import notify
 
 CHECK_INTERVAL = 60
@@ -24,6 +32,10 @@ def _episode_title(series: dict, episodes: list[dict]) -> str:
         return f"{name} S{season:02d} · {len(episodes)} episodes"
     label = f"{name} S{season:02d}E{number:02d}"
     return f"{label} – {first['title']}" if first.get("title") else label
+
+
+def _url(key: str, page: str) -> str:
+    return ATTENTION_URL if key == "manual" else page
 
 
 def webhook_event(app_name: str, payload: dict) -> Event | None:
@@ -59,7 +71,7 @@ def webhook_event(app_name: str, payload: dict) -> Event | None:
             key=key,
             app=app_name,
             title=f"{name} ({year})" if year else name,
-            url=f"/movie/{movie_id}" if movie_id else "/activity?tab=history",
+            url=_url(key, f"/movie/{movie_id}" if movie_id else "/activity?tab=history"),
             tags=movie.get("tags") or [],
             # per movie: two unrelated films share no tag, so neither banner
             # replaces the other before it has been read
@@ -76,7 +88,7 @@ def webhook_event(app_name: str, payload: dict) -> Event | None:
         key=key,
         app=app_name,
         title=title,
-        url=f"/series/{series_id}" if series_id else "/activity?tab=history",
+        url=_url(key, f"/series/{series_id}" if series_id else "/activity?tab=history"),
         # merge per series, so one show's season pack is one notification
         group=f"sonarr:{key}:{series_id}",
         group_title=series.get("title") or "",

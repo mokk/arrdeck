@@ -86,6 +86,11 @@ HISTORY_PARAMS = {
 NOUNS = {"radarr": "movies", "sonarr": "episodes"}
 
 
+# A stuck import is fixed from the Needs attention list, not from the title's
+# page, which has no way to import anything.
+ATTENTION_URL = "/activity?tab=queue&focus=attention"
+
+
 @dataclass
 class Event:
     """One thing worth telling the user about."""

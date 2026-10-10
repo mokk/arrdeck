@@ -163,7 +163,10 @@
     "showing": "Viser {{shown}} af {{total}}",
     "grabNow": "Hent nu",
     "grabbedNow": "Sendt til downloadklienten",
-    "heldUntil": "Holdt tilbage af en forsinkelsesprofil, hentes {{when}}"
+    "heldUntil": "Holdt tilbage af en forsinkelsesprofil, hentes {{when}}",
+    "needsAttention": "Kræver handling",
+    "fix": "Ret",
+    "attentionUnavailable": "{{apps}} svarede ikke, så listen kan være ufuldstændig"
   },
   "add": {
     "title": "Tilføj",

@@ -38,6 +38,11 @@ class TorrentGroupOut(BaseModel):
     states: list[str] = []  # every state present, so the filter can list them
 
 
+class QueueStatusMessageOut(BaseModel):
+    title: str = ""  # usually the file or release the messages are about
+    messages: list[str] = []
+
+
 class QueueItemOut(BaseModel):
     app: Literal["radarr", "sonarr", "readarr"]
     id: int
@@ -51,11 +56,24 @@ class QueueItemOut(BaseModel):
     # a release held by a delay profile: when it will be grabbed on its own
     estimated_completion: str | None = None
     errors: list[str] = []
+    # every reason the arr gives, grouped as it groups them; `errors` keeps
+    # only the first line of each for the compact rows
+    status_messages: list[QueueStatusMessageOut] = []
+    error_message: str | None = None  # the download client's own complaint
+    # waiting on a person: blocked/failed imports, or the arr flagged it
+    needs_attention: bool = False
     # enables blocklist-&-retry from the UI
     movie_id: int | None = None
     series_id: int | None = None
     episode_id: int | None = None
     book_id: int | None = None
+
+
+class AttentionOut(BaseModel):
+    count: int = 0
+    items: list[QueueItemOut] = []
+    # arrs whose queue could not be read, so the list may be incomplete
+    unavailable: list[str] = []
 
 
 class TorrentActionIn(BaseModel):

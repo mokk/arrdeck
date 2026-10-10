@@ -16,6 +16,7 @@ from ...deps import (
     get_sonarr,
 )
 from ...schemas import (
+    AttentionOut,
     CalendarItemOut,
     CalendarResponse,
     HistoryItemOut,
@@ -76,6 +77,16 @@ def release_info(movie: dict, start: str, end: str) -> tuple[str | None, str | N
     return min(in_window) if in_window else (None, None)
 
 
+# The tracked states where the arr has stopped and is waiting for a person.
+# importPending is usually brief, but one that lingers is the "waiting to
+# import" that never finishes, and listing it costs nothing when it clears.
+ATTENTION_STATES = {"importBlocked", "importPending", "failedPending", "failed"}
+
+
+def needs_attention(tracked_state: str | None, tracked_status: str | None) -> bool:
+    return tracked_state in ATTENTION_STATES or tracked_status in ("warning", "error")
+
+
 def _queue_items(app: str, payload: dict) -> list[QueueItemOut]:
     items = []
     for rec in payload.get("records", []):
@@ -88,9 +99,8 @@ def _queue_items(app: str, payload: dict) -> list[QueueItemOut]:
             book = (rec.get("book") or {}).get("title") or title
             author = (rec.get("author") or {}).get("authorName")
             title = f"{author} — {book}" if author else book
-        errors = [
-            m.get("messages", [""])[0] for m in rec.get("statusMessages", []) if m.get("messages")
-        ]
+        status_messages = rec.get("statusMessages") or []
+        errors = [m.get("messages", [""])[0] for m in status_messages if m.get("messages")]
         items.append(
             QueueItemOut(
                 app=app,
@@ -104,6 +114,14 @@ def _queue_items(app: str, payload: dict) -> list[QueueItemOut]:
                 time_left=rec.get("timeleft"),
                 estimated_completion=rec.get("estimatedCompletionTime"),
                 errors=errors,
+                status_messages=[
+                    {"title": m.get("title") or "", "messages": m.get("messages") or []}
+                    for m in status_messages
+                ],
+                error_message=rec.get("errorMessage") or None,
+                needs_attention=needs_attention(
+                    rec.get("trackedDownloadState"), rec.get("trackedDownloadStatus")
+                ),
                 movie_id=rec.get("movieId"),
                 series_id=rec.get("seriesId"),
                 episode_id=rec.get("episodeId"),
@@ -133,6 +151,33 @@ async def queue(
     if _has(request, "readarr"):
         out["readarr"] = await guarded(fetch("readarr", readarr), "queue:readarr")
     return out
+
+
+@router.get("/queue/attention", response_model=AttentionOut)
+async def queue_attention(
+    request: Request,
+    radarr: RadarrClient = Depends(get_radarr),
+    sonarr: SonarrClient = Depends(get_sonarr),
+    readarr: ReadarrClient = Depends(get_readarr),
+):
+    """Every queue item, across the arrs, that is stuck until someone looks at
+    it — each with the arr's own reasons. An arr that is down is named in
+    `unavailable` rather than failing the list."""
+    every = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}
+    # an arr that was never set up is not "unavailable", it is simply absent
+    clients = {app: c for app, c in every.items() if _has(request, app)}
+
+    async def fetch(app: str, client) -> list[QueueItemOut]:
+        return _queue_items(app, await client.queue())
+
+    blocks = await asyncio.gather(*(guarded(fetch(a, c)) for a, c in clients.items()))
+    items: list[QueueItemOut] = []
+    unavailable = []
+    for app, block in zip(clients, blocks, strict=True):
+        if not block.ok:
+            unavailable.append(app)
+        items.extend(i for i in block.data or [] if i.needs_attention)
+    return {"count": len(items), "items": items, "unavailable": unavailable}
 
 
 def _has(request: Request, name: str) -> bool:

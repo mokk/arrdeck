@@ -3,11 +3,13 @@
 // visit is marked NEW in both History and the torrent list, against one cutoff
 // taken when the tab opens: opening either moves the mark, and the other must
 // still show what was new when the visit began. Which segments exist depends on what is
-// configured; a bare download client still gets its torrent list.
+// configured; a bare download client still gets its torrent list. Whatever
+// needs a person sits above both the downloads and the queue.
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { ArrQueue } from "../components/downloads/ArrQueue";
+import { NeedsAttention } from "../components/downloads/NeedsAttention";
 import { useRegisterSubnav } from "../components/subnav";
 import { useServices } from "../hooks/queries";
 import { getLastSeen } from "../lib/lastSeen";
@@ -33,6 +35,10 @@ export default function Activity() {
   ];
   const requested = params.get("tab") as Segment | null;
   const segment = requested && segments.includes(requested) ? requested : segments[0];
+  // read once: switching segments replaces the params, which must not
+  // scroll the list back into view
+  const [focus] = useState(() => params.get("focus") === "attention");
+  const attention = hasArr ? <NeedsAttention focus={focus} /> : null;
 
   useRegisterSubnav(
     segments.map((s) => ({ value: s, label: t(`activity.${s}`) })),
@@ -41,8 +47,20 @@ export default function Activity() {
     () => setParams({}, { replace: true }),
   );
 
-  if (segment === "downloads") return <Downloads since={since} />;
-  if (segment === "queue") return <ArrQueue />;
+  if (segment === "downloads")
+    return (
+      <>
+        {attention}
+        <Downloads since={since} />
+      </>
+    );
+  if (segment === "queue")
+    return (
+      <>
+        {attention}
+        <ArrQueue />
+      </>
+    );
   if (segment === "history") return <HistoryPage since={since} />;
   return null;
 }
