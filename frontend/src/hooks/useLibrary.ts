@@ -12,6 +12,12 @@ import type {
   BookDetail,
   Cleanup,
   CleanupItem,
+  CleanupKept,
+  CleanupLeaving,
+  CleanupPreview,
+  CleanupRuleDraft,
+  CleanupRules,
+  CleanupRun,
   Collection,
   CollectionDetail,
   Credits,
@@ -226,6 +232,102 @@ export function useCleanupDelete() {
       qc.invalidateQueries({ queryKey: ["cleanup"] });
       qc.invalidateQueries({ queryKey: ["library"] });
       qc.invalidateQueries({ queryKey: ["disk"] });
+    },
+  });
+}
+
+/* ---- cleanup rules ("Leaving soon") ---- */
+
+export const useCleanupRules = () =>
+  useQuery({
+    queryKey: ["cleanupRules"],
+    queryFn: () => api.get<CleanupRules>("/cleanup/rules"),
+  });
+
+/** Saves the switch and the whole rule list. Switching off releases whatever
+ * was leaving, so the leaving list and the log are refetched too. */
+export function useSaveCleanupRules() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CleanupRules) => api.put<CleanupRules>("/cleanup/rules", body),
+    onSuccess: (data) => qc.setQueryData(["cleanupRules"], data),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["cleanupLeaving"] });
+      qc.invalidateQueries({ queryKey: ["cleanupLog"] });
+    },
+  });
+}
+
+/** What a rule, saved or not, would take now. Asks Plex and the arrs afresh,
+ * so the editor debounces before it changes the key. */
+export const useCleanupPreview = (rule: CleanupRuleDraft | null) =>
+  useQuery({
+    queryKey: ["cleanupPreview", rule],
+    queryFn: () => api.post<CleanupPreview>("/cleanup/rules/preview", rule),
+    enabled: rule !== null,
+    staleTime: 60_000,
+    retry: false,
+  });
+
+export const useCleanupLeaving = () =>
+  useQuery({
+    queryKey: ["cleanupLeaving"],
+    queryFn: () => api.get<CleanupLeaving[]>("/cleanup/leaving"),
+  });
+
+export const useCleanupKept = () =>
+  useQuery({
+    queryKey: ["cleanupKept"],
+    queryFn: () => api.get<CleanupKept[]>("/cleanup/kept"),
+  });
+
+export const useCleanupLog = () =>
+  useQuery({
+    queryKey: ["cleanupLog"],
+    queryFn: () => api.get<CleanupRun[]>("/cleanup/log"),
+  });
+
+function useCleanupInvalidate() {
+  const qc = useQueryClient();
+  return () => {
+    for (const key of ["cleanupLeaving", "cleanupKept", "cleanupPreview", "cleanupLog"])
+      qc.invalidateQueries({ queryKey: [key] });
+  };
+}
+
+/** Never match this title again; takes it off the leaving list and the Plex shelf. */
+export function useCleanupKeep() {
+  const invalidate = useCleanupInvalidate();
+  return useMutation({
+    mutationFn: (item: { kind: string; id: number; title?: string; year?: number | null }) =>
+      api.post<CleanupKept>(`/cleanup/leaving/${item.kind}/${item.id}/keep`, {
+        title: item.title ?? "",
+        year: item.year ?? null,
+      }),
+    onSettled: invalidate,
+  });
+}
+
+/** One title off the keep list, or (no argument) all of them. */
+export function useCleanupUnkeep() {
+  const invalidate = useCleanupInvalidate();
+  return useMutation({
+    mutationFn: (item?: { kind: string; id: number }) =>
+      api.delete<void>(item ? `/cleanup/kept/${item.kind}/${item.id}` : "/cleanup/kept"),
+    onSettled: invalidate,
+  });
+}
+
+export function useCleanupRun() {
+  const invalidate = useCleanupInvalidate();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (dryRun: boolean) =>
+      api.post<CleanupRun>(`/cleanup/run${dryRun ? "?dry_run=true" : ""}`),
+    onSettled: () => {
+      invalidate();
+      qc.invalidateQueries({ queryKey: ["cleanup"] });
+      qc.invalidateQueries({ queryKey: ["library"] });
     },
   });
 }

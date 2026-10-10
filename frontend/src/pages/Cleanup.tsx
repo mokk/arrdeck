@@ -1,6 +1,7 @@
 // The cleanup assistant: what could go to free disk space, and why. Four
 // lists, a running "reclaim" total for what is ticked, and one delete that
-// always asks first — whatever the ask-before setting says.
+// always asks first — whatever the ask-before setting says. The Rules mode is
+// the automatic version: rules, Leaving soon, the keep list and the run log.
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +11,7 @@ import { cn, focusRing } from "@/lib/utils";
 import { formatBytes, formatWhen } from "../api/format";
 import type { CleanupItem } from "../api/types";
 import { Card, EmptyNote, ErrorNote } from "../components/Blocks";
+import { CleanupRules } from "../components/cleanup/CleanupRules";
 import { DetailHeader } from "../components/detail";
 import { Cover } from "../components/library/Cover";
 import { BigButton } from "../components/media";
@@ -17,6 +19,8 @@ import { Sheet } from "../components/Sheet";
 import { useCleanup, useCleanupDelete } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 
+type Mode = "lists" | "rules";
+const MODES: Mode[] = ["lists", "rules"];
 type List = "watched" | "never_watched" | "largest" | "unmonitored";
 const LISTS: List[] = ["watched", "never_watched", "largest", "unmonitored"];
 const WATCHED_DAYS = [30, 90, 180, 365];
@@ -26,6 +30,7 @@ const keyOf = (i: CleanupItem) => `${i.kind}:${i.id}`;
 export default function CleanupPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [mode, setMode] = usePersistentState<Mode>("cleanup.mode", "lists");
   const [list, setList] = usePersistentState<List>("cleanup.list", "watched");
   const [days, setDays] = usePersistentState("cleanup.watchedDays", 30);
   const { data, error, isLoading } = useCleanup(days);
@@ -96,9 +101,39 @@ export default function CleanupPage() {
     return item.kind === "movie" ? t("cleanup.movie") : t("cleanup.show");
   };
 
+  const modes = (
+    <div className="mb-4 flex gap-1 rounded-full bg-secondary p-1">
+      {MODES.map((m) => (
+        <button
+          key={m}
+          type="button"
+          aria-pressed={mode === m}
+          onClick={() => setMode(m)}
+          className={cn(
+            focusRing,
+            "flex-1 rounded-full py-1.5 text-sm font-semibold",
+            mode === m ? "bg-card text-foreground shadow-sm" : "text-muted-foreground",
+          )}
+        >
+          {t(`cleanup.mode_${m}`)}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (mode === "rules")
+    return (
+      <>
+        <DetailHeader title={t("cleanup.title")} />
+        {modes}
+        <CleanupRules />
+      </>
+    );
+
   return (
     <>
       <DetailHeader title={t("cleanup.title")} />
+      {modes}
       <p className="mb-4 text-sm text-muted-foreground">{t("cleanup.intro")}</p>
       <div className="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]">
         {LISTS.map((l) => (
