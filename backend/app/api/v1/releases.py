@@ -2,11 +2,12 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from ...clients.lidarr import LidarrClient
 from ...clients.prowlarr import ProwlarrClient
 from ...clients.radarr import RadarrClient
 from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_prowlarr, get_radarr, get_readarr, get_sonarr
+from ...deps import get_lidarr, get_prowlarr, get_radarr, get_readarr, get_sonarr
 from ...schemas import (
     ArrReleaseOut,
     GrabIn,
@@ -58,7 +59,7 @@ def _arr_release(r: dict) -> ArrReleaseOut:
         leechers=r.get("leechers"),
         age_days=r.get("ageHours", 0) / 24 if r.get("ageHours") is not None else None,
         approved=not r.get("rejected", False),
-        rejections=r.get("rejections", []),
+        rejections=r.get("rejections") or [],
         release_group=r.get("releaseGroup") or None,
         custom_format_score=r.get("customFormatScore"),
         custom_formats=_names(r.get("customFormats")),
@@ -106,6 +107,15 @@ async def book_releases(
     return _sort_releases([_arr_release(r) for r in rows])
 
 
+@router.get("/releases/album/{album_id}", response_model=list[ArrReleaseOut])
+async def album_releases(
+    album_id: int, lidarr: LidarrClient = Depends(get_lidarr)
+) -> list[ArrReleaseOut]:
+    """What Lidarr's indexers offer for one album, with its verdict on each."""
+    rows = await lidarr.releases(albumId=album_id)
+    return _sort_releases([_arr_release(r) for r in rows])
+
+
 @router.post("/releases/{app}/grab", status_code=204)
 async def grab_arr_release(
     app: str,
@@ -113,6 +123,7 @@ async def grab_arr_release(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> None:
     if app == "radarr":
         await radarr.grab_release(body.guid, body.indexer_id)
@@ -120,5 +131,7 @@ async def grab_arr_release(
         await sonarr.grab_release(body.guid, body.indexer_id)
     elif app == "readarr":
         await readarr.grab_release(body.guid, body.indexer_id)
+    elif app == "lidarr":
+        await lidarr.grab_release(body.guid, body.indexer_id)
     else:
         raise HTTPException(404, f"unknown app {app!r}")

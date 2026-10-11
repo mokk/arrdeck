@@ -6,11 +6,12 @@ import copy
 from fastapi import APIRouter, Depends, HTTPException
 
 from ...cache import cache, cached
+from ...clients.lidarr import LidarrClient
 from ...clients.overseerr import OverseerrClient
 from ...clients.radarr import RadarrClient
 from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_overseerr, get_radarr, get_readarr, get_sonarr
+from ...deps import get_lidarr, get_overseerr, get_radarr, get_readarr, get_sonarr
 from ...schemas import (
     AddBookIn,
     AddMovieIn,
@@ -481,8 +482,9 @@ async def options(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ):
-    clients = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}
+    clients = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr, "lidarr": lidarr}
     if app not in clients:
         raise HTTPException(404, f"unknown app {app!r}")
     client = clients[app]
@@ -497,10 +499,11 @@ async def options(
             {"id": f["id"], "path": f["path"], "free_space": f.get("freeSpace")} for f in folders
         ],
     }
-    if app == "readarr":
-        # Readarr matches authors against a metadata profile as well.
+    if app in ("readarr", "lidarr"):
+        # Readarr matches authors against a metadata profile as well, and
+        # Lidarr artists: it decides which album types and releases count.
         data["metadata_profiles"] = [
-            {"id": p["id"], "name": p["name"]} for p in await readarr.metadata_profiles()
+            {"id": p["id"], "name": p["name"]} for p in await client.metadata_profiles()
         ]
     cache.set(key, data)
     return data

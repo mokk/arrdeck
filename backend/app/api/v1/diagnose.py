@@ -16,12 +16,13 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from ...cache import cached
 from ...clients.base import ArrClient
+from ...clients.lidarr import LidarrClient
 from ...clients.prowlarr import ProwlarrClient
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_prowlarr, get_radarr, get_sonarr
+from ...deps import get_lidarr, get_prowlarr, get_radarr, get_sonarr
 from ...schemas import DiagnosisFindingOut, DiagnosisOut
-from .dashboard import build_indexer_stats
+from .dashboard import _queue_items, build_indexer_stats
 
 router = APIRouter(tags=["library"])
 
@@ -53,7 +54,7 @@ def _parse(value: str | None) -> datetime | None:
 
 def _queue_findings(items: list[dict], item_id: int, app: str) -> list[DiagnosisFindingOut]:
     """The first question: is it already on its way?"""
-    id_field = "movie_id" if app == "radarr" else "series_id"
+    id_field = {"radarr": "movie_id", "lidarr": "album_id"}.get(app, "series_id")
     mine = [q for q in items if q.get(id_field) == item_id]
     if not mine:
         return []
@@ -109,8 +110,12 @@ def _blocklist_findings(entries: list[dict], item_id: int, app: str) -> list[Dia
     join — an earlier version matched on title, which missed every entry because
     the record names the *release*, not the film.
     """
-    id_field = "movieId" if app == "radarr" else "seriesId"
-    hits = [e for e in entries if e.get(id_field) == item_id]
+    if app == "lidarr":
+        # a Lidarr release can span albums, so its record lists them
+        hits = [e for e in entries if item_id in (e.get("albumIds") or [])]
+    else:
+        id_field = "movieId" if app == "radarr" else "seriesId"
+        hits = [e for e in entries if e.get(id_field) == item_id]
     if not hits:
         return []
     return [
@@ -213,19 +218,22 @@ async def diagnose(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     prowlarr: ProwlarrClient = Depends(get_prowlarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> DiagnosisOut:
     """Answer in the order a person asks: is it coming, is it blocked, is anyone
-    looking, and is there anywhere to look."""
+    looking, and is there anywhere to look. For Lidarr the item is an album."""
     client: ArrClient
     if app == "radarr":
-        client = radarr
+        client, fetch = radarr, radarr.get_movie(item_id)
     elif app == "sonarr":
-        client = sonarr
+        client, fetch = sonarr, sonarr.get_series(item_id)
+    elif app == "lidarr":
+        client, fetch = lidarr, lidarr.get_album(item_id)
     else:
         raise HTTPException(404, f"unknown app {app!r}")
 
     item, queue, blocklist, tasks, delays, indexers = await asyncio.gather(
-        radarr.get_movie(item_id) if app == "radarr" else sonarr.get_series(item_id),
+        fetch,
         client.queue(),
         client.blocklist(page_size=200),
         # Cached separately from the tasks card, which has its own TTL; a
@@ -248,9 +256,19 @@ async def diagnose(
 
     title = item.get("title")
     findings: list[DiagnosisFindingOut] = []
-    findings += _queue_findings(rows(queue), item_id, app)
+    queued = rows(queue)
+    if app == "lidarr":
+        # read the way the queue card reads it, which is what the checks expect
+        queued = [q.model_dump() for q in _queue_items(app, {"records": queued})]
+    findings += _queue_findings(queued, item_id, app)
     if app == "radarr":
         findings += _availability_findings(item)
+        findings += _search_findings(item)
+    elif app == "lidarr":
+        # an album is searched for only while both it and its artist are monitored
+        artist = item.get("artist") or {}
+        if not item.get("monitored", True) or not artist.get("monitored", True):
+            findings += [_finding("not_monitored", "blocked")]
         findings += _search_findings(item)
     elif not item.get("monitored", True):
         findings += [_finding("not_monitored", "blocked")]

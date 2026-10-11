@@ -5,10 +5,11 @@ import asyncio
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from ...cache import cache
+from ...clients.lidarr import LidarrClient
 from ...clients.radarr import RadarrClient
 from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_radarr, get_readarr, get_sonarr
+from ...deps import get_lidarr, get_radarr, get_readarr, get_sonarr
 from ...schemas import ExclusionOut, ParseOut, SeasonGridOut
 from .dashboard import _has
 from .discover import _poster
@@ -20,6 +21,7 @@ EXCLUSION_PATHS = {
     "radarr": "/exclusions",
     "sonarr": "/importlistexclusion",
     "readarr": "/importlistexclusion",
+    "lidarr": "/importlistexclusion",
 }
 
 
@@ -42,7 +44,7 @@ def exclusion_row(app: str, e: dict) -> dict:
     return {
         "app": app,
         "id": e["id"],
-        "title": e.get("authorName") or e.get("title"),
+        "title": e.get("authorName") or e.get("artistName") or e.get("title"),
         "remote_id": e.get("foreignId"),
     }
 
@@ -53,9 +55,10 @@ async def exclusions(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> list[dict]:
     """Everything the arrs keep off their lists, newest first."""
-    clients = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}
+    clients = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr, "lidarr": lidarr}
     apps = [a for a in clients if _has(request, a)]
     results = await asyncio.gather(
         *(clients[a].get(EXCLUSION_PATHS[a]) for a in apps), return_exceptions=True
@@ -76,9 +79,10 @@ async def remove_exclusion(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> None:
     """Let the lists add it again."""
-    clients = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}
+    clients = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr, "lidarr": lidarr}
     if app not in clients:
         raise HTTPException(404, f"unknown app {app!r}")
     await clients[app].request("DELETE", f"{EXCLUSION_PATHS[app]}/{exclusion_id}")

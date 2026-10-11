@@ -70,6 +70,8 @@ def history_events(app: str, records: list[dict], since: datetime) -> list[dict]
                 "movie_id": rec.get("movieId"),
                 "series_id": rec.get("seriesId"),
                 "book_id": rec.get("bookId"),
+                # Lidarr's only; every other arr's events leave the key out
+                **({"album_id": rec.get("albumId")} if app == "lidarr" else {}),
             }
         )
     return out

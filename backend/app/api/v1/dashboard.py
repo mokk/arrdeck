@@ -134,6 +134,9 @@ def _queue_items(app: str, payload: dict) -> list[QueueItemOut]:
                 series_id=rec.get("seriesId"),
                 episode_id=rec.get("episodeId"),
                 book_id=rec.get("bookId"),
+                # Lidarr's only: left out of every other arr's items
+                album_id=rec.get("albumId") or None if app == "lidarr" else None,
+                artist_id=rec.get("artistId") or None if app == "lidarr" else None,
             )
         )
     return items
@@ -384,6 +387,9 @@ def _consolidate_history(app: str, payload: dict, limit: int = 15) -> list[dict]
         g["movie_id"] = g["movie_id"] or rec.get("movieId")
         g["series_id"] = g["series_id"] or rec.get("seriesId")
         g["book_id"] = g["book_id"] or rec.get("bookId")
+        if app == "lidarr":
+            # the album page this row opens; other arrs' rows never carry the key
+            g["album_id"] = g.get("album_id") or rec.get("albumId") or None
         if not g["title"]:
             g["title"] = album_title(rec) if app == "lidarr" else rec.get("sourceTitle") or ""
         g["date"] = max(g["date"], date)
@@ -433,6 +439,7 @@ async def recent(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ):
     """Recently imported items, poster-enriched, newest first."""
     out: list[dict] = []
@@ -491,6 +498,26 @@ async def recent(
                             "date": rec.get("date", ""),
                             "poster": book_cover(book.get("images")),
                             "library_id": book["id"],
+                        }
+                    )
+        except Exception:  # noqa: BLE001
+            pass
+    if _has(request, "lidarr"):
+        try:
+            # a record per imported track, with its album and artist attached;
+            # the album is the title, and the dedupe below makes it one entry
+            hist = await lidarr.history(page_size=60)
+            for rec in hist.get("records", []):
+                album = rec.get("album") or {}
+                if rec.get("eventType") == "trackFileImported" and album.get("id"):
+                    out.append(
+                        {
+                            "app": "lidarr",
+                            "title": album.get("title") or "",
+                            "subtitle": (rec.get("artist") or {}).get("artistName") or None,
+                            "date": rec.get("date", ""),
+                            "poster": music_cover(album.get("images")),
+                            "library_id": album["id"],
                         }
                     )
         except Exception:  # noqa: BLE001

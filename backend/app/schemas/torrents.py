@@ -67,6 +67,10 @@ class QueueItemOut(BaseModel):
     series_id: int | None = None
     episode_id: int | None = None
     book_id: int | None = None
+    # Lidarr's album and artist; left out altogether, not null, on every other
+    # arr's items
+    album_id: int | None = Field(default=None, exclude_if=lambda v: v is None)
+    artist_id: int | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class AttentionOut(BaseModel):
@@ -268,9 +272,9 @@ class RenameIn(BaseModel):
 
 
 class BlocklistItemOut(BaseModel):
-    app: Literal["radarr", "sonarr"]
+    app: Literal["radarr", "sonarr", "lidarr"]  # lidarr only once it is configured
     id: int
-    title: str = ""  # the movie/series it belongs to
+    title: str = ""  # the movie/series it belongs to, or Lidarr's artist
     source_title: str = ""  # the release that was blocked
     quality: str | None = None
     date: str | None = None

@@ -585,7 +585,10 @@ def test_artists_and_their_albums_for_the_picker():
     cache.clear()
     artists = asyncio.run(library_artists(Lidarr()))
     assert [a["name"] for a in artists] == ["Autechre", "Boards of Canada"]
-    assert artists[1]["album_count"] == 5 and artists[1]["poster"] is None
+    assert artists[1]["album_count"] == 5
+    # Lidarr's own copy, which only arrdeck can fetch: it has the key
+    assert artists[1]["poster"] == "/api/v1/library/artists/1/image/poster-250.jpg"
+    assert artists[0]["poster"] is None
     albums = asyncio.run(artist_albums(1, Lidarr()))
     assert [a["title"] for a in albums] == ["Inferno", "Music Has the Right to Children"]
     assert albums[1]["year"] == 1998 and albums[1]["track_count"] == 18

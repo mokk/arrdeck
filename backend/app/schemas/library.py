@@ -39,14 +39,18 @@ class HistoryItemOut(BaseModel):
     movie_id: int | None = None
     series_id: int | None = None
     book_id: int | None = None
+    # Lidarr's album; left out altogether, not null, on every other arr's rows
+    album_id: int | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class SearchResultOut(BaseModel):
-    kind: Literal["movie", "series", "book"]
+    kind: Literal["movie", "series", "book", "artist", "album"]
     title: str
     year: int | None = None
     overview: str | None = None
-    remote_id: int  # tmdbId for movies, tvdbId for series, the numeric foreign id for books
+    # tmdbId for movies, tvdbId for series, the numeric foreign id for books;
+    # 0 for artists and albums, whose MusicBrainz id is a UUID in foreign_id
+    remote_id: int
     # Books: Readarr's foreign (Goodreads-style) ids, and who wrote it. The
     # edition id is what the add call looks the book up by.
     foreign_id: str | None = None
@@ -64,6 +68,10 @@ class SearchResultOut(BaseModel):
     monitored: bool | None = None
     quality_profile_id: int | None = None
     has_file: bool | None = None  # movie downloaded / series 100% complete
+    # Music only, and left out of every other result: the artist an album is
+    # by, and Lidarr's album type (Album, EP, Single…)
+    artist: str | None = Field(default=None, exclude_if=lambda v: v is None)
+    album_type: str | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class ReleaseOut(BaseModel):
@@ -183,7 +191,7 @@ class RootFolderOut(BaseModel):
 class OptionsOut(BaseModel):
     quality_profiles: list[QualityProfileOut]
     root_folders: list[RootFolderOut]
-    # Readarr only: which metadata source/profile an author is matched with.
+    # Readarr and Lidarr: which metadata profile an author or artist is matched with.
     metadata_profiles: list[QualityProfileOut] = []
 
 
@@ -228,6 +236,8 @@ class ActivityEventOut(BaseModel):
     movie_id: int | None = None
     series_id: int | None = None
     book_id: int | None = None
+    # Lidarr's album; left out altogether, not null, on every other event
+    album_id: int | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class ActivitySinceOut(BaseModel):
@@ -243,7 +253,8 @@ class HistoryPageOut(BaseModel):
 
 
 class RecentItemOut(BaseModel):
-    app: Literal["radarr", "sonarr", "readarr"]
+    # lidarr's items (albums: library_id is the album) only once it is configured
+    app: Literal["radarr", "sonarr", "readarr", "lidarr"]
     title: str
     subtitle: str | None = None
     date: str
@@ -339,7 +350,7 @@ class PopularSnapshotOut(BaseModel):
 
 
 class ImportListOut(BaseModel):
-    app: Literal["radarr", "sonarr", "readarr"]
+    app: Literal["radarr", "sonarr", "readarr", "lidarr"]  # lidarr only once configured
     id: int
     name: str = ""
     implementation: str = ""
@@ -489,11 +500,11 @@ class ReadingIn(BaseModel):
 
 
 class ExclusionOut(BaseModel):
-    app: Literal["radarr", "sonarr", "readarr"]
+    app: Literal["radarr", "sonarr", "readarr", "lidarr"]  # lidarr only once configured
     id: int
     title: str | None = None
     year: int | None = None
-    # tmdb for films, tvdb for shows, the foreign id for books
+    # tmdb for films, tvdb for shows, the foreign id for books, an artist's MusicBrainz id
     remote_id: str | None = None
 
 
@@ -535,31 +546,3 @@ class SeasonGridOut(BaseModel):
     monitored: bool = False
     status: str | None = None
     seasons: list[SeasonCellOut] = []
-
-
-class LibraryArtistOut(BaseModel):
-    """A Lidarr artist, as much as picking one needs."""
-
-    id: int
-    name: str = ""
-    sort_name: str | None = None
-    monitored: bool = False
-    album_count: int = 0
-    track_file_count: int = 0
-    poster: str | None = None
-
-
-class LibraryAlbumOut(BaseModel):
-    """One of a Lidarr artist's albums (EPs and singles too)."""
-
-    id: int
-    title: str = ""
-    artist_id: int | None = None
-    artist: str | None = None
-    year: int | None = None
-    release_date: str | None = None
-    album_type: str | None = None  # Lidarr's: Album, EP, Single, Broadcast, Other
-    monitored: bool = False
-    track_count: int = 0
-    track_file_count: int = 0
-    poster: str | None = None
