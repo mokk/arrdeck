@@ -31,7 +31,7 @@ import {
 } from "../../hooks/queries";
 import { ImportSheet } from "../ImportSheet";
 
-const ARRS = ["radarr", "sonarr", "readarr"] as const;
+const ARRS = ["radarr", "sonarr", "readarr", "lidarr"] as const;
 
 // how many rows each client returns per request; raised by "load more"
 

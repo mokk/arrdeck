@@ -5,6 +5,7 @@ export const SERVICE_LABELS: Record<string, string> = {
   radarr: "Radarr",
   sonarr: "Sonarr",
   readarr: "Readarr",
+  lidarr: "Lidarr",
   prowlarr: "Prowlarr",
   qbittorrent: "qBittorrent",
   transmission: "Transmission",

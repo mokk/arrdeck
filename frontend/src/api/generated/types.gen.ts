@@ -817,7 +817,7 @@ export type CalendarItemOut = {
   /**
    * App
    */
-  app: "radarr" | "sonarr" | "readarr";
+  app: "radarr" | "sonarr" | "readarr" | "lidarr";
   /**
    * Date
    */
@@ -856,6 +856,7 @@ export type CalendarItemOut = {
  * CalendarResponse
  */
 export type CalendarResponse = {
+  lidarr?: ServiceBlockListCalendarItemOut | null;
   radarr: ServiceBlockListCalendarItemOut;
   readarr?: ServiceBlockListCalendarItemOut | null;
   sonarr: ServiceBlockListCalendarItemOut;
@@ -1751,7 +1752,7 @@ export type HistoryItemOut = {
   /**
    * App
    */
-  app: "radarr" | "sonarr" | "readarr";
+  app: "radarr" | "sonarr" | "readarr" | "lidarr";
   /**
    * Book Id
    */
@@ -1800,6 +1801,7 @@ export type HistoryPageOut = {
  * HistoryResponse
  */
 export type HistoryResponse = {
+  lidarr?: ServiceBlockListHistoryItemOut | null;
   radarr: ServiceBlockListHistoryItemOut;
   readarr?: ServiceBlockListHistoryItemOut | null;
   sonarr: ServiceBlockListHistoryItemOut;
@@ -1896,7 +1898,7 @@ export type ImportCommandOut = {
   /**
    * App
    */
-  app: "radarr" | "sonarr" | "readarr";
+  app: "radarr" | "sonarr" | "readarr" | "lidarr";
   /**
    * Done
    */
@@ -2069,6 +2071,94 @@ export type LanguageProfileOut = {
    * Name
    */
   name: string;
+};
+
+/**
+ * LibraryAlbumOut
+ *
+ * One of a Lidarr artist's albums (EPs and singles too).
+ */
+export type LibraryAlbumOut = {
+  /**
+   * Album Type
+   */
+  album_type?: string | null;
+  /**
+   * Artist
+   */
+  artist?: string | null;
+  /**
+   * Artist Id
+   */
+  artist_id?: number | null;
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Monitored
+   */
+  monitored?: boolean;
+  /**
+   * Poster
+   */
+  poster?: string | null;
+  /**
+   * Release Date
+   */
+  release_date?: string | null;
+  /**
+   * Title
+   */
+  title?: string;
+  /**
+   * Track Count
+   */
+  track_count?: number;
+  /**
+   * Track File Count
+   */
+  track_file_count?: number;
+  /**
+   * Year
+   */
+  year?: number | null;
+};
+
+/**
+ * LibraryArtistOut
+ *
+ * A Lidarr artist, as much as picking one needs.
+ */
+export type LibraryArtistOut = {
+  /**
+   * Album Count
+   */
+  album_count?: number;
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Monitored
+   */
+  monitored?: boolean;
+  /**
+   * Name
+   */
+  name?: string;
+  /**
+   * Poster
+   */
+  poster?: string | null;
+  /**
+   * Sort Name
+   */
+  sort_name?: string | null;
+  /**
+   * Track File Count
+   */
+  track_file_count?: number;
 };
 
 /**
@@ -2377,6 +2467,10 @@ export type ManualImportAssignIn = {
  * ManualImportFileIn
  */
 export type ManualImportFileIn = {
+  /**
+   * Album Id
+   */
+  album_id?: number | null;
   /**
    * Book Id
    */
@@ -3268,7 +3362,7 @@ export type QueueItemOut = {
   /**
    * App
    */
-  app: "radarr" | "sonarr" | "readarr";
+  app: "radarr" | "sonarr" | "readarr" | "lidarr";
   /**
    * Book Id
    */
@@ -3343,6 +3437,7 @@ export type QueueItemOut = {
  * QueueResponse
  */
 export type QueueResponse = {
+  lidarr?: ServiceBlockListQueueItemOut | null;
   radarr: ServiceBlockListQueueItemOut;
   readarr?: ServiceBlockListQueueItemOut | null;
   sonarr: ServiceBlockListQueueItemOut;
@@ -4572,6 +4667,7 @@ export type ServiceStatus = {
     | "radarr"
     | "sonarr"
     | "readarr"
+    | "lidarr"
     | "prowlarr"
     | "qbittorrent"
     | "transmission"
@@ -5363,7 +5459,7 @@ export type WantedItemOut = {
   /**
    * App
    */
-  app: "radarr" | "sonarr" | "readarr";
+  app: "radarr" | "sonarr" | "readarr" | "lidarr";
   /**
    * Id
    */
@@ -7262,6 +7358,59 @@ export type TestIndexerApiV1IndexersIndexerIdTestPostResponses = {
 
 export type TestIndexerApiV1IndexersIndexerIdTestPostResponse =
   TestIndexerApiV1IndexersIndexerIdTestPostResponses[keyof TestIndexerApiV1IndexersIndexerIdTestPostResponses];
+
+export type LibraryArtistsApiV1LibraryArtistsGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/library/artists";
+};
+
+export type LibraryArtistsApiV1LibraryArtistsGetResponses = {
+  /**
+   * Response Library Artists Api V1 Library Artists Get
+   *
+   * Successful Response
+   */
+  200: Array<LibraryArtistOut>;
+};
+
+export type LibraryArtistsApiV1LibraryArtistsGetResponse =
+  LibraryArtistsApiV1LibraryArtistsGetResponses[keyof LibraryArtistsApiV1LibraryArtistsGetResponses];
+
+export type ArtistAlbumsApiV1LibraryArtistsArtistIdAlbumsGetData = {
+  body?: never;
+  path: {
+    /**
+     * Artist Id
+     */
+    artist_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/artists/{artist_id}/albums";
+};
+
+export type ArtistAlbumsApiV1LibraryArtistsArtistIdAlbumsGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type ArtistAlbumsApiV1LibraryArtistsArtistIdAlbumsGetError =
+  ArtistAlbumsApiV1LibraryArtistsArtistIdAlbumsGetErrors[keyof ArtistAlbumsApiV1LibraryArtistsArtistIdAlbumsGetErrors];
+
+export type ArtistAlbumsApiV1LibraryArtistsArtistIdAlbumsGetResponses = {
+  /**
+   * Response Artist Albums Api V1 Library Artists  Artist Id  Albums Get
+   *
+   * Successful Response
+   */
+  200: Array<LibraryAlbumOut>;
+};
+
+export type ArtistAlbumsApiV1LibraryArtistsArtistIdAlbumsGetResponse =
+  ArtistAlbumsApiV1LibraryArtistsArtistIdAlbumsGetResponses[keyof ArtistAlbumsApiV1LibraryArtistsArtistIdAlbumsGetResponses];
 
 export type LibraryAuthorsApiV1LibraryAuthorsGetData = {
   body?: never;

@@ -109,24 +109,29 @@ function WantedList({ app, kind }: { app: ArrApp; kind: Kind }) {
               >
                 {t("common.search")}
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                aria-label={t("diagnose.why")}
-                title={t("diagnose.why")}
-                onClick={() => setDiagnosing(w)}
-              >
-                {t("diagnose.why")}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t("releases.interactive")}
-                title={t("releases.interactive")}
-                onClick={() => setReleaseTarget(w)}
-              >
-                <ChevronRight />
-              </Button>
+              {/* the diagnosis and Lidarr's releases are still to come */}
+              {w.app !== "lidarr" && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label={t("diagnose.why")}
+                    title={t("diagnose.why")}
+                    onClick={() => setDiagnosing(w)}
+                  >
+                    {t("diagnose.why")}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t("releases.interactive")}
+                    title={t("releases.interactive")}
+                    onClick={() => setReleaseTarget(w)}
+                  >
+                    <ChevronRight />
+                  </Button>
+                </>
+              )}
             </div>
           </Row>
         ))}
@@ -179,7 +184,9 @@ export default function WantedPage() {
   const configured = new Set(
     (services ?? []).filter((s) => s.configured).map((s) => s.service as string),
   );
-  const apps = (["radarr", "sonarr", "readarr"] as const).filter((a) => configured.has(a));
+  const apps = (["radarr", "sonarr", "readarr", "lidarr"] as const).filter((a) =>
+    configured.has(a),
+  );
   const [kind, setKind] = usePersistentState<Kind>("wanted.kind", "missing");
   const [storedApp, setApp] = usePersistentState<ArrApp>("wanted.app", "radarr");
   const app = apps.includes(storedApp) ? storedApp : apps[0];

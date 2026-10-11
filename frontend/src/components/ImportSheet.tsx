@@ -221,6 +221,19 @@ export function ImportSheet({
     (c.importable || targets[c.path] != null) &&
     (c.quality_id != null || overrides[c.path]?.quality_id != null);
   const importable = (data ?? []).filter(ready);
+  // An album arrives as many files: one album picked for one of them goes to
+  // every file nobody has placed yet, and Lidarr matches each to its track.
+  const albumForAll = app === "lidarr";
+  const unplaced = (data ?? []).filter((c) => !c.importable);
+  const pick = (path: string, target: Target) => {
+    const paths =
+      albumForAll && target.album_id != null
+        ? [path, ...unplaced.map((c) => c.path).filter((p) => p !== path && !targets[p])]
+        : [path];
+    setTargets({ ...targets, ...Object.fromEntries(paths.map((p) => [p, target])) });
+    setPicked(new Set([...picked, ...paths]));
+    setChoosingFor(null);
+  };
 
   return (
     <Sheet
@@ -233,6 +246,9 @@ export function ImportSheet({
           or a folder the arr cannot see */}
       {error && <ErrorNote>{error.message}</ErrorNote>}
       {data && data.length === 0 && <EmptyNote>{t("dl.noCandidates")}</EmptyNote>}
+      {albumForAll && unplaced.length > 1 && (
+        <p className="mb-2 text-xs text-muted-foreground">{t("dl.albumForAll")}</p>
+      )}
       {(data ?? []).map((c) => {
         const detail = describe(c);
         return (
@@ -349,6 +365,7 @@ export function ImportSheet({
                   series_id: targets[p]?.series_id,
                   episode_ids: targets[p]?.episode_ids,
                   book_id: targets[p]?.book_id,
+                  album_id: targets[p]?.album_id,
                   ...overrides[p],
                 }));
                 const mode = move ? "move" : "auto";
@@ -379,11 +396,7 @@ export function ImportSheet({
         <TargetPicker
           app={app}
           onClose={() => setChoosingFor(null)}
-          onPick={(target) => {
-            setTargets({ ...targets, [choosingFor]: target });
-            setPicked(new Set([...picked, choosingFor]));
-            setChoosingFor(null);
-          }}
+          onPick={(target) => pick(choosingFor, target)}
         />
       )}
       {editing && (

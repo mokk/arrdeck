@@ -1,6 +1,7 @@
 {
   "nav": {
     "books": "Bøger",
+    "music": "Musik",
     "movies": "Film",
     "shows": "Serier",
     "activity": "Aktivitet",
@@ -181,6 +182,15 @@
     "change": "ret",
     "pickBook": "Vælg en bog",
     "filterBooks": "Filtrér på titel eller forfatter",
+    "pickArtist": "Vælg en kunstner",
+    "filterArtists": "Filtrér kunstnere",
+    "pickAlbum": "Vælg et album",
+    "filterAlbums": "Filtrér album",
+    "albumCount_one": "{{count}} album",
+    "albumCount_other": "{{count}} album",
+    "trackCount_one": "{{count}} nummer",
+    "trackCount_other": "{{count}} numre",
+    "albumForAll": "Det album, du vælger, gælder for alle filer, der ikke har et endnu, og Lidarr finder selv ud af, hvilket nummer hver fil er.",
     "importInto": "Importér til {{app}}",
     "moveInstead": "Flyt filerne i stedet for at kopiere dem",
     "moveWarning": "Flytning tager filerne fra torrent-klienten, så denne torrent holder op med at seede.",
@@ -901,13 +911,13 @@
     "noMatch": "Intet i biblioteket passer."
   },
   "ical": {
-    "intro": "Abonnér på det, Radarr, Sonarr og Readarr har på vej, i Apple Kalender, Google Kalender eller Outlook — én kalender for dem alle.",
+    "intro": "Abonnér på det, Radarr, Sonarr, Readarr og Lidarr har på vej, i Apple Kalender, Google Kalender eller Outlook — én kalender for dem alle.",
     "address": "Kalenderadresse",
     "subscribe": "Abonnér",
     "enable": "Slå kalenderen til",
     "regenerateHint": "Den gamle adresse holder op med at virke; alle kalenderapps skal have den nye.",
     "hint": "Adressen indeholder en hemmelighed i stedet for en adgangskode, da kalenderapps ikke kan logge ind på arrdeck. Alle med adressen kan se, hvad der er på vej. Google Kalender: Andre kalendere → Fra webadresse.",
-    "unavailable": "Kalenderen kræver Radarr, Sonarr eller Readarr."
+    "unavailable": "Kalenderen kræver Radarr, Sonarr, Readarr eller Lidarr."
   },
   "watching": {
     "days7": "7 dage",

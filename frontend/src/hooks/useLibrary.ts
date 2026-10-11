@@ -26,6 +26,8 @@ import type {
   Episode,
   Exclusion,
   IcalSettings,
+  LibraryAlbum,
+  LibraryArtist,
   LibraryBook,
   LibraryKind,
   LibraryMovie,
@@ -479,6 +481,23 @@ export const useLibraryBooks = (enabled = true) =>
     queryFn: () => api.get<LibraryBook[]>("/library/books"),
     staleTime: 60_000,
     enabled,
+  });
+
+/** Lidarr's artists, for pointing a file at one of their albums. */
+export const useLibraryArtists = (enabled = true) =>
+  useQuery({
+    queryKey: ["library", "artists"],
+    queryFn: () => api.get<LibraryArtist[]>("/library/artists"),
+    staleTime: 60_000,
+    enabled,
+  });
+
+export const useArtistAlbums = (artistId: number | null) =>
+  useQuery({
+    queryKey: ["library", "artists", artistId, "albums"],
+    queryFn: () => api.get<LibraryAlbum[]>(`/library/artists/${artistId}/albums`),
+    staleTime: 60_000,
+    enabled: artistId != null,
   });
 
 export const useBookShelf = (enabled: boolean) =>

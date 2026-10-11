@@ -155,6 +155,9 @@ export function TorrentSummary({ configured }: { configured: Set<string> }) {
   );
 }
 
+// the arrs the overview's queue, calendar and history cards merge
+const DASH_APPS = ["radarr", "sonarr", "lidarr"] as const;
+
 /** Only rendered when something is actually wrong — a permanently visible
  * "all good" card trains you to stop reading it. */
 
@@ -165,14 +168,14 @@ export function QueueSection({ configured }: { configured: Set<string> }) {
   const forceImport = useForceImport();
   const confirm = useConfirm();
   const [importing, setImporting] = useState<{ app: string; id: number } | null>(null);
-  const items = [...(data?.radarr?.data ?? []), ...(data?.sonarr?.data ?? [])];
+  const items = DASH_APPS.flatMap((app) => data?.[app]?.data ?? []);
   // A stale block also has ok=false, but it has data and an age — calling that
   // "offline" printed the error as undefined while listing the items below it.
-  const offline = (["radarr", "sonarr"] as const).filter(
-    (app) => configured.has(app) && data?.[app] && !data[app].ok && !data[app].data,
+  const offline = DASH_APPS.filter(
+    (app) => configured.has(app) && data?.[app] && !data[app]?.ok && !data[app]?.data,
   );
-  const stale = (["radarr", "sonarr"] as const).filter(
-    (app) => configured.has(app) && data?.[app] && !data[app].ok && data[app].data,
+  const stale = DASH_APPS.filter(
+    (app) => configured.has(app) && data?.[app] && !data[app]?.ok && data[app]?.data,
   );
   if (items.length === 0 && offline.length === 0 && stale.length === 0) return null;
   return (
@@ -274,17 +277,16 @@ export function QueueSection({ configured }: { configured: Set<string> }) {
 export function CalendarSection({ configured }: { configured: Set<string> }) {
   const { t } = useTranslation();
   const { data } = useCalendar();
-  const merged: CalendarItem[] = [
-    ...(data?.radarr?.data ?? []),
-    ...(data?.sonarr?.data ?? []),
-  ].sort((a, b) => {
-    if (a.date == null && b.date == null) return 0;
-    if (a.date == null) return 1;
-    if (b.date == null) return -1;
-    return a.date.localeCompare(b.date);
-  });
-  const unreachable = (["radarr", "sonarr"] as const).some(
-    (app) => configured.has(app) && data?.[app] && !data[app].ok && !data[app].data,
+  const merged: CalendarItem[] = DASH_APPS.flatMap((app) => data?.[app]?.data ?? []).sort(
+    (a, b) => {
+      if (a.date == null && b.date == null) return 0;
+      if (a.date == null) return 1;
+      if (b.date == null) return -1;
+      return a.date.localeCompare(b.date);
+    },
+  );
+  const unreachable = DASH_APPS.some(
+    (app) => configured.has(app) && data?.[app] && !data[app]?.ok && !data[app]?.data,
   );
 
   return (
@@ -296,7 +298,7 @@ export function CalendarSection({ configured }: { configured: Set<string> }) {
         </Link>
       </div>
       <Card>
-        {(["radarr", "sonarr"] as const).map((app) => {
+        {DASH_APPS.map((app) => {
           const block = data?.[app];
           return configured.has(app) && block && !block.ok ? (
             <ErrorNote key={app}>
@@ -333,10 +335,9 @@ export function HistorySection({ configured }: { configured: Set<string> }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { data } = useHistory();
-  const merged: HistoryItem[] = [
-    ...(data?.radarr?.data ?? []),
-    ...(data?.sonarr?.data ?? []),
-  ].sort((a, b) => b.date.localeCompare(a.date));
+  const merged: HistoryItem[] = DASH_APPS.flatMap((app) => data?.[app]?.data ?? []).sort(
+    (a, b) => b.date.localeCompare(a.date),
+  );
 
   return (
     <div className="mb-6">
@@ -347,7 +348,7 @@ export function HistorySection({ configured }: { configured: Set<string> }) {
         </Link>
       </div>
       <Card>
-        {(["radarr", "sonarr"] as const).map((app) => {
+        {DASH_APPS.map((app) => {
           const block = data?.[app];
           return configured.has(app) && block && !block.ok ? (
             <ErrorNote key={app}>

@@ -15,6 +15,10 @@ describe("tabsFor", () => {
     expect(paths(["sonarr"])).toEqual(["/shows", "/activity", "/calendar", "/settings"]);
   });
 
+  it("gives Lidarr Activity and Calendar, but no library tab of its own yet", () => {
+    expect(paths(["lidarr"])).toEqual(["/activity", "/calendar", "/settings"]);
+  });
+
   it("shows Activity for a bare download client, but not Calendar", () => {
     expect(paths(["qbittorrent"])).toEqual(["/activity", "/settings"]);
   });

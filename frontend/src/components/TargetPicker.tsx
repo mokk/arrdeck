@@ -2,7 +2,10 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn, focusRing } from "@/lib/utils";
 import {
+  useArtistAlbums,
+  useLibraryArtists,
   useLibraryBooks,
   useLibraryMovies,
   useLibrarySeries,
@@ -16,12 +19,18 @@ export type Target = {
   series_id?: number;
   episode_ids?: number[];
   book_id?: number;
+  album_id?: number;
   label: string;
 };
 
+const ROW =
+  "block w-full border-t border-border py-2 text-left text-sm first:border-t-0 active:opacity-60";
+
 /** Points one unplaceable file at a library entry. Movies and books are a
- * single choice; series need a season and episode, so the sheet drills in
- * rather than trying to list every episode in the library at once. */
+ * single choice; series need a season and episode, and music an artist and
+ * then one of their albums, so the sheet drills in rather than trying to list
+ * everything in the library at once. Which track a file is, Lidarr works out
+ * itself once it knows the album. */
 export function TargetPicker({
   app,
   onPick,
@@ -39,6 +48,9 @@ export function TargetPicker({
   const shows = useLibrarySeries(app === "sonarr");
   const books = useLibraryBooks(app === "readarr");
   const episodes = useSeriesEpisodes(series?.id ?? 0, season);
+  const [artist, setArtist] = useState<{ id: number; name: string } | null>(null);
+  const artists = useLibraryArtists(app === "lidarr");
+  const albums = useArtistAlbums(app === "lidarr" ? (artist?.id ?? null) : null);
 
   const match = (title: string | null | undefined) =>
     (title ?? "").toLowerCase().includes(q.toLowerCase());
@@ -96,6 +108,89 @@ export function TargetPicker({
               }
             >
               {b.title} <span className="text-muted-foreground">{b.author ?? ""}</span>
+            </button>
+          ))}
+        </div>
+      </Sheet>
+    );
+  }
+
+  if (app === "lidarr" && !artist) {
+    const shown = (artists.data ?? []).filter((a) => match(a.name)).slice(0, 60);
+    return (
+      <Sheet title={t("dl.pickArtist")} onClose={onClose}>
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder={t("dl.filterArtists")}
+        />
+        <div className="mt-2 max-h-80 overflow-y-auto">
+          {artists.isLoading && <EmptyNote>{t("common.loading")}</EmptyNote>}
+          {!artists.isLoading && shown.length === 0 && (
+            <EmptyNote>{t("manage.noMatches")}</EmptyNote>
+          )}
+          {shown.map((a) => (
+            <button
+              type="button"
+              key={a.id}
+              className={cn(focusRing, ROW)}
+              onClick={() => {
+                setArtist({ id: a.id, name: a.name ?? "" });
+                setQ("");
+              }}
+            >
+              {a.name}{" "}
+              <span className="text-muted-foreground">
+                {t("dl.albumCount", { count: a.album_count ?? 0 })}
+              </span>
+            </button>
+          ))}
+        </div>
+      </Sheet>
+    );
+  }
+
+  if (app === "lidarr" && artist) {
+    const shown = (albums.data ?? []).filter((a) => match(a.title));
+    return (
+      <Sheet title={artist.name} subtitle={t("dl.pickAlbum")} onClose={onClose}>
+        <div className="mb-2 flex gap-1.5">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setArtist(null);
+              setQ("");
+            }}
+          >
+            {t("common.back")}
+          </Button>
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={t("dl.filterAlbums")}
+          />
+        </div>
+        <div className="max-h-72 overflow-y-auto">
+          {albums.isLoading && <EmptyNote>{t("common.loading")}</EmptyNote>}
+          {!albums.isLoading && shown.length === 0 && (
+            <EmptyNote>{t("manage.noMatches")}</EmptyNote>
+          )}
+          {shown.map((a) => (
+            <button
+              type="button"
+              key={a.id}
+              className={cn(focusRing, ROW)}
+              onClick={() =>
+                onPick({ album_id: a.id, label: `${artist.name} — ${a.title ?? ""}` })
+              }
+            >
+              {a.title}{" "}
+              <span className="text-muted-foreground">
+                {[a.year, a.album_type, t("dl.trackCount", { count: a.track_count ?? 0 })]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </span>
             </button>
           ))}
         </div>

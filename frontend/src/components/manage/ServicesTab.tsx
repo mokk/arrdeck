@@ -17,6 +17,7 @@ const _SERVICE_FIELDS: Record<string, ("url" | "api_key" | "username" | "passwor
   radarr: ["url", "api_key"],
   sonarr: ["url", "api_key"],
   readarr: ["url", "api_key"],
+  lidarr: ["url", "api_key"],
   prowlarr: ["url", "api_key"],
   overseerr: ["url", "api_key"],
   qbittorrent: ["url", "username", "password"],

@@ -19,7 +19,7 @@ export interface AppTab {
  * With nothing configured only Settings remains, and the bar itself is
  * hidden until a service has been added. */
 export function tabsFor(configured: Set<string>): AppTab[] {
-  const hasArr = ["radarr", "sonarr", "readarr"].some((s) => configured.has(s));
+  const hasArr = ["radarr", "sonarr", "readarr", "lidarr"].some((s) => configured.has(s));
   const hasClient = ["qbittorrent", "transmission"].some((s) => configured.has(s));
   const tabs: AppTab[] = [];
   if (configured.has("readarr")) tabs.push({ to: "/books", key: "nav.books", icon: BookOpen });

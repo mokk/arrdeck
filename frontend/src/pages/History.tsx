@@ -94,7 +94,7 @@ export default function HistoryPage({ since: visitSince }: { since?: string } = 
   }, [data, page]);
   const [tab, setTab] = useState<"history" | "blocklist">("history");
   const { data: services } = useServices();
-  const apps = (["radarr", "sonarr", "readarr"] as const).filter((app) =>
+  const apps = (["radarr", "sonarr", "readarr", "lidarr"] as const).filter((app) =>
     (services ?? []).some((s) => s.service === app && s.configured),
   );
 

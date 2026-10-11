@@ -30,8 +30,9 @@ export const useCalendarRange = (startDate: string, days: number) =>
       api.get<{
         radarr: ServiceBlock<CalendarItem[]>;
         sonarr: ServiceBlock<CalendarItem[]>;
-        // only when Readarr is configured
+        // only when Readarr / Lidarr is configured
         readarr?: ServiceBlock<CalendarItem[]>;
+        lidarr?: ServiceBlock<CalendarItem[]>;
       }>(`/calendar?days=${days}&start_date=${startDate}`),
     staleTime: 300_000,
     // widening the window keeps what is on screen while the rest loads
@@ -49,9 +50,12 @@ export const useCalendar = () =>
   useQuery({
     queryKey: ["calendar"],
     queryFn: () =>
-      api.get<{ radarr: ServiceBlock<CalendarItem[]>; sonarr: ServiceBlock<CalendarItem[]> }>(
-        "/calendar",
-      ),
+      api.get<{
+        radarr: ServiceBlock<CalendarItem[]>;
+        sonarr: ServiceBlock<CalendarItem[]>;
+        // only when Lidarr is configured
+        lidarr?: ServiceBlock<CalendarItem[]>;
+      }>("/calendar"),
     refetchInterval: SLOW,
   });
 
@@ -59,9 +63,12 @@ export const useHistory = () =>
   useQuery({
     queryKey: ["history"],
     queryFn: () =>
-      api.get<{ radarr: ServiceBlock<HistoryItem[]>; sonarr: ServiceBlock<HistoryItem[]> }>(
-        "/history",
-      ),
+      api.get<{
+        radarr: ServiceBlock<HistoryItem[]>;
+        sonarr: ServiceBlock<HistoryItem[]>;
+        // only when Lidarr is configured
+        lidarr?: ServiceBlock<HistoryItem[]>;
+      }>("/history"),
     refetchInterval: MEDIUM,
   });
 

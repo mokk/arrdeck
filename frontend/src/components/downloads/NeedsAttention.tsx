@@ -10,7 +10,7 @@ import { Card, Row, SectionTitle, StateBadge } from "../../components/Blocks";
 import { useQueue } from "../../hooks/queries";
 import { ImportSheet } from "../ImportSheet";
 
-const APPS = ["radarr", "sonarr", "readarr"] as const;
+const APPS = ["radarr", "sonarr", "readarr", "lidarr"] as const;
 
 /** The arr's own words for what is wrong, most specific first. */
 function reasons(q: QueueItem): string[] {

@@ -41,6 +41,8 @@ const PUSH_STRINGS: Record<string, Record<string, string>> = {
     service_up_body: "Was down for {n} min",
     count_readarr_one: "1 book",
     count_readarr: "{n} books",
+    count_lidarr_one: "1 album",
+    count_lidarr: "{n} albums",
     count_radarr_one: "1 movie",
     count_radarr: "{n} movies",
     count_sonarr_one: "1 episode",
@@ -74,6 +76,8 @@ const PUSH_STRINGS: Record<string, Record<string, string>> = {
     service_up_body: "Var nede i {n} min",
     count_readarr_one: "1 bog",
     count_readarr: "{n} bøger",
+    count_lidarr_one: "1 album",
+    count_lidarr: "{n} album",
     count_radarr_one: "1 film",
     count_radarr: "{n} film",
     count_sonarr_one: "1 afsnit",
@@ -106,7 +110,7 @@ function counted(strings: Record<string, string>, app: string, count: number): s
   return (strings[key] ?? "").replace("{n}", String(count));
 }
 
-const DIGEST_APPS = ["radarr", "sonarr", "readarr"];
+const DIGEST_APPS = ["radarr", "sonarr", "readarr", "lidarr"];
 
 /** "3 movies, 52 episodes downloaded · 12 episodes coming up — Slow Horses, Dune" */
 function digest(

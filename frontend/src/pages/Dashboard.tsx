@@ -40,7 +40,7 @@ export default function Dashboard() {
   const configured = new Set(
     (services ?? []).filter((s) => s.configured).map((s) => s.service as string),
   );
-  const hasArr = ["radarr", "sonarr", "readarr"].some((s) => configured.has(s));
+  const hasArr = ["radarr", "sonarr", "readarr", "lidarr"].some((s) => configured.has(s));
   return (
     <>
       <DetailHeader title={t("settings.overview")} />

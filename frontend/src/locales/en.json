@@ -1,6 +1,7 @@
 {
   "nav": {
     "books": "Books",
+    "music": "Music",
     "movies": "Movies",
     "shows": "Shows",
     "activity": "Activity",
@@ -181,6 +182,15 @@
     "change": "change",
     "pickBook": "Choose a book",
     "filterBooks": "Filter by title or author",
+    "pickArtist": "Choose an artist",
+    "filterArtists": "Filter artists",
+    "pickAlbum": "Choose an album",
+    "filterAlbums": "Filter albums",
+    "albumCount_one": "{{count}} album",
+    "albumCount_other": "{{count}} albums",
+    "trackCount_one": "{{count}} track",
+    "trackCount_other": "{{count}} tracks",
+    "albumForAll": "The album you choose goes to every file that has none yet, and Lidarr works out which track each one is.",
     "importInto": "Import into {{app}}",
     "moveInstead": "Move the files instead of copying them",
     "moveWarning": "Moving takes the files away from the torrent client, so this torrent stops seeding.",
@@ -901,13 +911,13 @@
     "noMatch": "Nothing in the library matches it."
   },
   "ical": {
-    "intro": "Subscribe to what Radarr, Sonarr and Readarr have coming in Apple Calendar, Google Calendar or Outlook — one calendar for all of them.",
+    "intro": "Subscribe to what Radarr, Sonarr, Readarr and Lidarr have coming in Apple Calendar, Google Calendar or Outlook — one calendar for all of them.",
     "address": "Calendar address",
     "subscribe": "Subscribe",
     "enable": "Turn on the calendar",
     "regenerateHint": "The old address stops working; every calendar app needs the new one.",
     "hint": "The address contains a secret instead of a password, since calendar apps cannot sign in to arrdeck. Anyone with it can see what is coming up. Google Calendar: Other calendars → From URL.",
-    "unavailable": "The calendar needs Radarr, Sonarr or Readarr."
+    "unavailable": "The calendar needs Radarr, Sonarr, Readarr or Lidarr."
   },
   "watching": {
     "days7": "7 days",

@@ -1,5 +1,5 @@
 // Settings → Calendar subscription: one address Apple Calendar, Google
-// Calendar or Outlook can subscribe to, with Radarr, Sonarr and Readarr merged.
+// Calendar or Outlook can subscribe to, with Radarr, Sonarr, Readarr and Lidarr merged.
 // Like the OPDS feed its address carries a secret, since calendar apps cannot
 // sign in; a new secret retires the old address.
 import { CalendarPlus, Copy, RefreshCw } from "lucide-react";

@@ -68,6 +68,16 @@ describe("the weekly digest", () => {
   });
 });
 
+describe("the weekly digest with Lidarr", () => {
+  it("counts albums, in both languages", () => {
+    const params = { lidarr_imported: 2, lidarr_upcoming: 1, sonarr_imported: 1 };
+    const en = localise({ code: "digest", count: 3, app: "arrdeck", heading: "", params });
+    expect(en.body).toBe("1 episode, 2 albums downloaded · 1 album coming up");
+    const da = localise({ code: "digest", count: 3, heading: "", params, lang: "da" });
+    expect(da.body).toBe("1 afsnit, 2 album downloadet · 1 album på vej");
+  });
+});
+
 describe("cleanup rules", () => {
   it("warns what is leaving and when, naming a few", () => {
     const out = localise({

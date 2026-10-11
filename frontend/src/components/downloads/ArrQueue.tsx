@@ -27,6 +27,7 @@ export function ArrQueue() {
     ...(data?.radarr?.data ?? []),
     ...(data?.sonarr?.data ?? []),
     ...(data?.readarr?.data ?? []),
+    ...(data?.lidarr?.data ?? []),
   ];
   if (items.length === 0) return null;
   return (

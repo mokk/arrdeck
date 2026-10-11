@@ -45,7 +45,14 @@ vi.mock("../hooks/queries", () => ({
     },
   }),
 }));
-vi.mock("./TargetPicker", () => ({ TargetPicker: () => null }));
+vi.mock("./TargetPicker", () => ({
+  // stands in for the picker: one button that picks an album
+  TargetPicker: ({ onPick }: { onPick: (t: Record<string, unknown>) => void }) => (
+    <button type="button" onClick={() => onPick({ album_id: 1, label: "BoC — Geogaddi" })}>
+      pick-album
+    </button>
+  ),
+}));
 const asked = vi.hoisted(() => [] as Record<string, unknown>[]);
 vi.mock("./Confirm", () => ({
   useConfirm: () => async (ask: Record<string, unknown>) => {
@@ -196,5 +203,52 @@ describe("a finished torrent", () => {
     state.torrentError = new Error("Radarr can't see /downloads/x");
     render(<ImportSheet app="radarr" torrent={torrent} onClose={() => {}} />);
     expect(screen.getByText("Radarr can't see /downloads/x")).toBeTruthy();
+  });
+});
+
+describe("an album for Lidarr", () => {
+  const track = (n: number, over: Record<string, unknown> = {}) =>
+    candidate({
+      path: `/downloads/rip/side a ${n}.mp3`,
+      name: `side a ${n}`,
+      title: "",
+      quality: "MP3-320",
+      quality_id: 9,
+      languages: [],
+      language_ids: [],
+      importable: false,
+      rejections: ["Couldn't find similar album"],
+      ...over,
+    });
+
+  it("gives the album picked for one file to every file nobody has placed", async () => {
+    state.candidates = [
+      track(1),
+      track(2),
+      track(3, { importable: true, title: "Music Has the Right to Children" }),
+    ];
+    render(<ImportSheet app="lidarr" itemId={4} onClose={() => {}} />);
+    expect(screen.getByText("dl.albumForAll")).toBeTruthy();
+    fireEvent.click(screen.getAllByText("dl.chooseTarget")[0]);
+    fireEvent.click(screen.getByText("pick-album"));
+    expect(screen.getAllByText("→ BoC — Geogaddi")).toHaveLength(2);
+    // the two unplaced files were selected with it; the placed one was left alone
+    await press(screen.getByText("dl.importSelected(2)"));
+    expect(state.assign.mock.calls[0][0]).toEqual({
+      app: "lidarr",
+      itemId: 4,
+      files: [
+        { path: "/downloads/rip/side a 1.mp3", album_id: 1 },
+        { path: "/downloads/rip/side a 2.mp3", album_id: 1 },
+      ],
+      mode: "auto",
+    });
+  });
+
+  it("offers quality alone, since Lidarr's files have no language", () => {
+    state.candidates = [track(1, { importable: true })];
+    render(<ImportSheet app="lidarr" itemId={4} onClose={() => {}} />);
+    expect(screen.getByText(/MP3-320 ·/)).toBeTruthy();
+    expect(screen.queryByText(/English/)).toBeNull();
   });
 });

@@ -77,7 +77,7 @@ export default function Settings() {
   const configured = new Set(
     (services ?? []).filter((s) => s.configured).map((s) => s.service as string),
   );
-  const hasArr = ["radarr", "sonarr", "readarr"].some((s) => configured.has(s));
+  const hasArr = ["radarr", "sonarr", "readarr", "lidarr"].some((s) => configured.has(s));
   const hasProwlarr = configured.has("prowlarr");
 
   if (section) {

@@ -197,8 +197,9 @@ export const useQueue = () =>
       api.get<{
         radarr: ServiceBlock<QueueItem[]>;
         sonarr: ServiceBlock<QueueItem[]>;
-        // optional: only present once Readarr is configured
+        // optional: only present once Readarr / Lidarr is configured
         readarr?: ServiceBlock<QueueItem[]>;
+        lidarr?: ServiceBlock<QueueItem[]>;
       }>("/queue"),
     refetchInterval: (query) => (queueMoving(query.state.data) ? FAST : IDLE),
   });

@@ -5,7 +5,7 @@ import type * as G from "./generated";
 
 export type ServiceStatus = G.ServiceStatus;
 /** The arrs a library row can belong to. */
-export type ArrApp = "radarr" | "sonarr" | "readarr";
+export type ArrApp = "radarr" | "sonarr" | "readarr" | "lidarr";
 export type ServiceInfo = G.ServiceInfoOut;
 export type ServiceSettings = G.ServiceSettingsOut;
 export type Restartable = G.RestartableOut;
@@ -43,6 +43,8 @@ export type Indexer = G.IndexerOut;
 export type LibraryMovie = G.LibraryMovieOut;
 export type LibrarySeries = G.LibrarySeriesOut;
 export type LibraryBook = G.LibraryBookOut;
+export type LibraryArtist = G.LibraryArtistOut;
+export type LibraryAlbum = G.LibraryAlbumOut;
 export type BookDetail = G.BookDetailOut;
 export type BookEdition = G.BookEditionOut;
 export type Author = G.AuthorOut;

@@ -23,7 +23,7 @@ vi.mock("../ImportSheet", () => ({
 
 import { NeedsAttention } from "./NeedsAttention";
 
-const ARRS = new Set(["radarr", "sonarr", "readarr"]);
+const ARRS = new Set(["radarr", "sonarr", "readarr", "lidarr"]);
 const healthy = <T,>(data: T) => ({ ok: true, data, error: null, stale_age_seconds: null });
 const item = (over: Record<string, unknown> = {}) => ({
   app: "radarr",
@@ -91,6 +91,13 @@ describe("needs attention", () => {
     render(<NeedsAttention configured={ARRS} />);
     fireEvent.click(screen.getByText("dl.fix"));
     expect(screen.getByText("import-sheet:readarr:8")).toBeTruthy();
+  });
+
+  it("offers Fix for a stuck album too", () => {
+    hooks.queue = { data: { lidarr: healthy([item({ app: "lidarr", id: 12 })]) } };
+    render(<NeedsAttention configured={ARRS} />);
+    fireEvent.click(screen.getByText("dl.fix"));
+    expect(screen.getByText("import-sheet:lidarr:12")).toBeTruthy();
   });
 
   it("does not call an arr that was never set up unreachable", () => {

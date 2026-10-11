@@ -27,7 +27,8 @@ function addDays(d: Date, n: number): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 }
 
-const ROUTE: Record<CalendarItem["app"], string> = {
+// Lidarr's albums have no page of their own yet, so they do not open
+const ROUTE: Partial<Record<CalendarItem["app"], string>> = {
   radarr: "movie",
   sonarr: "series",
   readarr: "book",
@@ -37,6 +38,7 @@ const APP_LABEL: Record<CalendarItem["app"], string> = {
   radarr: "nav.movies",
   sonarr: "nav.shows",
   readarr: "nav.books",
+  lidarr: "nav.music",
 };
 
 // the theme's colours, so a palette recolours the stripes too
@@ -44,10 +46,11 @@ const STRIPE: Record<CalendarItem["app"], string> = {
   radarr: "bg-warning",
   sonarr: "bg-primary",
   readarr: "bg-success",
+  lidarr: "bg-muted-foreground",
 };
 
 /** The local day an entry falls on. An episode's air time is a moment and can
- * cross midnight here; a film's or book's release is a date and must not. */
+ * cross midnight here; a film's, book's or album's release is a date and must not. */
 function dayOf(item: CalendarItem): string {
   if (!item.date) return "";
   if (item.app !== "sonarr") return item.date.slice(0, 10);
@@ -90,13 +93,16 @@ export default function CalendarPage() {
 
   const [hiddenApps, setHiddenApps] = usePersistentState<string[]>("cal.hiddenApps", []);
   const [hideDownloaded, setHideDownloaded] = usePersistentState("cal.hideDownloaded", false);
-  const apps = (["radarr", "sonarr", "readarr"] as const).filter((app) => data?.[app]);
+  const apps = (["radarr", "sonarr", "readarr", "lidarr"] as const).filter(
+    (app) => data?.[app],
+  );
 
   const days = useMemo(() => {
     const all = [
       ...(data?.radarr?.data ?? []),
       ...(data?.sonarr?.data ?? []),
       ...(data?.readarr?.data ?? []),
+      ...(data?.lidarr?.data ?? []),
     ]
       .filter((c) => c.date)
       .filter((c) => !hiddenApps.includes(c.app) && !(hideDownloaded && c.has_file));
@@ -142,7 +148,8 @@ export default function CalendarPage() {
   };
 
   const open = (c: CalendarItem) => {
-    if (c.item_id != null) navigate(`/${ROUTE[c.app]}/${c.item_id}`);
+    const route = ROUTE[c.app];
+    if (c.item_id != null && route) navigate(`/${route}/${c.item_id}`);
   };
 
   let lastMonth = "";
@@ -337,7 +344,7 @@ function EntryRow({
     <button
       type="button"
       onClick={onOpen}
-      disabled={item.item_id == null}
+      disabled={item.item_id == null || !ROUTE[item.app]}
       className={cn(
         focusRing,
         "flex w-full items-center gap-3 overflow-hidden rounded-xl bg-card pr-3 text-left active:opacity-70",

@@ -27,7 +27,7 @@ export default function Activity() {
     (services ?? []).filter((s) => s.configured).map((s) => s.service as string),
   );
   const hasClient = configured.has("qbittorrent") || configured.has("transmission");
-  const hasArr = ["radarr", "sonarr", "readarr"].some((s) => configured.has(s));
+  const hasArr = ["radarr", "sonarr", "readarr", "lidarr"].some((s) => configured.has(s));
   const segments: Segment[] = [
     ...(hasArr ? (["history"] as Segment[]) : []),
     ...(hasClient ? (["downloads"] as Segment[]) : []),
