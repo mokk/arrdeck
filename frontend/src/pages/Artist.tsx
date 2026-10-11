@@ -137,18 +137,13 @@ export default function ArtistPage() {
               onToggleMonitor={() => update.mutate({ monitored: !data.monitored })}
               // every monitored album of theirs that is missing or below cutoff
               onSearch={() => search.mutate([artistId])}
-              onDelete={async (deleteFiles) => {
-                const ok = await confirm({
-                  action: deleteFiles ? t("add.deleteFromDisk") : t("add.removeFromLibrary"),
-                  subject: data.name,
-                  destructive: true,
-                });
-                if (ok)
-                  remove.mutate(
-                    { id: artistId, deleteFiles },
-                    { onSuccess: () => navigate("/music", { replace: true }) },
-                  );
-              }}
+              // the two red buttons are the confirmation, as on the other pages
+              onDelete={(deleteFiles) =>
+                remove.mutate(
+                  { id: artistId, deleteFiles },
+                  { onSuccess: () => navigate("/music", { replace: true }) },
+                )
+              }
               extra={
                 <>
                   <BigButton

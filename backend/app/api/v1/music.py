@@ -245,13 +245,15 @@ async def refresh_artist(artist_id: int, lidarr: LidarrClient = Depends(get_lida
 
 
 @router.get("/library/artists/{artist_id}/image/{name}", include_in_schema=False)
-async def artist_artwork(artist_id: int, name: str, lidarr: LidarrClient = Depends(get_lidarr)):
+async def artist_artwork(
+    artist_id: int, name: str, v: str = "", lidarr: LidarrClient = Depends(get_lidarr)
+):
     """Lidarr's own copy of an artist's poster or fanart, cached like /poster.
-    The ?v= the library hands out only busts the browser's cache."""
+    ?v= is Lidarr's lastWrite, so a replaced picture is fetched afresh."""
     if not IMAGE_NAME.match(name):
         raise HTTPException(404, "no such artwork")
     POSTER_DIR.mkdir(parents=True, exist_ok=True)
-    key = f"lidarr:{lidarr.base_url}:{artist_id}:{name}"
+    key = f"lidarr:{lidarr.base_url}:{artist_id}:{name}:{v}"
     cached_file = POSTER_DIR / (hashlib.sha1(key.encode()).hexdigest() + ".img")
     if cached_file.exists():
         touch_poster(cached_file)
