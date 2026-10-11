@@ -78,6 +78,28 @@ def test_history_events_keep_notable_events_after_the_cutoff_only():
     assert out[0]["movie_id"] == 1 and out[1]["book_id"] == 4
 
 
+def test_sonarr_events_name_their_episode_even_inside_a_season_pack():
+    records = [
+        {
+            "eventType": "downloadFolderImported",
+            "date": "2026-09-23T13:00:00Z",
+            "sourceTitle": "Mayfair Witches 2023 S01 1080p REPACK Blu-ray",
+            "seriesId": 86,
+            "episode": {"seasonNumber": 1, "episodeNumber": 5},
+        },
+        {
+            "eventType": "grabbed",
+            "date": "2026-09-23T12:30:00Z",
+            "sourceTitle": "Mayfair Witches 2023 S01 1080p REPACK Blu-ray",
+            "seriesId": 86,
+        },
+    ]
+    out = history_events("sonarr", records, SINCE)
+    assert (out[0]["season"], out[0]["episode"]) == (1, 5)
+    assert "season" not in out[1], "a record without its episode says nothing"
+    assert "season" not in history_events("radarr", records[:1], SINCE)[0], "Sonarr's only"
+
+
 def test_completed_torrents_use_the_done_timestamp():
     torrents = [
         {"name": "done", "completion_on": int(SINCE.timestamp()) + 60},

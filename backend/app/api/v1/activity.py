@@ -61,6 +61,8 @@ def history_events(app: str, records: list[dict], since: datetime) -> list[dict]
             if key in seen:
                 continue
             seen.add(key)
+        # Sonarr's, asked for with includeEpisode
+        episode = rec.get("episode") or {}
         out.append(
             {
                 "kind": kind,
@@ -72,6 +74,11 @@ def history_events(app: str, records: list[dict], since: datetime) -> list[dict]
                 "book_id": rec.get("bookId"),
                 # Lidarr's only; every other arr's events leave the key out
                 **({"album_id": rec.get("albumId")} if app == "lidarr" else {}),
+                **(
+                    {"season": episode.get("seasonNumber"), "episode": episode.get("episodeNumber")}
+                    if app == "sonarr" and episode
+                    else {}
+                ),
             }
         )
     return out
@@ -115,7 +122,9 @@ async def activity_since(
         if not _has(request, app):
             return []
         try:
-            payload = await client.history(page_size=100)
+            # Sonarr's records name the episode only when asked
+            extra = {"includeEpisode": True} if app == "sonarr" else {}
+            payload = await client.history(page_size=100, **extra)
         except Exception:  # noqa: BLE001 — one service down is not a reason to badge nothing
             return []
         return history_events(app, payload.get("records", []), cutoff)

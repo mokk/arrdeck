@@ -58,6 +58,17 @@
             "title": "Date",
             "type": "string"
           },
+          "episode": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Episode"
+          },
           "kind": {
             "enum": [
               "imported",
@@ -79,6 +90,17 @@
               }
             ],
             "title": "Movie Id"
+          },
+          "season": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Season"
           },
           "series_id": {
             "anyOf": [

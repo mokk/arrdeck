@@ -238,6 +238,10 @@ class ActivityEventOut(BaseModel):
     book_id: int | None = None
     # Lidarr's album; left out altogether, not null, on every other event
     album_id: int | None = Field(default=None, exclude_if=lambda v: v is None)
+    # Sonarr's episode, so a season pack's imports say which ones they were
+    # (the pack's release name does not); left out on every other event
+    season: int | None = Field(default=None, exclude_if=lambda v: v is None)
+    episode: int | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class ActivitySinceOut(BaseModel):
