@@ -80,7 +80,10 @@ export const useDiscover = (kind: "movies" | "series", enabled: boolean) =>
     staleTime: 600_000,
   });
 
-export const useSearch = (kind: "movies" | "series" | "books" | "releases", q: string) =>
+export const useSearch = (
+  kind: "movies" | "series" | "books" | "music" | "releases",
+  q: string,
+) =>
   useQuery<Release[] | SearchResult[]>({
     queryKey: ["search", kind, q],
     queryFn: () =>
@@ -106,7 +109,7 @@ export function useAddMedia() {
   return useMutation({
     onSuccess: () => toast.success(t("toast.added")),
     mutationFn: (input: {
-      kind: "movie" | "series" | "book";
+      kind: "movie" | "series" | "book" | "artist" | "album";
       remote_id: number;
       title: string;
       quality_profile_id: number;
@@ -115,36 +118,56 @@ export function useAddMedia() {
       foreign_id?: string | null;
       foreign_edition_id?: string | null;
       metadata_profile_id?: number | null;
-      // series: one of Sonarr's monitor presets, or exactly these seasons
+      // series: one of Sonarr's monitor presets, or exactly these seasons;
+      // artists: which of their albums Lidarr monitors
       monitor?: string;
       seasons?: number[];
     }) =>
-      input.kind === "movie"
-        ? api.post("/movies", {
-            tmdb_id: input.remote_id,
+      input.kind === "artist"
+        ? api.post("/artists", {
+            foreign_artist_id: input.foreign_id,
             title: input.title,
             quality_profile_id: input.quality_profile_id,
+            metadata_profile_id: input.metadata_profile_id,
             root_folder_path: input.root_folder_path,
+            monitor: input.monitor,
+            // monitoring nothing means there is nothing to search for yet
+            search_now: input.monitor !== "none",
           })
-        : input.kind === "series"
-          ? api.post("/series", {
-              tvdb_id: input.remote_id,
-              title: input.title,
-              quality_profile_id: input.quality_profile_id,
-              root_folder_path: input.root_folder_path,
-              monitor: input.monitor,
-              seasons: input.seasons,
-              // monitoring nothing means there is nothing to search for yet
-              search_now: input.monitor !== "none" && input.seasons?.length !== 0,
-            })
-          : api.post("/books", {
-              foreign_book_id: input.foreign_id,
-              foreign_edition_id: input.foreign_edition_id,
+        : input.kind === "album"
+          ? api.post("/albums", {
+              foreign_album_id: input.foreign_id,
               title: input.title,
               quality_profile_id: input.quality_profile_id,
               metadata_profile_id: input.metadata_profile_id,
               root_folder_path: input.root_folder_path,
-            }),
+            })
+          : input.kind === "movie"
+            ? api.post("/movies", {
+                tmdb_id: input.remote_id,
+                title: input.title,
+                quality_profile_id: input.quality_profile_id,
+                root_folder_path: input.root_folder_path,
+              })
+            : input.kind === "series"
+              ? api.post("/series", {
+                  tvdb_id: input.remote_id,
+                  title: input.title,
+                  quality_profile_id: input.quality_profile_id,
+                  root_folder_path: input.root_folder_path,
+                  monitor: input.monitor,
+                  seasons: input.seasons,
+                  // monitoring nothing means there is nothing to search for yet
+                  search_now: input.monitor !== "none" && input.seasons?.length !== 0,
+                })
+              : api.post("/books", {
+                  foreign_book_id: input.foreign_id,
+                  foreign_edition_id: input.foreign_edition_id,
+                  title: input.title,
+                  quality_profile_id: input.quality_profile_id,
+                  metadata_profile_id: input.metadata_profile_id,
+                  root_folder_path: input.root_folder_path,
+                }),
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["search"] });
       qc.invalidateQueries({ queryKey: ["discover"] });

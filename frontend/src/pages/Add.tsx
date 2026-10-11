@@ -22,7 +22,7 @@ import {
 } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 
-type Tab = "movies" | "series" | "books" | "releases" | "collections";
+type Tab = "movies" | "series" | "books" | "music" | "releases" | "collections";
 
 function ReleaseList({ releases }: { releases: Release[] }) {
   const { t } = useTranslation();
@@ -65,6 +65,7 @@ const TAB_SERVICE: Record<Tab, string> = {
   movies: "radarr",
   series: "sonarr",
   books: "readarr",
+  music: "lidarr",
   releases: "prowlarr",
   collections: "radarr",
 };
@@ -77,9 +78,9 @@ export default function Add() {
   );
   const hasPlex = configured.has("plex" as never);
   const hasTrakt = configured.has("trakt" as never);
-  const tabs = (["movies", "series", "books", "collections", "releases"] as Tab[]).filter(
-    (tab) => configured.has(TAB_SERVICE[tab] as never),
-  );
+  const tabs = (
+    ["movies", "series", "books", "music", "collections", "releases"] as Tab[]
+  ).filter((tab) => configured.has(TAB_SERVICE[tab] as never));
 
   const [storedTab, setTab] = usePersistentState<Tab>("add.tab", "movies");
   // the library "+" buttons arrive with ?tab=movies|series so Add opens on
@@ -113,6 +114,7 @@ export default function Add() {
       tab !== "releases" &&
       tab !== "collections" &&
       tab !== "books" &&
+      tab !== "music" &&
       !searching &&
       canDiscover,
   );
@@ -134,9 +136,11 @@ export default function Add() {
         ? t("add.searchSeries")
         : tab === "books"
           ? t("add.searchBooks")
-          : tab === "collections"
-            ? t("dl.filterByName")
-            : t("add.searchMovies");
+          : tab === "music"
+            ? t("add.searchMusic")
+            : tab === "collections"
+              ? t("dl.filterByName")
+              : t("add.searchMovies");
 
   useRegisterSearchbar(
     searchPlaceholder,
@@ -158,9 +162,11 @@ export default function Add() {
       ? t("add.addShow")
       : tab === "books"
         ? t("add.addBook")
-        : tab === "movies"
-          ? t("add.addMovie")
-          : t("add.title");
+        : tab === "music"
+          ? t("add.addMusic")
+          : tab === "movies"
+            ? t("add.addMovie")
+            : t("add.title");
 
   return (
     <>
@@ -190,6 +196,9 @@ export default function Add() {
       ) : tab === "books" ? (
         // Overseerr knows nothing about books, so there is no popular list
         <EmptyNote>{t("add.searchBooksHint")}</EmptyNote>
+      ) : tab === "music" ? (
+        // nor about music
+        <EmptyNote>{t("add.searchMusicHint")}</EmptyNote>
       ) : canDiscover ? (
         <>
           {hasPlex && <WatchlistRow kind={tab === "series" ? "series" : "movie"} />}

@@ -24,9 +24,15 @@ import {
 } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 import { ErrorNote } from "./Blocks";
+import { Cover } from "./library/Cover";
 import { type MonitorChoice, monitorPayload, SeriesMonitor } from "./library/SeriesMonitor";
 import { ReleasesSheet } from "./ReleasesSheet";
 import { Sheet } from "./Sheet";
+
+const isMusic = (result: SearchResult) => result.kind === "artist" || result.kind === "album";
+
+// Lidarr's own choices for which of a new artist's albums to monitor
+const ARTIST_MONITOR = ["all", "future", "missing", "existing", "latest", "first", "none"];
 
 function MediaHead({ result }: { result: SearchResult }) {
   const { t } = useTranslation();
@@ -50,7 +56,10 @@ function MediaHead({ result }: { result: SearchResult }) {
         <img
           src={result.poster}
           alt=""
-          className="w-[72px] shrink-0 rounded-lg bg-secondary object-cover [aspect-ratio:2/3]"
+          className={cn(
+            "w-[72px] shrink-0 rounded-lg bg-secondary object-cover",
+            isMusic(result) ? "aspect-square" : "[aspect-ratio:2/3]",
+          )}
         />
       )}
       <div className="min-w-0">
@@ -62,8 +71,14 @@ function MediaHead({ result }: { result: SearchResult }) {
             ? t("add.movie")
             : result.kind === "series"
               ? t("add.seriesKind")
-              : t("add.bookKind")}
+              : result.kind === "artist"
+                ? t("add.artistKind")
+                : result.kind === "album"
+                  ? // Lidarr's own word for it: Album, EP, Single…
+                    (result.album_type ?? t("add.albumKind"))
+                  : t("add.bookKind")}
           {result.author ? ` · ${result.author}` : ""}
+          {result.artist ? ` · ${result.artist}` : ""}
           {result.year ? ` · ${result.year}` : ""}
           {result.in_library
             ? ` · ${
@@ -132,13 +147,17 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
       ? ("movies" as const)
       : result.kind === "series"
         ? ("series" as const)
-        : ("books" as const);
+        : isMusic(result)
+          ? ("music" as const)
+          : ("books" as const);
   const app =
     result.kind === "movie"
       ? ("radarr" as const)
       : result.kind === "series"
         ? ("sonarr" as const)
-        : ("readarr" as const);
+        : isMusic(result)
+          ? ("lidarr" as const)
+          : ("readarr" as const);
   const { data: options } = useOptions(app);
   const add = useAddMedia();
   const update = useUpdateLibraryItem(kind);
@@ -157,6 +176,10 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
   // the last choice sticks: someone who only ever wants the latest season
   // should not have to pick it every time
   const [monitor, setMonitor] = usePersistentState<MonitorChoice>("add.seriesMonitor", "all");
+  const [artistMonitor, setArtistMonitor] = usePersistentState<string>(
+    "add.artistMonitor",
+    "all",
+  );
   const [pickedSeasons, setPickedSeasons] = useState<Set<number> | null>(null);
   const seasonsQuery = useSeriesSeasons(
     result.remote_id,
@@ -242,28 +265,52 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
             </Select>
           </>
         )}
-        {result.kind === "book" && (options?.metadata_profiles?.length ?? 0) > 0 && (
+        {(result.kind === "book" || isMusic(result)) &&
+          (options?.metadata_profiles?.length ?? 0) > 0 && (
+            <>
+              {/* Readarr matches a new author against a metadata profile too,
+                and Lidarr a new artist */}
+              <Label className="mb-1.5 mt-3 text-xs text-muted-foreground">
+                {t("add.metadataProfile")}
+              </Label>
+              <Select
+                value={metadataProfile != null ? String(metadataProfile) : undefined}
+                onValueChange={(v) => setMetadataProfileId(Number(v))}
+              >
+                <SelectTrigger className="w-full bg-secondary">
+                  <SelectValue placeholder={t("add.metadataProfile")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(options?.metadata_profiles ?? []).map((p) => (
+                    <SelectItem key={p.id} value={String(p.id)}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
+        {result.kind === "artist" && (
           <>
-            {/* Readarr matches a new author against a metadata profile too */}
             <Label className="mb-1.5 mt-3 text-xs text-muted-foreground">
-              {t("add.metadataProfile")}
+              {t("add.artistMonitor")}
             </Label>
-            <Select
-              value={metadataProfile != null ? String(metadataProfile) : undefined}
-              onValueChange={(v) => setMetadataProfileId(Number(v))}
-            >
+            <Select value={artistMonitor} onValueChange={setArtistMonitor}>
               <SelectTrigger className="w-full bg-secondary">
-                <SelectValue placeholder={t("add.metadataProfile")} />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {(options?.metadata_profiles ?? []).map((p) => (
-                  <SelectItem key={p.id} value={String(p.id)}>
-                    {p.name}
+                {ARTIST_MONITOR.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {t(`add.artistMonitor_${m}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </>
+        )}
+        {result.kind === "album" && (
+          <p className="mt-3 text-xs text-muted-foreground">{t("add.albumArtistHint")}</p>
         )}
         {result.kind === "series" && (
           <SeriesMonitor
@@ -317,6 +364,7 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
                   foreign_edition_id: edition,
                   metadata_profile_id: metadataProfile,
                   ...(result.kind === "series" ? monitorChoice : {}),
+                  ...(result.kind === "artist" ? { monitor: artistMonitor } : {}),
                 },
                 { onSuccess: onClose },
               )
@@ -324,8 +372,10 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
           >
             {add.isPending
               ? t("add.adding")
-              : result.kind === "series" &&
-                  (monitorChoice.monitor === "none" || monitorChoice.seasons?.length === 0)
+              : (result.kind === "series" &&
+                    (monitorChoice.monitor === "none" ||
+                      monitorChoice.seasons?.length === 0)) ||
+                  (result.kind === "artist" && artistMonitor === "none")
                 ? t("add.addOnly")
                 : t("add.addAndSearch")}
           </Button>
@@ -406,17 +456,27 @@ export function MediaSheet({ result, onClose }: { result: SearchResult; onClose:
 
 export function PosterGrid({ results }: { results: SearchResult[] }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [selected, setSelected] = useState<SearchResult | null>(null);
+  // music already in Lidarr opens its own page, which has everything the
+  // sheet would offer and more
+  const open = (r: SearchResult) =>
+    isMusic(r) && r.in_library && r.library_id
+      ? navigate(`/${r.kind}/${r.library_id}`)
+      : setSelected(r);
   return (
     <>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(105px,1fr))] gap-3.5">
         {results.map((r) => (
           <div
-            key={`${r.kind}-${r.remote_id}`}
+            // a MusicBrainz id is a UUID; music's remote_id is always 0
+            key={`${r.kind}-${r.foreign_id ?? r.remote_id}`}
             className="flex cursor-pointer flex-col gap-1.5 active:opacity-70"
-            {...clickable(() => setSelected(r))}
+            {...clickable(() => open(r))}
           >
-            {r.poster ? (
+            {isMusic(r) ? (
+              <Cover src={r.poster} title={r.title} subtitle={r.artist} square />
+            ) : r.poster ? (
               <img
                 src={r.poster}
                 alt=""
@@ -431,7 +491,13 @@ export function PosterGrid({ results }: { results: SearchResult[] }) {
             <div className="line-clamp-2 min-h-[2.5em] text-xs font-semibold leading-tight">
               {r.title}
             </div>
-            <div className="-mt-1 text-[0.7rem] text-muted-foreground">{r.year ?? ""}</div>
+            <div className="-mt-1 truncate text-[0.7rem] text-muted-foreground">
+              {r.kind === "album"
+                ? [r.artist, r.year].filter(Boolean).join(" · ")
+                : r.kind === "artist"
+                  ? t("add.artistKind")
+                  : (r.year ?? "")}
+            </div>
             {r.in_library && (r.has_file || r.monitored) && (
               <div
                 className={cn(

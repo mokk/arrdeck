@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn, focusRing } from "@/lib/utils";
 import { formatDate, formatWhen, SERVICE_LABELS } from "../api/format";
 import type { ArrApp, WantedItem } from "../api/types";
 import { Card, EmptyNote, Row } from "../components/Blocks";
@@ -18,11 +19,13 @@ import {
   useWantedSearchAll,
 } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
+import { LIBRARY_ROUTE } from "../lib/routes";
 
 type Kind = "missing" | "cutoff";
 
 function WantedList({ app, kind }: { app: ArrApp; kind: Kind }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<WantedItem[]>([]);
   const { data, isFetching } = useWanted(app, kind, page);
@@ -86,7 +89,17 @@ function WantedList({ app, kind }: { app: ArrApp; kind: Kind }) {
               <div className="w-9 shrink-0 rounded-md bg-secondary [aspect-ratio:2/3]" />
             )}
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-medium">{w.title}</div>
+              {/* the title opens its page: the movie, the show, the book, the album */}
+              <button
+                type="button"
+                onClick={() => navigate(`/${LIBRARY_ROUTE[w.app]}/${w.library_id}`)}
+                className={cn(
+                  focusRing,
+                  "block max-w-full truncate text-left text-sm font-medium active:opacity-60",
+                )}
+              >
+                {w.title}
+              </button>
               <div className="mt-0.5 truncate text-xs text-muted-foreground">
                 {w.subtitle ?? ""} {w.air_date ? `· ${formatDate(w.air_date)}` : ""}
               </div>
@@ -109,29 +122,24 @@ function WantedList({ app, kind }: { app: ArrApp; kind: Kind }) {
               >
                 {t("common.search")}
               </Button>
-              {/* the diagnosis and Lidarr's releases are still to come */}
-              {w.app !== "lidarr" && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    aria-label={t("diagnose.why")}
-                    title={t("diagnose.why")}
-                    onClick={() => setDiagnosing(w)}
-                  >
-                    {t("diagnose.why")}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={t("releases.interactive")}
-                    title={t("releases.interactive")}
-                    onClick={() => setReleaseTarget(w)}
-                  >
-                    <ChevronRight />
-                  </Button>
-                </>
-              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label={t("diagnose.why")}
+                title={t("diagnose.why")}
+                onClick={() => setDiagnosing(w)}
+              >
+                {t("diagnose.why")}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t("releases.interactive")}
+                title={t("releases.interactive")}
+                onClick={() => setReleaseTarget(w)}
+              >
+                <ChevronRight />
+              </Button>
             </div>
           </Row>
         ))}
@@ -156,7 +164,9 @@ function WantedList({ app, kind }: { app: ArrApp; kind: Kind }) {
               ? { movieId: releaseTarget.library_id }
               : releaseTarget.app === "readarr"
                 ? { bookId: releaseTarget.id }
-                : { seriesId: releaseTarget.library_id, episodeId: releaseTarget.id }
+                : releaseTarget.app === "lidarr"
+                  ? { albumId: releaseTarget.id }
+                  : { seriesId: releaseTarget.library_id, episodeId: releaseTarget.id }
           }
           title={`${releaseTarget.title} ${releaseTarget.subtitle ?? ""}`}
           onClose={() => setReleaseTarget(null)}

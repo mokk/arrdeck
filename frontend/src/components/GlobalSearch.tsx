@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { cn, focusRing } from "@/lib/utils";
 import {
+  useLibraryArtists,
   useLibraryBooks,
   useLibraryMovies,
   useLibrarySeries,
@@ -25,11 +26,13 @@ export function openGlobalSearch() {
 
 type Hit = {
   key: string;
-  group: "movies" | "shows" | "books" | "authors";
+  group: "movies" | "shows" | "books" | "authors" | "artists";
   title: string;
   subtitle?: string | null;
   poster?: string | null;
   to: string;
+  /** artist pictures are square */
+  square?: boolean;
 };
 
 function rank(title: string, needle: string): number {
@@ -53,6 +56,7 @@ export function GlobalSearch() {
   const movies = useLibraryMovies(open && has("radarr"));
   const series = useLibrarySeries(open && has("sonarr"));
   const books = useLibraryBooks(open && has("readarr"));
+  const artists = useLibraryArtists(open && has("lidarr"));
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -138,8 +142,21 @@ export function GlobalSearch() {
         to: `/author/${id}`,
       })),
     );
+    take(
+      (artists.data ?? [])
+        .filter((a) => matches(a.name))
+        .map((a) => ({
+          key: `r${a.id}`,
+          group: "artists",
+          title: a.name ?? "",
+          subtitle: a.disambiguation,
+          poster: a.poster,
+          to: `/artist/${a.id}`,
+          square: true,
+        })),
+    );
     return out;
-  }, [needle, movies.data, series.data, books.data]);
+  }, [needle, movies.data, series.data, books.data, artists.data]);
 
   if (!open) return null;
 
@@ -207,7 +224,7 @@ export function GlobalSearch() {
               )}
             >
               <div className="w-8 shrink-0">
-                <Cover src={hit.poster} title={hit.title} compact />
+                <Cover src={hit.poster} title={hit.title} compact square={hit.square} />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium">{hit.title}</div>

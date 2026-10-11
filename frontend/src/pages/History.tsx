@@ -14,6 +14,7 @@ import {
 } from "../hooks/queries";
 import { usePersistentState } from "../hooks/usePersistentState";
 import { getLastSeen, markSeen } from "../lib/lastSeen";
+import { pageFor } from "../lib/routes";
 
 const TYPE_CHIPS = ["fetched", "imported", "failed", "deleted"];
 
@@ -179,15 +180,7 @@ export default function HistoryPage({ since: visitSince }: { since?: string } = 
         {shown.map((h, i) => (
           <Row
             key={`${h.app}-${h.date}-${i}`}
-            onClick={
-              h.movie_id
-                ? () => navigate(`/movie/${h.movie_id}`)
-                : h.series_id
-                  ? () => navigate(`/series/${h.series_id}`)
-                  : h.book_id
-                    ? () => navigate(`/book/${h.book_id}`)
-                    : undefined
-            }
+            onClick={pageFor(h) ? () => navigate(pageFor(h) ?? "") : undefined}
           >
             <div className="min-w-0 flex-1">
               <div className="flex min-w-0 items-center gap-1.5">

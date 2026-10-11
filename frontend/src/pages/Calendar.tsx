@@ -27,11 +27,11 @@ function addDays(d: Date, n: number): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 }
 
-// Lidarr's albums have no page of their own yet, so they do not open
 const ROUTE: Partial<Record<CalendarItem["app"], string>> = {
   radarr: "movie",
   sonarr: "series",
   readarr: "book",
+  lidarr: "album",
 };
 
 const APP_LABEL: Record<CalendarItem["app"], string> = {

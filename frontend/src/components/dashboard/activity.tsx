@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { clickable } from "@/lib/utils";
+import { clickable, cn } from "@/lib/utils";
 import { formatDay, formatDayTime, formatSpeed, SERVICE_LABELS } from "../../api/format";
 import type { CalendarItem, HistoryItem } from "../../api/types";
 import {
@@ -29,6 +29,7 @@ import {
   useTorrentsSummary,
 } from "../../hooks/queries";
 import { usePersistentState } from "../../hooks/usePersistentState";
+import { LIBRARY_ROUTE, pageFor } from "../../lib/routes";
 import { useConfirm } from "../Confirm";
 
 export function RecentSection() {
@@ -50,11 +51,7 @@ export function RecentSection() {
             key={i}
             className="w-[92px] shrink-0 cursor-pointer active:opacity-70"
             {...clickable(() =>
-              r.library_id
-                ? navigate(
-                    r.app === "sonarr" ? `/series/${r.library_id}` : `/movie/${r.library_id}`,
-                  )
-                : undefined,
+              r.library_id ? navigate(`/${LIBRARY_ROUTE[r.app]}/${r.library_id}`) : undefined,
             )}
           >
             {r.poster ? (
@@ -62,7 +59,11 @@ export function RecentSection() {
                 src={r.poster}
                 alt=""
                 loading="lazy"
-                className="w-full rounded-xl bg-card object-cover [aspect-ratio:2/3]"
+                className={cn(
+                  "w-full rounded-xl bg-card object-cover",
+                  // an album cover is square; it sits bottom-aligned with the posters
+                  r.app === "lidarr" ? "mt-[33%] aspect-square" : "[aspect-ratio:2/3]",
+                )}
               />
             ) : (
               <div className="flex w-full items-center justify-center rounded-xl bg-card p-1 text-center text-[0.65rem] text-muted-foreground [aspect-ratio:2/3]">
@@ -358,18 +359,7 @@ export function HistorySection({ configured }: { configured: Set<string> }) {
         })}
         {merged.length === 0 && <EmptyNote>{t("dash.noHistory")}</EmptyNote>}
         {merged.slice(0, 12).map((h, i) => (
-          <Row
-            key={i}
-            onClick={
-              h.movie_id
-                ? () => navigate(`/movie/${h.movie_id}`)
-                : h.series_id
-                  ? () => navigate(`/series/${h.series_id}`)
-                  : h.book_id
-                    ? () => navigate(`/book/${h.book_id}`)
-                    : undefined
-            }
-          >
+          <Row key={i} onClick={pageFor(h) ? () => navigate(pageFor(h) ?? "") : undefined}>
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium">{h.title}</div>
               <div className="mt-0.5 flex flex-wrap items-center gap-1 text-xs">

@@ -13,6 +13,9 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
+const navigate = vi.fn();
+vi.mock("react-router-dom", () => ({ useNavigate: () => navigate }));
+
 const hooks = vi.hoisted(() => ({ queue: { data: undefined as unknown } }));
 vi.mock("../../hooks/queries", () => ({ useQueue: () => hooks.queue }));
 vi.mock("../ImportSheet", () => ({
@@ -91,6 +94,19 @@ describe("needs attention", () => {
     render(<NeedsAttention configured={ARRS} />);
     fireEvent.click(screen.getByText("dl.fix"));
     expect(screen.getByText("import-sheet:readarr:8")).toBeTruthy();
+  });
+
+  it("opens the album a stuck Lidarr download belongs to", () => {
+    hooks.queue = {
+      data: {
+        lidarr: healthy([
+          item({ app: "lidarr", id: 12, title: "BoC — Geogaddi", album_id: 1 }),
+        ]),
+      },
+    };
+    render(<NeedsAttention configured={ARRS} />);
+    fireEvent.click(screen.getByText("BoC — Geogaddi"));
+    expect(navigate).toHaveBeenCalledWith("/album/1");
   });
 
   it("offers Fix for a stuck album too", () => {

@@ -15,7 +15,9 @@ export function Logs() {
   const { t } = useTranslation();
   const { data: services } = useServices();
   const available = (services ?? [])
-    .filter((s) => s.configured && ["radarr", "sonarr", "prowlarr"].includes(s.service))
+    .filter(
+      (s) => s.configured && ["radarr", "sonarr", "lidarr", "prowlarr"].includes(s.service),
+    )
     .map((s) => s.service);
   const [app, setApp] = useState(available[0] ?? "radarr");
   const [level, setLevel] = useState("");

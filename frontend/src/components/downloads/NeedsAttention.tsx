@@ -3,11 +3,14 @@
 // queue, and nowhere at all while there is nothing to fix.
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { cn, focusRing } from "@/lib/utils";
 import { SERVICE_LABELS } from "../../api/format";
 import type { QueueItem } from "../../api/types";
 import { Card, Row, SectionTitle, StateBadge } from "../../components/Blocks";
 import { useQueue } from "../../hooks/queries";
+import { pageFor } from "../../lib/routes";
 import { ImportSheet } from "../ImportSheet";
 
 const APPS = ["radarr", "sonarr", "readarr", "lidarr"] as const;
@@ -29,6 +32,7 @@ export function NeedsAttention({
   focus?: boolean;
 }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data } = useQueue();
   const [importing, setImporting] = useState<{ app: string; id: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -54,7 +58,21 @@ export function NeedsAttention({
         {items.map((q) => (
           <Row key={`${q.app}-${q.id}`}>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-medium">{q.title}</div>
+              {pageFor(q) ? (
+                // the title opens its page: the movie, the show, the book, the album
+                <button
+                  type="button"
+                  onClick={() => navigate(pageFor(q) ?? "")}
+                  className={cn(
+                    focusRing,
+                    "block max-w-full truncate text-left text-sm font-medium active:opacity-60",
+                  )}
+                >
+                  {q.title}
+                </button>
+              ) : (
+                <div className="truncate text-sm font-medium">{q.title}</div>
+              )}
               <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <StateBadge state={q.app} />
                 <StateBadge state={q.tracked_status === "error" ? "error" : "warning"} />
