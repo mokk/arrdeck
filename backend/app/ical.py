@@ -1,4 +1,4 @@
-"""One calendar subscription for Radarr, Sonarr and Readarr together.
+"""One calendar subscription for Radarr, Sonarr, Readarr and Lidarr together.
 
 Calendar apps (Apple Calendar, Google Calendar, Outlook) poll a URL and
 cannot sign in, so the feed lives outside /api under a secret token in its
@@ -22,7 +22,7 @@ router = APIRouter(include_in_schema=False)
 log = logging.getLogger("arrdeck.ical")
 
 TOKEN_KEY = "ical.token"
-APPS = ("radarr", "sonarr", "readarr")
+APPS = ("radarr", "sonarr", "readarr", "lidarr")
 PAST_DAYS = 14
 FUTURE_DAYS = 90
 FEED_TTL = 900  # calendar apps poll every 15 minutes to a day

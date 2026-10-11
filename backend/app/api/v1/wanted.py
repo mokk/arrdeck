@@ -2,10 +2,11 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from ...clients.lidarr import LidarrClient
 from ...clients.radarr import RadarrClient
 from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_radarr, get_readarr, get_sonarr
+from ...deps import get_lidarr, get_radarr, get_readarr, get_sonarr
 from ...schemas import (
     WantedItemOut,
     WantedPageOut,
@@ -25,6 +26,7 @@ async def wanted(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> WantedPageOut:
     if kind not in ("missing", "cutoff"):
         raise HTTPException(422, "kind must be missing or cutoff")
@@ -78,6 +80,23 @@ async def wanted(
             )
             for b in payload.get("records", [])
         ]
+    elif app == "lidarr":
+        from .music import music_cover
+
+        payload = await lidarr.wanted(kind, page, WANTED_PAGE_SIZE)
+        items = [
+            WantedItemOut(
+                app="lidarr",
+                id=a["id"],
+                library_id=a["id"],
+                title=a.get("title", ""),
+                subtitle=(a.get("artist") or {}).get("artistName"),
+                air_date=a.get("releaseDate"),
+                poster=music_cover(a.get("images")),
+                last_search=a.get("lastSearchTime"),
+            )
+            for a in payload.get("records", [])
+        ]
     else:
         raise HTTPException(404, f"unknown app {app!r}")
     total = payload.get("totalRecords", 0)
@@ -91,6 +110,7 @@ async def wanted_search_all(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> None:
     commands = {
         ("radarr", "missing"): {"name": "MissingMoviesSearch"},
@@ -99,9 +119,11 @@ async def wanted_search_all(
         ("sonarr", "cutoff"): {"name": "CutoffUnmetEpisodeSearch"},
         ("readarr", "missing"): {"name": "MissingBookSearch"},
         ("readarr", "cutoff"): {"name": "CutoffUnmetBookSearch"},
+        ("lidarr", "missing"): {"name": "MissingAlbumSearch"},
+        ("lidarr", "cutoff"): {"name": "CutoffUnmetAlbumSearch"},
     }
     command = commands.get((app, kind))
     if command is None:
         raise HTTPException(404, "unknown app/kind")
-    client = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}[app]
+    client = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr, "lidarr": lidarr}[app]
     await client.command(command)

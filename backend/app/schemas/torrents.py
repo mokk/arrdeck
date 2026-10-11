@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .common import ServiceBlock
 
@@ -44,7 +44,7 @@ class QueueStatusMessageOut(BaseModel):
 
 
 class QueueItemOut(BaseModel):
-    app: Literal["radarr", "sonarr", "readarr"]
+    app: Literal["radarr", "sonarr", "readarr", "lidarr"]
     id: int
     title: str
     status: str
@@ -89,6 +89,11 @@ class QueueResponse(BaseModel):
     radarr: ServiceBlock[list[QueueItemOut]]
     sonarr: ServiceBlock[list[QueueItemOut]]
     readarr: ServiceBlock[list[QueueItemOut]] | None = None
+    # Left out altogether, not null, until Lidarr is configured: a stack
+    # without it answers exactly as it did before Lidarr was supported.
+    lidarr: ServiceBlock[list[QueueItemOut]] | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
 
 
 class TorrentsResponse(BaseModel):
@@ -191,7 +196,8 @@ class ImportChoiceOut(BaseModel):
 
 class ImportOptionsOut(BaseModel):
     qualities: list[ImportChoiceOut] = []  # the arr's own order, worst to best
-    languages: list[ImportChoiceOut] = []  # empty for Readarr, which has none per file
+    # empty for Readarr and Lidarr, which have none per file
+    languages: list[ImportChoiceOut] = []
 
 
 class ManualImportIn(BaseModel):
@@ -207,6 +213,8 @@ class ManualImportFileIn(BaseModel):
     series_id: int | None = None
     episode_ids: list[int] = []
     book_id: int | None = None  # Readarr; the author and edition follow from it
+    # Lidarr; Lidarr itself matches the file to tracks on the album's release
+    album_id: int | None = None
     # overrides of the arr's detection, as ids from /manual-import/{app}/options;
     # None / empty keeps what the arr detected
     quality_id: int | None = None
@@ -222,7 +230,7 @@ class ManualImportAssignIn(BaseModel):
 class ImportCommandOut(BaseModel):
     """The arr's ManualImport command, as started or as it stands now."""
 
-    app: Literal["radarr", "sonarr", "readarr"]
+    app: Literal["radarr", "sonarr", "readarr", "lidarr"]
     id: int
     # the arr's own: queued | started | completed | failed | aborted | cancelled | orphaned
     status: str = "queued"

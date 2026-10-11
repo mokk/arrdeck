@@ -3,10 +3,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from ...cache import cache
+from ...clients.lidarr import LidarrClient
 from ...clients.radarr import RadarrClient
 from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_radarr, get_readarr, get_sonarr
+from ...deps import get_lidarr, get_radarr, get_readarr, get_sonarr
 from ...schemas import BulkDeleteIn, BulkEditIn
 
 router = APIRouter(tags=["library"])
@@ -19,6 +20,7 @@ async def trigger_search(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> None:
     if app == "radarr":
         await radarr.command({"name": "MoviesSearch", "movieIds": [item_id]})
@@ -26,6 +28,9 @@ async def trigger_search(
         await sonarr.command({"name": "SeriesSearch", "seriesId": item_id})
     elif app == "readarr":
         await readarr.command({"name": "BookSearch", "bookIds": [item_id]})
+    elif app == "lidarr":
+        # item_id is an album: what Wanted lists and the calendar opens
+        await lidarr.command({"name": "AlbumSearch", "albumIds": [item_id]})
     else:
         raise HTTPException(404, f"unknown app {app!r}")
 

@@ -1477,7 +1477,8 @@
             "enum": [
               "radarr",
               "sonarr",
-              "readarr"
+              "readarr",
+              "lidarr"
             ],
             "title": "App",
             "type": "string"
@@ -1567,6 +1568,16 @@
       },
       "CalendarResponse": {
         "properties": {
+          "lidarr": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ServiceBlock_list_CalendarItemOut__"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "radarr": {
             "$ref": "#/components/schemas/ServiceBlock_list_CalendarItemOut__"
           },
@@ -3134,7 +3145,8 @@
             "enum": [
               "radarr",
               "sonarr",
-              "readarr"
+              "readarr",
+              "lidarr"
             ],
             "title": "App",
             "type": "string"
@@ -3231,6 +3243,16 @@
       },
       "HistoryResponse": {
         "properties": {
+          "lidarr": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ServiceBlock_list_HistoryItemOut__"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "radarr": {
             "$ref": "#/components/schemas/ServiceBlock_list_HistoryItemOut__"
           },
@@ -3400,7 +3422,8 @@
             "enum": [
               "radarr",
               "sonarr",
-              "readarr"
+              "readarr",
+              "lidarr"
             ],
             "title": "App",
             "type": "string"
@@ -3710,6 +3733,162 @@
           "name"
         ],
         "title": "LanguageProfileOut",
+        "type": "object"
+      },
+      "LibraryAlbumOut": {
+        "description": "One of a Lidarr artist's albums (EPs and singles too).",
+        "properties": {
+          "album_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Album Type"
+          },
+          "artist": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artist"
+          },
+          "artist_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artist Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "monitored": {
+            "default": false,
+            "title": "Monitored",
+            "type": "boolean"
+          },
+          "poster": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Poster"
+          },
+          "release_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Release Date"
+          },
+          "title": {
+            "default": "",
+            "title": "Title",
+            "type": "string"
+          },
+          "track_count": {
+            "default": 0,
+            "title": "Track Count",
+            "type": "integer"
+          },
+          "track_file_count": {
+            "default": 0,
+            "title": "Track File Count",
+            "type": "integer"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "LibraryAlbumOut",
+        "type": "object"
+      },
+      "LibraryArtistOut": {
+        "description": "A Lidarr artist, as much as picking one needs.",
+        "properties": {
+          "album_count": {
+            "default": 0,
+            "title": "Album Count",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "monitored": {
+            "default": false,
+            "title": "Monitored",
+            "type": "boolean"
+          },
+          "name": {
+            "default": "",
+            "title": "Name",
+            "type": "string"
+          },
+          "poster": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Poster"
+          },
+          "sort_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sort Name"
+          },
+          "track_file_count": {
+            "default": 0,
+            "title": "Track File Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "LibraryArtistOut",
         "type": "object"
       },
       "LibraryBookOut": {
@@ -4378,6 +4557,17 @@
       },
       "ManualImportFileIn": {
         "properties": {
+          "album_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Album Id"
+          },
           "book_id": {
             "anyOf": [
               {
@@ -5938,7 +6128,8 @@
             "enum": [
               "radarr",
               "sonarr",
-              "readarr"
+              "readarr",
+              "lidarr"
             ],
             "title": "App",
             "type": "string"
@@ -6097,6 +6288,16 @@
       },
       "QueueResponse": {
         "properties": {
+          "lidarr": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ServiceBlock_list_QueueItemOut__"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "radarr": {
             "$ref": "#/components/schemas/ServiceBlock_list_QueueItemOut__"
           },
@@ -8438,6 +8639,7 @@
               "radarr",
               "sonarr",
               "readarr",
+              "lidarr",
               "prowlarr",
               "qbittorrent",
               "transmission",
@@ -9754,7 +9956,8 @@
             "enum": [
               "radarr",
               "sonarr",
-              "readarr"
+              "readarr",
+              "lidarr"
             ],
             "title": "App",
             "type": "string"
@@ -12333,6 +12536,79 @@
         "summary": "Test Indexer",
         "tags": [
           "indexers"
+        ]
+      }
+    },
+    "/api/v1/library/artists": {
+      "get": {
+        "description": "Every artist Lidarr tracks, by its own sort name.",
+        "operationId": "library_artists_api_v1_library_artists_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LibraryArtistOut"
+                  },
+                  "title": "Response Library Artists Api V1 Library Artists Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Library Artists",
+        "tags": [
+          "music"
+        ]
+      }
+    },
+    "/api/v1/library/artists/{artist_id}/albums": {
+      "get": {
+        "description": "One artist's albums, newest first.",
+        "operationId": "artist_albums_api_v1_library_artists__artist_id__albums_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artist_id",
+            "required": true,
+            "schema": {
+              "title": "Artist Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LibraryAlbumOut"
+                  },
+                  "title": "Response Artist Albums Api V1 Library Artists  Artist Id  Albums Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Artist Albums",
+        "tags": [
+          "music"
         ]
       }
     },

@@ -2,10 +2,11 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from ...clients.lidarr import LidarrClient
 from ...clients.radarr import RadarrClient
 from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
-from ...deps import get_radarr, get_readarr, get_sonarr
+from ...deps import get_lidarr, get_radarr, get_readarr, get_sonarr
 
 router = APIRouter(tags=["queue"])
 
@@ -17,8 +18,9 @@ async def blocklist_retry(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> None:
-    clients = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}
+    clients = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr, "lidarr": lidarr}
     if app not in clients:
         raise HTTPException(404, f"unknown app {app!r}")
     client = clients[app]
@@ -37,6 +39,8 @@ async def blocklist_retry(
             await client.command({"name": "SeriesSearch", "seriesId": rec["seriesId"]})
     elif app == "readarr" and rec.get("bookId"):
         await client.command({"name": "BookSearch", "bookIds": [rec["bookId"]]})
+    elif app == "lidarr" and rec.get("albumId"):
+        await client.command({"name": "AlbumSearch", "albumIds": [rec["albumId"]]})
 
 
 @router.delete("/queue/{app}/{item_id}", status_code=204)
@@ -48,6 +52,7 @@ async def remove_queue_item(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> None:
     if app == "radarr":
         await radarr.delete_queue_item(item_id, remove_from_client, blocklist)
@@ -55,6 +60,8 @@ async def remove_queue_item(
         await sonarr.delete_queue_item(item_id, remove_from_client, blocklist)
     elif app == "readarr":
         await readarr.delete_queue_item(item_id, remove_from_client, blocklist)
+    elif app == "lidarr":
+        await lidarr.delete_queue_item(item_id, remove_from_client, blocklist)
     else:
         raise HTTPException(404, f"unknown app {app!r}")
 
@@ -66,10 +73,11 @@ async def grab_now(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> None:
     """Send a release a delay profile is holding to the download client now,
     rather than when the delay runs out."""
-    clients = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}
+    clients = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr, "lidarr": lidarr}
     if app not in clients:
         raise HTTPException(404, f"unknown app {app!r}")
     await clients[app].request("POST", f"/queue/grab/{item_id}")

@@ -2,6 +2,7 @@ from fastapi import Request
 
 from .clients.bazarr import BazarrClient
 from .clients.gluetun import GluetunClient
+from .clients.lidarr import LidarrClient
 from .clients.overseerr import OverseerrClient
 from .clients.plex import PlexClient
 from .clients.prometheus import PrometheusClient
@@ -26,6 +27,10 @@ def get_sonarr(request: Request) -> SonarrClient:
 
 def get_readarr(request: Request) -> ReadarrClient:
     return request.app.state.registry.get("readarr")
+
+
+def get_lidarr(request: Request) -> LidarrClient:
+    return request.app.state.registry.get("lidarr")
 
 
 def get_prowlarr(request: Request) -> ProwlarrClient:

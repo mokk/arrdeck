@@ -105,7 +105,12 @@ async def handle_webhook(db: SettingsDB, app_name: str, payload: dict) -> bool:
 
 
 def describe_record(app_name: str, rec: dict) -> str:
-    """Human title for a history record: movie name + year, or series + SxxEyy."""
+    """Human title for a history record: movie name + year, series + SxxEyy,
+    or artist – album."""
+    if app_name == "lidarr":
+        album = (rec.get("album") or {}).get("title") or rec.get("sourceTitle") or ""
+        artist = (rec.get("artist") or {}).get("artistName")
+        return f"{artist} – {album}" if artist and album else album
     if app_name == "radarr":
         movie = rec.get("movie") or {}
         name = movie.get("title") or rec.get("sourceTitle") or ""
@@ -130,6 +135,16 @@ def history_event(app_name: str, rec: dict) -> Event | None:
     title = describe_record(app_name, rec)
     if not title:
         return None
+    if app_name == "lidarr":
+        # no album page yet: the history is where it can be read
+        return Event(
+            key=key,
+            app=app_name,
+            title=title,
+            url="/activity?tab=history",
+            group=f"lidarr:{key}:{rec.get('albumId')}",
+            tags=(rec.get("artist") or {}).get("tags") or [],
+        )
     if app_name == "radarr":
         movie_id = rec.get("movieId")
         return Event(
@@ -158,7 +173,7 @@ async def check_events(db: SettingsDB, registry: Registry) -> None:
         return
     last_seen = db.kv_get("push_last_seen") or ""
     newest = last_seen
-    for app_name in ("radarr", "sonarr"):
+    for app_name in ("radarr", "sonarr", "lidarr"):
         if not registry.is_configured(app_name):
             continue
         try:

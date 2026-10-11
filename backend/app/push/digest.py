@@ -26,8 +26,12 @@ IMPORTED = {
     "radarr": "downloadFolderImported",
     "sonarr": "downloadFolderImported",
     "readarr": "bookFileImported",
+    "lidarr": "trackFileImported",
 }
 APPS = ("radarr", "sonarr", "readarr")
+# Counted only when configured, so a digest from a stack without Lidarr
+# carries exactly the parameters it always has.
+OPTIONAL_APPS = ("lidarr",)
 HEADLINE_TITLES = 3
 
 
@@ -57,18 +61,26 @@ def due_slot(rules: dict, now: datetime, last_sent: float) -> datetime | None:
     return slot
 
 
+def _imported(app: str, records: list) -> int:
+    imported = [r for r in records if r.get("eventType") == IMPORTED[app]]
+    if app == "lidarr":
+        # Lidarr records each track; the digest counts albums
+        return len({r.get("albumId") for r in imported})
+    return len(imported)
+
+
+def _apps(history: dict, upcoming: dict) -> list[str]:
+    return [*APPS, *(a for a in OPTIONAL_APPS if a in history or a in upcoming)]
+
+
 def summarise(history: dict[str, list], upcoming: dict[str, list]) -> dict:
     """Counts per app, and the first few titles coming up for the heading."""
-    params = {
-        f"{app}_imported": sum(
-            1 for r in history.get(app, []) if r.get("eventType") == IMPORTED[app]
-        )
-        for app in APPS
-    }
-    for app in APPS:
+    apps = _apps(history, upcoming)
+    params = {f"{app}_imported": _imported(app, history.get(app, [])) for app in apps}
+    for app in apps:
         params[f"{app}_upcoming"] = len(upcoming.get(app, []))
     titles: list[str] = []
-    for app in ("sonarr", "radarr", "readarr"):
+    for app in ("sonarr", "radarr", "readarr", "lidarr"):
         for item in upcoming.get(app, []):
             title = (item.get("series") or {}).get("title") or item.get("title") or ""
             if title and title not in titles:
@@ -82,9 +94,10 @@ def _counts(params: dict, suffix: str) -> str:
         "radarr": ("movie", "movies"),
         "sonarr": ("episode", "episodes"),
         "readarr": ("book", "books"),
+        "lidarr": ("album", "albums"),
     }
     parts = []
-    for app in APPS:
+    for app in (*APPS, *OPTIONAL_APPS):
         n = params.get(f"{app}_{suffix}", 0)
         if n:
             parts.append(f"{n} {nouns[app][0] if n == 1 else nouns[app][1]}")
@@ -99,7 +112,7 @@ def digest_note(params: dict) -> Notification | None:
     body = " · ".join(
         p for p in (arrived and f"{arrived} downloaded", coming and f"{coming} coming up") if p
     )
-    total = sum(params.get(f"{app}_imported", 0) for app in APPS)
+    total = sum(params.get(f"{app}_imported", 0) for app in (*APPS, *OPTIONAL_APPS))
     heading = ", ".join(params.get("titles") or [])
     return Notification(
         code="digest",
@@ -130,7 +143,8 @@ async def gather(registry: Registry, now: datetime) -> dict:
             return [], []
         return history or [], upcoming or []
 
-    results = dict(zip(APPS, await asyncio.gather(*(one(a) for a in APPS)), strict=True))
+    apps = [*APPS, *(a for a in OPTIONAL_APPS if registry.is_configured(a))]
+    results = dict(zip(apps, await asyncio.gather(*(one(a) for a in apps)), strict=True))
     return summarise({a: r[0] for a, r in results.items()}, {a: r[1] for a, r in results.items()})
 
 

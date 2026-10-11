@@ -287,7 +287,7 @@ def test_an_unknown_app_has_no_commands():
     with pytest.raises(HTTPException) as exc:
         from app.api.v1.importing import manual_import_command
 
-        asyncio.run(manual_import_command("lidarr", 1, None, None))
+        asyncio.run(manual_import_command("mylar", 1, None, None))
     assert exc.value.status_code == 404
 
 

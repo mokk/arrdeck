@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from ... import webhooks
 from ...api.v1.auth import is_request_allowed
 from ...cache import cache
-from ...db import LISTED_SERVICES, SERVICES
+from ...db import LISTED_SERVICES, SERVICES, listed
 from ...push import (
     EVENT_LABELS,
     WEBHOOK_SEEN_KEY,
@@ -58,7 +58,7 @@ def _check_name(name: str) -> None:
 
 # The apps a title can be opened in. Their address is the one arrdeck talks to,
 # which on a home network is the one a phone can open too.
-WEB_UI_SERVICES = ("radarr", "sonarr", "readarr")
+WEB_UI_SERVICES = ("radarr", "sonarr", "readarr", "lidarr")
 
 
 @router.get("/services", response_model=list[ServiceInfoOut])
@@ -74,6 +74,7 @@ def services(request: Request) -> list[dict]:
             else None,
         }
         for n in LISTED_SERVICES
+        if listed(n, registry.is_configured(n))
     ]
 
 

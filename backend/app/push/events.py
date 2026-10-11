@@ -74,16 +74,19 @@ HISTORY_EVENTS = {
     "grabbed": "grabbed",
     "downloadFolderImported": "imported",
     "downloadFailed": "failed",
+    # Lidarr: the download as a whole, not one of its many trackFileImported
+    "downloadImported": "imported",
 }
 
 
 HISTORY_PARAMS = {
     "radarr": {"includeMovie": True},
     "sonarr": {"includeSeries": True, "includeEpisode": True},
+    "lidarr": {"includeArtist": True, "includeAlbum": True},
 }
 
 
-NOUNS = {"radarr": "movies", "sonarr": "episodes"}
+NOUNS = {"radarr": "movies", "sonarr": "episodes", "lidarr": "albums"}
 
 
 # A stuck import is fixed from the Needs attention list, not from the title's
@@ -96,7 +99,7 @@ class Event:
     """One thing worth telling the user about."""
 
     key: str  # entry in EVENT_LABELS, or "test"
-    app: str  # "radarr" | "sonarr"
+    app: str  # "radarr" | "sonarr" | "lidarr"
     title: str  # "The Bear S03E04 – Violet"
     url: str = "/"  # in-app route opened when the notification is tapped
     group: str = ""  # events sharing this are merged into one notification

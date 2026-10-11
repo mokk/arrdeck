@@ -16,7 +16,7 @@ from ...clients.prometheus import PrometheusClient
 from ...clients.qbittorrent import QbittorrentClient
 from ...clients.radarr import RadarrClient
 from ...clients.sonarr import SonarrClient
-from ...db import INFRASTRUCTURE, SERVICES
+from ...db import LISTED_WHEN_CONFIGURED, SERVICES, listed
 from ...deps import (
     get_gluetun,
     get_prometheus,
@@ -40,7 +40,7 @@ logger = logging.getLogger("arrdeck.system")
 
 
 # Only the arrs publish a release feed with installed/latest flags.
-UPDATE_APPS = ("radarr", "sonarr", "readarr", "prowlarr")
+UPDATE_APPS = ("radarr", "sonarr", "readarr", "lidarr", "prowlarr")
 # Checked once an hour, not once per poll: the arrs run their own
 # ApplicationCheckUpdate task every six hours, so anything finer is wasted.
 UPDATE_TTL = 3600
@@ -71,7 +71,7 @@ async def _pending_update(name: str, client) -> str | None:
 async def status(request: Request) -> list[ServiceStatus]:
     registry = request.app.state.registry
     watch = getattr(request.app.state, "watch", None)
-    names = [n for n in registry.configured() if n not in INFRASTRUCTURE]
+    names = [n for n in registry.configured() if listed(n, True)]
 
     def down_since(name: str) -> datetime | None:
         since = watch.down_since(name) if watch else None
@@ -151,7 +151,13 @@ async def restartable(request: Request) -> dict:
         projects.append(
             {
                 "name": name,
-                "service": name if name in SERVICES else None,
+                # a project named after a service that is not listed until it is
+                # configured is just a project until then: an iOS build may not
+                # know the name
+                "service": name
+                if name in SERVICES
+                and (name not in LISTED_WHEN_CONFIGURED or registry.is_configured(name))
+                else None,
                 "running": bool(row.get("running")),
                 "containers": len(containers),
                 "running_containers": sum(1 for c in containers if c.get("state") == "running"),

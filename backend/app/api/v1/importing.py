@@ -7,12 +7,20 @@ import re
 from fastapi import APIRouter, Depends, HTTPException
 
 from ...cache import cached
+from ...clients.lidarr import LidarrClient
 from ...clients.qbittorrent import QbittorrentClient
 from ...clients.radarr import RadarrClient
 from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
 from ...clients.transmission import TransmissionClient
-from ...deps import get_qbit, get_radarr, get_readarr, get_sonarr, get_transmission
+from ...deps import (
+    get_lidarr,
+    get_qbit,
+    get_radarr,
+    get_readarr,
+    get_sonarr,
+    get_transmission,
+)
 from ...schemas import (
     ImportCandidateOut,
     ImportCommandOut,
@@ -31,6 +39,7 @@ LABELS = {
     "radarr": "Radarr",
     "sonarr": "Sonarr",
     "readarr": "Readarr",
+    "lidarr": "Lidarr",
     "qbittorrent": "qBittorrent",
     "transmission": "Transmission",
 }
@@ -80,10 +89,29 @@ def _own_target(app: str, candidate: dict) -> dict:
         if author_id and book_id and edition:
             return {"authorId": author_id, "bookId": book_id, "foreignEditionId": edition}
         return {}
+    if app == "lidarr":
+        return _album_target(candidate)
     series_id = (candidate.get("series") or {}).get("id")
     episode_ids = [e["id"] for e in candidate.get("episodes") or [] if e.get("id")]
     if series_id and episode_ids:
         return {"seriesId": series_id, "episodeIds": episode_ids}
+    return {}
+
+
+def _album_target(candidate: dict) -> dict:
+    """Lidarr places a file on a track (or tracks) of one release of an
+    album; all four are needed, or it is not placed."""
+    artist_id = (candidate.get("artist") or {}).get("id")
+    album_id = (candidate.get("album") or {}).get("id")
+    release_id = candidate.get("albumReleaseId")
+    track_ids = [t["id"] for t in candidate.get("tracks") or [] if t.get("id")]
+    if artist_id and album_id and release_id and track_ids:
+        return {
+            "artistId": artist_id,
+            "albumId": album_id,
+            "albumReleaseId": release_id,
+            "trackIds": track_ids,
+        }
     return {}
 
 
@@ -97,6 +125,16 @@ def _file_payload(
             "path": candidate["path"],
             "quality": quality,
             "indexerFlags": candidate.get("indexerFlags") or 0,
+            **_tracked(download_id),
+        }
+    if app == "lidarr":
+        # Lidarr's ManualImportFile: no languages or release group either, and
+        # whether it may move the album to the release the files fit better
+        return {
+            "path": candidate["path"],
+            "quality": quality,
+            "indexerFlags": candidate.get("indexerFlags") or 0,
+            "disableReleaseSwitching": bool(candidate.get("disableReleaseSwitching")),
             **_tracked(download_id),
         }
     return {
@@ -126,8 +164,10 @@ def _tracked(download_id: str | None) -> dict:
     return {"downloadId": download_id} if download_id else {}
 
 
-def _client(app: str, radarr, sonarr, readarr):
+def _client(app: str, radarr, sonarr, readarr, lidarr=None):
     clients = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}
+    if lidarr is not None:
+        clients["lidarr"] = lidarr
     if app not in clients:
         raise HTTPException(404, f"unknown app {app!r}")
     return clients[app]
@@ -150,6 +190,9 @@ def _describe_candidate(app: str, candidate: dict) -> dict:
         book = candidate.get("book") or {}
         title = book.get("title", "")
         subtitle = (candidate.get("author") or {}).get("authorName")
+    elif app == "lidarr":
+        title = (candidate.get("album") or {}).get("title", "")
+        subtitle = _track_label(candidate)
     else:
         series = candidate.get("series") or {}
         episodes = candidate.get("episodes") or []
@@ -180,6 +223,29 @@ def _describe_candidate(app: str, candidate: dict) -> dict:
     }
 
 
+def _describe_all(app: str, candidates: list[dict]) -> list[dict]:
+    described = [_describe_candidate(app, c) for c in candidates]
+    if app == "lidarr":
+        # an album arrives as a dozen files in no particular order; by path
+        # they read in track order, the way they are usually named
+        described.sort(key=lambda c: c["path"])
+    return described
+
+
+def _track_label(candidate: dict) -> str | None:
+    """ "Artist · 3. Track title", "+N" when a file holds several tracks."""
+    artist = (candidate.get("artist") or {}).get("artistName")
+    tracks = candidate.get("tracks") or []
+    track = None
+    if tracks:
+        first = tracks[0]
+        number = first.get("trackNumber") or first.get("absoluteTrackNumber")
+        track = f"{number}. {first.get('title', '')}" if number else first.get("title")
+        if len(tracks) > 1:
+            track += f" +{len(tracks) - 1}"
+    return " · ".join(p for p in (artist, track) if p) or None
+
+
 async def _import_options(app: str, client) -> dict:
     """The qualities and languages a file can be imported as, keyed by id.
     Languages with negative ids ("Any", "Original") are profile wildcards,
@@ -187,8 +253,8 @@ async def _import_options(app: str, client) -> dict:
 
     async def fetch() -> dict:
         definitions = await client.quality_definitions()
-        # Readarr's files carry no language, so there is nothing to offer
-        languages = [] if app == "readarr" else await client.languages()
+        # Readarr's and Lidarr's files carry no language: nothing to offer
+        languages = [] if app in ("readarr", "lidarr") else await client.languages()
         return {
             "qualities": {
                 d["quality"]["id"]: d["quality"] for d in definitions if d.get("quality")
@@ -230,7 +296,13 @@ def _languages(candidate: dict, choice: ManualImportFileIn, options: dict | None
 
 async def _target(app: str, client, candidate: dict, choice: ManualImportFileIn) -> dict:
     """The user's pick when there is one, else the arr's own match."""
-    picked = choice.movie_id or choice.series_id or choice.episode_ids or choice.book_id
+    picked = (
+        choice.movie_id
+        or choice.series_id
+        or choice.episode_ids
+        or choice.book_id
+        or choice.album_id
+    )
     own = {} if picked else _own_target(app, candidate)
     if app == "radarr":
         movie_id = choice.movie_id or own.get("movieId")
@@ -242,6 +314,11 @@ async def _target(app: str, client, candidate: dict, choice: ManualImportFileIn)
             return await _book_target(client, choice.book_id)
         if not own:
             raise HTTPException(422, "a book must be chosen for each file")
+        return own
+    if app == "lidarr":
+        # a picked album was matched to tracks by _album_picks beforehand
+        if not own:
+            raise HTTPException(422, "an album must be chosen for each file")
         return own
     series_id = choice.series_id or own.get("seriesId")
     episode_ids = choice.episode_ids or own.get("episodeIds")
@@ -277,11 +354,18 @@ async def _build_files(
     by_path = {c.get("path"): c for c in candidates}
     overriding = any(c.quality_id is not None or c.language_ids for c in choices)
     options = await _import_options(app, client) if overriding else None
+    for choice in choices:
+        if choice.path not in by_path:
+            raise HTTPException(404, f"no candidate for {choice.path!r}")
+    if app == "lidarr":
+        by_path.update(await _album_picks(client, by_path, choices, download_id))
     files = []
     for choice in choices:
-        candidate = by_path.get(choice.path)
-        if candidate is None:
-            raise HTTPException(404, f"no candidate for {choice.path!r}")
+        candidate = by_path[choice.path]
+        if app == "lidarr" and choice.album_id:
+            # the matched candidate now carries the picked album; _target
+            # must take it as the file's own match
+            choice = choice.model_copy(update={"album_id": None})
         quality = _quality(candidate, choice, options)
         languages = _languages(candidate, choice, options)
         files.append(
@@ -295,16 +379,81 @@ async def _build_files(
     return files
 
 
+async def _album_picks(
+    client, by_path: dict, choices: list[ManualImportFileIn], download_id: str | None
+) -> dict[str, dict]:
+    """Files pointed at an album by hand, matched to its tracks by Lidarr.
+
+    Lidarr imports a file onto tracks of one release, which a person picking
+    "this album" should not have to work out. Its own import screen asks
+    Lidarr to re-match the files against the album instead, and so does
+    this: every file picked for the same album goes in one request, since
+    Lidarr shares the album's tracks out across the set. The album's
+    monitored release is the starting point; Lidarr may settle on another
+    release of the same album that the files fit better."""
+    picks: dict[int, list[ManualImportFileIn]] = {}
+    for choice in choices:
+        if choice.album_id:
+            picks.setdefault(choice.album_id, []).append(choice)
+    matched: dict[str, dict] = {}
+    for album_id, chosen in picks.items():
+        album = await client.get_album(album_id)
+        releases = album.get("releases") or []
+        release = next((r for r in releases if r.get("monitored")), None) or (
+            releases[0] if releases else None
+        )
+        if not album.get("artistId") or release is None:
+            raise HTTPException(409, "Lidarr has no release for that album")
+        items = []
+        for choice in chosen:
+            candidate = by_path[choice.path]
+            item = {
+                "path": choice.path,
+                "artistId": album["artistId"],
+                "albumId": album_id,
+                "albumReleaseId": release["id"],
+                "quality": candidate.get("quality"),
+                "indexerFlags": candidate.get("indexerFlags") or 0,
+                "disableReleaseSwitching": False,
+                **_tracked(download_id),
+            }
+            if candidate.get("id") is not None:
+                item["id"] = candidate["id"]
+            items.append(item)
+        for result in await client.manual_import_reprocess(items):
+            path = result.get("path")
+            if path not in by_path:
+                continue
+            if not _album_target(result):
+                raise HTTPException(
+                    409,
+                    f"Lidarr could not match {path!r} to a track on {album.get('title') or 'that album'}",
+                )
+            # keep what the first scan knew (quality, flags) under the new match
+            matched[path] = {
+                **by_path[path],
+                "artist": result.get("artist") or {"id": album["artistId"]},
+                "album": result.get("album") or {"id": album_id},
+                "albumReleaseId": result.get("albumReleaseId"),
+                "tracks": result.get("tracks") or [],
+            }
+    missing = [c.path for cs in picks.values() for c in cs if c.path not in matched]
+    if missing:
+        raise HTTPException(409, f"Lidarr did not match {missing[0]!r} to that album")
+    return matched
+
+
 @router.get("/manual-import/{app}/options", response_model=ImportOptionsOut)
 async def manual_import_options(
     app: str,
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> dict:
     """What a file's quality and languages can be set to in an import. Declared
     before /manual-import/{app}/{item_id}, which would otherwise claim it."""
-    options = await _import_options(app, _client(app, radarr, sonarr, readarr))
+    options = await _import_options(app, _client(app, radarr, sonarr, readarr, lidarr))
     return {
         "qualities": [
             {"id": i, "name": q.get("name", "")} for i, q in options["qualities"].items()
@@ -320,12 +469,13 @@ async def manual_import_candidates(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> list[dict]:
     """Everything the arr found in a stuck download's folder, including the
     files force-import skips, with the reasons it balked."""
-    client = _client(app, radarr, sonarr, readarr)
+    client = _client(app, radarr, sonarr, readarr, lidarr)
     candidates = await client.manual_import(await _queue_download_id(client, item_id))
-    return [_describe_candidate(app, c) for c in candidates]
+    return _describe_all(app, candidates)
 
 
 @router.post("/manual-import/{app}", response_model=ImportCommandOut)
@@ -335,8 +485,9 @@ async def manual_import_run(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> dict:
-    client = _client(app, radarr, sonarr, readarr)
+    client = _client(app, radarr, sonarr, readarr, lidarr)
     download_id = await _queue_download_id(client, body.item_id)
     candidates = await client.manual_import(download_id)
     wanted = set(body.paths)
@@ -360,6 +511,7 @@ async def manual_import_assign(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> dict:
     """Import files against targets the user picked, for the ones the arr
     couldn't place itself; a file sent without a target keeps the arr's own
@@ -367,7 +519,7 @@ async def manual_import_assign(
     language still come from the arr's own detection — it parses those from
     the filename even when the title is a mystery, and guessing them here
     would be worse than reusing its answer."""
-    client = _client(app, radarr, sonarr, readarr)
+    client = _client(app, radarr, sonarr, readarr, lidarr)
     download_id = await _queue_download_id(client, body.item_id)
     candidates = await client.manual_import(download_id)
     files = await _build_files(app, client, candidates, body.files, download_id)
@@ -384,10 +536,11 @@ async def manual_import_command(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> dict:
     """How an import the arr accepted went. Poll until `done`; `message` is
     the arr's own words, success or failure."""
-    client = _client(app, radarr, sonarr, readarr)
+    client = _client(app, radarr, sonarr, readarr, lidarr)
     return command_out(app, await client.get_command(command_id))
 
 
@@ -504,16 +657,17 @@ async def torrent_import_candidates(
     readarr: ReadarrClient = Depends(get_readarr),
     qbit: QbittorrentClient = Depends(get_qbit),
     transmission: TransmissionClient = Depends(get_transmission),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> list[dict]:
     """What the arr makes of a finished torrent's folder, in the same shape as
     a queue item's candidates."""
-    client = _client(app, radarr, sonarr, readarr)
+    client = _client(app, radarr, sonarr, readarr, lidarr)
     if client_name not in ("qbittorrent", "transmission"):
         raise HTTPException(404, f"unknown torrent client {client_name!r}")
     content = await _torrent_content(client_name, torrent_id, qbit, transmission)
-    arrs = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}
+    arrs = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr, "lidarr": lidarr}
     candidates = await _torrent_candidates(app, client, client_name, content, arrs)
-    return [_describe_candidate(app, c) for c in candidates]
+    return _describe_all(app, candidates)
 
 
 @router.post("/manual-import/{app}/torrent", response_model=ImportCommandOut)
@@ -525,12 +679,13 @@ async def torrent_import(
     readarr: ReadarrClient = Depends(get_readarr),
     qbit: QbittorrentClient = Depends(get_qbit),
     transmission: TransmissionClient = Depends(get_transmission),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> dict:
     """Import picked files from a finished torrent's folder. The folder is
     worked out again here and every path must be one the arr found in it."""
-    client = _client(app, radarr, sonarr, readarr)
+    client = _client(app, radarr, sonarr, readarr, lidarr)
     content = await _torrent_content(body.client, body.torrent_id, qbit, transmission)
-    arrs = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}
+    arrs = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr, "lidarr": lidarr}
     candidates = await _torrent_candidates(app, client, body.client, content, arrs)
     files = await _build_files(app, client, candidates, body.files, None)
     # No tracked download here, and for the arr that turns auto into a move:
@@ -587,11 +742,12 @@ async def force_import(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ) -> None:
     """Rescue a stuck import: take the arr's manual-import candidates that
     already have a confident mapping and import them. Answers 204 with no body,
     as it always has: installed iOS builds treat anything else as a failure."""
-    client = _client(app, radarr, sonarr, readarr)
+    client = _client(app, radarr, sonarr, readarr, lidarr)
     payload = await client.queue()
     rec = next((r for r in payload.get("records", []) if r.get("id") == item_id), None)
     if rec is None or not rec.get("downloadId"):

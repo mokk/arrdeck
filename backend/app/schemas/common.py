@@ -10,6 +10,7 @@ ServiceName = Literal[
     "radarr",
     "sonarr",
     "readarr",
+    "lidarr",
     "prowlarr",
     "qbittorrent",
     "transmission",

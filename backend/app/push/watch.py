@@ -35,6 +35,7 @@ LABELS = {
     "radarr": "Radarr",
     "sonarr": "Sonarr",
     "readarr": "Readarr",
+    "lidarr": "Lidarr",
     "prowlarr": "Prowlarr",
     "qbittorrent": "qBittorrent",
     "transmission": "Transmission",

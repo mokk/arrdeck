@@ -3,20 +3,20 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .common import ServiceBlock
 from .system import HealthItemOut
 
 
 class CalendarItemOut(BaseModel):
-    app: Literal["radarr", "sonarr", "readarr"]
+    app: Literal["radarr", "sonarr", "readarr", "lidarr"]
     title: str
     date: str | None = None
     has_file: bool = False
     extra: str | None = None  # e.g. S01E02 episode title
     release_type: str | None = None  # cinema | digital | physical (movies)
-    # The library id to open: the movie, the episode's series, the book.
+    # The library id to open: the movie, the episode's series, the book, the album.
     item_id: int | None = None
     poster: str | None = None
     # Sonarr: "season", "series" or "midseason" when the episode ends one
@@ -31,7 +31,7 @@ class HistoryEventOut(BaseModel):
 class HistoryItemOut(BaseModel):
     """One release/torrent with every history event that happened to it."""
 
-    app: Literal["radarr", "sonarr", "readarr"]
+    app: Literal["radarr", "sonarr", "readarr", "lidarr"]
     title: str
     date: str  # most recent event date (sort key)
     quality: str | None = None
@@ -140,12 +140,19 @@ class CalendarResponse(BaseModel):
     sonarr: ServiceBlock[list[CalendarItemOut]]
     # Optional: older clients never asked, and a stack without Readarr has nothing to say.
     readarr: ServiceBlock[list[CalendarItemOut]] | None = None
+    # Left out altogether, not null, until Lidarr is configured.
+    lidarr: ServiceBlock[list[CalendarItemOut]] | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
 
 
 class HistoryResponse(BaseModel):
     radarr: ServiceBlock[list[HistoryItemOut]]
     sonarr: ServiceBlock[list[HistoryItemOut]]
     readarr: ServiceBlock[list[HistoryItemOut]] | None = None
+    lidarr: ServiceBlock[list[HistoryItemOut]] | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
 
 
 class IndexerStatOut(BaseModel):
@@ -215,7 +222,7 @@ class ActivityEventOut(BaseModel):
     """One thing that happened since the client last looked."""
 
     kind: Literal["imported", "failed", "fetched", "incomplete", "completed"]
-    app: str  # radarr | sonarr | readarr | qbittorrent | transmission
+    app: str  # radarr | sonarr | readarr | lidarr | qbittorrent | transmission
     title: str
     date: str  # ISO 8601, UTC
     movie_id: int | None = None
@@ -245,9 +252,10 @@ class RecentItemOut(BaseModel):
 
 
 class WantedItemOut(BaseModel):
-    app: Literal["radarr", "sonarr", "readarr"]
-    id: int  # movieId for radarr, episodeId for sonarr
-    library_id: int  # movieId / seriesId (for interactive search + navigation)
+    app: Literal["radarr", "sonarr", "readarr", "lidarr"]
+    id: int  # movieId for radarr, episodeId for sonarr, bookId, albumId
+    # movieId / seriesId / bookId / albumId (for interactive search + navigation)
+    library_id: int
     title: str
     subtitle: str | None = None
     air_date: str | None = None
@@ -527,3 +535,31 @@ class SeasonGridOut(BaseModel):
     monitored: bool = False
     status: str | None = None
     seasons: list[SeasonCellOut] = []
+
+
+class LibraryArtistOut(BaseModel):
+    """A Lidarr artist, as much as picking one needs."""
+
+    id: int
+    name: str = ""
+    sort_name: str | None = None
+    monitored: bool = False
+    album_count: int = 0
+    track_file_count: int = 0
+    poster: str | None = None
+
+
+class LibraryAlbumOut(BaseModel):
+    """One of a Lidarr artist's albums (EPs and singles too)."""
+
+    id: int
+    title: str = ""
+    artist_id: int | None = None
+    artist: str | None = None
+    year: int | None = None
+    release_date: str | None = None
+    album_type: str | None = None  # Lidarr's: Album, EP, Single, Broadcast, Other
+    monitored: bool = False
+    track_count: int = 0
+    track_file_count: int = 0
+    poster: str | None = None

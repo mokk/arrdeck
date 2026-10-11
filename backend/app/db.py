@@ -8,6 +8,7 @@ SERVICES = [
     "radarr",
     "sonarr",
     "readarr",
+    "lidarr",
     "prowlarr",
     "qbittorrent",
     "transmission",
@@ -25,6 +26,20 @@ SERVICES = [
 # never seen would fail the whole list.
 INFRASTRUCTURE = {"helper"}
 LISTED_SERVICES = [s for s in SERVICES if s not in INFRASTRUCTURE]
+# Added after iOS builds shipped that decode those names as a fixed set: they
+# are listed only once configured, so a stack without them answers exactly as
+# it did before they existed. Connections still offers them, since
+# /settings/services is keyed by name rather than a list of names.
+LISTED_WHEN_CONFIGURED = {"lidarr"}
+
+
+def listed(name: str, configured: bool) -> bool:
+    """Whether a service belongs in the lists the clients render."""
+    if name in INFRASTRUCTURE:
+        return False
+    return configured or name not in LISTED_WHEN_CONFIGURED
+
+
 EMPTY = {"url": "", "api_key": "", "username": "", "password": ""}
 
 

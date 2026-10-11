@@ -7,14 +7,22 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
+from ...clients.lidarr import LidarrClient
 from ...clients.qbittorrent import QbittorrentClient
 from ...clients.radarr import RadarrClient
 from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
 from ...clients.transmission import TransmissionClient
-from ...deps import get_qbit, get_radarr, get_readarr, get_sonarr, get_transmission
+from ...deps import (
+    get_lidarr,
+    get_qbit,
+    get_radarr,
+    get_readarr,
+    get_sonarr,
+    get_transmission,
+)
 from ...schemas import ActivityEventOut, ActivitySinceOut
-from .dashboard import EVENT_LABELS, _has
+from .dashboard import EVENT_LABELS, _has, album_title, history_key
 
 router = APIRouter(tags=["activity"])
 
@@ -32,6 +40,9 @@ def parse_since(value: str) -> datetime:
 
 def history_events(app: str, records: list[dict], since: datetime) -> list[dict]:
     out = []
+    # Lidarr records an import per track, plus one for the download as a
+    # whole: an album is one thing that happened, not a dozen
+    seen: set[tuple] = set()
     for rec in records:
         raw = rec.get("date") or ""
         try:
@@ -45,11 +56,16 @@ def history_events(app: str, records: list[dict], since: datetime) -> list[dict]
         kind = EVENT_LABELS.get(rec.get("eventType", ""), rec.get("eventType", ""))
         if kind not in NOTABLE:
             continue
+        if app == "lidarr":
+            key = (kind, history_key(app, rec))
+            if key in seen:
+                continue
+            seen.add(key)
         out.append(
             {
                 "kind": kind,
                 "app": app,
-                "title": rec.get("sourceTitle") or "",
+                "title": album_title(rec) if app == "lidarr" else rec.get("sourceTitle") or "",
                 "date": when.isoformat(),
                 "movie_id": rec.get("movieId"),
                 "series_id": rec.get("seriesId"),
@@ -86,6 +102,7 @@ async def activity_since(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
     qbit: QbittorrentClient = Depends(get_qbit),
     tm: TransmissionClient = Depends(get_transmission),
 ):
@@ -125,6 +142,7 @@ async def activity_since(
         arr("radarr", radarr),
         arr("sonarr", sonarr),
         arr("readarr", readarr),
+        arr("lidarr", lidarr),
         qbit_done(),
         tm_done(),
     ):

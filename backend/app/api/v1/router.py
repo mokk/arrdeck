@@ -19,6 +19,7 @@ from . import (
     indexers,
     library,
     movies,
+    music,
     opds_settings,
     people,
     plex,
@@ -65,6 +66,7 @@ router.include_router(requests.router)
 router.include_router(indexers.router)
 router.include_router(library.router)
 router.include_router(movies.router)
+router.include_router(music.router)
 router.include_router(series.router)
 router.include_router(credits.router)
 router.include_router(people.router)

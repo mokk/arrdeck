@@ -5,11 +5,13 @@ from datetime import date, timedelta
 from fastapi import APIRouter, Depends, Request
 
 from ...cache import cached, guarded
+from ...clients.lidarr import LidarrClient
 from ...clients.prowlarr import ProwlarrClient
 from ...clients.radarr import RadarrClient
 from ...clients.readarr import ReadarrClient
 from ...clients.sonarr import SonarrClient
 from ...deps import (
+    get_lidarr,
     get_prowlarr,
     get_radarr,
     get_readarr,
@@ -29,6 +31,7 @@ from ...schemas import (
     ServiceBlock,
 )
 from .discover import _poster
+from .music import music_cover
 
 router = APIRouter(tags=["dashboard"])
 
@@ -99,6 +102,11 @@ def _queue_items(app: str, payload: dict) -> list[QueueItemOut]:
             book = (rec.get("book") or {}).get("title") or title
             author = (rec.get("author") or {}).get("authorName")
             title = f"{author} — {book}" if author else book
+        if app == "lidarr" and (rec.get("album") or rec.get("artist")):
+            # likewise the album and artist rather than the release name
+            album = (rec.get("album") or {}).get("title") or title
+            artist = (rec.get("artist") or {}).get("artistName")
+            title = f"{artist} — {album}" if artist else album
         status_messages = rec.get("statusMessages") or []
         errors = [m.get("messages", [""])[0] for m in status_messages if m.get("messages")]
         items.append(
@@ -137,6 +145,7 @@ async def queue(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ):
     async def fetch(app: str, client) -> list[dict]:
         return [i.model_dump() for i in _queue_items(app, await client.queue())]
@@ -150,6 +159,9 @@ async def queue(
     # rather than a permanent "not configured" block.
     if _has(request, "readarr"):
         out["readarr"] = await guarded(fetch("readarr", readarr), "queue:readarr")
+    # Lidarr likewise, and its key is left out entirely rather than null
+    if _has(request, "lidarr"):
+        out["lidarr"] = await guarded(fetch("lidarr", lidarr), "queue:lidarr")
     return out
 
 
@@ -159,11 +171,12 @@ async def queue_attention(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ):
     """Every queue item, across the arrs, that is stuck until someone looks at
     it — each with the arr's own reasons. An arr that is down is named in
     `unavailable` rather than failing the list."""
-    every = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr}
+    every = {"radarr": radarr, "sonarr": sonarr, "readarr": readarr, "lidarr": lidarr}
     # an arr that was never set up is not "unavailable", it is simply absent
     clients = {app: c for app, c in every.items() if _has(request, app)}
 
@@ -203,6 +216,7 @@ async def calendar(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ):
     base = date.fromisoformat(start_date) if start_date else date.today()
     start = base.isoformat()
@@ -271,12 +285,32 @@ async def calendar(
             for b in items
         ]
 
+    async def fetch_lidarr() -> list[dict]:
+        async def call():
+            return await lidarr.calendar(start, end)
+
+        items = await cached(f"calendar:lidarr:{start}:{end}", 60, call)
+        return [
+            CalendarItemOut(
+                app="lidarr",
+                title=a.get("title", ""),
+                date=a.get("releaseDate"),
+                has_file=((a.get("statistics") or {}).get("trackFileCount") or 0) > 0,
+                extra=(a.get("artist") or {}).get("artistName"),
+                item_id=a.get("id"),
+                poster=music_cover(a.get("images")),
+            ).model_dump()
+            for a in items
+        ]
+
     r, s = await asyncio.gather(
         guarded(fetch_radarr(), "calendar:radarr"), guarded(fetch_sonarr(), "calendar:sonarr")
     )
     out = {"radarr": r, "sonarr": s}
     if _has(request, "readarr"):
         out["readarr"] = await guarded(fetch_readarr(), "calendar:readarr")
+    if _has(request, "lidarr"):
+        out["lidarr"] = await guarded(fetch_lidarr(), "calendar:lidarr")
     return out
 
 
@@ -296,7 +330,34 @@ EVENT_LABELS = {
     "bookFileDeleted": "deleted",
     "bookFileRenamed": "renamed",
     "bookFileRetagged": "renamed",
+    # and Lidarr's: a track per file, and the download as a whole
+    "trackFileImported": "imported",
+    "downloadImported": "imported",
+    "artistFolderImported": "imported",
+    "albumImportIncomplete": "incomplete",
+    "trackFileDeleted": "deleted",
+    "trackFileRenamed": "renamed",
+    "trackFileRetagged": "renamed",
 }
+
+
+def album_title(rec: dict) -> str:
+    """A Lidarr record as "Artist — Album", or its own source title."""
+    album = (rec.get("album") or {}).get("title")
+    artist = (rec.get("artist") or {}).get("artistName")
+    if album:
+        return f"{artist} — {album}" if artist else album
+    return rec.get("sourceTitle") or ""
+
+
+def history_key(app: str, rec: dict) -> str:
+    """What one row of history stands for. Lidarr records a track at a time,
+    and a manual import has no download id to tie them together, so its
+    records group by album and hour instead: an album is one row, not one
+    per track."""
+    if app == "lidarr" and not rec.get("downloadId") and rec.get("albumId"):
+        return f"album:{rec['albumId']}:{(rec.get('date') or '')[:13]}"
+    return rec.get("downloadId") or rec.get("sourceTitle") or str(rec.get("id"))
 
 
 def _consolidate_history(app: str, payload: dict, limit: int = 15) -> list[dict]:
@@ -304,7 +365,7 @@ def _consolidate_history(app: str, payload: dict, limit: int = 15) -> list[dict]
     title) so each release shows once with tags for everything that happened."""
     groups: dict[str, dict] = {}
     for rec in payload.get("records", []):
-        key = rec.get("downloadId") or rec.get("sourceTitle") or str(rec.get("id"))
+        key = history_key(app, rec)
         date = rec.get("date", "")
         quality = ((rec.get("quality") or {}).get("quality") or {}).get("name")
         g = groups.setdefault(
@@ -324,7 +385,7 @@ def _consolidate_history(app: str, payload: dict, limit: int = 15) -> list[dict]
         g["series_id"] = g["series_id"] or rec.get("seriesId")
         g["book_id"] = g["book_id"] or rec.get("bookId")
         if not g["title"]:
-            g["title"] = rec.get("sourceTitle") or ""
+            g["title"] = album_title(rec) if app == "lidarr" else rec.get("sourceTitle") or ""
         g["date"] = max(g["date"], date)
         g["quality"] = g["quality"] or quality
         raw = rec.get("eventType", "")
@@ -345,6 +406,7 @@ async def history(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ):
     async def fetch(app: str, client) -> list[dict]:
         payload = await client.history(page_size=50)
@@ -357,6 +419,8 @@ async def history(
     out = {"radarr": r, "sonarr": s}
     if _has(request, "readarr"):
         out["readarr"] = await guarded(fetch("readarr", readarr), "history:readarr")
+    if _has(request, "lidarr"):
+        out["lidarr"] = await guarded(fetch("lidarr", lidarr), "history:lidarr")
     return out
 
 
@@ -450,6 +514,7 @@ async def history_all(
     radarr: RadarrClient = Depends(get_radarr),
     sonarr: SonarrClient = Depends(get_sonarr),
     readarr: ReadarrClient = Depends(get_readarr),
+    lidarr: LidarrClient = Depends(get_lidarr),
 ):
     """Merged, consolidated history across the arrs, paged 50/app."""
     items: list[dict] = []
@@ -457,6 +522,8 @@ async def history_all(
     clients = [("radarr", radarr), ("sonarr", sonarr)]
     if _has(request, "readarr"):
         clients.append(("readarr", readarr))
+    if _has(request, "lidarr"):
+        clients.append(("lidarr", lidarr))
     for app, client in clients:
         try:
             payload = await client.history(page_size=50, page=page)
