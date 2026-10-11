@@ -20,6 +20,9 @@ type Ask = {
   /** what it happens to */
   subject?: string | null;
   destructive?: boolean;
+  /** ask whatever Settings → Display says: restarts, the cleanup rules and
+   * imports always do */
+  always?: boolean;
 };
 
 type Confirm = (ask: Ask) => Promise<boolean>;
@@ -33,7 +36,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
 
   const confirm = useCallback<Confirm>((ask) => {
     const policy = readPref("confirm");
-    if (policy === "never" || (policy === "deletes" && !ask.destructive)) {
+    if (!ask.always && (policy === "never" || (policy === "deletes" && !ask.destructive))) {
       return Promise.resolve(true);
     }
     return new Promise<boolean>((resolve) => {

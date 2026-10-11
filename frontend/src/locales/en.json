@@ -184,7 +184,8 @@
     "importInto": "Import into {{app}}",
     "moveInstead": "Move the files instead of copying them",
     "moveWarning": "Moving takes the files away from the torrent client, so this torrent stops seeding.",
-    "moveSelected": "Move {{count}}"
+    "moveSelected": "Move {{count}}",
+    "importKeepsSeeding": "The arr copies or hardlinks the files, so the torrent keeps seeding."
   },
   "add": {
     "title": "Add",

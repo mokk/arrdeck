@@ -23,6 +23,7 @@ import {
   useTorrentImportCandidates,
 } from "../hooks/queries";
 import { EmptyNote, ErrorNote } from "./Blocks";
+import { useConfirm } from "./Confirm";
 import { Sheet } from "./Sheet";
 import { type Target, TargetPicker } from "./TargetPicker";
 
@@ -177,6 +178,7 @@ export function ImportSheet({
   const { data: options } = useImportOptions(app);
   const assign = useManualImportAssign();
   const torrentImport = useTorrentImport();
+  const confirm = useConfirm();
   const pending = assign.isPending || torrentImport.isPending;
   // auto lets the arr copy or hardlink so the torrent keeps seeding; moving
   // is a deliberate, separate choice
@@ -327,7 +329,18 @@ export function ImportSheet({
             <Button
               variant={move ? "destructive" : "default"}
               disabled={pending || picked.size === 0 || started != null}
-              onClick={() => {
+              onClick={async () => {
+                // an import can replace a file in the library, and a move ends
+                // seeding: it always asks, whatever Settings says
+                const ok = await confirm({
+                  action: t(move ? "dl.moveSelected" : "dl.importSelected", {
+                    count: picked.size,
+                  }),
+                  subject: move ? t("dl.moveWarning") : t("dl.importKeepsSeeding"),
+                  destructive: true,
+                  always: true,
+                });
+                if (!ok) return;
                 // one request: hand-picked files carry their target, the rest
                 // keep the arr's own match; overrides ride along per file
                 const files = [...picked].map((p) => ({

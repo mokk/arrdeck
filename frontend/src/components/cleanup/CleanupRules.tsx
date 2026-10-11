@@ -100,6 +100,7 @@ export function CleanupRules() {
     if (
       !settings.enabled &&
       !(await confirm({
+        always: true,
         action: t("cleanupRules.turnOn"),
         subject: t("cleanupRules.turnOnBody"),
         destructive: true,
@@ -113,6 +114,7 @@ export function CleanupRules() {
     if (
       !rule.enabled &&
       !(await confirm({
+        always: true,
         action: t("cleanupRules.enableRule"),
         subject: t("cleanupRules.enableRuleBody", {
           name: nameOf(rule),
@@ -132,6 +134,7 @@ export function CleanupRules() {
     setEditing(null);
     if (
       await confirm({
+        always: true,
         action: t("cleanupRules.deleteRule"),
         subject: t("cleanupRules.deleteRuleBody", { name: nameOf(rule) }),
         destructive: true,
@@ -148,6 +151,7 @@ export function CleanupRules() {
     if (
       draft.enabled &&
       !(await confirm({
+        always: true,
         action: t("cleanupRules.saveRule"),
         subject: t("cleanupRules.saveEnabledBody", { name: nameOf(draft) }),
         destructive: true,
@@ -167,6 +171,7 @@ export function CleanupRules() {
     if (
       n > (settings.max_deletions ?? 10) &&
       !(await confirm({
+        always: true,
         action: t("cleanupRules.raiseLimit", { n }),
         subject: t("cleanupRules.raiseLimitBody"),
         destructive: true,
@@ -179,6 +184,7 @@ export function CleanupRules() {
   const runNow = async () => {
     if (
       await confirm({
+        always: true,
         action: t("cleanupRules.runNow"),
         subject: t("cleanupRules.runNowBody"),
         destructive: true,
@@ -367,7 +373,14 @@ function Kept() {
   const unkeep = useCleanupUnkeep();
   const unkeepOne = async (item: CleanupKept) => {
     const subject = item.title || `#${item.id}`;
-    if (await confirm({ action: t("cleanupRules.unkeepAction"), subject, destructive: true }))
+    if (
+      await confirm({
+        always: true,
+        action: t("cleanupRules.unkeepAction"),
+        subject,
+        destructive: true,
+      })
+    )
       unkeep.mutate(item);
   };
   return (
@@ -404,6 +417,7 @@ function Kept() {
               onClick={async () => {
                 if (
                   await confirm({
+                    always: true,
                     action: t("cleanupRules.clearKept"),
                     subject: t("cleanupRules.clearKeptBody"),
                     destructive: true,

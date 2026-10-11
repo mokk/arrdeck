@@ -29,6 +29,7 @@ import {
   useTorrentsSummary,
 } from "../../hooks/queries";
 import { usePersistentState } from "../../hooks/usePersistentState";
+import { useConfirm } from "../Confirm";
 
 export function RecentSection() {
   const { t } = useTranslation();
@@ -162,6 +163,7 @@ export function QueueSection({ configured }: { configured: Set<string> }) {
   const { data } = useQueue();
   const retry = useBlocklistRetry();
   const forceImport = useForceImport();
+  const confirm = useConfirm();
   const [importing, setImporting] = useState<{ app: string; id: number } | null>(null);
   const items = [...(data?.radarr?.data ?? []), ...(data?.sonarr?.data ?? [])];
   // A stale block also has ok=false, but it has data and an age — calling that
@@ -218,7 +220,15 @@ export function QueueSection({ configured }: { configured: Set<string> }) {
                   size="sm"
                   className="text-primary"
                   disabled={forceImport.isPending}
-                  onClick={() => forceImport.mutate({ app: q.app, id: q.id })}
+                  onClick={async () => {
+                    const ok = await confirm({
+                      action: t("dl.forceImport"),
+                      subject: q.title,
+                      destructive: true,
+                      always: true,
+                    });
+                    if (ok) forceImport.mutate({ app: q.app, id: q.id });
+                  }}
                 >
                   {t("dl.forceImport")}
                 </Button>

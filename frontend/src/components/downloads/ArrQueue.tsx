@@ -11,6 +11,7 @@ import {
   useQueue,
   useQueueRemove,
 } from "../../hooks/queries";
+import { useConfirm } from "../Confirm";
 import { ImportSheet } from "../ImportSheet";
 
 export function ArrQueue() {
@@ -19,6 +20,7 @@ export function ArrQueue() {
   const remove = useQueueRemove();
   const retry = useBlocklistRetry();
   const forceImport = useForceImport();
+  const confirm = useConfirm();
   const grab = useGrabNow();
   const [importing, setImporting] = useState<{ app: string; id: number } | null>(null);
   const items = [
@@ -68,7 +70,15 @@ export function ArrQueue() {
                     size="sm"
                     className="text-primary"
                     disabled={forceImport.isPending}
-                    onClick={() => forceImport.mutate({ app: q.app, id: q.id })}
+                    onClick={async () => {
+                      const ok = await confirm({
+                        action: t("dl.forceImport"),
+                        subject: q.title,
+                        destructive: true,
+                        always: true,
+                      });
+                      if (ok) forceImport.mutate({ app: q.app, id: q.id });
+                    }}
                   >
                     {t("dl.forceImport")}
                   </Button>

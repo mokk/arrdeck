@@ -3,7 +3,7 @@
  * "serving stale data" are ordinary render paths rather than error states —
  * these tests cover those alongside the happy one, plus the empty states that
  * are the difference between a card that explains itself and a blank one. */
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -47,6 +47,13 @@ vi.mock("../../hooks/queries", () => ({
 
 // The real sheet fetches import candidates of its own; all these tests need to
 // know is that it was opened for the right item.
+const asked = vi.hoisted(() => [] as Record<string, unknown>[]);
+vi.mock("../Confirm", () => ({
+  useConfirm: () => async (ask: Record<string, unknown>) => {
+    asked.push(ask);
+    return true;
+  },
+}));
 vi.mock("../../components/ImportSheet", () => ({
   ImportSheet: ({ app, itemId }: { app: string; itemId: number }) => (
     <div>{`import-sheet:${app}:${itemId}`}</div>
@@ -125,6 +132,7 @@ beforeEach(() => {
   navigate.mockReset();
   retry.mockReset();
   forceImport.mockReset();
+  asked.length = 0;
   hooks.recent = { data: undefined };
   hooks.torrents = { data: undefined };
   hooks.queue = { data: undefined };
@@ -346,12 +354,15 @@ describe("download queue", () => {
     expect(screen.getByText("warning")).toBeTruthy();
   });
 
-  it("offers a force import while the item is stuck importing", () => {
+  it("offers a force import while the item is stuck importing, asking first whatever the setting says", async () => {
     hooks.queue = {
       data: { radarr: healthy([queueItem({ id: 5, tracked_state: "importPending" })]) },
     };
     render(<QueueSection configured={ARRS} />);
-    fireEvent.click(screen.getByText("dl.forceImport"));
+    await act(async () => {
+      fireEvent.click(screen.getByText("dl.forceImport"));
+    });
+    expect(asked[0]).toMatchObject({ action: "dl.forceImport", always: true });
     expect(forceImport).toHaveBeenCalledWith({ app: "radarr", id: 5 });
   });
 

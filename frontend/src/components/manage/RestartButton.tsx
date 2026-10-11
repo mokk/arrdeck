@@ -29,6 +29,7 @@ export function RestartButton({
 
   const run = async () => {
     const ok = await confirm({
+      always: true,
       action: verb,
       subject: project.is_self ? `${label} — ${t("system.restartSelfWarning")}` : label,
       destructive: true,

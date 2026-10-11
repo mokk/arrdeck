@@ -184,7 +184,8 @@
     "importInto": "Importér til {{app}}",
     "moveInstead": "Flyt filerne i stedet for at kopiere dem",
     "moveWarning": "Flytning tager filerne fra torrent-klienten, så denne torrent holder op med at seede.",
-    "moveSelected": "Flyt {{count}}"
+    "moveSelected": "Flyt {{count}}",
+    "importKeepsSeeding": "Arr’en kopierer eller hardlinker filerne, så torrenten bliver ved med at seede."
   },
   "add": {
     "title": "Tilføj",
