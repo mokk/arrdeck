@@ -55,7 +55,8 @@
     "ok": "ok",
     "radarr": "radarr",
     "sonarr": "sonarr",
-    "delay": "held"
+    "delay": "held",
+    "lidarr": "lidarr"
   },
   "dash": {
     "torrentActivity": "Torrent activity",
@@ -265,7 +266,21 @@
     "monitor_pick": "Pick seasons…",
     "specials": "Specials",
     "seasonN": "Season {{n}}",
-    "addOnly": "Add"
+    "addOnly": "Add",
+    "searchMusic": "Search artists and albums…",
+    "addMusic": "Add music",
+    "searchMusicHint": "Search for an artist or an album in Lidarr to add it",
+    "artistKind": "Artist",
+    "albumKind": "Album",
+    "artistMonitor": "Monitor",
+    "artistMonitor_all": "All albums",
+    "artistMonitor_future": "Future albums",
+    "artistMonitor_missing": "Missing albums",
+    "artistMonitor_existing": "Existing albums",
+    "artistMonitor_latest": "Latest album",
+    "artistMonitor_first": "First album",
+    "artistMonitor_none": "None",
+    "albumArtistHint": "If Lidarr does not have the artist yet, they are added with these settings and only this album monitored."
   },
   "manage": {
     "title": "Manage",
@@ -324,7 +339,8 @@
       "privacy": "Privacy",
       "enable": "Enabled",
       "author": "Author",
-      "added": "Added"
+      "added": "Added",
+      "track_file_count": "Tracks on disk"
     },
     "export": "Export settings",
     "import": "Import settings",
@@ -654,13 +670,16 @@
       "add": {
         "movies": "Add a movie",
         "series": "Add a show",
-        "books": "Add a book"
+        "books": "Add a book",
+        "music": "Add an artist"
       },
       "allUnmonitored": "Everything here is unmonitored, and unmonitored titles are hidden.",
       "showUnmonitored": "Show unmonitored",
-      "clearSearch": "Clear search"
+      "clearSearch": "Clear search",
+      "music": "No music yet."
     },
-    "downloading": "Downloading"
+    "downloading": "Downloading",
+    "searchMusic": "Search artists"
   },
   "activity": {
     "downloads": "Downloads",
@@ -877,13 +896,14 @@
   },
   "globalSearch": {
     "title": "Search everything",
-    "placeholder": "Films, shows, books, authors…",
+    "placeholder": "Films, shows, books, authors, artists…",
     "nothing": "Nothing in your libraries matches.",
     "online": "Search online for “{{q}}”",
     "movies": "Movies",
     "shows": "Shows",
     "books": "Books",
-    "authors": "Authors"
+    "authors": "Authors",
+    "artists": "Artists"
   },
   "seasons": {
     "latestOnly": "Latest only",
@@ -1045,5 +1065,43 @@
     "unkeepAction": "Take off the keep list",
     "raiseLimit": "Allow {{n}} deletions per run",
     "raiseLimitBody": "Each run may delete more titles."
+  },
+  "music": {
+    "albums_one": "{{count}} album",
+    "albums_other": "{{count}} albums",
+    "tracksOnDisk": "{{have}} of {{total}} tracks on disk",
+    "filter": {
+      "any": "All artists",
+      "onDisk": "On disk",
+      "missing": "Nothing on disk"
+    },
+    "type": {
+      "Album": "Albums",
+      "EP": "EPs",
+      "Single": "Singles",
+      "Broadcast": "Broadcasts",
+      "Other": "Other"
+    }
+  },
+  "artist": {
+    "refresh": "Refresh and rescan",
+    "refreshing": "Lidarr is refreshing the artist",
+    "edit": "Edit…",
+    "editTitle": "Edit {{name}}",
+    "noAlbums": "Lidarr has no albums for this artist under its metadata profile.",
+    "newAlbums": "New albums",
+    "newAlbums_all": "Monitor all",
+    "newAlbums_new": "Monitor new",
+    "newAlbums_none": "Do not monitor",
+    "path": "Folder",
+    "moveFiles": "Move the files to the new folder",
+    "tags": "Tags"
+  },
+  "album": {
+    "tracks": "Tracks · {{have}} of {{total}} on disk",
+    "medium": "Disc {{number}}",
+    "deleteFiles": "Delete the album's files",
+    "filesDeleted": "Files deleted",
+    "deleteTrackFile": "Delete the file of {{title}}"
   }
 }

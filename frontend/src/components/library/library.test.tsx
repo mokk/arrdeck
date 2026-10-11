@@ -1,8 +1,9 @@
 import { act, fireEvent, render, renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { setPref, usePref } from "../../lib/prefs";
+import { PREF_KEYS, setPref, storePrefs, usePref } from "../../lib/prefs";
 import { Cover } from "./Cover";
 import { letterOf } from "./LetterScrubber";
+import { albumState, formatDuration, musicLinks } from "./music";
 import { UpNextView } from "./UpNext";
 
 describe("letterOf", () => {
@@ -41,6 +42,70 @@ describe("prefs", () => {
     act(() => setPref("layout.movies", "details"));
     expect(result.current).toBe("details");
     expect(localStorage.getItem("prefs.layout.movies")).toBe('"details"');
+  });
+
+  it("syncs exactly these keys", () => {
+    // the wire keys of GET/PUT /prefs; the music pair came with the Music tab
+    expect([...PREF_KEYS].sort()).toEqual(
+      [
+        "startTab",
+        "tabOrder",
+        "hiddenTabs",
+        "dates",
+        "sizes",
+        "spoilers",
+        "confirm",
+        "layout.movies",
+        "layout.series",
+        "layout.books",
+        "layout.music",
+        "unmonitored.movies",
+        "unmonitored.series",
+        "unmonitored.books",
+        "unmonitored.music",
+      ].sort(),
+    );
+  });
+
+  it("takes a music layout from the server, but not one only shows have", () => {
+    localStorage.removeItem("prefs.layout.music");
+    storePrefs({ "layout.music": "upnext" });
+    const { result } = renderHook(() => usePref("layout.music"));
+    expect(result.current).toBe("posters");
+    act(() => storePrefs({ "layout.music": "details", "unmonitored.music": "hide" }));
+    expect(result.current).toBe("details");
+    expect(localStorage.getItem("prefs.unmonitored.music")).toBe('"hide"');
+  });
+});
+
+describe("music", () => {
+  it("links MusicBrainz first, then the known sites, six at most", () => {
+    const links = musicLinks("artist", "abc", [
+      { name: "myspace", url: "https://myspace.com/x" },
+      { name: "discogs", url: "https://www.discogs.com/artist/307" },
+      { name: "last", url: "https://www.last.fm/music/x" },
+    ]);
+    expect(links.map((l) => l.label)).toEqual(["MusicBrainz", "Discogs", "Last.fm"]);
+    expect(links[0].url).toBe("https://musicbrainz.org/artist/abc");
+  });
+
+  it("calls an album downloaded only when every track is there", () => {
+    expect(albumState({ monitored: true, track_count: 18, track_file_count: 18 })).toBe(
+      "downloaded",
+    );
+    expect(albumState({ monitored: true, track_count: 24, track_file_count: 3 })).toBe(
+      "wanted",
+    );
+    expect(albumState({ monitored: false, track_count: 24, track_file_count: 0 })).toBe(
+      "unmonitored",
+    );
+  });
+
+  it("writes durations the way a player does", () => {
+    expect(formatDuration(59)).toBe("0:59");
+    expect(formatDuration(321)).toBe("5:21");
+    expect(formatDuration(4092)).toBe("1:08:12");
+    expect(formatDuration(null)).toBe("");
   });
 });
 

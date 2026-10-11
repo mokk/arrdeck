@@ -104,11 +104,14 @@ export function DetailHero({
   badges,
   ratings,
   links,
+  square = false,
 }: {
   poster?: string | null;
   /** the wide fanart behind the header; a book passes its cover, blurred */
   backdrop?: string | null;
   blurBackdrop?: boolean;
+  /** album covers and artist pictures are square */
+  square?: boolean;
   overview?: string | null;
   badges: ReactNode;
   ratings?: Rating[];
@@ -140,6 +143,7 @@ export function DetailHero({
         ratings={ratings}
         links={links}
         lifted={!!backdrop}
+        square={square}
       />
     </>
   );
@@ -175,6 +179,7 @@ function DetailHeroBody({
   ratings,
   links,
   lifted,
+  square,
 }: {
   poster?: string | null;
   overview?: string | null;
@@ -182,6 +187,7 @@ function DetailHeroBody({
   ratings?: Rating[];
   links: ExternalLink[];
   lifted: boolean;
+  square: boolean;
 }) {
   return (
     <div className={cn("relative mb-5 flex gap-4", lifted && "items-end")}>
@@ -189,7 +195,10 @@ function DetailHeroBody({
         <img
           src={poster}
           alt=""
-          className="w-28 shrink-0 rounded-xl bg-card object-cover shadow-lg [aspect-ratio:2/3]"
+          className={cn(
+            "w-28 shrink-0 rounded-xl bg-card object-cover shadow-lg",
+            square ? "aspect-square" : "[aspect-ratio:2/3]",
+          )}
         />
       )}
       <div className="min-w-0">

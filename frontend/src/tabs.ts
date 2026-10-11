@@ -4,6 +4,7 @@ import {
   CalendarDays,
   Film,
   type LucideIcon,
+  Music,
   Settings2,
   Tv,
 } from "lucide-react";
@@ -15,7 +16,7 @@ export interface AppTab {
 }
 
 /** The bottom bar, one tab per configured library plus the shared screens.
- * Mirrors the iOS app: Books · Movies · Shows · Activity · Calendar · Settings.
+ * Mirrors the iOS app: Books · Movies · Shows · Music · Activity · Calendar · Settings.
  * With nothing configured only Settings remains, and the bar itself is
  * hidden until a service has been added. */
 export function tabsFor(configured: Set<string>): AppTab[] {
@@ -25,6 +26,7 @@ export function tabsFor(configured: Set<string>): AppTab[] {
   if (configured.has("readarr")) tabs.push({ to: "/books", key: "nav.books", icon: BookOpen });
   if (configured.has("radarr")) tabs.push({ to: "/movies", key: "nav.movies", icon: Film });
   if (configured.has("sonarr")) tabs.push({ to: "/shows", key: "nav.shows", icon: Tv });
+  if (configured.has("lidarr")) tabs.push({ to: "/music", key: "nav.music", icon: Music });
   if (hasArr || hasClient)
     tabs.push({ to: "/activity", key: "nav.activity", icon: ArrowDownUp });
   if (hasArr) tabs.push({ to: "/calendar", key: "nav.calendar", icon: CalendarDays });
@@ -65,10 +67,14 @@ export function tabFor(pathname: string, search = ""): string {
     case "/book":
     case "/author":
       return "/books";
+    case "/artist":
+    case "/album":
+      return "/music";
     case "/add": {
       const kind = new URLSearchParams(search).get("tab");
       if (kind === "series") return "/shows";
       if (kind === "books") return "/books";
+      if (kind === "music") return "/music";
       return "/movies";
     }
     case "/downloads":

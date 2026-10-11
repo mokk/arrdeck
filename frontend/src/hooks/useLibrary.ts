@@ -5,8 +5,10 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { api } from "../api/client";
 import type {
+  AlbumDetail,
   ArrApp,
   ArrRelease,
+  ArtistDetail,
   Author,
   AuthorDetail,
   BookDetail,
@@ -45,6 +47,15 @@ import type {
   WantedPage,
 } from "../api/types";
 import { SLOW } from "./shared";
+
+/** Where each library lives under /library: music's cards are artists. The
+ * list's query key follows it, so ["library", "artists"] is the Music tab. */
+const SEGMENT: Record<LibraryKind, string> = {
+  movies: "movies",
+  series: "series",
+  books: "books",
+  music: "artists",
+};
 
 export const useWanted = (app: ArrApp, kind: "missing" | "cutoff", page: number) =>
   useQuery({
@@ -113,9 +124,9 @@ export function useBulkLibrary(kind: LibraryKind) {
       quality_profile_id?: number;
       tags?: number[];
       apply_tags?: "add" | "remove" | "replace";
-    }) => api.post<void>(`/library/${kind}/bulk`, input),
+    }) => api.post<void>(`/library/${SEGMENT[kind]}/bulk`, input),
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: ["library", kind] });
+      qc.invalidateQueries({ queryKey: ["library", SEGMENT[kind]] });
       qc.invalidateQueries({ queryKey: ["discover"] });
     },
   });
@@ -125,9 +136,9 @@ export function useBulkDeleteLibrary(kind: LibraryKind) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: { ids: number[]; delete_files: boolean }) =>
-      api.post<void>(`/library/${kind}/bulk-delete`, input),
+      api.post<void>(`/library/${SEGMENT[kind]}/bulk-delete`, input),
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: ["library", kind] });
+      qc.invalidateQueries({ queryKey: ["library", SEGMENT[kind]] });
       qc.invalidateQueries({ queryKey: ["discover"] });
     },
   });
@@ -338,7 +349,7 @@ export function useBulkSearchLibrary(kind: LibraryKind) {
   const { t } = useTranslation();
   return useMutation({
     mutationFn: (ids: number[]) =>
-      api.post<void>(`/library/${kind}/bulk-search`, { ids, delete_files: false }),
+      api.post<void>(`/library/${SEGMENT[kind]}/bulk-search`, { ids, delete_files: false }),
     onSuccess: () => toast.success(t("toast.searchStarted")),
   });
 }
@@ -426,6 +437,7 @@ export const useArrReleases = (
     season?: number;
     episodeId?: number;
     bookId?: number;
+    albumId?: number;
   },
   enabled: boolean,
 ) =>
@@ -434,6 +446,7 @@ export const useArrReleases = (
     queryFn: () => {
       if (app === "radarr") return api.get<ArrRelease[]>(`/releases/movie/${params.movieId}`);
       if (app === "readarr") return api.get<ArrRelease[]>(`/releases/book/${params.bookId}`);
+      if (app === "lidarr") return api.get<ArrRelease[]>(`/releases/album/${params.albumId}`);
       const qs =
         params.episodeId != null ? `episode_id=${params.episodeId}` : `season=${params.season}`;
       return api.get<ArrRelease[]>(`/releases/series/${params.seriesId}?${qs}`);
@@ -483,7 +496,7 @@ export const useLibraryBooks = (enabled = true) =>
     enabled,
   });
 
-/** Lidarr's artists, for pointing a file at one of their albums. */
+/** Lidarr's artists: the Music tab, and the import sheet's album picker. */
 export const useLibraryArtists = (enabled = true) =>
   useQuery({
     queryKey: ["library", "artists"],
@@ -527,6 +540,7 @@ const DETAIL_KEY: Record<LibraryKind, string> = {
   movies: "movieDetail",
   series: "seriesDetail",
   books: "bookDetail",
+  music: "artistDetail",
 };
 
 export function useUpdateLibraryItem(kind: LibraryKind) {
@@ -540,11 +554,12 @@ export function useUpdateLibraryItem(kind: LibraryKind) {
       id: number;
       monitored?: boolean;
       quality_profile_id?: number;
-    }) => api.patch(`/library/${kind}/${id}`, { monitored, quality_profile_id }),
+    }) => api.patch(`/library/${SEGMENT[kind]}/${id}`, { monitored, quality_profile_id }),
     onMutate: async ({ id, monitored, quality_profile_id }) => {
-      await qc.cancelQueries({ queryKey: ["library", kind] });
-      const prev = qc.getQueryData<{ id: number }[]>(["library", kind]);
-      qc.setQueryData<Record<string, unknown>[]>(["library", kind], (old) =>
+      const key = ["library", SEGMENT[kind]];
+      await qc.cancelQueries({ queryKey: key });
+      const prev = qc.getQueryData<{ id: number }[]>(key);
+      qc.setQueryData<Record<string, unknown>[]>(key, (old) =>
         old?.map((item) =>
           item.id === id
             ? {
@@ -557,9 +572,10 @@ export function useUpdateLibraryItem(kind: LibraryKind) {
       );
       return { prev };
     },
-    onError: (_e, _v, ctx) => ctx?.prev && qc.setQueryData(["library", kind], ctx.prev),
+    onError: (_e, _v, ctx) =>
+      ctx?.prev && qc.setQueryData(["library", SEGMENT[kind]], ctx.prev),
     onSettled: (_d, _e, { id }) => {
-      qc.invalidateQueries({ queryKey: ["library", kind] });
+      qc.invalidateQueries({ queryKey: ["library", SEGMENT[kind]] });
       qc.invalidateQueries({ queryKey: ["search"] });
       qc.invalidateQueries({ queryKey: ["discover"] });
       // The detail pages read their own query, not the list. Without this the
@@ -575,9 +591,9 @@ export function useDeleteLibraryItem(kind: LibraryKind) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, deleteFiles }: { id: number; deleteFiles: boolean }) =>
-      api.delete<void>(`/library/${kind}/${id}?delete_files=${deleteFiles}`),
+      api.delete<void>(`/library/${SEGMENT[kind]}/${id}?delete_files=${deleteFiles}`),
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: ["library", kind] });
+      qc.invalidateQueries({ queryKey: ["library", SEGMENT[kind]] });
       qc.invalidateQueries({ queryKey: ["search"] });
       qc.invalidateQueries({ queryKey: ["discover"] });
     },
@@ -704,3 +720,85 @@ export const useBookEditions = (editionId: string | null | undefined, enabled: b
     enabled: enabled && !!editionId,
     staleTime: SLOW,
   });
+
+/* ---- music ---- */
+
+export const useArtistDetail = (id: number) =>
+  useQuery({
+    queryKey: ["artistDetail", id],
+    queryFn: () => api.get<ArtistDetail>(`/library/artists/${id}`),
+  });
+
+export function useUpdateArtist(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      monitored?: boolean;
+      monitor_new_items?: "all" | "none" | "new";
+      quality_profile_id?: number;
+      metadata_profile_id?: number;
+      path?: string;
+      move_files?: boolean;
+      tags?: number[];
+    }) => api.patch(`/library/artists/${id}`, input),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["artistDetail", id] });
+      qc.invalidateQueries({ queryKey: ["library", "artists"] });
+    },
+  });
+}
+
+/** Lidarr fetches the artist's albums and artwork again and rescans the folder. */
+export function useRefreshArtist(id: number) {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: () => api.post<void>(`/library/artists/${id}/refresh`),
+    onSuccess: () => toast.success(t("artist.refreshing")),
+    // the refresh runs in Lidarr; the page reads it again once it has had a moment
+    onSettled: () =>
+      setTimeout(() => qc.invalidateQueries({ queryKey: ["artistDetail", id] }), 5000),
+  });
+}
+
+export const useAlbumDetail = (id: number) =>
+  useQuery({
+    queryKey: ["albumDetail", id],
+    queryFn: () => api.get<AlbumDetail>(`/library/albums/${id}/detail`),
+  });
+
+/** An album's monitored flag, wherever it is shown: the album page and the
+ * artist's album list. */
+export function useMonitorAlbum() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, monitored }: { id: number; monitored: boolean }) =>
+      api.patch(`/library/albums/${id}`, { monitored }),
+    onSettled: (_d, _e, { id }) => {
+      qc.invalidateQueries({ queryKey: ["albumDetail", id] });
+      qc.invalidateQueries({ queryKey: ["artistDetail"] });
+      qc.invalidateQueries({ queryKey: ["library", "artists"] });
+      qc.invalidateQueries({ queryKey: ["wanted"] });
+    },
+  });
+}
+
+/** One track file (fileId) or every one of the album's (no fileId), from disk. */
+export function useDeleteTrackFiles(albumId: number) {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (fileId?: number) =>
+      api.delete<void>(
+        fileId == null
+          ? `/library/albums/${albumId}/files`
+          : `/library/albums/${albumId}/files/${fileId}`,
+      ),
+    onSuccess: () => toast.success(t("album.filesDeleted")),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["albumDetail", albumId] });
+      qc.invalidateQueries({ queryKey: ["artistDetail"] });
+      qc.invalidateQueries({ queryKey: ["library", "artists"] });
+    },
+  });
+}

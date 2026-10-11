@@ -4,7 +4,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-export type Route = "movie" | "series" | "book";
+export type Route = "movie" | "series" | "book" | "artist";
 
 const KEY = "detail.sequence";
 // far enough to be a deliberate swipe, straight enough not to be a scroll

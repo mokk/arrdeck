@@ -15,8 +15,8 @@ describe("tabsFor", () => {
     expect(paths(["sonarr"])).toEqual(["/shows", "/activity", "/calendar", "/settings"]);
   });
 
-  it("gives Lidarr Activity and Calendar, but no library tab of its own yet", () => {
-    expect(paths(["lidarr"])).toEqual(["/activity", "/calendar", "/settings"]);
+  it("gives Lidarr a Music tab, with Activity and Calendar", () => {
+    expect(paths(["lidarr"])).toEqual(["/music", "/activity", "/calendar", "/settings"]);
   });
 
   it("shows Activity for a bare download client, but not Calendar", () => {
@@ -24,10 +24,11 @@ describe("tabsFor", () => {
   });
 
   it("keeps the fixed order regardless of configuration order", () => {
-    expect(paths(["sonarr", "readarr", "radarr", "transmission"])).toEqual([
+    expect(paths(["sonarr", "lidarr", "readarr", "radarr", "transmission"])).toEqual([
       "/books",
       "/movies",
       "/shows",
+      "/music",
       "/activity",
       "/calendar",
       "/settings",
@@ -41,11 +42,14 @@ describe("tabFor", () => {
     expect(tabFor("/series/3")).toBe("/shows");
     expect(tabFor("/book/7")).toBe("/books");
     expect(tabFor("/author/3")).toBe("/books");
+    expect(tabFor("/artist/1")).toBe("/music");
+    expect(tabFor("/album/5")).toBe("/music");
   });
 
   it("lights the library Add was opened for", () => {
     expect(tabFor("/add", "?tab=series")).toBe("/shows");
     expect(tabFor("/add", "?tab=books")).toBe("/books");
+    expect(tabFor("/add", "?tab=music")).toBe("/music");
     expect(tabFor("/add")).toBe("/movies");
   });
 

@@ -29,6 +29,10 @@ export type AboutOut = {
  */
 export type ActivityEventOut = {
   /**
+   * Album Id
+   */
+  album_id?: number | null;
+  /**
    * App
    */
   app: string;
@@ -78,6 +82,82 @@ export type ActivitySinceOut = {
    * Since
    */
   since: string;
+};
+
+/**
+ * AddAlbumIn
+ */
+export type AddAlbumIn = {
+  /**
+   * Foreign Album Id
+   */
+  foreign_album_id: string;
+  /**
+   * Metadata Profile Id
+   */
+  metadata_profile_id?: number | null;
+  /**
+   * Monitored
+   */
+  monitored?: boolean;
+  /**
+   * Quality Profile Id
+   */
+  quality_profile_id: number;
+  /**
+   * Root Folder Path
+   */
+  root_folder_path: string;
+  /**
+   * Search Now
+   */
+  search_now?: boolean;
+  /**
+   * Title
+   */
+  title: string;
+};
+
+/**
+ * AddArtistIn
+ */
+export type AddArtistIn = {
+  /**
+   * Foreign Artist Id
+   */
+  foreign_artist_id: string;
+  /**
+   * Metadata Profile Id
+   */
+  metadata_profile_id?: number | null;
+  /**
+   * Monitor
+   */
+  monitor?: "all" | "future" | "missing" | "existing" | "latest" | "first" | "none";
+  /**
+   * Monitor New Items
+   */
+  monitor_new_items?: "all" | "none" | "new";
+  /**
+   * Monitored
+   */
+  monitored?: boolean;
+  /**
+   * Quality Profile Id
+   */
+  quality_profile_id: number;
+  /**
+   * Root Folder Path
+   */
+  root_folder_path: string;
+  /**
+   * Search Now
+   */
+  search_now?: boolean;
+  /**
+   * Title
+   */
+  title: string;
 };
 
 /**
@@ -239,6 +319,180 @@ export type AddTorrentIn = {
 };
 
 /**
+ * AlbumDetailOut
+ */
+export type AlbumDetailOut = {
+  /**
+   * Album Type
+   */
+  album_type?: string | null;
+  /**
+   * Artist
+   */
+  artist?: string | null;
+  /**
+   * Artist Id
+   */
+  artist_id?: number | null;
+  /**
+   * Artist Slug
+   */
+  artist_slug?: string | null;
+  /**
+   * Disambiguation
+   */
+  disambiguation?: string | null;
+  /**
+   * Duration
+   */
+  duration?: number | null;
+  /**
+   * Genres
+   */
+  genres?: Array<string>;
+  /**
+   * History
+   */
+  history?: Array<HistoryEventOut>;
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Links
+   */
+  links?: Array<MusicLinkOut>;
+  /**
+   * Media
+   */
+  media?: Array<AlbumMediumOut>;
+  /**
+   * Monitored
+   */
+  monitored?: boolean;
+  /**
+   * Overview
+   */
+  overview?: string | null;
+  /**
+   * Poster
+   */
+  poster?: string | null;
+  /**
+   * Quality Profile Id
+   */
+  quality_profile_id?: number | null;
+  /**
+   * Ratings
+   */
+  ratings?: Array<RatingOut>;
+  /**
+   * Release
+   */
+  release?: string | null;
+  /**
+   * Release Date
+   */
+  release_date?: string | null;
+  /**
+   * Secondary Types
+   */
+  secondary_types?: Array<string>;
+  /**
+   * Size On Disk
+   */
+  size_on_disk?: number;
+  /**
+   * Slug
+   */
+  slug?: string | null;
+  /**
+   * Title
+   */
+  title?: string;
+  /**
+   * Track Count
+   */
+  track_count?: number;
+  /**
+   * Track File Count
+   */
+  track_file_count?: number;
+  /**
+   * Tracks
+   */
+  tracks?: Array<AlbumTrackOut>;
+  /**
+   * Year
+   */
+  year?: number | null;
+};
+
+/**
+ * AlbumMediumOut
+ */
+export type AlbumMediumOut = {
+  /**
+   * Format
+   */
+  format?: string | null;
+  /**
+   * Name
+   */
+  name?: string | null;
+  /**
+   * Number
+   */
+  number: number;
+};
+
+/**
+ * AlbumTrackOut
+ */
+export type AlbumTrackOut = {
+  /**
+   * Absolute
+   */
+  absolute?: number;
+  /**
+   * Duration
+   */
+  duration?: number | null;
+  /**
+   * File Id
+   */
+  file_id?: number | null;
+  /**
+   * Has File
+   */
+  has_file?: boolean;
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Medium
+   */
+  medium?: number;
+  /**
+   * Number
+   */
+  number?: string | null;
+  /**
+   * Quality
+   */
+  quality?: string | null;
+  /**
+   * Size
+   */
+  size?: number | null;
+  /**
+   * Title
+   */
+  title?: string | null;
+};
+
+/**
  * ArrBackupOut
  */
 export type ArrBackupOut = {
@@ -348,6 +602,154 @@ export type ArrReleaseOut = {
    * Title
    */
   title: string;
+};
+
+/**
+ * ArtistDetailOut
+ */
+export type ArtistDetailOut = {
+  /**
+   * Added
+   */
+  added?: string | null;
+  /**
+   * Album Count
+   */
+  album_count?: number;
+  /**
+   * Albums
+   */
+  albums?: Array<LibraryAlbumOut>;
+  /**
+   * Artist Type
+   */
+  artist_type?: string | null;
+  /**
+   * Disambiguation
+   */
+  disambiguation?: string | null;
+  /**
+   * Fanart
+   */
+  fanart?: string | null;
+  /**
+   * Genres
+   */
+  genres?: Array<string>;
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Links
+   */
+  links?: Array<MusicLinkOut>;
+  /**
+   * Metadata Profile Id
+   */
+  metadata_profile_id?: number | null;
+  /**
+   * Monitor New Items
+   */
+  monitor_new_items?: string | null;
+  /**
+   * Monitored
+   */
+  monitored?: boolean;
+  /**
+   * Name
+   */
+  name?: string;
+  /**
+   * Overview
+   */
+  overview?: string | null;
+  /**
+   * Path
+   */
+  path?: string | null;
+  /**
+   * Poster
+   */
+  poster?: string | null;
+  /**
+   * Quality Profile Id
+   */
+  quality_profile_id?: number | null;
+  /**
+   * Rating
+   */
+  rating?: number | null;
+  /**
+   * Ratings
+   */
+  ratings?: Array<RatingOut>;
+  /**
+   * Root Folder Path
+   */
+  root_folder_path?: string | null;
+  /**
+   * Size On Disk
+   */
+  size_on_disk?: number;
+  /**
+   * Slug
+   */
+  slug?: string | null;
+  /**
+   * Sort Name
+   */
+  sort_name?: string | null;
+  /**
+   * Status
+   */
+  status?: string | null;
+  /**
+   * Tags
+   */
+  tags?: Array<number>;
+  /**
+   * Track Count
+   */
+  track_count?: number;
+  /**
+   * Track File Count
+   */
+  track_file_count?: number;
+};
+
+/**
+ * ArtistUpdateIn
+ */
+export type ArtistUpdateIn = {
+  /**
+   * Metadata Profile Id
+   */
+  metadata_profile_id?: number | null;
+  /**
+   * Monitor New Items
+   */
+  monitor_new_items?: "all" | "none" | "new" | null;
+  /**
+   * Monitored
+   */
+  monitored?: boolean | null;
+  /**
+   * Move Files
+   */
+  move_files?: boolean;
+  /**
+   * Path
+   */
+  path?: string | null;
+  /**
+   * Quality Profile Id
+   */
+  quality_profile_id?: number | null;
+  /**
+   * Tags
+   */
+  tags?: Array<number> | null;
 };
 
 /**
@@ -539,7 +941,7 @@ export type BlocklistItemOut = {
   /**
    * App
    */
-  app: "radarr" | "sonarr";
+  app: "radarr" | "sonarr" | "lidarr";
   /**
    * Date
    */
@@ -1642,7 +2044,7 @@ export type ExclusionOut = {
   /**
    * App
    */
-  app: "radarr" | "sonarr" | "readarr";
+  app: "radarr" | "sonarr" | "readarr" | "lidarr";
   /**
    * Id
    */
@@ -1749,6 +2151,10 @@ export type HistoryEventOut = {
  * One release/torrent with every history event that happened to it.
  */
 export type HistoryItemOut = {
+  /**
+   * Album Id
+   */
+  album_id?: number | null;
   /**
    * App
    */
@@ -1936,7 +2342,7 @@ export type ImportListOut = {
   /**
    * App
    */
-  app: "radarr" | "sonarr" | "readarr";
+  app: "radarr" | "sonarr" | "readarr" | "lidarr";
   /**
    * Enable Auto
    */
@@ -2104,9 +2510,21 @@ export type LibraryAlbumOut = {
    */
   poster?: string | null;
   /**
+   * Rating
+   */
+  rating?: number | null;
+  /**
    * Release Date
    */
   release_date?: string | null;
+  /**
+   * Secondary Types
+   */
+  secondary_types?: Array<string>;
+  /**
+   * Size On Disk
+   */
+  size_on_disk?: number;
   /**
    * Title
    */
@@ -2128,17 +2546,38 @@ export type LibraryAlbumOut = {
 /**
  * LibraryArtistOut
  *
- * A Lidarr artist, as much as picking one needs.
+ * A Lidarr artist: a card in the Music tab, or a choice in the import
+ * sheet's picker.
  */
 export type LibraryArtistOut = {
+  /**
+   * Added
+   */
+  added?: string | null;
   /**
    * Album Count
    */
   album_count?: number;
   /**
+   * Disambiguation
+   */
+  disambiguation?: string | null;
+  /**
+   * Genres
+   */
+  genres?: Array<string>;
+  /**
    * Id
    */
   id: number;
+  /**
+   * Metadata Profile Id
+   */
+  metadata_profile_id?: number | null;
+  /**
+   * Monitor New Items
+   */
+  monitor_new_items?: string | null;
   /**
    * Monitored
    */
@@ -2152,9 +2591,37 @@ export type LibraryArtistOut = {
    */
   poster?: string | null;
   /**
+   * Quality Profile Id
+   */
+  quality_profile_id?: number | null;
+  /**
+   * Rating
+   */
+  rating?: number | null;
+  /**
+   * Size On Disk
+   */
+  size_on_disk?: number;
+  /**
+   * Slug
+   */
+  slug?: string | null;
+  /**
    * Sort Name
    */
   sort_name?: string | null;
+  /**
+   * Status
+   */
+  status?: string | null;
+  /**
+   * Tags
+   */
+  tags?: Array<number>;
+  /**
+   * Track Count
+   */
+  track_count?: number;
   /**
    * Track File Count
    */
@@ -2666,6 +3133,20 @@ export type MovieFileOut = {
    * Size
    */
   size?: number;
+};
+
+/**
+ * MusicLinkOut
+ */
+export type MusicLinkOut = {
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Url
+   */
+  url: string;
 };
 
 /**
@@ -3360,9 +3841,17 @@ export type QualityProfilesOut = {
  */
 export type QueueItemOut = {
   /**
+   * Album Id
+   */
+  album_id?: number | null;
+  /**
    * App
    */
   app: "radarr" | "sonarr" | "readarr" | "lidarr";
+  /**
+   * Artist Id
+   */
+  artist_id?: number | null;
   /**
    * Book Id
    */
@@ -3510,7 +3999,7 @@ export type RecentItemOut = {
   /**
    * App
    */
-  app: "radarr" | "sonarr" | "readarr";
+  app: "radarr" | "sonarr" | "readarr" | "lidarr";
   /**
    * Date
    */
@@ -3826,6 +4315,14 @@ export type ScheduledTaskOut = {
  */
 export type SearchResultOut = {
   /**
+   * Album Type
+   */
+  album_type?: string | null;
+  /**
+   * Artist
+   */
+  artist?: string | null;
+  /**
    * Author
    */
   author?: string | null;
@@ -3856,7 +4353,7 @@ export type SearchResultOut = {
   /**
    * Kind
    */
-  kind: "movie" | "series" | "book";
+  kind: "movie" | "series" | "book" | "artist" | "album";
   /**
    * Library Id
    */
@@ -5753,6 +6250,37 @@ export type ActivitySinceApiV1ActivitySinceGetResponses = {
 export type ActivitySinceApiV1ActivitySinceGetResponse =
   ActivitySinceApiV1ActivitySinceGetResponses[keyof ActivitySinceApiV1ActivitySinceGetResponses];
 
+export type AddAlbumApiV1AlbumsPostData = {
+  body: AddAlbumIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/albums";
+};
+
+export type AddAlbumApiV1AlbumsPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type AddAlbumApiV1AlbumsPostError =
+  AddAlbumApiV1AlbumsPostErrors[keyof AddAlbumApiV1AlbumsPostErrors];
+
+export type AddAlbumApiV1AlbumsPostResponses = {
+  /**
+   * Response Add Album Api V1 Albums Post
+   *
+   * Successful Response
+   */
+  201: {
+    [key: string]: unknown;
+  };
+};
+
+export type AddAlbumApiV1AlbumsPostResponse =
+  AddAlbumApiV1AlbumsPostResponses[keyof AddAlbumApiV1AlbumsPostResponses];
+
 export type ArrBackupsApiV1ArrBackupsGetData = {
   body?: never;
   path?: never;
@@ -5769,6 +6297,37 @@ export type ArrBackupsApiV1ArrBackupsGetResponses = {
 
 export type ArrBackupsApiV1ArrBackupsGetResponse =
   ArrBackupsApiV1ArrBackupsGetResponses[keyof ArrBackupsApiV1ArrBackupsGetResponses];
+
+export type AddArtistApiV1ArtistsPostData = {
+  body: AddArtistIn;
+  path?: never;
+  query?: never;
+  url: "/api/v1/artists";
+};
+
+export type AddArtistApiV1ArtistsPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type AddArtistApiV1ArtistsPostError =
+  AddArtistApiV1ArtistsPostErrors[keyof AddArtistApiV1ArtistsPostErrors];
+
+export type AddArtistApiV1ArtistsPostResponses = {
+  /**
+   * Response Add Artist Api V1 Artists Post
+   *
+   * Successful Response
+   */
+  201: {
+    [key: string]: unknown;
+  };
+};
+
+export type AddArtistApiV1ArtistsPostResponse =
+  AddArtistApiV1ArtistsPostResponses[keyof AddArtistApiV1ArtistsPostResponses];
 
 export type CredentialsApiV1AuthCredentialsGetData = {
   body?: never;
@@ -7359,6 +7918,142 @@ export type TestIndexerApiV1IndexersIndexerIdTestPostResponses = {
 export type TestIndexerApiV1IndexersIndexerIdTestPostResponse =
   TestIndexerApiV1IndexersIndexerIdTestPostResponses[keyof TestIndexerApiV1IndexersIndexerIdTestPostResponses];
 
+export type UpdateAlbumApiV1LibraryAlbumsAlbumIdPatchData = {
+  body: LibraryUpdateIn;
+  path: {
+    /**
+     * Album Id
+     */
+    album_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/albums/{album_id}";
+};
+
+export type UpdateAlbumApiV1LibraryAlbumsAlbumIdPatchErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type UpdateAlbumApiV1LibraryAlbumsAlbumIdPatchError =
+  UpdateAlbumApiV1LibraryAlbumsAlbumIdPatchErrors[keyof UpdateAlbumApiV1LibraryAlbumsAlbumIdPatchErrors];
+
+export type UpdateAlbumApiV1LibraryAlbumsAlbumIdPatchResponses = {
+  /**
+   * Response Update Album Api V1 Library Albums  Album Id  Patch
+   *
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown;
+  };
+};
+
+export type UpdateAlbumApiV1LibraryAlbumsAlbumIdPatchResponse =
+  UpdateAlbumApiV1LibraryAlbumsAlbumIdPatchResponses[keyof UpdateAlbumApiV1LibraryAlbumsAlbumIdPatchResponses];
+
+export type AlbumDetailApiV1LibraryAlbumsAlbumIdDetailGetData = {
+  body?: never;
+  path: {
+    /**
+     * Album Id
+     */
+    album_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/albums/{album_id}/detail";
+};
+
+export type AlbumDetailApiV1LibraryAlbumsAlbumIdDetailGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type AlbumDetailApiV1LibraryAlbumsAlbumIdDetailGetError =
+  AlbumDetailApiV1LibraryAlbumsAlbumIdDetailGetErrors[keyof AlbumDetailApiV1LibraryAlbumsAlbumIdDetailGetErrors];
+
+export type AlbumDetailApiV1LibraryAlbumsAlbumIdDetailGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: AlbumDetailOut;
+};
+
+export type AlbumDetailApiV1LibraryAlbumsAlbumIdDetailGetResponse =
+  AlbumDetailApiV1LibraryAlbumsAlbumIdDetailGetResponses[keyof AlbumDetailApiV1LibraryAlbumsAlbumIdDetailGetResponses];
+
+export type DeleteAlbumFilesApiV1LibraryAlbumsAlbumIdFilesDeleteData = {
+  body?: never;
+  path: {
+    /**
+     * Album Id
+     */
+    album_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/albums/{album_id}/files";
+};
+
+export type DeleteAlbumFilesApiV1LibraryAlbumsAlbumIdFilesDeleteErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type DeleteAlbumFilesApiV1LibraryAlbumsAlbumIdFilesDeleteError =
+  DeleteAlbumFilesApiV1LibraryAlbumsAlbumIdFilesDeleteErrors[keyof DeleteAlbumFilesApiV1LibraryAlbumsAlbumIdFilesDeleteErrors];
+
+export type DeleteAlbumFilesApiV1LibraryAlbumsAlbumIdFilesDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type DeleteAlbumFilesApiV1LibraryAlbumsAlbumIdFilesDeleteResponse =
+  DeleteAlbumFilesApiV1LibraryAlbumsAlbumIdFilesDeleteResponses[keyof DeleteAlbumFilesApiV1LibraryAlbumsAlbumIdFilesDeleteResponses];
+
+export type DeleteTrackFileApiV1LibraryAlbumsAlbumIdFilesFileIdDeleteData = {
+  body?: never;
+  path: {
+    /**
+     * Album Id
+     */
+    album_id: number;
+    /**
+     * File Id
+     */
+    file_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/albums/{album_id}/files/{file_id}";
+};
+
+export type DeleteTrackFileApiV1LibraryAlbumsAlbumIdFilesFileIdDeleteErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type DeleteTrackFileApiV1LibraryAlbumsAlbumIdFilesFileIdDeleteError =
+  DeleteTrackFileApiV1LibraryAlbumsAlbumIdFilesFileIdDeleteErrors[keyof DeleteTrackFileApiV1LibraryAlbumsAlbumIdFilesFileIdDeleteErrors];
+
+export type DeleteTrackFileApiV1LibraryAlbumsAlbumIdFilesFileIdDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type DeleteTrackFileApiV1LibraryAlbumsAlbumIdFilesFileIdDeleteResponse =
+  DeleteTrackFileApiV1LibraryAlbumsAlbumIdFilesFileIdDeleteResponses[keyof DeleteTrackFileApiV1LibraryAlbumsAlbumIdFilesFileIdDeleteResponses];
+
 export type LibraryArtistsApiV1LibraryArtistsGetData = {
   body?: never;
   path?: never;
@@ -7377,6 +8072,107 @@ export type LibraryArtistsApiV1LibraryArtistsGetResponses = {
 
 export type LibraryArtistsApiV1LibraryArtistsGetResponse =
   LibraryArtistsApiV1LibraryArtistsGetResponses[keyof LibraryArtistsApiV1LibraryArtistsGetResponses];
+
+export type DeleteArtistApiV1LibraryArtistsArtistIdDeleteData = {
+  body?: never;
+  path: {
+    /**
+     * Artist Id
+     */
+    artist_id: number;
+  };
+  query?: {
+    /**
+     * Delete Files
+     */
+    delete_files?: boolean;
+  };
+  url: "/api/v1/library/artists/{artist_id}";
+};
+
+export type DeleteArtistApiV1LibraryArtistsArtistIdDeleteErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type DeleteArtistApiV1LibraryArtistsArtistIdDeleteError =
+  DeleteArtistApiV1LibraryArtistsArtistIdDeleteErrors[keyof DeleteArtistApiV1LibraryArtistsArtistIdDeleteErrors];
+
+export type DeleteArtistApiV1LibraryArtistsArtistIdDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type DeleteArtistApiV1LibraryArtistsArtistIdDeleteResponse =
+  DeleteArtistApiV1LibraryArtistsArtistIdDeleteResponses[keyof DeleteArtistApiV1LibraryArtistsArtistIdDeleteResponses];
+
+export type ArtistDetailApiV1LibraryArtistsArtistIdGetData = {
+  body?: never;
+  path: {
+    /**
+     * Artist Id
+     */
+    artist_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/artists/{artist_id}";
+};
+
+export type ArtistDetailApiV1LibraryArtistsArtistIdGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type ArtistDetailApiV1LibraryArtistsArtistIdGetError =
+  ArtistDetailApiV1LibraryArtistsArtistIdGetErrors[keyof ArtistDetailApiV1LibraryArtistsArtistIdGetErrors];
+
+export type ArtistDetailApiV1LibraryArtistsArtistIdGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ArtistDetailOut;
+};
+
+export type ArtistDetailApiV1LibraryArtistsArtistIdGetResponse =
+  ArtistDetailApiV1LibraryArtistsArtistIdGetResponses[keyof ArtistDetailApiV1LibraryArtistsArtistIdGetResponses];
+
+export type UpdateArtistApiV1LibraryArtistsArtistIdPatchData = {
+  body: ArtistUpdateIn;
+  path: {
+    /**
+     * Artist Id
+     */
+    artist_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/artists/{artist_id}";
+};
+
+export type UpdateArtistApiV1LibraryArtistsArtistIdPatchErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type UpdateArtistApiV1LibraryArtistsArtistIdPatchError =
+  UpdateArtistApiV1LibraryArtistsArtistIdPatchErrors[keyof UpdateArtistApiV1LibraryArtistsArtistIdPatchErrors];
+
+export type UpdateArtistApiV1LibraryArtistsArtistIdPatchResponses = {
+  /**
+   * Successful Response
+   */
+  200: LibraryArtistOut;
+};
+
+export type UpdateArtistApiV1LibraryArtistsArtistIdPatchResponse =
+  UpdateArtistApiV1LibraryArtistsArtistIdPatchResponses[keyof UpdateArtistApiV1LibraryArtistsArtistIdPatchResponses];
 
 export type ArtistAlbumsApiV1LibraryArtistsArtistIdAlbumsGetData = {
   body?: never;
@@ -7411,6 +8207,38 @@ export type ArtistAlbumsApiV1LibraryArtistsArtistIdAlbumsGetResponses = {
 
 export type ArtistAlbumsApiV1LibraryArtistsArtistIdAlbumsGetResponse =
   ArtistAlbumsApiV1LibraryArtistsArtistIdAlbumsGetResponses[keyof ArtistAlbumsApiV1LibraryArtistsArtistIdAlbumsGetResponses];
+
+export type RefreshArtistApiV1LibraryArtistsArtistIdRefreshPostData = {
+  body?: never;
+  path: {
+    /**
+     * Artist Id
+     */
+    artist_id: number;
+  };
+  query?: never;
+  url: "/api/v1/library/artists/{artist_id}/refresh";
+};
+
+export type RefreshArtistApiV1LibraryArtistsArtistIdRefreshPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type RefreshArtistApiV1LibraryArtistsArtistIdRefreshPostError =
+  RefreshArtistApiV1LibraryArtistsArtistIdRefreshPostErrors[keyof RefreshArtistApiV1LibraryArtistsArtistIdRefreshPostErrors];
+
+export type RefreshArtistApiV1LibraryArtistsArtistIdRefreshPostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type RefreshArtistApiV1LibraryArtistsArtistIdRefreshPostResponse =
+  RefreshArtistApiV1LibraryArtistsArtistIdRefreshPostResponses[keyof RefreshArtistApiV1LibraryArtistsArtistIdRefreshPostResponses];
 
 export type LibraryAuthorsApiV1LibraryAuthorsGetData = {
   body?: never;
@@ -9528,6 +10356,40 @@ export type GrabNowApiV1QueueAppItemIdGrabPostResponses = {
 export type GrabNowApiV1QueueAppItemIdGrabPostResponse =
   GrabNowApiV1QueueAppItemIdGrabPostResponses[keyof GrabNowApiV1QueueAppItemIdGrabPostResponses];
 
+export type AlbumReleasesApiV1ReleasesAlbumAlbumIdGetData = {
+  body?: never;
+  path: {
+    /**
+     * Album Id
+     */
+    album_id: number;
+  };
+  query?: never;
+  url: "/api/v1/releases/album/{album_id}";
+};
+
+export type AlbumReleasesApiV1ReleasesAlbumAlbumIdGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type AlbumReleasesApiV1ReleasesAlbumAlbumIdGetError =
+  AlbumReleasesApiV1ReleasesAlbumAlbumIdGetErrors[keyof AlbumReleasesApiV1ReleasesAlbumAlbumIdGetErrors];
+
+export type AlbumReleasesApiV1ReleasesAlbumAlbumIdGetResponses = {
+  /**
+   * Response Album Releases Api V1 Releases Album  Album Id  Get
+   *
+   * Successful Response
+   */
+  200: Array<ArrReleaseOut>;
+};
+
+export type AlbumReleasesApiV1ReleasesAlbumAlbumIdGetResponse =
+  AlbumReleasesApiV1ReleasesAlbumAlbumIdGetResponses[keyof AlbumReleasesApiV1ReleasesAlbumAlbumIdGetResponses];
+
 export type BookReleasesApiV1ReleasesBookBookIdGetData = {
   body?: never;
   path: {
@@ -9985,6 +10847,40 @@ export type SearchMoviesApiV1SearchMoviesGetResponses = {
 
 export type SearchMoviesApiV1SearchMoviesGetResponse =
   SearchMoviesApiV1SearchMoviesGetResponses[keyof SearchMoviesApiV1SearchMoviesGetResponses];
+
+export type SearchMusicApiV1SearchMusicGetData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Q
+     */
+    q: string;
+  };
+  url: "/api/v1/search/music";
+};
+
+export type SearchMusicApiV1SearchMusicGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type SearchMusicApiV1SearchMusicGetError =
+  SearchMusicApiV1SearchMusicGetErrors[keyof SearchMusicApiV1SearchMusicGetErrors];
+
+export type SearchMusicApiV1SearchMusicGetResponses = {
+  /**
+   * Response Search Music Api V1 Search Music Get
+   *
+   * Successful Response
+   */
+  200: Array<SearchResultOut>;
+};
+
+export type SearchMusicApiV1SearchMusicGetResponse =
+  SearchMusicApiV1SearchMusicGetResponses[keyof SearchMusicApiV1SearchMusicGetResponses];
 
 export type SearchReleasesApiV1SearchReleasesGetData = {
   body?: never;

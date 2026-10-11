@@ -68,8 +68,12 @@ export function LibraryBulkBar({
   const bulk = useBulkLibrary(kind);
   const bulkDelete = useBulkDeleteLibrary(kind);
   const bulkSearch = useBulkSearchLibrary(kind);
-  // Readarr has tags too, but the arrdeck tag route only knows the video arrs.
-  const { data: tags } = useTags(kind === "movies" ? "radarr" : "sonarr", kind !== "books");
+  // Readarr has tags too, but the arrdeck tag route only knows Radarr, Sonarr
+  // and Lidarr.
+  const { data: tags } = useTags(
+    kind === "movies" ? "radarr" : kind === "music" ? "lidarr" : "sonarr",
+    kind !== "books",
+  );
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [taggingOff, setTaggingOff] = useState(false);
   const ids = [...selected];

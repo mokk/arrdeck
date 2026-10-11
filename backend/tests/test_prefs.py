@@ -64,6 +64,12 @@ def test_a_future_timestamp_is_clamped_to_the_server_clock(client):
     assert put(client, {"a": 2}, stored + 1).json()["values"] == {"a": 2}
 
 
+def test_the_music_librarys_keys_travel_like_the_others(client):
+    # added with the Music tab; the server reads no key, so none needs a change
+    values = {"layout.music": "details", "unmonitored.music": "hide", "layout.movies": "list"}
+    assert put(client, values, 1000).json()["values"] == values
+
+
 def test_unknown_keys_are_kept_as_they_are(client):
     values = {"someFutureThing": True, "ratio": 1.5, "none": None, "name": "x"}
     assert put(client, values, 1000).json()["values"] == values

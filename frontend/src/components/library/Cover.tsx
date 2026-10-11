@@ -17,6 +17,7 @@ export function Cover({
   subtitle,
   className,
   compact = false,
+  square = false,
 }: {
   src?: string | null;
   title: string;
@@ -24,9 +25,16 @@ export function Cover({
   className?: string;
   /** a list thumbnail: too small for text, so colour and an initial only */
   compact?: boolean;
+  /** album covers and artist pictures are square, not a film poster's 2:3 */
+  square?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
-  const base = cn("w-full rounded-xl [aspect-ratio:2/3]", compact && "rounded-md", className);
+  const base = cn(
+    "w-full rounded-xl",
+    square ? "aspect-square" : "[aspect-ratio:2/3]",
+    compact && "rounded-md",
+    className,
+  );
   if (src && !failed)
     return (
       <img

@@ -144,6 +144,7 @@ export function ReleasesSheet({
     season?: number;
     episodeId?: number;
     bookId?: number;
+    albumId?: number;
   };
   title: string;
   onClose: () => void;

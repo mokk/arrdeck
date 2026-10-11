@@ -21,11 +21,13 @@ import { useScrollMemory } from "./lib/scrollMemory";
 // everything else is fetched on first visit, which keeps the initial download
 // small. The PWA precache globs **/*.js, so the split chunks are still
 // available offline.
-import { BooksPage, MoviesPage, ShowsPage } from "./pages/Library";
+import { BooksPage, MoviesPage, MusicPage, ShowsPage } from "./pages/Library";
 import { arrangeTabs, startTab, tabFor, tabsFor } from "./tabs";
 
 const Activity = lazy(() => import("./pages/Activity"));
 const Add = lazy(() => import("./pages/Add"));
+const AlbumPage = lazy(() => import("./pages/Album"));
+const ArtistPage = lazy(() => import("./pages/Artist"));
 const AuthorPage = lazy(() => import("./pages/Author"));
 const BookPage = lazy(() => import("./pages/Book"));
 const CalendarPage = lazy(() => import("./pages/Calendar"));
@@ -163,6 +165,7 @@ function Shell() {
                 <Route path="/books" element={<BooksPage />} />
                 <Route path="/movies" element={<MoviesPage />} />
                 <Route path="/shows" element={<ShowsPage />} />
+                <Route path="/music" element={<MusicPage />} />
                 <Route path="/activity" element={<Activity />} />
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/settings" element={<Settings />} />
@@ -171,6 +174,8 @@ function Shell() {
                 <Route path="/popular" element={<PopularPage />} />
                 <Route path="/wanted" element={<WantedPage />} />
                 <Route path="/add" element={<Add />} />
+                <Route path="/album/:id" element={<AlbumPage />} />
+                <Route path="/artist/:id" element={<ArtistPage />} />
                 <Route path="/author/:id" element={<AuthorPage />} />
                 <Route path="/book/:id" element={<BookPage />} />
                 <Route path="/movie/:id" element={<MoviePage />} />

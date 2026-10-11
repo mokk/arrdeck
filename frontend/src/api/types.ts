@@ -45,6 +45,10 @@ export type LibrarySeries = G.LibrarySeriesOut;
 export type LibraryBook = G.LibraryBookOut;
 export type LibraryArtist = G.LibraryArtistOut;
 export type LibraryAlbum = G.LibraryAlbumOut;
+export type ArtistDetail = G.ArtistDetailOut;
+export type AlbumDetail = G.AlbumDetailOut;
+export type AlbumTrack = G.AlbumTrackOut;
+export type MusicLink = G.MusicLinkOut;
 export type BookDetail = G.BookDetailOut;
 export type BookEdition = G.BookEditionOut;
 export type Author = G.AuthorOut;
@@ -57,8 +61,9 @@ export type TitleSubtitles = G.TitleSubtitlesOut;
 export type EpisodeSubtitles = G.EpisodeSubtitlesOut;
 export type ActivitySince = G.ActivitySinceOut;
 export type ActivityEvent = G.ActivityEventOut;
-/** The three libraries the shared list/bulk hooks address by URL segment. */
-export type LibraryKind = "movies" | "series" | "books";
+/** The libraries the shared list/bulk hooks address by URL segment. Music's
+ * cards are artists, so its segment is /library/artists. */
+export type LibraryKind = "movies" | "series" | "books" | "music";
 export type SeriesDetail = G.SeriesDetailOut;
 export type Season = G.SeasonOut;
 export type Episode = G.EpisodeOut;

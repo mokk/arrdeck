@@ -172,6 +172,8 @@ const RATING_SOURCES: Record<string, { name: string; label: string }> = {
   rottenTomatoes: { name: "Rotten Tomatoes", label: "RT" },
   metacritic: { name: "Metacritic", label: "Metacritic" },
   trakt: { name: "Trakt", label: "Trakt" },
+  // Lidarr's one score, from MusicBrainz's community ratings
+  musicbrainz: { name: "MusicBrainz", label: "MusicBrainz" },
 };
 
 /** One source's score as a chip: the arrs send Rotten Tomatoes and Metacritic

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { SERVICE_LABELS } from "../../api/format";
 import type { ArrApp, LibraryKind } from "../../api/types";
 import {
+  useBulkSearchLibrary,
   useDeleteLibraryItem,
   useServices,
   useTriggerSearch,
@@ -15,10 +16,12 @@ import { BigButton } from "../media";
 import { Sheet } from "../Sheet";
 
 // Where each arr's own UI shows one title: /movie/<slug>, /series/<slug>…
+// Lidarr's slug is the artist's MusicBrainz id.
 const ARR_PATH: Record<LibraryKind, string> = {
   movies: "movie",
   series: "series",
   books: "book",
+  music: "artist",
 };
 
 export type MenuTarget = {
@@ -44,6 +47,8 @@ export function CardMenu({
   const { data: services } = useServices();
   const update = useUpdateLibraryItem(kind);
   const search = useTriggerSearch();
+  // a music card is an artist: search their monitored albums, not one album
+  const artistSearch = useBulkSearchLibrary("music");
   const remove = useDeleteLibraryItem(kind);
   const [confirming, setConfirming] = useState(false);
   const webUrl = services?.find((s) => s.service === app)?.web_url;
@@ -97,7 +102,11 @@ export function CardMenu({
           </BigButton>
           <BigButton
             color="blue"
-            onClick={ask(t("add.searchNow"), () => search.mutate({ app, id: target.id }))}
+            onClick={ask(t("add.searchNow"), () =>
+              kind === "music"
+                ? artistSearch.mutate([target.id])
+                : search.mutate({ app, id: target.id }),
+            )}
           >
             {t("add.searchNow")}
           </BigButton>

@@ -55,7 +55,8 @@
     "ok": "ok",
     "radarr": "radarr",
     "sonarr": "sonarr",
-    "delay": "holdt"
+    "delay": "holdt",
+    "lidarr": "lidarr"
   },
   "dash": {
     "torrentActivity": "Torrent-aktivitet",
@@ -265,7 +266,21 @@
     "monitor_pick": "Vælg sæsoner…",
     "specials": "Specials",
     "seasonN": "Sæson {{n}}",
-    "addOnly": "Tilføj"
+    "addOnly": "Tilføj",
+    "searchMusic": "Søg kunstnere og album…",
+    "addMusic": "Tilføj musik",
+    "searchMusicHint": "Søg efter en kunstner eller et album i Lidarr for at tilføje det",
+    "artistKind": "Kunstner",
+    "albumKind": "Album",
+    "artistMonitor": "Overvåg",
+    "artistMonitor_all": "Alle album",
+    "artistMonitor_future": "Kommende album",
+    "artistMonitor_missing": "Manglende album",
+    "artistMonitor_existing": "Eksisterende album",
+    "artistMonitor_latest": "Seneste album",
+    "artistMonitor_first": "Første album",
+    "artistMonitor_none": "Ingen",
+    "albumArtistHint": "Har Lidarr ikke kunstneren endnu, bliver de tilføjet med disse indstillinger, og kun dette album overvåges."
   },
   "manage": {
     "title": "Administrér",
@@ -324,7 +339,8 @@
       "privacy": "Privatliv",
       "enable": "Aktiveret",
       "author": "Forfatter",
-      "added": "Tilføjet"
+      "added": "Tilføjet",
+      "track_file_count": "Numre på disken"
     },
     "export": "Eksportér indstillinger",
     "import": "Importér indstillinger",
@@ -654,13 +670,16 @@
       "add": {
         "movies": "Tilføj en film",
         "series": "Tilføj en serie",
-        "books": "Tilføj en bog"
+        "books": "Tilføj en bog",
+        "music": "Tilføj en kunstner"
       },
       "allUnmonitored": "Alt her er uovervåget, og uovervågede titler er skjult.",
       "showUnmonitored": "Vis uovervågede",
-      "clearSearch": "Ryd søgning"
+      "clearSearch": "Ryd søgning",
+      "music": "Ingen musik endnu."
     },
-    "downloading": "Henter"
+    "downloading": "Henter",
+    "searchMusic": "Søg kunstnere"
   },
   "activity": {
     "downloads": "Downloads",
@@ -877,13 +896,14 @@
   },
   "globalSearch": {
     "title": "Søg i alt",
-    "placeholder": "Film, serier, bøger, forfattere…",
+    "placeholder": "Film, serier, bøger, forfattere, kunstnere…",
     "nothing": "Intet i dine biblioteker passer.",
     "online": "Søg online efter “{{q}}”",
     "movies": "Film",
     "shows": "Serier",
     "books": "Bøger",
-    "authors": "Forfattere"
+    "authors": "Forfattere",
+    "artists": "Kunstnere"
   },
   "seasons": {
     "latestOnly": "Kun seneste",
@@ -1045,5 +1065,43 @@
     "unkeepAction": "Fjern fra de beholdte",
     "raiseLimit": "Tillad {{n}} sletninger pr. kørsel",
     "raiseLimitBody": "Hver kørsel kan slette flere titler."
+  },
+  "music": {
+    "albums_one": "{{count}} album",
+    "albums_other": "{{count}} album",
+    "tracksOnDisk": "{{have}} af {{total}} numre på disken",
+    "filter": {
+      "any": "Alle kunstnere",
+      "onDisk": "På disken",
+      "missing": "Intet på disken"
+    },
+    "type": {
+      "Album": "Album",
+      "EP": "EP'er",
+      "Single": "Singler",
+      "Broadcast": "Udsendelser",
+      "Other": "Andet"
+    }
+  },
+  "artist": {
+    "refresh": "Opdatér og scan igen",
+    "refreshing": "Lidarr opdaterer kunstneren",
+    "edit": "Redigér…",
+    "editTitle": "Redigér {{name}}",
+    "noAlbums": "Lidarr har ingen album for denne kunstner med den metadataprofil.",
+    "newAlbums": "Nye album",
+    "newAlbums_all": "Overvåg alle",
+    "newAlbums_new": "Overvåg nye",
+    "newAlbums_none": "Overvåg ikke",
+    "path": "Mappe",
+    "moveFiles": "Flyt filerne til den nye mappe",
+    "tags": "Tags"
+  },
+  "album": {
+    "tracks": "Numre · {{have}} af {{total}} på disken",
+    "medium": "Disk {{number}}",
+    "deleteFiles": "Slet albummets filer",
+    "filesDeleted": "Filer slettet",
+    "deleteTrackFile": "Slet filen til {{title}}"
   }
 }

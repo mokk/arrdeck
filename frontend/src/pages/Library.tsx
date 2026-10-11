@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn, focusRing } from "@/lib/utils";
 import { formatBytes, formatWhen, watchedFor } from "../api/format";
 import type {
+  LibraryArtist,
   LibraryBook,
   LibraryKind,
   LibraryMovie,
@@ -38,6 +39,7 @@ import {
 } from "../components/subnav";
 import { WatchedDot } from "../components/WatchedDot";
 import {
+  useLibraryArtists,
   useLibraryBooks,
   useLibraryMovies,
   useLibrarySeries,
@@ -69,6 +71,8 @@ interface Card {
   status: "downloaded" | "wanted" | "unmonitored" | "continuing" | "ended";
   /** books: the reading status, when one is set */
   reading?: string | null;
+  /** music: whether any of the artist's tracks are on disk */
+  on_disk?: boolean;
   size_on_disk?: number;
   episode_file_count?: number;
   tmdb_id?: number | null;
@@ -99,7 +103,17 @@ const CONFIG = {
     sortKeys: ["added", "author", "title", "year", "status", "size_on_disk"],
     addTab: "books",
   },
+  music: {
+    app: "lidarr",
+    route: "artist",
+    placeholder: "library.searchMusic",
+    sortKeys: ["added", "title", "status", "track_file_count", "size_on_disk"],
+    addTab: "music",
+  },
 } as const;
+
+// music only: narrow to artists with something on disk, or nothing yet
+const ON_DISK = ["", "onDisk", "missing"] as const;
 
 // the sorts a letter index makes sense for
 const LETTER_SORTS = new Set(["title", "author"]);
@@ -191,6 +205,38 @@ export function BooksPage() {
   );
 }
 
+export function MusicPage() {
+  const { t } = useTranslation();
+  const { data, error, isLoading } = useLibraryArtists();
+  return (
+    <LibraryView
+      kind="music"
+      error={error}
+      loading={isLoading}
+      cards={data?.map((a: LibraryArtist) => ({
+        ...a,
+        title: a.name ?? "",
+        subtitle: t("music.albums", { count: a.album_count ?? 0 }),
+        detail: joined(
+          (a.track_count ?? 0) > 0 &&
+            t("music.tracksOnDisk", { have: a.track_file_count ?? 0, total: a.track_count }),
+          size(a.size_on_disk),
+          a.genres?.[0],
+          a.rating && `★ ${a.rating.toFixed(1)}`,
+        ),
+        // an artist is "downloaded" once anything of theirs is on disk;
+        // a monitored artist with nothing yet is wanted
+        status: !a.monitored
+          ? "unmonitored"
+          : (a.track_file_count ?? 0) > 0
+            ? "downloaded"
+            : "wanted",
+        on_disk: (a.track_file_count ?? 0) > 0,
+      }))}
+    />
+  );
+}
+
 function LibraryView({
   kind,
   cards,
@@ -209,15 +255,23 @@ function LibraryView({
   const unmonitored = usePref(`unmonitored.${kind}`);
   const { data: options } = useOptions(config.app);
   const { data: services } = useServices();
+  // Plex's watch state matches films and shows by their TMDB/TVDB/IMDb ids
+  const video = kind === "movies" || kind === "series";
   const { data: watched } = useWatched(
-    kind !== "books" && (services ?? []).some((sv) => sv.service === "plex" && sv.configured),
+    video && (services ?? []).some((sv) => sv.service === "plex" && sv.configured),
   );
   // What is downloading right now, per title: a bar on its cover.
   const { data: queue } = useQueue();
   const progress = new Map<number, number>();
   for (const item of queue?.[config.app]?.data ?? []) {
     const id =
-      kind === "movies" ? item.movie_id : kind === "series" ? item.series_id : item.book_id;
+      kind === "movies"
+        ? item.movie_id
+        : kind === "series"
+          ? item.series_id
+          : kind === "music"
+            ? item.artist_id
+            : item.book_id;
     if (id == null) continue;
     const done = item.size ? 1 - (item.size_left ?? 0) / item.size : 0;
     // a show with several episodes in the queue shows the furthest along
@@ -228,6 +282,11 @@ function LibraryView({
   // books only: narrow to one reading status
   const [readingFilter, setReadingFilter] = usePersistentState<string>(
     "library.books.reading",
+    "",
+  );
+  // music only: artists with something on disk, or with nothing yet
+  const [diskFilter, setDiskFilter] = usePersistentState<(typeof ON_DISK)[number]>(
+    "library.music.onDisk",
     "",
   );
   // Newest additions first, the way the app opens too. `added` is an ISO
@@ -251,7 +310,8 @@ function LibraryView({
   const visible = (cards ?? []).filter(
     (c) =>
       (unmonitored !== "hide" || c.status !== "unmonitored") &&
-      (kind !== "books" || !readingFilter || c.reading === readingFilter),
+      (kind !== "books" || !readingFilter || c.reading === readingFilter) &&
+      (kind !== "music" || !diskFilter || c.on_disk === (diskFilter === "onDisk")),
   );
   const nowReading =
     kind === "books" && !needle ? (cards ?? []).filter((c) => c.reading === "reading") : [];
@@ -297,8 +357,9 @@ function LibraryView({
         dimmed={unmonitored === "dim" && card.status === "unmonitored"}
         watched={watchedItem}
         progress={progress.get(card.id)}
+        square={kind === "music"}
         request={
-          kind === "books"
+          !video
             ? undefined
             : requestFor(requests, {
                 kind: kind === "movies" ? "movie" : "tv",
@@ -449,6 +510,21 @@ function LibraryView({
             </div>
           }
         >
+          {kind === "music" && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {ON_DISK.map((choice) => (
+                <Button
+                  key={choice || "any"}
+                  size="sm"
+                  variant={diskFilter === choice ? "default" : "secondary"}
+                  className="rounded-full"
+                  onClick={() => setDiskFilter(choice)}
+                >
+                  {t(`music.filter.${choice || "any"}`)}
+                </Button>
+              ))}
+            </div>
+          )}
           {kind === "books" && (
             <div className="mb-3 flex flex-wrap gap-2">
               {["", ...READING].map((status) => (
@@ -491,11 +567,14 @@ function LibraryItem({
   progress,
   request,
   checked,
+  square = false,
   onOpen,
   onMenu,
 }: {
   card: Card;
   layout: Layout;
+  /** music's artwork is square */
+  square?: boolean;
   anchor?: string;
   dimmed: boolean;
   watched: WatchedItem | undefined;
@@ -559,7 +638,12 @@ function LibraryItem({
         )}
       >
         <div className={cn("relative", dimmed && "opacity-40")}>
-          <Cover src={card.poster} title={card.title} subtitle={card.subtitle} />
+          <Cover
+            src={card.poster}
+            title={card.title}
+            subtitle={card.subtitle}
+            square={square}
+          />
           {bar && <div className="absolute inset-x-2 bottom-2">{bar}</div>}
           {request && (
             <div className="absolute left-1.5 top-1.5">
@@ -590,7 +674,7 @@ function LibraryItem({
       )}
     >
       <div className={cn("relative shrink-0", details ? "w-14" : "w-9")}>
-        <Cover src={card.poster} title={card.title} compact={!details} />
+        <Cover src={card.poster} title={card.title} compact={!details} square={square} />
         {tick}
       </div>
       <div className="min-w-0 flex-1">

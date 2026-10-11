@@ -33,6 +33,7 @@ const KINDS: { kind: LibraryKind; service: string; label: string }[] = [
   { kind: "books", service: "readarr", label: "nav.books" },
   { kind: "movies", service: "radarr", label: "nav.movies" },
   { kind: "series", service: "sonarr", label: "nav.shows" },
+  { kind: "music", service: "lidarr", label: "nav.music" },
 ];
 const UNMONITORED: Unmonitored[] = ["show", "dim", "hide"];
 

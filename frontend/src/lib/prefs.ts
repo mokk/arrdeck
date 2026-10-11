@@ -17,11 +17,12 @@ export type Layout =
 
 /** Each tab's views: the three shared layouts, then the one that only makes
  * sense for that kind — airing order for shows, series for books, Radarr's
- * collections for films. */
+ * collections for films. Music has only the shared three. */
 export const LAYOUTS_FOR: Record<LibraryKind, Layout[]> = {
   movies: ["posters", "list", "details", "collections"],
   series: ["posters", "list", "details", "upnext", "seasons"],
   books: ["posters", "list", "details", "shelf"],
+  music: ["posters", "list", "details"],
 };
 export type Unmonitored = "show" | "dim" | "hide";
 /** Dates as "3 days ago" or "Sep 20". */
@@ -60,9 +61,11 @@ const DEFAULTS: Prefs = {
   "layout.movies": "posters",
   "layout.series": "posters",
   "layout.books": "posters",
+  "layout.music": "posters",
   "unmonitored.movies": "show",
   "unmonitored.series": "show",
   "unmonitored.books": "show",
+  "unmonitored.music": "show",
 };
 
 const PREFIX = "prefs.";
@@ -71,10 +74,12 @@ const listeners = new Set<() => void>();
 // sync would otherwise push back what it just pulled.
 const changeListeners = new Set<() => void>();
 
-/** Every synced preference, by the name it has on the wire and in storage. */
+/** Every synced preference, by the name it has on the wire and in storage —
+ * the list of keys GET/PUT /prefs carries. layout.music and unmonitored.music
+ * came with the Music tab; a client that predates them and writes the whole
+ * set drops them, and the next change here puts them back. */
 export const PREF_KEYS = Object.keys(DEFAULTS) as (keyof Prefs)[];
 
-const LAYOUTS: Layout[] = Object.values(LAYOUTS_FOR).flat();
 const OPTIONS: Record<string, readonly string[]> = {
   unmonitored: ["show", "dim", "hide"],
   dates: ["relative", "absolute"],
@@ -91,7 +96,9 @@ function isValidPref(key: string, value: unknown): boolean {
     return Array.isArray(value) && value.every((v) => typeof v === "string");
   }
   if (key === "startTab") return typeof value === "string";
-  if (key.startsWith("layout.")) return LAYOUTS.includes(value as Layout);
+  // each library's own views: a show's "upnext" means nothing to the Music tab
+  if (key.startsWith("layout."))
+    return (LAYOUTS_FOR[key.slice(7) as LibraryKind] ?? []).includes(value as Layout);
   const options = OPTIONS[key.startsWith("unmonitored.") ? "unmonitored" : key];
   return !!options && options.includes(value as string);
 }
